@@ -11,6 +11,9 @@ dependencies:
     sdk: flutter
   google_fonts: ^6.3.2
   provider: ^6.1.5+1
+  google_generative_ai: ^0.4.0
+  flutter_markdown: ^0.7.3
+  file_picker: ^8.0.5
 
 dev_dependencies:
   flutter_test:

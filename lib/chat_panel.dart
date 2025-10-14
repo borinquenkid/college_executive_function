@@ -1,5 +1,7 @@
 import 'package:college_exeecutive_function/chat_provider.dart';
+import 'package:college_exeecutive_function/sources_provider.dart';
 import 'package:flutter/material.dart';
+import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';
 
 class ChatPanel extends StatelessWidget {
@@ -8,6 +10,7 @@ class ChatPanel extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final chatProvider = Provider.of<ChatProvider>(context);
+    final sourcesProvider = Provider.of<SourcesProvider>(context);
     final textController = TextEditingController();
 
     return Container(
@@ -38,14 +41,16 @@ class ChatPanel extends StatelessWidget {
                           : Theme.of(context).colorScheme.secondary,
                       borderRadius: BorderRadius.circular(16.0),
                     ),
-                    child: Text(
-                      message.message,
-                      style: TextStyle(
-                        color: isUser
-                            ? Theme.of(context).colorScheme.onPrimary
-                            : Theme.of(context).colorScheme.onSecondary,
-                      ),
-                    ),
+                    child: MarkdownBody(
+                        data: message.message,
+                        styleSheet: MarkdownStyleSheet.fromTheme(Theme.of(context))
+                            .copyWith(
+                          p: TextStyle(
+                            color: isUser
+                                ? Theme.of(context).colorScheme.onPrimary
+                                : Theme.of(context).colorScheme.onSecondary,
+                          ),
+                        )),
                   ),
                 );
               },
@@ -68,6 +73,7 @@ class ChatPanel extends StatelessWidget {
                       if (value.isNotEmpty) {
                         chatProvider.addMessage(
                           ChatMessage(author: 'User', message: value),
+                          sourcesProvider.sources,
                         );
                         textController.clear();
                       }
@@ -83,6 +89,7 @@ class ChatPanel extends StatelessWidget {
                           author: 'User',
                           message: textController.text,
                         ),
+                        sourcesProvider.sources,
                       );
                       textController.clear();
                     }

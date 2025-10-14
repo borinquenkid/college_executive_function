@@ -1,5 +1,7 @@
 import 'package:college_exeecutive_function/chat_provider.dart';
 import 'package:college_exeecutive_function/settings_page.dart';
+import 'package:college_exeecutive_function/sources_provider.dart';
+import 'package:college_exeecutive_function/studio_provider.dart';
 import 'package:college_exeecutive_function/theme.dart';
 import 'package:college_exeecutive_function/theme_provider.dart';
 import 'package:flutter/material.dart';
@@ -21,6 +23,8 @@ class MainApp extends StatelessWidget {
       providers: [
         ChangeNotifierProvider(create: (context) => ChatProvider()),
         ChangeNotifierProvider(create: (context) => ThemeProvider()),
+        ChangeNotifierProvider(create: (context) => SourcesProvider()),
+        ChangeNotifierProvider(create: (context) => StudioProvider()),
       ],
       child: Consumer<ThemeProvider>(
         builder: (context, themeProvider, child) {

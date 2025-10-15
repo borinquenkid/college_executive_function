@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:college_exeecutive_function/sources_provider.dart';
 import 'package:college_exeecutive_function/studio_provider.dart';
 import 'package:flutter/material.dart';
@@ -37,7 +39,18 @@ class _StudioPanelState extends State<StudioPanel> {
 
     final model = GenerativeModel(model: 'gemini-pro', apiKey: _apiKey);
 
-    String sourcesText = sourcesProvider.sources.map((s) => s.content).join('\n\n');
+    List<String> sourceContents = [];
+    for (var source in sourcesProvider.allSources) {
+      try {
+        String content = await File(source.filePath).readAsString();
+        sourceContents.add(content);
+      } catch (e) {
+        // Handle file read errors
+        print('Error reading file: ${source.filePath}');
+      }
+    }
+
+    String sourcesText = sourceContents.join('\n\n');
     String prompt =
         '''Based on the following sources:\n\n$sourcesText\n\nPlease generate a $promptType.''';
 

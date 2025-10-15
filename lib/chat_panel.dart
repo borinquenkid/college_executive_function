@@ -73,7 +73,7 @@ class ChatPanel extends StatelessWidget {
                       if (value.isNotEmpty) {
                         chatProvider.addMessage(
                           ChatMessage(author: 'User', message: value),
-                          sourcesProvider.sources,
+                          sourcesProvider.allSources,
                         );
                         textController.clear();
                       }
@@ -89,7 +89,7 @@ class ChatPanel extends StatelessWidget {
                           author: 'User',
                           message: textController.text,
                         ),
-                        sourcesProvider.sources,
+                        sourcesProvider.allSources,
                       );
                       textController.clear();
                     }

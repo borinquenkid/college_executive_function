@@ -1,3 +1,5 @@
+import 'dart:io';
+
 import 'package:college_exeecutive_function/source_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
@@ -27,7 +29,18 @@ class ChatProvider extends ChangeNotifier {
     if (message.author == 'User') {
       final model = GenerativeModel(model: 'gemini-pro', apiKey: _apiKey);
 
-      String sourcesText = sources.map((s) => s.content).join('\n\n');
+      List<String> sourceContents = [];
+      for (var source in sources) {
+        try {
+          String content = await File(source.filePath).readAsString();
+          sourceContents.add(content);
+        } catch (e) {
+          // Handle file read errors, e.g., show an error to the user
+          print('Error reading file: ${source.filePath}');
+        }
+      }
+
+      String sourcesText = sourceContents.join('\n\n');
       String prompt =
           '''Based on the following sources:\n\n$sourcesText\n\nAnswer the following question: ${message.message}''';
 

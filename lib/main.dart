@@ -33,6 +33,7 @@ class MainApp extends StatelessWidget {
             darkTheme: AppTheme.darkTheme,
             themeMode: themeProvider.themeMode,
             home: const MyHomePage(),
+            debugShowCheckedModeBanner: false,
           );
         },
       ),
@@ -40,14 +41,59 @@ class MainApp extends StatelessWidget {
   }
 }
 
-class MyHomePage extends StatelessWidget {
+class MyHomePage extends StatefulWidget {
   const MyHomePage({super.key});
 
   @override
+  State<MyHomePage> createState() => _MyHomePageState();
+}
+
+class _MyHomePageState extends State<MyHomePage> {
+  bool _isSourcesPanelVisible = false;
+  bool _isStudioPanelVisible = false;
+
+  @override
   Widget build(BuildContext context) {
+    final isPhone = MediaQuery.of(context).size.width < 600;
+
+    if (!isPhone) {
+      // Original desktop layout
+      return Scaffold(
+        appBar: AppBar(
+          title: const Text('College Executive Function'),
+          actions: [
+            IconButton(
+              icon: const Icon(Icons.settings),
+              onPressed: () {
+                Navigator.of(context).push(
+                  MaterialPageRoute(builder: (context) => const SettingsPage()),
+                );
+              },
+            ),
+          ],
+        ),
+        body: const Row(
+          children: [
+            Expanded(flex: 1, child: SourcesPanel()),
+            Expanded(flex: 2, child: ChatPanel()),
+            Expanded(flex: 1, child: StudioPanel()),
+          ],
+        ),
+      );
+    }
+
+    // New phone layout
     return Scaffold(
       appBar: AppBar(
-        title: const Text('NotebookLM Clone'),
+        title: const Text('College Executive Function'),
+        leading: IconButton(
+          icon: const Icon(Icons.source),
+          onPressed: () {
+            setState(() {
+              _isSourcesPanelVisible = !_isSourcesPanelVisible;
+            });
+          },
+        ),
         actions: [
           IconButton(
             icon: const Icon(Icons.settings),
@@ -59,12 +105,62 @@ class MyHomePage extends StatelessWidget {
           ),
         ],
       ),
-      body: const Row(
+      body: Stack(
         children: [
-          Expanded(flex: 1, child: SourcesPanel()),
-          Expanded(flex: 2, child: ChatPanel()),
-          Expanded(flex: 1, child: StudioPanel()),
+          const ChatPanel(),
+          // Sources Panel
+          if (_isSourcesPanelVisible)
+            GestureDetector(
+              onTap: () => setState(() => _isSourcesPanelVisible = false),
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+              ),
+            ),
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            top: _isSourcesPanelVisible ? 0 : -MediaQuery.of(context).size.height,
+            left: 0,
+            right: 0,
+            child: Material(
+              elevation: 8,
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: const SourcesPanel(),
+              ),
+            ),
+          ),
+          // Studio Panel
+          if (_isStudioPanelVisible)
+            GestureDetector(
+              onTap: () => setState(() => _isStudioPanelVisible = false),
+              child: Container(
+                color: Colors.black.withOpacity(0.5),
+              ),
+            ),
+          AnimatedPositioned(
+            duration: const Duration(milliseconds: 300),
+            curve: Curves.easeInOut,
+            bottom: _isStudioPanelVisible ? 0 : -MediaQuery.of(context).size.height,
+            left: 0,
+            right: 0,
+            child: Material(
+              elevation: 8,
+              child: SizedBox(
+                height: MediaQuery.of(context).size.height * 0.6,
+                child: const StudioPanel(),
+              ),
+            ),
+          ),
         ],
+      ),
+      floatingActionButton: FloatingActionButton(
+        onPressed: () {
+          setState(() {
+            _isStudioPanelVisible = !_isStudioPanelVisible;
+          });
+        },
+        child: const Icon(Icons.edit_note),
       ),
     );
   }

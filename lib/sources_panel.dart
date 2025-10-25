@@ -1,5 +1,5 @@
-import 'package:college_exeecutive_function/source_model.dart';
-import 'package:college_exeecutive_function/sources_provider.dart';
+import 'package:college_executive_function/source_model.dart';
+import 'package:college_executive_function/sources_provider.dart';
 import 'package:file_picker/file_picker.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';

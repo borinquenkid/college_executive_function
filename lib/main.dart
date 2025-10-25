@@ -1,13 +1,13 @@
-import 'package:college_exeecutive_function/chat_provider.dart';
-import 'package:college_exeecutive_function/settings_page.dart';
-import 'package:college_exeecutive_function/sources_provider.dart';
-import 'package:college_exeecutive_function/studio_provider.dart';
-import 'package:college_exeecutive_function/theme.dart';
-import 'package:college_exeecutive_function/theme_provider.dart';
+import 'package:college_executive_function/chat_provider.dart';
+import 'package:college_executive_function/settings_page.dart';
+import 'package:college_executive_function/sources_provider.dart';
+import 'package:college_executive_function/studio_provider.dart';
+import 'package:college_executive_function/theme.dart';
+import 'package:college_executive_function/theme_provider.dart';
 import 'package:flutter/material.dart';
-import 'package:college_exeecutive_function/sources_panel.dart';
-import 'package:college_exeecutive_function/chat_panel.dart';
-import 'package:college_exeecutive_function/studio_panel.dart';
+import 'package:college_executive_function/sources_panel.dart';
+import 'package:college_executive_function/chat_panel.dart';
+import 'package:college_executive_function/studio_panel.dart';
 import 'package:provider/provider.dart';
 
 void main() {

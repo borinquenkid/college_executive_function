@@ -1,6 +1,6 @@
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <application
-        android:label="college_exeecutive_function"
+        android:label="college_executive_function"
         android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher">
         <activity

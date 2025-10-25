@@ -90,12 +90,12 @@ BEGIN
         BLOCK "040904e4"
         BEGIN
             VALUE "CompanyName", "com.borinquenterrier.cef" "\0"
-            VALUE "FileDescription", "college_exeecutive_function" "\0"
+            VALUE "FileDescription", "college_executive_function" "\0"
             VALUE "FileVersion", VERSION_AS_STRING "\0"
-            VALUE "InternalName", "college_exeecutive_function" "\0"
+            VALUE "InternalName", "college_executive_function" "\0"
             VALUE "LegalCopyright", "Copyright (C) 2025 com.borinquenterrier.cef. All rights reserved." "\0"
-            VALUE "OriginalFilename", "college_exeecutive_function.exe" "\0"
-            VALUE "ProductName", "college_exeecutive_function" "\0"
+            VALUE "OriginalFilename", "college_executive_function.exe" "\0"
+            VALUE "ProductName", "college_executive_function" "\0"
             VALUE "ProductVersion", VERSION_AS_STRING "\0"
         END
     END

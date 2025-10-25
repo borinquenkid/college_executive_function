@@ -1,7 +1,7 @@
 import 'dart:io';
 
-import 'package:college_exeecutive_function/sources_provider.dart';
-import 'package:college_exeecutive_function/studio_provider.dart';
+import 'package:college_executive_function/sources_provider.dart';
+import 'package:college_executive_function/studio_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 import 'package:provider/provider.dart';
@@ -18,6 +18,7 @@ class StudioPanel extends StatefulWidget {
 
 class _StudioPanelState extends State<StudioPanel> {
   final TextEditingController _textController = TextEditingController();
+  bool _isLoading = false;
 
   @override
   void didChangeDependencies() {
@@ -33,6 +34,10 @@ class _StudioPanelState extends State<StudioPanel> {
   }
 
   Future<void> _generateContent(BuildContext context, String promptType) async {
+    setState(() {
+      _isLoading = true;
+    });
+
     final sourcesProvider =
         Provider.of<SourcesProvider>(context, listen: false);
     final studioProvider = Provider.of<StudioProvider>(context, listen: false);
@@ -61,6 +66,10 @@ class _StudioPanelState extends State<StudioPanel> {
     } catch (e) {
       _textController.text = 'Error: $e';
       studioProvider.saveNotes(_textController.text);
+    } finally {
+      setState(() {
+        _isLoading = false;
+      });
     }
   }
 
@@ -78,17 +87,28 @@ class _StudioPanelState extends State<StudioPanel> {
             Text('STUDIO', style: Theme.of(context).textTheme.headlineSmall),
             const SizedBox(height: 16),
             Expanded(
-              child: TextField(
-                controller: _textController,
-                maxLines: null,
-                expands: true,
-                decoration: const InputDecoration(
-                  hintText: 'Your notes...',
-                  border: OutlineInputBorder(),
-                ),
-                onChanged: (value) {
-                  studioProvider.saveNotes(value);
-                },
+              child: Stack(
+                children: [
+                  TextField(
+                    controller: _textController,
+                    maxLines: null,
+                    expands: true,
+                    decoration: const InputDecoration(
+                      hintText: 'Your notes...',
+                      border: OutlineInputBorder(),
+                    ),
+                    onChanged: (value) {
+                      studioProvider.saveNotes(value);
+                    },
+                  ),
+                  if (_isLoading)
+                    Container(
+                      color: Colors.black.withOpacity(0.5),
+                      child: const Center(
+                        child: CircularProgressIndicator(),
+                      ),
+                    ),
+                ],
               ),
             ),
             const SizedBox(height: 16),

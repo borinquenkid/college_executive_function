@@ -1,5 +1,5 @@
-import 'package:college_exeecutive_function/chat_provider.dart';
-import 'package:college_exeecutive_function/sources_provider.dart';
+import 'package:college_executive_function/chat_provider.dart';
+import 'package:college_executive_function/sources_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_markdown/flutter_markdown.dart';
 import 'package:provider/provider.dart';

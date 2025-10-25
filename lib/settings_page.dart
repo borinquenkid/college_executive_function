@@ -1,4 +1,4 @@
-import 'package:college_exeecutive_function/theme_provider.dart';
+import 'package:college_executive_function/theme_provider.dart';
 import 'package:flutter/material.dart';
 import 'package:provider/provider.dart';
 

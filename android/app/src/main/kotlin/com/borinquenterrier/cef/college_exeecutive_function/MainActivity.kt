@@ -1,4 +1,4 @@
-package com.borinquenterrier.cef.college_exeecutive_function
+package com.borinquenterrier.cef.college_executive_function
 
 import io.flutter.embedding.android.FlutterActivity
 

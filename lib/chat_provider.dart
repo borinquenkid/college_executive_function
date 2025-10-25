@@ -1,6 +1,6 @@
 import 'dart:io';
 
-import 'package:college_exeecutive_function/source_model.dart';
+import 'package:college_executive_function/source_model.dart';
 import 'package:flutter/material.dart';
 import 'package:google_generative_ai/google_generative_ai.dart';
 

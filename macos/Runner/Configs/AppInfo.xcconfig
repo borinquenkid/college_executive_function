@@ -5,7 +5,7 @@
 // 'flutter create' template.
 
 // The application's name. By default this is also the title of the Flutter window.
-PRODUCT_NAME = college_exeecutive_function
+PRODUCT_NAME = college_executive_function
 
 // The application's bundle identifier
 PRODUCT_BUNDLE_IDENTIFIER = com.borinquenterrier.cef.collegeExeecutiveFunction

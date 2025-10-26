@@ -1,18 +1,27 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Scaffold
+import androidx.compose.material3.Text
+import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -20,60 +29,113 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.unit.dp
 import com.borinquenterrier.college_executive_function.getPlatform
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun App() {
     MaterialTheme {
-        val platformName = getPlatform().name
-        if (platformName.startsWith("Java") || platformName == "Web") { // Simple check for Desktop/Web
-            DesktopApp()
-        } else { // Android and iOS
-            MobileApp()
+        Scaffold(
+            topBar = {
+                TopAppBar(title = { Text("College Executive Function") })
+            }
+        ) { paddingValues ->
+            val platformName = getPlatform().name
+            val modifier = Modifier.fillMaxSize().padding(paddingValues)
+            if (platformName.startsWith("Java") || platformName == "Web") { // Simple check for Desktop/Web
+                DesktopApp(modifier)
+            } else { // Android and iOS
+                MobileApp(modifier)
+            }
         }
     }
 }
 
 @Composable
-fun DesktopApp() {
+fun DesktopApp(modifier: Modifier = Modifier) {
     var showSources by remember { mutableStateOf(true) }
     var showStudio by remember { mutableStateOf(true) }
 
-    Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         AnimatedVisibility(visible = showSources, modifier = Modifier.weight(1f)) {
-            SourcesPanel(modifier = Modifier.fillMaxSize())
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                SourcesPanel(modifier = Modifier.weight(1f))
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .width(24.dp)
+                        .clickable { showSources = false },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowLeft,
+                        contentDescription = "Hide Sources"
+                    )
+                }
+            }
         }
 
-        IconButton(onClick = { showSources = !showSources }) {
-            Icon(
-                imageVector = if (showSources) Icons.Filled.KeyboardArrowLeft else Icons.Filled.KeyboardArrowRight,
-                contentDescription = if (showSources) "Hide Sources" else "Show Sources"
-            )
+        if (!showSources) {
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .width(24.dp)
+                    .clickable { showSources = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowRight,
+                    contentDescription = "Show Sources"
+                )
+            }
         }
 
         ChatPanel(modifier = Modifier.weight(2f))
 
-        IconButton(onClick = { showStudio = !showStudio }) {
-            Icon(
-                imageVector = if (showStudio) Icons.Filled.KeyboardArrowRight else Icons.Filled.KeyboardArrowLeft,
-                contentDescription = if (showStudio) "Hide Studio" else "Show Studio"
-            )
+        if (!showStudio) {
+            Box(
+                Modifier
+                    .fillMaxHeight()
+                    .width(24.dp)
+                    .clickable { showStudio = true },
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.KeyboardArrowLeft,
+                    contentDescription = "Show Studio"
+                )
+            }
         }
 
         AnimatedVisibility(visible = showStudio, modifier = Modifier.weight(1f)) {
-            StudioPanel(modifier = Modifier.fillMaxSize())
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Box(
+                    Modifier
+                        .fillMaxHeight()
+                        .width(24.dp)
+                        .clickable { showStudio = false },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Filled.KeyboardArrowRight,
+                        contentDescription = "Hide Studio"
+                    )
+                }
+                StudioPanel(modifier = Modifier.weight(1f))
+            }
         }
     }
 }
 
 @Composable
-fun MobileApp() {
+fun MobileApp(modifier: Modifier = Modifier) {
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
 
-    Column(modifier = Modifier.fillMaxSize()) {
+    Column(modifier = modifier) {
         // Sources Panel (Top)
         Column(
             modifier = Modifier.fillMaxWidth(),

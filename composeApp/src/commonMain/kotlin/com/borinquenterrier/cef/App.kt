@@ -7,6 +7,8 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.KeyboardArrowDown
+import androidx.compose.material.icons.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -18,6 +20,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import com.borinquenterrier.college_executive_function.getPlatform
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 @Composable
@@ -35,10 +38,33 @@ fun App() {
 
 @Composable
 fun DesktopApp() {
-    Row(modifier = Modifier.fillMaxSize()) {
-        SourcesPanel(modifier = Modifier.weight(1f))
-        ChatPanel(modifier = Modifier.weight(1f))
-        StudioPanel(modifier = Modifier.weight(1f))
+    var showSources by remember { mutableStateOf(true) }
+    var showStudio by remember { mutableStateOf(true) }
+
+    Row(modifier = Modifier.fillMaxSize(), verticalAlignment = Alignment.CenterVertically) {
+        AnimatedVisibility(visible = showSources, modifier = Modifier.weight(1f)) {
+            SourcesPanel(modifier = Modifier.fillMaxSize())
+        }
+
+        IconButton(onClick = { showSources = !showSources }) {
+            Icon(
+                imageVector = if (showSources) Icons.Filled.KeyboardArrowLeft else Icons.Filled.KeyboardArrowRight,
+                contentDescription = if (showSources) "Hide Sources" else "Show Sources"
+            )
+        }
+
+        ChatPanel(modifier = Modifier.weight(2f))
+
+        IconButton(onClick = { showStudio = !showStudio }) {
+            Icon(
+                imageVector = if (showStudio) Icons.Filled.KeyboardArrowRight else Icons.Filled.KeyboardArrowLeft,
+                contentDescription = if (showStudio) "Hide Studio" else "Show Studio"
+            )
+        }
+
+        AnimatedVisibility(visible = showStudio, modifier = Modifier.weight(1f)) {
+            StudioPanel(modifier = Modifier.fillMaxSize())
+        }
     }
 }
 
@@ -55,7 +81,7 @@ fun MobileApp() {
         ) {
             IconButton(onClick = { showSources = !showSources }) {
                 Icon(
-                    imageVector = if (showSources) Icons.Default.KeyboardArrowUp else Icons.Default.KeyboardArrowDown,
+                    imageVector = if (showSources) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                     contentDescription = if (showSources) "Hide Sources" else "Show Sources"
                 )
             }
@@ -77,7 +103,7 @@ fun MobileApp() {
             }
             IconButton(onClick = { showStudio = !showStudio }) {
                 Icon(
-                    imageVector = if (showStudio) Icons.Default.KeyboardArrowDown else Icons.Default.KeyboardArrowUp,
+                    imageVector = if (showStudio) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
                     contentDescription = if (showStudio) "Hide Studio" else "Show Studio"
                 )
             }

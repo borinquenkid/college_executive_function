@@ -33,9 +33,48 @@ The initial version of the application experienced UI lag. The following optimiz
 3.  **Chat Panel Analysis:**
     *   The chat panel uses an efficient list view for displaying messages. However, rendering markdown for each message was noted as a potential area for future optimization if conversations become very long.
 
-## Application Architecture
+## Application Architecture and Layout
 
-The application is designed with a modern, reactive architecture. State is managed centrally and propagated to the UI components. Key components include:
+The application is designed with a modern, reactive architecture and features a responsive layout that adapts to different screen sizes. State is managed centrally and propagated to the UI components.
+
+### Desktop Design: A Re-creation of Google's NotebookLM
+
+The desktop application's look and feel are designed to replicate the user interface of Google's NotebookLM, optimized for larger screens and mouse/keyboard interaction.
+
+#### Three-Panel Layout
+
+A responsive, three-panel, vertical layout structure forms the core of the UI:
+
+*   **Left Panel (Source Panel):** A permanent, vertically scrollable list view for uploaded sources (e.g., documents, PDFs, links). It includes an icon/button to easily add new sources and is collapsible/resizable.
+
+*   **Center Panel (Chat/Interaction Panel):** The primary workspace, featuring a chat interface for interacting with the AI. This panel displays conversational turns and generated content.
+
+*   **Right Panel (Notes/Studio Panel):** A dedicated, resizable panel for generated notes or structured AI outputs like mind maps, study guides, and audio overviews. It dynamically adjusts its content based on the user's current task.
+
+#### Visual Aesthetic and Interaction
+
+*   **Aesthetic:** The design is modern, clean, and minimalist, with a white/light gray background. Subtle vertical dividers provide clear visual separation between the three panels.
+
+*   **Typography:** Readability is prioritized with clean, sans-serif fonts (like Roboto or equivalent).
+
+*   **Color Palette:** Subtle, brand-aligned colors (e.g., blues/greens for accents, buttons, and interaction elements) are used against the light background.
+
+*   **Key Interaction Elements:**
+    *   A persistent, anchored input bar is at the bottom of the Chat Panel for user prompts.
+    *   All AI-generated responses include clear, citable links back to the specific text snippets in the Sources Panel.
+    *   Easily accessible action chips or buttons (e.g., 'Summarize,' 'Generate Mind Map') are incorporated within the Chat Panel.
+    *   A prominent App Bar/Title Bar includes a logo, notebook title, and consistent navigation elements.
+
+### Mobile Layout: A Compact, Tab-Based Interface
+
+To ensure a great user experience on smaller screens, the application adopts a compact, tab-based interface that prioritizes the chat experience while keeping other panels easily accessible.
+
+*   **Vertical, Collapsible Panels:** The layout switches to a vertical `Column` arrangement. The `Chat Panel` is the central, always-visible component.
+*   **Hidden by Default:** The `Sources Panel` (top) and `Studio Panel` (bottom) are hidden by default to maximize screen real estate for the conversation.
+*   **Expand/Collapse on Tap:** Each hidden panel has a corresponding tab (represented by an arrow icon). Tapping the tab for the Sources panel expands it downwards from the top, and tapping the tab for the Studio panel expands it upwards from the bottom. Tapping the tab again collapses the panel.
+*   **Focused View:** When a panel is expanded, it occupies a portion of the screen, allowing the user to focus on that specific context (viewing sources or studio content) while the chat remains partially visible.
+
+### Key Components
 
 *   `main`: The main entry point and layout structure.
 *   `chat_panel`: Displays the conversation history.

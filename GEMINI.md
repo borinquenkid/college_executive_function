@@ -81,28 +81,41 @@ To ensure a great user experience on smaller screens, the application adopts a c
 *   `sources_panel`: Manages user-uploaded source documents.
 *   `studio_panel`: Integrates with a generative AI model to create study aids.
 
-## UI Implementation Plan
+## UI Implementation Status
 
-![Sample Layout](https://storage.googleapis.com/gweb-uniblog-publish-prod/original_images/3_panel_ui_keyword_final_7_sources.gif)
-
-To fully realize the application's design, the following UI components need to be built out.
+To fully realize the application's design, the following UI components have been built out.
 
 ### General Styling
-*   **Borders and Padding:** Apply consistent borders and padding to all three panels to create clear visual separation and a polished look.
-*   **Typography:** Ensure a consistent and readable typography scale is used throughout the application.
-*   **Color Palette:** Implement a consistent color scheme for backgrounds, text, and interactive elements.
+- [x] **Borders and Padding:** Apply consistent borders and padding to all three panels to create clear visual separation and a polished look.
+- [x] **Typography:** Ensure a consistent and readable typography scale is used throughout the application.
+- [x] **Color Palette:** Implement a consistent color scheme for backgrounds, text, and interactive elements.
 
 ### Sources Panel
-*   **"Add Source" Button:** Add a prominent "Add Source" button or icon to the top of the panel.
-*   **Selection State:** Implement a visual indicator for the currently selected source.
-*   **Styling:** Refine the styling of the source items to be more visually appealing.
+- [x] **"Add Source" Button:** Add a prominent "Add Source" button or icon to the top of the panel.
+- [x] **Selection State:** Implement a visual indicator for the currently selected source.
+- [x] **Styling:** Refine the styling of the source items to be more visually appealing.
 
 ### Chat Panel
-*   **Message Display:** Create a `LazyColumn` to display a list of chat messages, with distinct styling for user and AI messages.
-*   **Input Field:** Add a `TextField` at the bottom of the panel for user input.
-*   **Send Button:** Add an `IconButton` next to the input field to send messages.
+- [x] **Message Display:** Create a `LazyColumn` to display a list of chat messages, with distinct styling for user and AI messages.
+- [x] **Input Field:** Add a `TextField` at the bottom of the panel for user input.
+- [x] **Send Button:** Add an `IconButton` next to the input field to send messages.
 
 ### Studio Panel
-*   **"Generate Content" Button:** Add a styled `Button` to the top of the panel.
-*   **Output Display:** Create a text area to display the generated content (summaries, outlines, etc.).
-*   **Action Chips:** Implement a row of `Chip` components for suggested actions.
+- [x] **"Generate Content" Button:** Add a styled `Button` to the top of the panel.
+- [x] **Output Display:** Create a text area to display the generated content (summaries, outlines, etc.).
+- [x] **Action Chips:** Implement a row of `Chip` components for suggested actions.
+
+## Next Steps
+
+The following tasks are planned for the next phase of development:
+
+*   **Functionality:**
+    *   Implement the file picker logic for the "Add Source" button.
+    *   Integrate a generative AI model to power the chat and studio panels.
+    *   Connect the "Generate Content" button and action chips to the AI model.
+    *   Implement citation linking from AI responses back to the source documents.
+
+*   **UI Refinement:**
+    *   [x] Refine the typography and color palette to perfectly match the target design.
+    *   [x] Improve the styling of chat messages to distinguish between the user and the AI.
+    *   Add animations and transitions to create a smoother user experience.

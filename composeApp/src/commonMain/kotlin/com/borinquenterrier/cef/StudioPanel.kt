@@ -4,7 +4,8 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -25,6 +26,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
+@OptIn(ExperimentalLayoutApi::class)
 @Composable
 fun StudioPanel(modifier: Modifier = Modifier) {
     var isLoading by remember { mutableStateOf(false) }
@@ -35,7 +37,8 @@ fun StudioPanel(modifier: Modifier = Modifier) {
         modifier = modifier
             .fillMaxSize()
             .padding(8.dp)
-            .border(1.dp, MaterialTheme.colorScheme.outline)
+            .border(1.dp, MaterialTheme.colorScheme.outline),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
         Button(
             onClick = {
@@ -51,9 +54,10 @@ fun StudioPanel(modifier: Modifier = Modifier) {
             Text("Generate Content")
         }
 
-        Row(
+        FlowRow(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             AssistChip(onClick = { /*TODO*/ }, label = { Text("Summarize") })
             AssistChip(onClick = { /*TODO*/ }, label = { Text("Outline") })

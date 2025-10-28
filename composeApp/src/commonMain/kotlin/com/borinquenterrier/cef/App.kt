@@ -141,7 +141,13 @@ fun MobileApp(modifier: Modifier = Modifier) {
             modifier = Modifier.fillMaxWidth(),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            IconButton(onClick = { showSources = !showSources }) {
+            IconButton(onClick = {
+                val newShowSources = !showSources
+                if (newShowSources) {
+                    showStudio = false
+                }
+                showSources = newShowSources
+            }) {
                 Icon(
                     imageVector = if (showSources) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
                     contentDescription = if (showSources) "Hide Sources" else "Show Sources"
@@ -163,7 +169,13 @@ fun MobileApp(modifier: Modifier = Modifier) {
             AnimatedVisibility(visible = showStudio) {
                 StudioPanel(modifier = Modifier.fillMaxWidth())
             }
-            IconButton(onClick = { showStudio = !showStudio }) {
+            IconButton(onClick = {
+                val newShowStudio = !showStudio
+                if (newShowStudio) {
+                    showSources = false
+                }
+                showStudio = newShowStudio
+            }) {
                 Icon(
                     imageVector = if (showStudio) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
                     contentDescription = if (showStudio) "Hide Studio" else "Show Studio"

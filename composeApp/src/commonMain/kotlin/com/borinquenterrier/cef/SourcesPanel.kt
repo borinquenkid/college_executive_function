@@ -23,18 +23,19 @@ import androidx.compose.ui.unit.dp
 
 @Composable
 fun SourcesPanel(modifier: Modifier = Modifier) {
-    val sourceItems = listOf(
+    var sourceItems by remember { mutableStateOf(listOf(
         SourceItem("Syllabus", "CS 101 Syllabus"),
         SourceItem("Calendar", "Fall 2024 Calendar")
-    )
+    )) }
     var selectedItem by remember { mutableStateOf<SourceItem?>(null) }
+    var showFilePicker by remember { mutableStateOf(false) }
 
     Column(
         modifier = modifier
             .padding(8.dp)
             .border(1.dp, MaterialTheme.colorScheme.outline)
     ) {
-        Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
+        Button(onClick = { showFilePicker = true }, modifier = Modifier.fillMaxWidth()) {
             Icon(Icons.Default.Add, contentDescription = "Add Source")
             Text("Add Source")
         }
@@ -46,6 +47,13 @@ fun SourcesPanel(modifier: Modifier = Modifier) {
                     onClick = { selectedItem = item }
                 )
             }
+        }
+    }
+
+    FilePicker(show = showFilePicker) { file ->
+        showFilePicker = false
+        if (file != null) {
+            sourceItems = sourceItems + SourceItem(file, file)
         }
     }
 }

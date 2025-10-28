@@ -24,11 +24,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 data class ChatMessage(val author: String, val content: String)
 
@@ -38,6 +40,8 @@ fun ChatPanel(modifier: Modifier = Modifier) {
         mutableStateOf(listOf(ChatMessage("AI", "Hello! How can I help you today?")))
     }
     var newMessage by remember { mutableStateOf("") }
+    val coroutineScope = rememberCoroutineScope()
+    val aiService = rememberAIService()
 
     Column(
         modifier = modifier
@@ -70,9 +74,15 @@ fun ChatPanel(modifier: Modifier = Modifier) {
             }
             IconButton(
                 onClick = {
-                    if (newMessage.isNotBlank()) {
-                        messages.value = messages.value + ChatMessage("User", newMessage)
-                        newMessage = ""
+                    coroutineScope.launch {
+                        if (newMessage.isNotBlank()) {
+                            val userMessage = ChatMessage("User", newMessage)
+                            messages.value = messages.value + userMessage
+                            newMessage = ""
+
+                            val aiResponse = aiService.generateResponse(userMessage.content)
+                            messages.value = messages.value + ChatMessage("AI", aiResponse)
+                        }
                     }
                 },
                 modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primary)

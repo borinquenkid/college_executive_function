@@ -110,8 +110,8 @@ To fully realize the application's design, the following UI components have been
 The following tasks are planned for the next phase of development:
 
 *   **Functionality:**
-    *   Implement the file picker logic for the "Add Source" button.
-    *   Integrate a generative AI model to power the chat and studio panels.
+    *   [x] Implement the file picker logic for the "Add Source" button.
+    *   [x] Integrate a generative AI model to power the chat and studio panels.
     *   Connect the "Generate Content" button and action chips to the AI model.
     *   Implement citation linking from AI responses back to the source documents.
 

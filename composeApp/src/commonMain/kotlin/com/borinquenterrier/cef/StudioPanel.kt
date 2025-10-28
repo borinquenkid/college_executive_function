@@ -23,7 +23,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
@@ -32,6 +31,7 @@ fun StudioPanel(modifier: Modifier = Modifier) {
     var isLoading by remember { mutableStateOf(false) }
     var generatedContent by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
+    val aiService = rememberAIService()
 
     Column(
         modifier = modifier
@@ -44,8 +44,7 @@ fun StudioPanel(modifier: Modifier = Modifier) {
             onClick = {
                 coroutineScope.launch {
                     isLoading = true
-                    delay(2000) // Simulate a network request
-                    generatedContent = "This is some generated content."
+                    generatedContent = aiService.generateResponse("Generate some content")
                     isLoading = false
                 }
             },

@@ -22,12 +22,13 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
 @Composable
-fun SourcesPanel(modifier: Modifier = Modifier) {
-    var sourceItems by remember { mutableStateOf(listOf(
-        SourceItem("Syllabus", "CS 101 Syllabus"),
-        SourceItem("Calendar", "Fall 2024 Calendar")
-    )) }
-    var selectedItem by remember { mutableStateOf<SourceItem?>(null) }
+fun SourcesPanel(
+    modifier: Modifier = Modifier,
+    sourceItems: List<SourceItem>,
+    selectedSource: SourceItem?,
+    onSourceSelected: (SourceItem) -> Unit,
+    onSourceAdded: (SourceItem) -> Unit
+) {
     var showFilePicker by remember { mutableStateOf(false) }
 
     Column(
@@ -43,8 +44,8 @@ fun SourcesPanel(modifier: Modifier = Modifier) {
             items(sourceItems) { item ->
                 SourceItemView(
                     item = item,
-                    isSelected = item == selectedItem,
-                    onClick = { selectedItem = item }
+                    isSelected = item == selectedSource,
+                    onClick = { onSourceSelected(item) }
                 )
             }
         }
@@ -53,7 +54,7 @@ fun SourcesPanel(modifier: Modifier = Modifier) {
     FilePicker(show = showFilePicker) { file ->
         showFilePicker = false
         if (file != null) {
-            sourceItems = sourceItems + SourceItem(file, file)
+            onSourceAdded(SourceItem(file, file))
         }
     }
 }

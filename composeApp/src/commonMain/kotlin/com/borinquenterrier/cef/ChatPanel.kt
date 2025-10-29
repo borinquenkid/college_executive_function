@@ -35,7 +35,7 @@ import kotlinx.coroutines.launch
 data class ChatMessage(val author: String, val content: String)
 
 @Composable
-fun ChatPanel(modifier: Modifier = Modifier) {
+fun ChatPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
     var messages by remember {
         mutableStateOf(listOf(ChatMessage("AI", "Hello! How can I help you today?")))
     }
@@ -80,7 +80,12 @@ fun ChatPanel(modifier: Modifier = Modifier) {
                             messages = messages + userMessage
                             newMessage = ""
 
-                            val aiResponse = aiService.generateResponse(userMessage.content)
+                            val prompt = if (selectedSource != null) {
+                                "Based on ${selectedSource.title}, ${userMessage.content}"
+                            } else {
+                                userMessage.content
+                            }
+                            val aiResponse = aiService.generateResponse(prompt)
                             messages = messages + ChatMessage("AI", aiResponse)
                         }
                     }

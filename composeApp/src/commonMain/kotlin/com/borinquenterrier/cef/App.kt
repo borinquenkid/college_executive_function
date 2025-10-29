@@ -58,11 +58,22 @@ fun App() {
 fun DesktopApp(modifier: Modifier = Modifier) {
     var showSources by remember { mutableStateOf(true) }
     var showStudio by remember { mutableStateOf(true) }
+    var sourceItems by remember { mutableStateOf(listOf(
+        SourceItem("Syllabus", "CS 101 Syllabus"),
+        SourceItem("Calendar", "Fall 2024 Calendar")
+    )) }
+    var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         AnimatedVisibility(visible = showSources, modifier = Modifier.weight(1f)) {
             Row(verticalAlignment = Alignment.CenterVertically) {
-                SourcesPanel(modifier = Modifier.weight(1f))
+                SourcesPanel(
+                    modifier = Modifier.weight(1f),
+                    sourceItems = sourceItems,
+                    selectedSource = selectedSource,
+                    onSourceSelected = { selectedSource = it },
+                    onSourceAdded = { sourceItems = sourceItems + it }
+                )
                 Box(
                     Modifier
                         .fillMaxHeight()
@@ -93,7 +104,7 @@ fun DesktopApp(modifier: Modifier = Modifier) {
             }
         }
 
-        ChatPanel(modifier = Modifier.weight(2f))
+        ChatPanel(modifier = Modifier.weight(2f), selectedSource = selectedSource)
 
         if (!showStudio) {
             Box(
@@ -124,7 +135,7 @@ fun DesktopApp(modifier: Modifier = Modifier) {
                         contentDescription = "Hide Studio"
                     )
                 }
-                StudioPanel(modifier = Modifier.weight(1f))
+                StudioPanel(modifier = Modifier.weight(1f), selectedSource = selectedSource)
             }
         }
     }
@@ -134,6 +145,11 @@ fun DesktopApp(modifier: Modifier = Modifier) {
 fun MobileApp(modifier: Modifier = Modifier) {
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
+    var sourceItems by remember { mutableStateOf(listOf(
+        SourceItem("Syllabus", "CS 101 Syllabus"),
+        SourceItem("Calendar", "Fall 2024 Calendar")
+    )) }
+    var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
 
     Column(modifier = modifier) {
         // Sources Panel (Top)
@@ -154,12 +170,18 @@ fun MobileApp(modifier: Modifier = Modifier) {
                 )
             }
             AnimatedVisibility(visible = showSources) {
-                SourcesPanel(modifier = Modifier.fillMaxWidth())
+                SourcesPanel(
+                    modifier = Modifier.fillMaxWidth(),
+                    sourceItems = sourceItems,
+                    selectedSource = selectedSource,
+                    onSourceSelected = { selectedSource = it },
+                    onSourceAdded = { sourceItems = sourceItems + it }
+                )
             }
         }
 
         // Chat Panel (Middle)
-        ChatPanel(modifier = Modifier.weight(1f))
+        ChatPanel(modifier = Modifier.weight(1f), selectedSource = selectedSource)
 
         // Studio Panel (Bottom)
         Column(
@@ -167,7 +189,7 @@ fun MobileApp(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AnimatedVisibility(visible = showStudio) {
-                StudioPanel(modifier = Modifier.fillMaxWidth())
+                StudioPanel(modifier = Modifier.fillMaxWidth(), selectedSource = selectedSource)
             }
             IconButton(onClick = {
                 val newShowStudio = !showStudio

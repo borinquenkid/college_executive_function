@@ -27,7 +27,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StudioPanel(modifier: Modifier = Modifier) {
+fun StudioPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
     var isLoading by remember { mutableStateOf(false) }
     var generatedContent by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
@@ -44,7 +44,12 @@ fun StudioPanel(modifier: Modifier = Modifier) {
             onClick = {
                 coroutineScope.launch {
                     isLoading = true
-                    generatedContent = aiService.generateResponse("Generate some content")
+                    val prompt = if (selectedSource != null) {
+                        "Generate a general overview of ${selectedSource.title}"
+                    } else {
+                        "Generate a general overview of the content"
+                    }
+                    generatedContent = aiService.generateResponse(prompt)
                     isLoading = false
                 }
             },
@@ -58,9 +63,42 @@ fun StudioPanel(modifier: Modifier = Modifier) {
             horizontalArrangement = Arrangement.spacedBy(8.dp),
             verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            AssistChip(onClick = { /*TODO*/ }, label = { Text("Summarize") })
-            AssistChip(onClick = { /*TODO*/ }, label = { Text("Outline") })
-            AssistChip(onClick = { /*TODO*/ }, label = { Text("Q&A") })
+            AssistChip(onClick = { 
+                coroutineScope.launch {
+                    isLoading = true
+                    val prompt = if (selectedSource != null) {
+                        "Summarize ${selectedSource.title}"
+                    } else {
+                        "Summarize the content"
+                    }
+                    generatedContent = aiService.generateResponse(prompt)
+                    isLoading = false
+                }
+            }, label = { Text("Summarize") })
+            AssistChip(onClick = { 
+                coroutineScope.launch {
+                    isLoading = true
+                    val prompt = if (selectedSource != null) {
+                        "Create an outline of ${selectedSource.title}"
+                    } else {
+                        "Create an outline of the content"
+                    }
+                    generatedContent = aiService.generateResponse(prompt)
+                    isLoading = false
+                }
+            }, label = { Text("Outline") })
+            AssistChip(onClick = { 
+                coroutineScope.launch {
+                    isLoading = true
+                    val prompt = if (selectedSource != null) {
+                        "Generate Q&A based on ${selectedSource.title}"
+                    } else {
+                        "Generate Q&A based on the content"
+                    }
+                    generatedContent = aiService.generateResponse(prompt)
+                    isLoading = false
+                }
+            }, label = { Text("Q&A") })
         }
 
         Box(

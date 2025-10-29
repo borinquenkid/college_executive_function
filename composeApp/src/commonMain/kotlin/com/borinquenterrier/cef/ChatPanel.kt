@@ -36,7 +36,7 @@ data class ChatMessage(val author: String, val content: String)
 
 @Composable
 fun ChatPanel(modifier: Modifier = Modifier) {
-    val messages = remember {
+    var messages by remember {
         mutableStateOf(listOf(ChatMessage("AI", "Hello! How can I help you today?")))
     }
     var newMessage by remember { mutableStateOf("") }
@@ -50,7 +50,7 @@ fun ChatPanel(modifier: Modifier = Modifier) {
             .border(1.dp, MaterialTheme.colorScheme.outline)
     ) {
         LazyColumn(modifier = Modifier.weight(1f)) {
-            items(messages.value) { message ->
+            items(messages) { message ->
                 MessageView(message)
             }
         }
@@ -77,11 +77,11 @@ fun ChatPanel(modifier: Modifier = Modifier) {
                     coroutineScope.launch {
                         if (newMessage.isNotBlank()) {
                             val userMessage = ChatMessage("User", newMessage)
-                            messages.value = messages.value + userMessage
+                            messages = messages + userMessage
                             newMessage = ""
 
                             val aiResponse = aiService.generateResponse(userMessage.content)
-                            messages.value = messages.value + ChatMessage("AI", aiResponse)
+                            messages = messages + ChatMessage("AI", aiResponse)
                         }
                     }
                 },

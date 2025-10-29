@@ -110,12 +110,12 @@ To fully realize the application's design, the following UI components have been
 The following tasks are planned for the next phase of development:
 
 *   **Functionality:**
-    *   [x] Implement the file picker logic for the "Add Source" button.
+    *   [x] Implement the file picker logic for the "Add Source" button for both desktop and Android.
     *   [x] Integrate a generative AI model to power the chat and studio panels.
-    *   Connect the "Generate Content" button and action chips to the AI model.
-    *   Implement citation linking from AI responses back to the source documents.
+    *   [ ] Connect the "Generate Content" button and action chips to the AI model.
+    *   [ ] Implement citation linking from AI responses back to the source documents.
 
 *   **UI Refinement:**
     *   [x] Refine the typography and color palette to perfectly match the target design.
     *   [x] Improve the styling of chat messages to distinguish between the user and the AI.
-    *   Add animations and transitions to create a smoother user experience.
+    *   [ ] Add animations and transitions to create a smoother user experience.

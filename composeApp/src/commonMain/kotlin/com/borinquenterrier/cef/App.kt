@@ -11,6 +11,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -33,22 +34,43 @@ import com.borinquenterrier.cef.ui.theme.CollegeExecutiveFunctionTheme
 import com.borinquenterrier.college_executive_function.getPlatform
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
+sealed class Screen {
+    object Home : Screen()
+    object Calendar : Screen()
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
 fun App() {
     CollegeExecutiveFunctionTheme {
+        var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
         Scaffold(
             topBar = {
-                TopAppBar(title = { Text("College Executive Function") })
+                TopAppBar(
+                    title = { Text("College Executive Function") },
+                    actions = {
+                        IconButton(onClick = { currentScreen = Screen.Calendar }) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Academic Calendar")
+                        }
+                    }
+                )
             }
         ) { paddingValues ->
             val platformName = getPlatform().name
             val modifier = Modifier.fillMaxSize().padding(paddingValues)
-            if (platformName.startsWith("Java") || platformName == "Web") { // Simple check for Desktop/Web
-                DesktopApp(modifier)
-            } else { // Android and iOS
-                MobileApp(modifier)
+
+            when (currentScreen) {
+                is Screen.Home -> {
+                    if (platformName.startsWith("Java") || platformName == "Web") { // Simple check for Desktop/Web
+                        DesktopApp(modifier)
+                    } else { // Android and iOS
+                        MobileApp(modifier)
+                    }
+                }
+                is Screen.Calendar -> {
+                    AcademicCalendar(modifier)
+                }
             }
         }
     }

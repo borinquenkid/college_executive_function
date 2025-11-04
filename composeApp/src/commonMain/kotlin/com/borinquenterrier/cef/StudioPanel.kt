@@ -5,11 +5,9 @@ import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.ExperimentalLayoutApi
-import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
-import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.MaterialTheme
@@ -29,7 +27,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun StudioPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
     var isLoading by remember { mutableStateOf(false) }
-    var generatedContent by remember { mutableStateOf("") }
+    var generatedContent by remember { mutableStateOf("Select a source and an action.") }
     val coroutineScope = rememberCoroutineScope()
     val aiService = rememberAIService()
 
@@ -40,65 +38,37 @@ fun StudioPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
             .border(1.dp, MaterialTheme.colorScheme.outline),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        Button(
-            onClick = {
-                coroutineScope.launch {
-                    isLoading = true
-                    val prompt = if (selectedSource != null) {
-                        "Generate a general overview of ${selectedSource.title}"
-                    } else {
-                        "Generate a general overview of the content"
+        if (selectedSource != null) {
+            when (selectedSource.title) {
+                "Syllabus" -> {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                isLoading = true
+                                generatedContent = aiService.generateResponse("Analyze the syllabus ${selectedSource.content} for dates and deliverables.")
+                                isLoading = false
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Analyze Syllabus for Dates")
                     }
-                    generatedContent = aiService.generateResponse(prompt)
-                    isLoading = false
                 }
-            },
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Text("Generate Content")
-        }
-
-        FlowRow(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(8.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            AssistChip(onClick = { 
-                coroutineScope.launch {
-                    isLoading = true
-                    val prompt = if (selectedSource != null) {
-                        "Summarize ${selectedSource.title}"
-                    } else {
-                        "Summarize the content"
+                "Calendar" -> {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                isLoading = true
+                                generatedContent = aiService.generateResponse("Add the events from ${selectedSource.content} to the Academic Calendar.")
+                                isLoading = false
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Add Events to Academic Calendar")
                     }
-                    generatedContent = aiService.generateResponse(prompt)
-                    isLoading = false
                 }
-            }, label = { Text("Summarize") })
-            AssistChip(onClick = { 
-                coroutineScope.launch {
-                    isLoading = true
-                    val prompt = if (selectedSource != null) {
-                        "Create an outline of ${selectedSource.title}"
-                    } else {
-                        "Create an outline of the content"
-                    }
-                    generatedContent = aiService.generateResponse(prompt)
-                    isLoading = false
-                }
-            }, label = { Text("Outline") })
-            AssistChip(onClick = { 
-                coroutineScope.launch {
-                    isLoading = true
-                    val prompt = if (selectedSource != null) {
-                        "Generate Q&A based on ${selectedSource.title}"
-                    } else {
-                        "Generate Q&A based on the content"
-                    }
-                    generatedContent = aiService.generateResponse(prompt)
-                    isLoading = false
-                }
-            }, label = { Text("Q&A") })
+            }
         }
 
         Box(

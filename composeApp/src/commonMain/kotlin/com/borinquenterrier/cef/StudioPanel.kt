@@ -25,7 +25,7 @@ import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalLayoutApi::class)
 @Composable
-fun StudioPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
+fun StudioPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?, onEventsGenerated: (List<CalendarEvent>) -> Unit) {
     var isLoading by remember { mutableStateOf(false) }
     var generatedContent by remember { mutableStateOf("Select a source and an action.") }
     val coroutineScope = rememberCoroutineScope()
@@ -45,7 +45,9 @@ fun StudioPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
                         onClick = {
                             coroutineScope.launch {
                                 isLoading = true
-                                generatedContent = aiService.generateResponse("Analyze the syllabus ${selectedSource.content} for dates and deliverables.")
+                                val events = aiService.generateCalendarEvents("Analyze the syllabus ${selectedSource.content} for dates and deliverables.")
+                                onEventsGenerated(events)
+                                generatedContent = "${events.size} events added to your calendar."
                                 isLoading = false
                             }
                         },
@@ -59,7 +61,9 @@ fun StudioPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
                         onClick = {
                             coroutineScope.launch {
                                 isLoading = true
-                                generatedContent = aiService.generateResponse("Add the events from ${selectedSource.content} to the Academic Calendar.")
+                                val events = aiService.generateCalendarEvents("Add the events from ${selectedSource.content} to the Academic Calendar.")
+                                onEventsGenerated(events)
+                                generatedContent = "${events.size} events added to your calendar."
                                 isLoading = false
                             }
                         },

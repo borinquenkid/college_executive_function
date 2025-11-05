@@ -85,7 +85,7 @@ fun ChatPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
                             } else {
                                 userMessage.content
                             }
-                            val aiResponse = aiService.generateResponse(prompt)
+                            val aiResponse = aiService.generateChatResponse(prompt)
                             messages = messages + ChatMessage("AI", aiResponse)
                         }
                     }

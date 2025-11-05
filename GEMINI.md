@@ -14,6 +14,7 @@ An application designed to assist students with executive function challenges by
 *   **Chat Panel:** An interactive chat interface to discuss and get insights from your sources. The AI acts as a thinking partner, providing structured and cited responses.
 *   **Studio Panel:** Generate summaries, outlines, and Q&A from your uploaded documents using the power of Generative AI.
 *   **Academic Calendar:** A comprehensive, editable calendar that consolidates all academic events and personal routines.
+*   **Settings:** A dedicated screen for users to configure the application, including entering their own generative AI API key.
 
 ## AI Integration
 
@@ -81,7 +82,8 @@ To ensure a great user experience on smaller screens, the application adopts a c
 *   **UI Scaffolding:** Initial UI for all three panels is complete.
 *   **General Styling:** A consistent theme, including colors, typography, and borders, has been applied.
 *   **File Picker:** A functional file picker has been implemented for desktop and Android.
-*   **Dummy AI Service:** A placeholder AI service has been integrated for all platforms.
+*   **AI Service Refactoring:** The AI service has been refactored to support both chat and calendar generation.
+*   **Settings Screen:** A functional settings screen for entering and saving an API key has been implemented.
 
 ### Next Steps
 
@@ -95,7 +97,7 @@ The following tasks are planned for the next phase of development:
     *   Add support for adding sources from a web page URL.
     *   Implement a custom schedule picker for creating calendar events.
 *   **Advanced AI Features:**
-    *   Replace the dummy AI service with a real generative AI model (e.g., Google's).
+    *   Replace the dummy AI service with a real generative AI model that uses the stored API key.
     *   Implement citation linking from AI responses back to the source documents.
 *   **Export and Sync:**
     *   Implement the ability to export the Academic Calendar as an `.ics` file.

@@ -8,8 +8,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
-fun AcademicCalendar(modifier: Modifier = Modifier, events: List<CalendarEvent>) {
+fun RoutineSetupScreen(modifier: Modifier = Modifier, onSetupComplete: () -> Unit) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
-        Text("Academic Calendar View")
+        Text("Routine Setup Screen")
     }
 }

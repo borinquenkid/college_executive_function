@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
+import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,6 +38,7 @@ import org.jetbrains.compose.ui.tooling.preview.Preview
 sealed class Screen {
     object Home : Screen()
     object Calendar : Screen()
+    object Settings : Screen()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -45,6 +47,8 @@ sealed class Screen {
 fun App() {
     CollegeExecutiveFunctionTheme {
         var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
+        var calendarEvents by remember { mutableStateOf(listOf<CalendarEvent>()) }
+
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -52,6 +56,9 @@ fun App() {
                     actions = {
                         IconButton(onClick = { currentScreen = Screen.Calendar }) {
                             Icon(Icons.Default.DateRange, contentDescription = "Academic Calendar")
+                        }
+                        IconButton(onClick = { currentScreen = Screen.Settings }) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
                         }
                     }
                 )
@@ -63,13 +70,16 @@ fun App() {
             when (currentScreen) {
                 is Screen.Home -> {
                     if (platformName.startsWith("Java") || platformName == "Web") { // Simple check for Desktop/Web
-                        DesktopApp(modifier)
+                        DesktopApp(modifier) { calendarEvents = calendarEvents + it }
                     } else { // Android and iOS
-                        MobileApp(modifier)
+                        MobileApp(modifier) { calendarEvents = calendarEvents + it }
                     }
                 }
                 is Screen.Calendar -> {
-                    AcademicCalendar(modifier)
+                    AcademicCalendar(modifier, calendarEvents)
+                }
+                is Screen.Settings -> {
+                    SettingsScreen(modifier)
                 }
             }
         }
@@ -77,7 +87,7 @@ fun App() {
 }
 
 @Composable
-fun DesktopApp(modifier: Modifier = Modifier) {
+fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<CalendarEvent>) -> Unit) {
     var showSources by remember { mutableStateOf(true) }
     var showStudio by remember { mutableStateOf(true) }
     var sourceItems by remember { mutableStateOf(listOf(
@@ -157,14 +167,14 @@ fun DesktopApp(modifier: Modifier = Modifier) {
                         contentDescription = "Hide Studio"
                     )
                 }
-                StudioPanel(modifier = Modifier.weight(1f), selectedSource = selectedSource)
+                StudioPanel(modifier = Modifier.weight(1f), selectedSource = selectedSource, onEventsGenerated = onEventsGenerated)
             }
         }
     }
 }
 
 @Composable
-fun MobileApp(modifier: Modifier = Modifier) {
+fun MobileApp(modifier: Modifier = Modifier, onEventsGenerated: (List<CalendarEvent>) -> Unit) {
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
     var sourceItems by remember { mutableStateOf(listOf(
@@ -211,7 +221,7 @@ fun MobileApp(modifier: Modifier = Modifier) {
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AnimatedVisibility(visible = showStudio) {
-                StudioPanel(modifier = Modifier.fillMaxWidth(), selectedSource = selectedSource)
+                StudioPanel(modifier = Modifier.fillMaxWidth(), selectedSource = selectedSource, onEventsGenerated = onEventsGenerated)
             }
             IconButton(onClick = {
                 val newShowStudio = !showStudio

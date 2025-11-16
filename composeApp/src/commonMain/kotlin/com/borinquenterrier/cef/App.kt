@@ -12,6 +12,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
+import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.KeyboardArrowDown
 import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
@@ -54,6 +55,9 @@ fun App() {
                 TopAppBar(
                     title = { Text("College Executive Function") },
                     actions = {
+                        IconButton(onClick = { currentScreen = Screen.Home }) {
+                            Icon(Icons.Default.Home, contentDescription = "Home")
+                        }
                         IconButton(onClick = { currentScreen = Screen.Calendar }) {
                             Icon(Icons.Default.DateRange, contentDescription = "Academic Calendar")
                         }

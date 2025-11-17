@@ -91,7 +91,7 @@ The following tasks are planned for the next phase of development:
 
 *   **Academic Calendar Implementation:**
     *   Create the main calendar view, similar to Outlook.
-    *   Implement the initial user routine setup flow.
+    *   Implement the initial user routine setup flow, allowing for recurring weekly items with specific start and end dates.
     *   Integrate the calendar with the AI service for automatic event creation.
 *   **Enhanced Source Handling:**
     *   Add support for adding sources from a web page URL.

@@ -40,6 +40,7 @@ sealed class Screen {
     object Home : Screen()
     object Calendar : Screen()
     object Settings : Screen()
+    object Routine : Screen()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -80,10 +81,13 @@ fun App() {
                     }
                 }
                 is Screen.Calendar -> {
-                    AcademicCalendar(modifier, calendarEvents)
+                    AcademicCalendar(modifier, calendarEvents) { currentScreen = it }
                 }
                 is Screen.Settings -> {
                     SettingsScreen(modifier)
+                }
+                is Screen.Routine -> {
+                    RoutineScreen(modifier)
                 }
             }
         }

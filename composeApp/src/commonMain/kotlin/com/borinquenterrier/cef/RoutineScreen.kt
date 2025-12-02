@@ -23,12 +23,11 @@ import androidx.compose.ui.unit.dp
 fun RoutineScreen(modifier: Modifier = Modifier) {
     val settings = rememberSettings()
     val repository = remember { RoutineRepository(settings) }
-    var routineItems by remember { mutableStateOf(emptyList<RoutineItem>()) }
+    var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
     var showAddDialog by remember { mutableStateOf(false) }
 
-    // Load the routine items when the screen is first composed
     LaunchedEffect(Unit) {
-        routineItems = repository.getRoutine()
+        routineEvents = repository.getRoutineEvents()
     }
 
     Column(modifier = modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
@@ -47,8 +46,8 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
         }
 
         LazyColumn(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-            items(routineItems) { item ->
-                RoutineItemView(item)
+            items(routineEvents) { event ->
+                RoutineEventView(event)
             }
         }
     }
@@ -56,10 +55,10 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
     if (showAddDialog) {
         AddRoutineItemDialog(
             onDismiss = { showAddDialog = false },
-            onSave = { newItem ->
-                val updatedList = routineItems + newItem
-                repository.saveRoutine(updatedList)
-                routineItems = updatedList
+            onSave = { newEvent ->
+                val updatedList = routineEvents + newEvent
+                repository.saveRoutineEvents(updatedList)
+                routineEvents = updatedList
                 showAddDialog = false
             }
         )
@@ -67,12 +66,15 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
 }
 
 @Composable
-fun RoutineItemView(item: RoutineItem) {
+fun RoutineEventView(event: TimeEvent) {
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(item.title, style = MaterialTheme.typography.titleMedium)
-            Text("${item.dayOfWeek} from ${item.startTime} to ${item.endTime}")
-            Text("(${item.startDate} to ${item.endDate})")
+            Text(event.title, style = MaterialTheme.typography.titleMedium)
+            event.recurrence?.let {
+                val days = it.daysOfWeek.joinToString(", ") { day -> day.name.take(3) }
+                Text("Repeats on $days from ${event.startTime} to ${event.endTime}")
+                Text("(${it.startDate} to ${it.endDate})")
+            }
         }
     }
 }

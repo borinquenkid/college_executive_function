@@ -5,6 +5,8 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.ExperimentalLayoutApi
+import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
@@ -12,10 +14,8 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
-import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.ExposedDropdownMenuBox
-import androidx.compose.material3.ExposedDropdownMenuDefaults
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
@@ -41,17 +41,16 @@ import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (RoutineItem) -> Unit) {
+fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
     var title by remember { mutableStateOf("") }
-    var selectedDayOfWeek by remember { mutableStateOf(DayOfWeek.MONDAY) }
+    var selectedDays by remember { mutableStateOf(setOf<DayOfWeek>()) }
     var startTime by remember { mutableStateOf(LocalTime(10, 30)) }
     var endTime by remember { mutableStateOf(LocalTime(11, 45)) }
     var startDate by remember { mutableStateOf(LocalDate(2024, 8, 26)) }
     var endDate by remember { mutableStateOf(LocalDate(2024, 12, 13)) }
 
-    var isDayOfWeekExpanded by remember { mutableStateOf(false) }
     var showDatePicker by remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
     var showTimePicker by remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
 
@@ -65,31 +64,20 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (RoutineItem) -> Unit) {
 
                 TextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth())
 
-                ExposedDropdownMenuBox(
-                    expanded = isDayOfWeekExpanded,
-                    onExpandedChange = { isDayOfWeekExpanded = it }
-                ) {
-                    TextField(
-                        value = selectedDayOfWeek.name,
-                        onValueChange = {}, // Read-only
-                        readOnly = true,
-                        label = { Text("Day of Week") },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = isDayOfWeekExpanded) },
-                        modifier = Modifier.menuAnchor().fillMaxWidth()
-                    )
-                    ExposedDropdownMenu(
-                        expanded = isDayOfWeekExpanded,
-                        onDismissRequest = { isDayOfWeekExpanded = false }
-                    ) {
-                        DayOfWeek.entries.forEach { day ->
-                            DropdownMenuItem(
-                                text = { Text(day.name) },
-                                onClick = {
-                                    selectedDayOfWeek = day
-                                    isDayOfWeekExpanded = false
+                Text("Repeats on:", style = MaterialTheme.typography.bodyMedium)
+                FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                    DayOfWeek.entries.forEach { day ->
+                        FilterChip(
+                            selected = day in selectedDays,
+                            onClick = {
+                                selectedDays = if (day in selectedDays) {
+                                    selectedDays - day
+                                } else {
+                                    selectedDays + day
                                 }
-                            )
-                        }
+                            },
+                            label = { Text(day.name.take(3)) }
+                        )
                     }
                 }
 
@@ -131,15 +119,19 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (RoutineItem) -> Unit) {
                         Text("Cancel")
                     }
                     Button(onClick = {
-                        val newItem = RoutineItem(
+                        val newEvent = TimeEvent(
                             title = title,
-                            dayOfWeek = selectedDayOfWeek,
+                            source = EventSource.ROUTINE,
                             startTime = startTime,
                             endTime = endTime,
-                            startDate = startDate,
-                            endDate = endDate
+                            date = startDate,
+                            recurrence = Recurrence(
+                                daysOfWeek = selectedDays.toList(),
+                                startDate = startDate,
+                                endDate = endDate
+                            )
                         )
-                        onSave(newItem)
+                        onSave(newEvent)
                     }) {
                         Text("Save")
                     }

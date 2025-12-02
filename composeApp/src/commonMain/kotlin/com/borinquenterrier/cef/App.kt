@@ -33,7 +33,6 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.borinquenterrier.cef.ui.theme.CollegeExecutiveFunctionTheme
-import com.borinquenterrier.college_executive_function.getPlatform
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 sealed class Screen {
@@ -49,7 +48,7 @@ sealed class Screen {
 fun App() {
     CollegeExecutiveFunctionTheme {
         var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
-        var calendarEvents by remember { mutableStateOf(listOf<CalendarEvent>()) }
+        var aiGeneratedEvents by remember { mutableStateOf(listOf<Event>()) }
 
         Scaffold(
             topBar = {
@@ -69,19 +68,18 @@ fun App() {
                 )
             }
         ) { paddingValues ->
-            val platformName = getPlatform().name
             val modifier = Modifier.fillMaxSize().padding(paddingValues)
 
             when (currentScreen) {
                 is Screen.Home -> {
-                    if (platformName.startsWith("Java") || platformName == "Web") { // Simple check for Desktop/Web
-                        DesktopApp(modifier) { calendarEvents = calendarEvents + it }
-                    } else { // Android and iOS
-                        MobileApp(modifier) { calendarEvents = calendarEvents + it }
+                    if (isDesktop) {
+                        DesktopApp(modifier) { aiGeneratedEvents = aiGeneratedEvents + it }
+                    } else {
+                        MobileApp(modifier) { aiGeneratedEvents = aiGeneratedEvents + it }
                     }
                 }
                 is Screen.Calendar -> {
-                    AcademicCalendar(modifier, calendarEvents) { currentScreen = it }
+                    AcademicCalendar(modifier, aiGeneratedEvents) { currentScreen = it }
                 }
                 is Screen.Settings -> {
                     SettingsScreen(modifier)
@@ -95,7 +93,7 @@ fun App() {
 }
 
 @Composable
-fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<CalendarEvent>) -> Unit) {
+fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -> Unit) {
     var showSources by remember { mutableStateOf(true) }
     var showStudio by remember { mutableStateOf(true) }
     var sourceItems by remember { mutableStateOf(listOf(
@@ -182,7 +180,7 @@ fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<CalendarE
 }
 
 @Composable
-fun MobileApp(modifier: Modifier = Modifier, onEventsGenerated: (List<CalendarEvent>) -> Unit) {
+fun MobileApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -> Unit) {
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
     var sourceItems by remember { mutableStateOf(listOf(

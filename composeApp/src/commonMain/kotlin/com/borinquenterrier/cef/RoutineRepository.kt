@@ -6,15 +6,15 @@ import kotlinx.serialization.json.Json
 
 class RoutineRepository(private val settings: Settings) {
 
-    private val routineKey = "ROUTINE_ITEMS_LIST"
+    private val routineKey = "ROUTINE_EVENTS_LIST"
 
-    fun getRoutine(): List<RoutineItem> {
+    fun getRoutineEvents(): List<TimeEvent> {
         val jsonString = settings.getString(routineKey, "[]")
         return Json.decodeFromString(jsonString)
     }
 
-    fun saveRoutine(items: List<RoutineItem>) {
-        val jsonString = Json.encodeToString(items)
+    fun saveRoutineEvents(events: List<TimeEvent>) {
+        val jsonString = Json.encodeToString(events)
         settings.putString(routineKey, jsonString)
     }
 }

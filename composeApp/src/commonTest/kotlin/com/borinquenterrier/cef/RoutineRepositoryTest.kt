@@ -9,46 +9,42 @@ import kotlinx.datetime.LocalTime
 
 class RoutineRepositoryTest : FunSpec({
 
-    test("Routine items are saved and retrieved correctly") {
+    test("Routine events are saved and retrieved correctly") {
         // 1. Arrange
         val settings = MapSettings()
         val repository = RoutineRepository(settings)
-        val routineItems = listOf(
-            RoutineItem(
+        val routineEvents = listOf(
+            TimeEvent(
                 title = "CS 101 Lecture",
-                dayOfWeek = DayOfWeek.MONDAY,
+                source = EventSource.ROUTINE,
                 startTime = LocalTime(10, 30),
                 endTime = LocalTime(11, 45),
-                startDate = LocalDate(2024, 8, 26),
-                endDate = LocalDate(2024, 12, 13)
-            ),
-            RoutineItem(
-                title = "Gym Session",
-                dayOfWeek = DayOfWeek.TUESDAY,
-                startTime = LocalTime(18, 0),
-                endTime = LocalTime(19, 30),
-                startDate = LocalDate(2024, 8, 26),
-                endDate = LocalDate(2024, 12, 13)
+                date = LocalDate(2024, 8, 26),
+                recurrence = Recurrence(
+                    daysOfWeek = listOf(DayOfWeek.MONDAY, DayOfWeek.WEDNESDAY),
+                    startDate = LocalDate(2024, 8, 26),
+                    endDate = LocalDate(2024, 12, 13)
+                )
             )
         )
 
         // 2. Act
-        repository.saveRoutine(routineItems)
+        repository.saveRoutineEvents(routineEvents)
+        val loadedEvents = repository.getRoutineEvents()
 
         // 3. Assert
-        val loadedItems = repository.getRoutine()
-        loadedItems shouldBe routineItems
+        loadedEvents shouldBe routineEvents
     }
 
-    test("getRoutine returns an empty list when no routine is saved") {
+    test("getRoutineEvents returns an empty list when no routine is saved") {
         // 1. Arrange
         val settings = MapSettings()
         val repository = RoutineRepository(settings)
 
         // 2. Act
-        val loadedItems = repository.getRoutine()
+        val loadedEvents = repository.getRoutineEvents()
 
         // 3. Assert
-        loadedItems.isEmpty() shouldBe true
+        loadedEvents.isEmpty() shouldBe true
     }
 })

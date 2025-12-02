@@ -2,28 +2,22 @@ package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import kotlinx.coroutines.delay
-import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.plus
+import com.russhwolf.settings.Settings
 
-actual class AIService {
+// A dummy implementation for now. We'll replace this with a real AI service later.
+actual class AIService(private val settings: Settings) {
     actual suspend fun generateChatResponse(prompt: String): String {
-        delay(1000)
-        return "This is a dummy Android chat response to: '$prompt'"
+        return "This is a dummy response. The prompt was: $prompt"
     }
 
-    actual suspend fun generateCalendarEvents(prompt: String): List<CalendarEvent> {
-        delay(2000) // Simulate a network request
-        val now = Clock.System.now()
-        return listOf(
-            CalendarEvent("Dummy Android Event 1", now, now.plus(1, DateTimeUnit.HOUR)),
-            CalendarEvent("Dummy Android Event 2", now.plus(2, DateTimeUnit.HOUR), now.plus(3, DateTimeUnit.HOUR))
-        )
+    actual suspend fun generateCalendarEvents(prompt: String): List<Event> {
+        // Dummy implementation. We'll replace this with a real AI service later.
+        return emptyList()
     }
 }
 
 @Composable
 actual fun rememberAIService(): AIService {
-    return remember { AIService() }
+    val settings = rememberSettings()
+    return remember { AIService(settings) }
 }

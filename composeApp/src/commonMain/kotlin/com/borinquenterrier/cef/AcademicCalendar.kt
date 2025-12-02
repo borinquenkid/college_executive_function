@@ -2,6 +2,7 @@ package com.borinquenterrier.cef
 
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -9,6 +10,8 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
@@ -18,50 +21,50 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import kotlinx.datetime.toInstant
-import kotlinx.datetime.toLocalDateTime
 import kotlinx.datetime.todayIn
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AcademicCalendar(modifier: Modifier = Modifier, events: List<CalendarEvent>, onNavigate: (Screen) -> Unit) {
+fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Event>, onNavigate: (Screen) -> Unit) {
     val settings = rememberSettings()
     val repository = remember { RoutineRepository(settings) }
-    var routineItems by remember { mutableStateOf(emptyList<RoutineItem>()) }
+    var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
 
     // Load the routine items
     LaunchedEffect(repository) {
-        routineItems = repository.getRoutine()
+        routineEvents = repository.getRoutineEvents()
     }
 
-    // Generate calendar events from routine items for the next 7 days
-    val generatedRoutineEvents = remember(routineItems) {
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-        val weekDates = (0..6).map { today.plus(it, DateTimeUnit.DAY) }
+    // Expand recurring events for a two-week view (last week + this week)
+    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    val viewStartDate = today.minus(7, DateTimeUnit.DAY)
+    val viewEndDate = today.plus(7, DateTimeUnit.DAY)
 
-        routineItems.flatMap { item ->
-            weekDates
-                .filter { date ->
-                    date.dayOfWeek == item.dayOfWeek && date >= item.startDate && date <= item.endDate
-                }
-                .map { date ->
-                    CalendarEvent(
-                        title = "[Routine] ${item.title}",
-                        startTime = LocalDateTime(date, item.startTime).toInstant(TimeZone.currentSystemDefault()),
-                        endTime = LocalDateTime(date, item.endTime).toInstant(TimeZone.currentSystemDefault())
-                    )
-                }
+    val allExpandedEvents = remember(aiGeneratedEvents, routineEvents) {
+        val expandedRoutineEvents = EventGenerator.expandEvents(routineEvents, viewStartDate, viewEndDate)
+        val expandedAiEvents = EventGenerator.expandEvents(aiGeneratedEvents, viewStartDate, viewEndDate)
+        (expandedRoutineEvents + expandedAiEvents).sortedBy { event ->
+            when (event) {
+                is TimeEvent -> event.date.atStartOfDayIn(TimeZone.currentSystemDefault())
+                is DayEvent -> event.date.atStartOfDayIn(TimeZone.currentSystemDefault())
+            }
         }
     }
 
-    val allEvents = (events + generatedRoutineEvents).sortedBy { it.startTime }
-    val groupedEvents = allEvents.groupBy { it.startTime.toLocalDateTime(TimeZone.currentSystemDefault()).date }
+    val groupedEvents = allExpandedEvents.groupBy { event ->
+        when (event) {
+            is TimeEvent -> event.date
+            is DayEvent -> event.date
+        }
+    }
 
     Column(modifier = modifier) {
         Button(
@@ -91,11 +94,37 @@ fun AcademicCalendar(modifier: Modifier = Modifier, events: List<CalendarEvent>,
                         )
                     }
                     items(eventsOnDate) { event ->
-                        Text(
-                            text = event.title,
-                            modifier = Modifier.padding(16.dp)
-                        )
+                        EventItemView(event)
                     }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun EventItemView(event: Event) {
+    val borderColor = when (event.source) {
+        EventSource.ROUTINE -> Color(0xFF4CAF50) // Green
+        EventSource.AI_GENERATED -> Color(0xFF2196F3) // Blue
+        EventSource.MANUAL -> Color(0xFFFFC107) // Amber
+    }
+
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp, vertical = 4.dp)
+            .border(2.dp, borderColor, CardDefaults.shape)
+    ) {
+        Column(modifier = Modifier.padding(16.dp)) {
+            when (event) {
+                is TimeEvent -> {
+                    Text(event.title, style = MaterialTheme.typography.titleMedium)
+                    Text("From ${event.startTime} to ${event.endTime}")
+                }
+                is DayEvent -> {
+                    Text(event.title, style = MaterialTheme.typography.titleMedium)
+                    Text("All day")
                 }
             }
         }

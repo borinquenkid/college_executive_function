@@ -33,6 +33,7 @@ kotlin {
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)
+            implementation(libs.ktor.client.okhttp)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -44,20 +45,35 @@ kotlin {
             implementation(libs.androidx.lifecycle.viewmodelCompose)
             implementation(libs.androidx.lifecycle.runtimeCompose)
             implementation(compose.materialIconsExtended)
-            implementation("com.russhwolf:multiplatform-settings:1.1.1")
-            implementation("org.jetbrains.kotlinx:kotlinx-datetime:0.5.0")
             implementation(libs.kotlinx.serialization.json)
+            implementation(libs.kotlinx.datetime)
+            implementation(libs.ktor.client.core)
+            implementation(libs.ktor.client.content.negotiation)
+            implementation(libs.ktor.serialization.kotlinx.json)
+            implementation("com.russhwolf:multiplatform-settings:1.1.1")
+            implementation(libs.ical4j)
+            implementation(libs.google.api.services.calendar)
+            implementation(libs.google.api.client)
+            implementation(libs.google.oauth.client.jetty)
+        }
+        iosMain.dependencies {
+            implementation(libs.ktor.client.darwin)
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
             implementation(libs.kotest.runner.junit5)
             implementation(libs.kotest.assertions.core)
             implementation(libs.kotest.framework.engine)
+            implementation(libs.mockk)
+            implementation(libs.ktor.client.mock)
             implementation(libs.multiplatform.settings.test)
+
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)
+            implementation(libs.ktor.client.java)
+            implementation(libs.google.http.client.gson)
         }
     }
 }
@@ -72,10 +88,13 @@ android {
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = "1.0"
+        testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
     packaging {
         resources {
             excludes += "/META-INF/{AL2.0,LGPL2.1}"
+            excludes += "META-INF/DEPENDENCIES"
+            excludes += "META-INF/INDEX.LIST"
         }
     }
     buildTypes {

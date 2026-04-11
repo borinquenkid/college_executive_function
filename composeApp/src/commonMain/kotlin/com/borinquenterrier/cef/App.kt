@@ -28,11 +28,13 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.borinquenterrier.cef.ui.theme.CollegeExecutiveFunctionTheme
+import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
 sealed class Screen {
@@ -101,6 +103,9 @@ fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -
         SourceItem("Calendar", "Fall 2024 Calendar")
     )) }
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val aiService = rememberAIService()
+    val webReader = remember { WebSourceReader() }
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         AnimatedVisibility(visible = showSources, modifier = Modifier.weight(1f)) {
@@ -110,7 +115,16 @@ fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -
                     sourceItems = sourceItems,
                     selectedSource = selectedSource,
                     onSourceSelected = { selectedSource = it },
-                    onSourceAdded = { sourceItems = sourceItems + it }
+                    onSourceAdded = { sourceItems = sourceItems + it },
+                    onUrlSourceAdded = { url ->
+                        coroutineScope.launch {
+                            val content = webReader.readTextFromUrl(url)
+                            val newSource = SourceItem(url, content)
+                            sourceItems = sourceItems + newSource
+                            val events = aiService.generateCalendarEvents(content)
+                            onEventsGenerated(events)
+                        }
+                    }
                 )
                 Box(
                     Modifier
@@ -188,6 +202,9 @@ fun MobileApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) ->
         SourceItem("Calendar", "Fall 2024 Calendar")
     )) }
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
+    val coroutineScope = rememberCoroutineScope()
+    val aiService = rememberAIService()
+    val webReader = remember { WebSourceReader() }
 
     Column(modifier = modifier) {
         // Sources Panel (Top)
@@ -213,7 +230,16 @@ fun MobileApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) ->
                     sourceItems = sourceItems,
                     selectedSource = selectedSource,
                     onSourceSelected = { selectedSource = it },
-                    onSourceAdded = { sourceItems = sourceItems + it }
+                    onSourceAdded = { sourceItems = sourceItems + it },
+                    onUrlSourceAdded = { url ->
+                        coroutineScope.launch {
+                            val content = webReader.readTextFromUrl(url)
+                            val newSource = SourceItem(url, content)
+                            sourceItems = sourceItems + newSource
+                            val events = aiService.generateCalendarEvents(content)
+                            onEventsGenerated(events)
+                        }
+                    }
                 )
             }
         }

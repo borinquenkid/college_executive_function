@@ -3,26 +3,17 @@ package com.borinquenterrier.cef
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material3.Button
-import androidx.compose.material3.Card
-import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.CloudCircle
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
@@ -35,8 +26,13 @@ import kotlinx.datetime.todayIn
 @Composable
 fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Event>, onNavigate: (Screen) -> Unit) {
     val settings = rememberSettings()
+    val scope = rememberCoroutineScope()
     val repository = remember { RoutineRepository(settings) }
+    val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
+    val authService = remember(settings) { GoogleAuthService(settings) }
+    
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
+    var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
 
     // Load the routine items
     LaunchedEffect(repository) {
@@ -67,9 +63,41 @@ fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Even
     }
 
     Column(modifier = modifier) {
+        if (!isGoogleLinked) {
+            Card(
+                modifier = Modifier.fillMaxWidth().padding(16.dp),
+                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+            ) {
+                Column(modifier = Modifier.padding(16.dp)) {
+                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                        Icon(Icons.Default.CloudCircle, contentDescription = null)
+                        Spacer(Modifier.padding(horizontal = 4.dp))
+                        Text("Sync with Google Calendar", style = MaterialTheme.typography.titleMedium)
+                    }
+                    Text("Link your account to import syllabi from Drive and push events to your Google Calendar.")
+                    Spacer(Modifier.height(8.dp))
+                    Button(onClick = {
+                        scope.launch {
+                            try {
+                                val result = authService.login()
+                                val access = result.first
+                                val refresh = result.second
+                                tokenRepository.saveTokens(access, refresh)
+                                isGoogleLinked = true
+                            } catch (e: Exception) {
+                                // Handle error
+                            }
+                        }
+                    }) {
+                        Text("Link Google Account")
+                    }
+                }
+            }
+        }
+
         Button(
             onClick = { onNavigate(Screen.Routine) },
-            modifier = Modifier.fillMaxWidth().padding(16.dp)
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
         ) {
             Text("Manage Weekly Routine")
         }

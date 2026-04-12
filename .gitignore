@@ -1,5 +1,8 @@
 *.iml
 .kotlin
+# Environment variables
+.env
+.env.*
 .cef/
 .gradle
 **/build/

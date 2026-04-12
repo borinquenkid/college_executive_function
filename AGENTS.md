@@ -2,19 +2,34 @@
 
 An application designed to assist students with executive function challenges by providing a structured environment to manage academic sources, generate study materials, and maintain a comprehensive academic calendar.
 
-## Core Concepts
+## Run Profiles
 
-*   **Source Document:** A syllabus, web page, or text file that a user can upload and analyze.
-*   **Event:** A time-sensitive item that can be a single occurrence or recur weekly. Events have a source (Routine, AI-Generated, or Manual) which determines their appearance.
-*   **Academic Calendar:** A central, editable calendar (similar to Outlook) that aggregates all events from all sources.
+The application supports two distinct run profiles to manage different execution environments:
+
+*   **`local` Profile (Runtime):** 
+    *   Interacts with the **real** Google Calendar via the `RemoteCalendarRepository`.
+    *   Uses your local `.env` or stored OAuth tokens.
+*   **`test` Profile (Mock):** 
+    *   Uses a **`MockCalendarRepository`** to provide deterministic data for automated testing.
+    *   Skips the network and real authentication.
+
+## Core Architecture
+
+The application follows a strict data flow to consolidate academic data into a single, synchronized "Source of Truth."
+
+*   **Inputs (Sources):**
+    *   **External Calendars (High Priority):** Read-only feeds from Google Calendar, Microsoft Outlook, or iCal (.ics) URLs (e.g., University Academic Calendars).
+    *   **Syllabus (High Priority):** Course documents containing deadlines and deliverables parsed via AI.
+    *   **Class Documents:** Supporting materials belonging to specific courses.
+*   **The Object (Event):** All inputs are parsed (via AI or direct API/ICS parsing) into a unified `Event` model.
+*   **The Destination:** All generated events are synchronized into the **Student's Master Calendar** (the primary calendar they use daily).
 
 ## Features
 
-*   **Sources Panel:** Upload and manage academic documents.
-*   **Chat Panel:** An interactive chat interface to discuss and get insights from your sources.
-*   **Studio Panel:** Generate summaries, outlines, and Q&A from your uploaded documents.
-*   **Academic Calendar:** A comprehensive, editable calendar that consolidates all academic events and personal routines.
-*   **Settings:** A dedicated screen for users to configure the application, including entering their own generative AI API key.
+*   **Sources Panel:** Manage inputs from Local Files, URLs (Public/Private), and Google Drive.
+*   **Academic Calendar:** A central, editable dashboard that aggregates and synchronizes events from all sources.
+*   **AI Integration:** Performs automated analysis of Syllabi and Documents to extract events and decompose complex tasks.
+*   **Synchronization Service:** Handles the push/pull logic between the app's internal state and the Student's external calendar providers.
 
 ## AI Integration
 

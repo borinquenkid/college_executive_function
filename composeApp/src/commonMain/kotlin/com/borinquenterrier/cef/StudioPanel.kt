@@ -8,12 +8,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material3.*
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -36,8 +31,17 @@ fun StudioPanel(
     val settings = rememberSettings()
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
     val syncService = remember { GoogleCalendarSyncService(HttpClient { 
-        install(ContentNegotiation) { json() } 
+        install(ContentNegotiation) { 
+            json(kotlinx.serialization.json.Json {
+                ignoreUnknownKeys = true
+                coerceInputValues = true
+            }) 
+        } 
     }) }
+    val calendarRepository = remember(syncService, tokenRepository) { 
+        GoogleRemoteCalendarRepository(syncService, tokenRepository) 
+    }
+    val programmaticExtractor = remember { KeywordEventExtractor() }
     
     // Track the last generated events locally to push them
     var lastGeneratedEvents by remember { mutableStateOf<List<Event>>(emptyList()) }
@@ -61,15 +65,36 @@ fun StudioPanel(
             Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
                 Text("Generate Q&A")
             }
-            
             Button(
                 onClick = {
                     coroutineScope.launch {
                         isLoading = true
-                        val events = aiService.generateCalendarEvents("Analyze the syllabus ${selectedSource.content} for dates and deliverables.")
-                        onEventsGenerated(events)
-                        lastGeneratedEvents = events
-                        generatedContent = "${events.size} events added to your internal calendar."
+                        val rawEvents = aiService.generateCalendarEvents("Extract Academic Milestones from this calendar source: ${selectedSource.content}")
+                        // Apply programmatic rules on top of AI/Raw results
+                        val categorizedEvents = programmaticExtractor.extract(rawEvents)
+                        
+                        onEventsGenerated(categorizedEvents)
+                        lastGeneratedEvents = categorizedEvents
+                        generatedContent = "Academic milestones (Holidays, Deadlines, Finals) identified."
+                        isLoading = false
+                    }
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text("Analyze Academic Calendar (AI)")
+            }
+
+            Button(
+                onClick = {
+                    coroutineScope.launch {
+                        isLoading = true
+                        val rawEvents = aiService.generateCalendarEvents("Analyze the syllabus ${selectedSource.content} for dates and deliverables.")
+                        val categorizedEvents = programmaticExtractor.extract(rawEvents)
+                        
+                        onEventsGenerated(categorizedEvents)
+                        lastGeneratedEvents = categorizedEvents
+                        generatedContent = "${categorizedEvents.size} events added to your internal calendar."
                         isLoading = false
                     }
                 },
@@ -84,22 +109,30 @@ fun StudioPanel(
                     onClick = {
                         coroutineScope.launch {
                             isLoading = true
-                            val token = tokenRepository.getAccessToken()!!
-                            // In a real app, we'd map our CEF Events back to iCal4j VEvents first
-                            // For this MVP, we'll just demonstrate pushing one or informing completion
-                            generatedContent = "Pushing ${lastGeneratedEvents.size} events to Google..."
+                            generatedContent = "Checking for conflicts and pushing ${lastGeneratedEvents.size} events..."
                             
                             var successCount = 0
-                            lastGeneratedEvents.forEach { event ->
+                            var conflictFound = false
+                            
+                            for (event in lastGeneratedEvents) {
                                 try {
-                                    syncService.syncEvent(event, token)
+                                    // Use 'default' to target the CEF Academic calendar
+                                    calendarRepository.saveEvent(event, "default")
                                     successCount++
+                                } catch (e: OverlapException) {
+                                    generatedContent = "Conflict: '${event.title}' overlaps with '${e.existingEvent.title}' on your calendar."
+                                    conflictFound = true
+                                    break
                                 } catch (e: Exception) {
-                                    // Log or handle individual failures
+                                    generatedContent = "Error: ${e.message}"
+                                    conflictFound = true
+                                    break
                                 }
                             }
                             
-                            generatedContent = "Success! $successCount events pushed to your Google Calendar."
+                            if (!conflictFound) {
+                                generatedContent = "Success! $successCount events pushed to your CEF Academic Calendar."
+                            }
                             isLoading = false
                         }
                     },

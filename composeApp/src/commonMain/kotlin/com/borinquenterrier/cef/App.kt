@@ -98,10 +98,7 @@ fun App() {
 fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -> Unit) {
     var showSources by remember { mutableStateOf(true) }
     var showStudio by remember { mutableStateOf(true) }
-    var sourceItems by remember { mutableStateOf(listOf(
-        SourceItem("Syllabus", "CS 101 Syllabus"),
-        SourceItem("Calendar", "Fall 2024 Calendar")
-    )) }
+    var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val aiService = rememberAIService()
@@ -197,10 +194,7 @@ fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -
 fun MobileApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -> Unit) {
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
-    var sourceItems by remember { mutableStateOf(listOf(
-        SourceItem("Syllabus", "CS 101 Syllabus"),
-        SourceItem("Calendar", "Fall 2024 Calendar")
-    )) }
+    var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val aiService = rememberAIService()

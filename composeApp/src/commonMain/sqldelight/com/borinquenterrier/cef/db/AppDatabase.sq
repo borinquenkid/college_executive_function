@@ -1,0 +1,27 @@
+CREATE TABLE EventEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    title TEXT NOT NULL,
+    source TEXT NOT NULL,
+    category TEXT NOT NULL,
+    date TEXT NOT NULL,
+    startTime TEXT,
+    endTime TEXT,
+    recurrence TEXT
+);
+
+insertEvent:
+INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+
+selectAllEvents:
+SELECT * FROM EventEntity;
+
+selectEventsInRange:
+SELECT * FROM EventEntity
+WHERE date BETWEEN ? AND ?;
+
+deleteEvent:
+DELETE FROM EventEntity WHERE id = ?;
+
+deleteAllEvents:
+DELETE FROM EventEntity;

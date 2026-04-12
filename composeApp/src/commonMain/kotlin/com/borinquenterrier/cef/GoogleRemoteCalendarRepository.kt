@@ -17,7 +17,7 @@ class GoogleRemoteCalendarRepository(
 
     override suspend fun getAllEvents(calendarId: String): List<Event> {
         val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
-        val targetId = if (calendarId == "default") "primary" else calendarId
+        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
         return syncService.getEvents(token, targetId)
     }
 
@@ -51,17 +51,33 @@ class GoogleRemoteCalendarRepository(
         syncService.syncEvent(event, token, targetId)
     }
 
+    override suspend fun updateEvent(event: Event, calendarId: String) {
+        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
+        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+        syncService.syncEvent(event, token, targetId)
+    }
+
+    override suspend fun deleteEvent(eventId: String, calendarId: String) {
+        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
+        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+        try {
+            syncService.deleteEvent(token, targetId, eventId)
+        } catch (e: GoogleApiException) {
+            if (e.statusCode != 410) throw e
+        }
+    }
+
+    override suspend fun hardDeleteEvent(eventId: String, calendarId: String) {
+        deleteEvent(eventId, calendarId)
+    }
+
     override suspend fun clearCalendar(calendarId: String) {
         val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
-        val targetId = if (calendarId == "default") "primary" else calendarId
+        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
         val events = getAllEvents(targetId)
         events.forEach { event ->
             event.id?.let { id ->
-                try {
-                    syncService.deleteEvent(token, targetId, id)
-                } catch (e: GoogleApiException) {
-                    if (e.statusCode != 410) throw e // Ignore if already deleted
-                }
+                deleteEvent(id, targetId)
             }
         }
     }
@@ -74,5 +90,10 @@ class GoogleRemoteCalendarRepository(
             }
             date in start..end
         }
+    }
+
+    override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String): List<Event> {
+        // Remote always reflects SYNCED state from its own perspective
+        return if (status == SyncStatus.SYNCED) getAllEvents(calendarId) else emptyList()
     }
 }

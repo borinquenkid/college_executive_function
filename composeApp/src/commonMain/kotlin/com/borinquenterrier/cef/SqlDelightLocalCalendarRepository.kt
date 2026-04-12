@@ -12,9 +12,11 @@ class SqlDelightLocalCalendarRepository(private val database: AppDatabase) : Stu
     private val json = Json { ignoreUnknownKeys = true }
 
     override suspend fun getAllEvents(calendarId: String): List<Event> {
-        return database.appDatabaseQueries.selectAllEvents().executeAsList().map { entity ->
-            mapEntityToEvent(entity)
-        }
+        return database.appDatabaseQueries.selectAllEvents().executeAsList()
+            .filter { it.syncStatus != SyncStatus.DELETED_LOCALLY.name }
+            .map { entity ->
+                mapEntityToEvent(entity)
+            }
     }
 
     override suspend fun saveEvent(event: Event, calendarId: String) {
@@ -26,16 +28,17 @@ class SqlDelightLocalCalendarRepository(private val database: AppDatabase) : Stu
         }
 
         // 2. Insert into database
-        val recurrenceStr = event.let {
-            when (it) {
-                is TimeEvent -> it.recurrence?.let { r -> json.encodeToString(r) }
-                is DayEvent -> it.recurrence?.let { r -> json.encodeToString(r) }
-                else -> null
-            }
+        updateEvent(event, calendarId)
+    }
+
+    override suspend fun updateEvent(event: Event, calendarId: String) {
+        val recurrenceStr = when (event) {
+            is TimeEvent -> event.recurrence?.let { r -> json.encodeToString(r) }
+            is DayEvent -> event.recurrence?.let { r -> json.encodeToString(r) }
         }
 
         database.appDatabaseQueries.insertEvent(
-            id = event.id ?: kotlinx.datetime.Clock.System.now().toString(),
+            id = event.id ?: kotlinx.datetime.Clock.System.now().toEpochMilliseconds().toString(),
             title = event.title,
             source = event.source.name,
             category = event.category.name,
@@ -45,8 +48,21 @@ class SqlDelightLocalCalendarRepository(private val database: AppDatabase) : Stu
             },
             startTime = (event as? TimeEvent)?.startTime?.toString(),
             endTime = (event as? TimeEvent)?.endTime?.toString(),
-            recurrence = recurrenceStr
+            recurrence = recurrenceStr,
+            syncStatus = event.syncStatus.name,
+            updatedAt = event.updatedAt
         )
+    }
+
+    override suspend fun deleteEvent(eventId: String, calendarId: String) {
+        database.appDatabaseQueries.markAsDeleted(
+            updatedAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds(),
+            id = eventId
+        )
+    }
+
+    override suspend fun hardDeleteEvent(eventId: String, calendarId: String) {
+        database.appDatabaseQueries.deleteEvent(eventId)
     }
 
     override suspend fun getEventsInRange(start: LocalDate, end: LocalDate, calendarId: String): List<Event> {
@@ -55,9 +71,16 @@ class SqlDelightLocalCalendarRepository(private val database: AppDatabase) : Stu
             .map { mapEntityToEvent(it) }
     }
 
+    override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String): List<Event> {
+        return database.appDatabaseQueries.selectBySyncStatus(status.name)
+            .executeAsList()
+            .map { mapEntityToEvent(it) }
+    }
+
     private fun mapEntityToEvent(entity: com.borinquenterrier.cef.db.EventEntity): Event {
         val source = EventSource.valueOf(entity.source)
         val category = AcademicCategory.valueOf(entity.category)
+        val syncStatus = SyncStatus.valueOf(entity.syncStatus)
         val date = LocalDate.parse(entity.date)
         val recurrence = entity.recurrence?.let { json.decodeFromString<Recurrence>(it) }
 
@@ -67,6 +90,8 @@ class SqlDelightLocalCalendarRepository(private val database: AppDatabase) : Stu
                 title = entity.title,
                 source = source,
                 category = category,
+                syncStatus = syncStatus,
+                updatedAt = entity.updatedAt,
                 date = date,
                 startTime = LocalTime.parse(entity.startTime),
                 endTime = LocalTime.parse(entity.endTime),
@@ -78,6 +103,8 @@ class SqlDelightLocalCalendarRepository(private val database: AppDatabase) : Stu
                 title = entity.title,
                 source = source,
                 category = category,
+                syncStatus = syncStatus,
+                updatedAt = entity.updatedAt,
                 date = date,
                 recurrence = recurrence
             )

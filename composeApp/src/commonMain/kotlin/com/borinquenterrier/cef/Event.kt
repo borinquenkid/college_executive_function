@@ -13,6 +13,10 @@ enum class AcademicCategory {
     REGULAR, HOLIDAY, DEADLINE, FINALS, SEMESTER_BOUND
 }
 
+enum class SyncStatus {
+    SYNCED, LOCAL_ONLY, DELETED_LOCALLY
+}
+
 @Serializable
 data class Recurrence(
     val daysOfWeek: List<DayOfWeek>,
@@ -27,6 +31,8 @@ sealed interface Event {
     val title: String
     val source: EventSource
     val category: AcademicCategory
+    val syncStatus: SyncStatus
+    val updatedAt: Long
 
     /**
      * Checks if this event overlaps with another event in time.
@@ -40,6 +46,8 @@ data class TimeEvent(
     override val title: String,
     override val source: EventSource,
     override val category: AcademicCategory = AcademicCategory.REGULAR,
+    override val syncStatus: SyncStatus = SyncStatus.SYNCED,
+    override val updatedAt: Long = 0,
     @Serializable(with = LocalTimeSerializer::class)
     val startTime: LocalTime,
     @Serializable(with = LocalTimeSerializer::class)
@@ -65,6 +73,8 @@ data class DayEvent(
     override val title: String,
     override val source: EventSource,
     override val category: AcademicCategory = AcademicCategory.REGULAR,
+    override val syncStatus: SyncStatus = SyncStatus.SYNCED,
+    override val updatedAt: Long = 0,
     @Serializable(with = LocalDateSerializer::class)
     val date: LocalDate,
     val recurrence: Recurrence? = null

@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CloudCircle
+import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
@@ -18,19 +19,21 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.launch
 import kotlinx.datetime.*
+import com.borinquenterrier.cef.db.createDatabase
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Event>, onNavigate: (Screen) -> Unit) {
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
-    val repository = remember { RoutineRepository(settings) }
+    val routineRepository = remember { RoutineRepository(settings) }
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
     val authService = remember(settings) { GoogleAuthService(settings) }
     
-    var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
-    var googleEvents by remember { mutableStateOf(emptyList<Event>()) }
-    var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
+    // Offline Database Setup
+    val driverFactory = rememberDriverFactory()
+    val database = remember(driverFactory) { createDatabase(driverFactory) }
+    val localRepository = remember(database) { SqlDelightLocalCalendarRepository(database) }
     
     val syncService = remember { GoogleCalendarSyncService(HttpClient {
         install(ContentNegotiation) {
@@ -41,23 +44,38 @@ fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Even
         }
     }) }
     
-    val calendarRepository = remember(syncService, tokenRepository) {
+    val remoteRepository = remember(syncService, tokenRepository) {
         GoogleRemoteCalendarRepository(syncService, tokenRepository)
     }
 
-    // Load the routine items
-    LaunchedEffect(repository) {
-        routineEvents = repository.getRoutineEvents()
+    val unifiedRepository = remember(localRepository, remoteRepository) {
+        UnifiedCalendarRepository(localRepository, remoteRepository)
     }
 
-    // Fetch Google events if linked
+    var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
+    var displayedEvents by remember { mutableStateOf(emptyList<Event>()) }
+    var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
+    var isSyncing by remember { mutableStateOf(false) }
+
+    // Load the routine items
+    LaunchedEffect(routineRepository) {
+        routineEvents = routineRepository.getRoutineEvents()
+    }
+
+    // Initial Load and Sync
     LaunchedEffect(isGoogleLinked) {
+        displayedEvents = unifiedRepository.getEvents("default")
         if (isGoogleLinked) {
-            try {
-                // Fetch from the 'primary' calendar for now
-                googleEvents = calendarRepository.getAllEvents("primary")
-            } catch (e: Exception) {
-                // Handle fetch error
+            scope.launch {
+                isSyncing = true
+                try {
+                    unifiedRepository.synchronize("default")
+                    displayedEvents = unifiedRepository.getEvents("default")
+                } catch (e: Exception) {
+                    // Sync failed, using cached local data
+                } finally {
+                    isSyncing = false
+                }
             }
         }
     }
@@ -77,17 +95,15 @@ fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Even
             LocalDate(currentYear, 1, 1) to LocalDate(currentYear, 5, 31)
         }
         else -> {
-            // Summer or fallback: Show a one-month view from today
             today to today.plus(30, DateTimeUnit.DAY)
         }
     }
 
-    val allExpandedEvents = remember(aiGeneratedEvents, routineEvents, googleEvents, viewStartDate, viewEndDate) {
+    val allExpandedEvents = remember(aiGeneratedEvents, routineEvents, displayedEvents, viewStartDate, viewEndDate) {
         val expandedRoutineEvents = EventGenerator.expandEvents(routineEvents, viewStartDate, viewEndDate)
         val expandedAiEvents = EventGenerator.expandEvents(aiGeneratedEvents, viewStartDate, viewEndDate)
         
-        // Filter out any events that fall outside the current semester's window
-        (expandedRoutineEvents + expandedAiEvents + googleEvents)
+        (expandedRoutineEvents + expandedAiEvents + displayedEvents)
             .filter { event ->
                 val date = when (event) {
                     is TimeEvent -> event.date
@@ -128,12 +144,9 @@ fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Even
                         scope.launch {
                             try {
                                 val result = authService.login()
-                                val access = result.first
-                                val refresh = result.second
-                                tokenRepository.saveTokens(access, refresh)
+                                tokenRepository.saveTokens(result.first, result.second)
                                 isGoogleLinked = true
                             } catch (e: Exception) {
-                                // Handle error
                             }
                         }
                     }) {
@@ -143,11 +156,34 @@ fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Even
             }
         }
 
-        Button(
-            onClick = { onNavigate(Screen.Routine) },
-            modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
-            Text("Manage Weekly Routine")
+        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+            Button(
+                onClick = { onNavigate(Screen.Routine) },
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Manage Weekly Routine")
+            }
+            
+            if (isGoogleLinked) {
+                IconButton(
+                    onClick = {
+                        scope.launch {
+                            isSyncing = true
+                            try {
+                                unifiedRepository.synchronize("default")
+                                displayedEvents = unifiedRepository.getEvents("default")
+                            } catch (e: Exception) {
+                            } finally {
+                                isSyncing = false
+                            }
+                        }
+                    },
+                    enabled = !isSyncing
+                ) {
+                    if (isSyncing) CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                    else Icon(Icons.Default.Sync, contentDescription = "Sync Now")
+                }
+            }
         }
 
         LazyColumn(modifier = Modifier.fillMaxSize()) {

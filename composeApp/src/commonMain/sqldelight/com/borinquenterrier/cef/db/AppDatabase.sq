@@ -6,22 +6,30 @@ CREATE TABLE EventEntity (
     date TEXT NOT NULL,
     startTime TEXT,
     endTime TEXT,
-    recurrence TEXT
+    recurrence TEXT,
+    syncStatus TEXT NOT NULL DEFAULT 'SYNCED',
+    updatedAt INTEGER NOT NULL DEFAULT 0
 );
 
 insertEvent:
-INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence, syncStatus, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectAllEvents:
 SELECT * FROM EventEntity;
 
 selectEventsInRange:
 SELECT * FROM EventEntity
-WHERE date BETWEEN ? AND ?;
+WHERE date BETWEEN ? AND ? AND syncStatus != 'DELETED_LOCALLY';
+
+selectBySyncStatus:
+SELECT * FROM EventEntity WHERE syncStatus = ?;
 
 deleteEvent:
 DELETE FROM EventEntity WHERE id = ?;
+
+markAsDeleted:
+UPDATE EventEntity SET syncStatus = 'DELETED_LOCALLY', updatedAt = ? WHERE id = ?;
 
 deleteAllEvents:
 DELETE FROM EventEntity;

@@ -77,7 +77,7 @@ class GoogleCalendarSyncService(private val httpClient: HttpClient) {
         }
         ensureSuccess(response)
         val listResponse = response.body<GoogleCalendarListDiscoveryResponse>()
-        return listResponse.items.map { RemoteCalendarMetadata(it.id, it.summary) }
+        return listResponse.items.map { RemoteCalendarMetadata(it.id, it.summary ?: "Untitled Calendar") }
     }
 
     /**
@@ -166,7 +166,7 @@ data class GoogleCalendarListDiscoveryResponse(
 @Serializable
 data class GoogleCalendarDiscoveryItem(
     val id: String,
-    val summary: String
+    val summary: String? = null
 )
 
 @Serializable

@@ -44,9 +44,30 @@ interface StudentCalendarRepository {
     suspend fun saveEvent(event: Event, calendarId: String = "default")
 
     /**
+     * Updates an event in the repository without performing overlap checks.
+     * Useful for synchronization.
+     */
+    suspend fun updateEvent(event: Event, calendarId: String = "default")
+
+    /**
+     * Marks an event as deleted (locally or remotely).
+     */
+    suspend fun deleteEvent(eventId: String, calendarId: String = "default")
+
+    /**
+     * Physically removes an event from the repository.
+     */
+    suspend fun hardDeleteEvent(eventId: String, calendarId: String = "default")
+
+    /**
      * Retrieves events for a specific date range from a specific calendar.
      */
     suspend fun getEventsInRange(start: LocalDate, end: LocalDate, calendarId: String = "default"): List<Event>
+
+    /**
+     * Retrieves events by their synchronization status.
+     */
+    suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String = "default"): List<Event>
 }
 
 /**

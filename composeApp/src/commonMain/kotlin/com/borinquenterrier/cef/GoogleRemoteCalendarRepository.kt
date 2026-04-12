@@ -7,63 +7,77 @@ import kotlinx.datetime.LocalDate
  */
 class GoogleRemoteCalendarRepository(
     private val syncService: GoogleCalendarSyncService,
-    private val tokenRepository: GoogleTokenRepository
+    private val tokenRepository: GoogleTokenRepository,
+    private val authService: GoogleAuthService
 ) : RemoteCalendarRepository {
 
-    override suspend fun getAvailableCalendars(): List<RemoteCalendarMetadata> {
-        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
-        return syncService.listCalendars(token)
+    private suspend fun <T> withToken(block: suspend (String) -> T): T {
+        val currentToken = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
+        return try {
+            block(currentToken)
+        } catch (e: GoogleApiException) {
+            if (e.statusCode == 401) {
+                val refreshToken = tokenRepository.getRefreshToken() ?: throw e
+                val newToken = authService.refreshAccessToken(refreshToken) ?: throw e
+                tokenRepository.saveTokens(newToken, refreshToken)
+                block(newToken)
+            } else {
+                throw e
+            }
+        }
     }
 
-    override suspend fun getAllEvents(calendarId: String): List<Event> {
-        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
+    override suspend fun getAvailableCalendars(): List<RemoteCalendarMetadata> = withToken { token ->
+        syncService.listCalendars(token)
+    }
+
+    override suspend fun getAllEvents(calendarId: String): List<Event> = withToken { token ->
         val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
-        return syncService.getEvents(token, targetId)
+        syncService.getEvents(token, targetId)
     }
 
     /**
      * Finds the 'CEF Academic' calendar ID, or creates it if it doesn't exist.
      */
-    suspend fun getCEFCalendarId(): String {
-        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated")
+    suspend fun getCEFCalendarId(): String = withToken { token ->
         val calendars = syncService.listCalendars(token)
         val cefCal = calendars.find { it.name == "CEF Academic" }
-
-        return cefCal?.id ?: syncService.createCalendar(token, "CEF Academic")
+        cefCal?.id ?: syncService.createCalendar(token, "CEF Academic")
     }
 
     override suspend fun saveEvent(event: Event, calendarId: String) {
-        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
+        withToken { token ->
+            val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+            
+            // 1. Fetch current events for THAT specific calendar to check for overlaps
+            val existingEvents = syncService.getEvents(token, targetId)
 
-        // If 'default' is passed, we use the dedicated CEF calendar
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
-
-        // 1. Fetch current events for THAT specific calendar to check for overlaps
-        val existingEvents = getAllEvents(targetId)
-
-        // 2. Perform the overlap check
-        val conflict = existingEvents.find { it.overlaps(event) }
-        if (conflict != null) {
-            throw OverlapException(existingEvent = conflict, newEvent = event)
+            // 2. Perform the overlap check
+            val conflict = existingEvents.find { it.overlaps(event) }
+            if (conflict != null) {
+                throw OverlapException(existingEvent = conflict, newEvent = event)
+            }
+            
+            // 3. Save if clear
+            syncService.syncEvent(event, token, targetId)
         }
-        
-        // 3. Save if clear
-        syncService.syncEvent(event, token, targetId)
     }
 
     override suspend fun updateEvent(event: Event, calendarId: String) {
-        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
-        syncService.syncEvent(event, token, targetId)
+        withToken { token ->
+            val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+            syncService.syncEvent(event, token, targetId)
+        }
     }
 
     override suspend fun deleteEvent(eventId: String, calendarId: String) {
-        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
-        try {
-            syncService.deleteEvent(token, targetId, eventId)
-        } catch (e: GoogleApiException) {
-            if (e.statusCode != 410) throw e
+        withToken { token ->
+            val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+            try {
+                syncService.deleteEvent(token, targetId, eventId)
+            } catch (e: GoogleApiException) {
+                if (e.statusCode != 410) throw e
+            }
         }
     }
 
@@ -72,12 +86,17 @@ class GoogleRemoteCalendarRepository(
     }
 
     override suspend fun clearCalendar(calendarId: String) {
-        val token = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
-        val events = getAllEvents(targetId)
-        events.forEach { event ->
-            event.id?.let { id ->
-                deleteEvent(id, targetId)
+        withToken { token ->
+            val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+            val events = syncService.getEvents(token, targetId)
+            events.forEach { event ->
+                event.id?.let { id ->
+                    try {
+                        syncService.deleteEvent(token, targetId, id)
+                    } catch (e: GoogleApiException) {
+                        if (e.statusCode != 410) throw e
+                    }
+                }
             }
         }
     }
@@ -93,7 +112,6 @@ class GoogleRemoteCalendarRepository(
     }
 
     override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String): List<Event> {
-        // Remote always reflects SYNCED state from its own perspective
         return if (status == SyncStatus.SYNCED) getAllEvents(calendarId) else emptyList()
     }
 }

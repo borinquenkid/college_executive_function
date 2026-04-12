@@ -12,15 +12,14 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
+import com.russhwolf.settings.Settings
 import kotlinx.coroutines.launch
 
 @Composable
 fun StudioPanel(
     modifier: Modifier = Modifier, 
     selectedSource: SourceItem?, 
+    unifiedRepository: UnifiedCalendarRepository,
     onEventsGenerated: (List<Event>) -> Unit
 ) {
     var isLoading by remember { mutableStateOf(false) }
@@ -30,21 +29,12 @@ fun StudioPanel(
     
     val settings = rememberSettings()
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
-    val syncService = remember { GoogleCalendarSyncService(HttpClient { 
-        install(ContentNegotiation) { 
-            json(kotlinx.serialization.json.Json {
-                ignoreUnknownKeys = true
-                coerceInputValues = true
-            }) 
-        } 
-    }) }
-    val calendarRepository = remember(syncService, tokenRepository) { 
-        GoogleRemoteCalendarRepository(syncService, tokenRepository) 
-    }
     val programmaticExtractor = remember { KeywordEventExtractor() }
     
     // Track the last generated events locally to push them
     var lastGeneratedEvents by remember { mutableStateOf<List<Event>>(emptyList()) }
+
+    val isConnected = tokenRepository.hasTokens()
 
     Column(
         modifier = modifier
@@ -103,11 +93,16 @@ fun StudioPanel(
                 Text("Extract Deliverables (AI)")
             }
 
-            if (lastGeneratedEvents.isNotEmpty() && tokenRepository.hasTokens()) {
+            if (lastGeneratedEvents.isNotEmpty()) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                 Button(
                     onClick = {
                         coroutineScope.launch {
+                            if (!isConnected) {
+                                generatedContent = "Error: Not connected to Google Workspace. Please link your account in Settings or the Calendar tab."
+                                return@launch
+                            }
+
                             isLoading = true
                             generatedContent = "Checking for conflicts and pushing ${lastGeneratedEvents.size} events..."
                             
@@ -117,7 +112,7 @@ fun StudioPanel(
                             for (event in lastGeneratedEvents) {
                                 try {
                                     // Use 'default' to target the CEF Academic calendar
-                                    calendarRepository.saveEvent(event, "default")
+                                    unifiedRepository.saveEvent(event, "default")
                                     successCount++
                                 } catch (e: OverlapException) {
                                     generatedContent = "Conflict: '${event.title}' overlaps with '${e.existingEvent.title}' on your calendar."
@@ -137,9 +132,12 @@ fun StudioPanel(
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.tertiary)
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (isConnected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
+                    ),
+                    enabled = !isLoading
                 ) {
-                    Text("Push to Google Calendar")
+                    Text(if (isConnected) "Push to Google Calendar" else "Connect to Google to Push")
                 }
             }
         } else {

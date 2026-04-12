@@ -104,10 +104,12 @@ class IcsToGoogleIntegrationTest : FunSpec({
         }
 
         val syncService = GoogleCalendarSyncService(httpClient)
-        val tokenRepo = GoogleTokenRepository(com.russhwolf.settings.MapSettings())
+        val settings = com.russhwolf.settings.MapSettings()
+        val tokenRepo = GoogleTokenRepository(settings)
         tokenRepo.saveTokens(activeAccessToken ?: "mock-access", refreshToken ?: "mock-refresh")
         
-        val googleRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo)
+        val authService = GoogleAuthService(settings)
+        val googleRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo, authService)
         val icsSource = IcsCalendarSource(icsContent)
 
         // 3. Clear existing events (USE CAUTION IF RUNNING AGAINST REAL CALENDAR)

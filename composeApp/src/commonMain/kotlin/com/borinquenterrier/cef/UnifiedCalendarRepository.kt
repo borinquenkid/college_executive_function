@@ -19,30 +19,36 @@ class UnifiedCalendarRepository(
     }
 
     /**
-     * Saves a new event. If online, saves to both. If offline, saves locally as LOCAL_ONLY.
+     * Saves a new event. Attempts to save to Remote first. 
+     * If successful, saves to Local as SYNCED.
+     * If Remote fails, this method now throws the exception so the UI can handle it.
      */
     suspend fun saveEvent(event: Event, calendarId: String = "default") {
-        try {
-            // Attempt to save to remote first (Gold Standard)
-            remoteRepo.saveEvent(event, calendarId)
-            // If remote success, save locally as SYNCED
-            localRepo.saveEvent(
-                when (event) {
-                    is TimeEvent -> event.copy(syncStatus = SyncStatus.SYNCED)
-                    is DayEvent -> event.copy(syncStatus = SyncStatus.SYNCED)
-                }, 
-                calendarId
-            )
-        } catch (e: Exception) {
-            // If remote fails (offline or other), save locally as LOCAL_ONLY
-            localRepo.saveEvent(
-                when (event) {
-                    is TimeEvent -> event.copy(syncStatus = SyncStatus.LOCAL_ONLY)
-                    is DayEvent -> event.copy(syncStatus = SyncStatus.LOCAL_ONLY)
-                },
-                calendarId
-            )
-        }
+        // Attempt to save to remote first (Gold Standard)
+        remoteRepo.saveEvent(event, calendarId)
+        
+        // If remote success, save locally as SYNCED
+        localRepo.saveEvent(
+            when (event) {
+                is TimeEvent -> event.copy(syncStatus = SyncStatus.SYNCED)
+                is DayEvent -> event.copy(syncStatus = SyncStatus.SYNCED)
+            }, 
+            calendarId
+        )
+    }
+
+    /**
+     * Explicitly saves an event to the local database only. 
+     * Used for offline support or when the user hasn't linked Workspace.
+     */
+    suspend fun saveEventLocally(event: Event, calendarId: String = "default") {
+        localRepo.saveEvent(
+            when (event) {
+                is TimeEvent -> event.copy(syncStatus = SyncStatus.LOCAL_ONLY)
+                is DayEvent -> event.copy(syncStatus = SyncStatus.LOCAL_ONLY)
+            },
+            calendarId
+        )
     }
 
     /**

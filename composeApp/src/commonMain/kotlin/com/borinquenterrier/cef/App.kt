@@ -37,6 +37,11 @@ import com.borinquenterrier.cef.ui.theme.CollegeExecutiveFunctionTheme
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
 
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
+import com.borinquenterrier.cef.db.createDatabase
+
 sealed class Screen {
     object Home : Screen()
     object Calendar : Screen()
@@ -51,6 +56,29 @@ fun App() {
     CollegeExecutiveFunctionTheme {
         var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
         var aiGeneratedEvents by remember { mutableStateOf(listOf<Event>()) }
+
+        val settings = rememberSettings()
+        val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
+        val authService = remember(settings) { GoogleAuthService(settings) }
+        val driverFactory = rememberDriverFactory()
+        val database = remember(driverFactory) { createDatabase(driverFactory) }
+        val localRepository = remember(database) { SqlDelightLocalCalendarRepository(database) }
+        val syncService = remember { 
+            GoogleCalendarSyncService(HttpClient {
+                install(ContentNegotiation) {
+                    json(kotlinx.serialization.json.Json {
+                        ignoreUnknownKeys = true
+                        coerceInputValues = true
+                    })
+                }
+            }) 
+        }
+        val remoteRepository = remember(syncService, tokenRepository, authService) {
+            GoogleRemoteCalendarRepository(syncService, tokenRepository, authService)
+        }
+        val unifiedRepository = remember(localRepository, remoteRepository) {
+            UnifiedCalendarRepository(localRepository, remoteRepository)
+        }
 
         Scaffold(
             topBar = {
@@ -75,13 +103,13 @@ fun App() {
             when (currentScreen) {
                 is Screen.Home -> {
                     if (isDesktop) {
-                        DesktopApp(modifier) { aiGeneratedEvents = aiGeneratedEvents + it }
+                        DesktopApp(modifier, unifiedRepository) { aiGeneratedEvents = aiGeneratedEvents + it }
                     } else {
-                        MobileApp(modifier) { aiGeneratedEvents = aiGeneratedEvents + it }
+                        MobileApp(modifier, unifiedRepository) { aiGeneratedEvents = aiGeneratedEvents + it }
                     }
                 }
                 is Screen.Calendar -> {
-                    AcademicCalendar(modifier, aiGeneratedEvents) { currentScreen = it }
+                    AcademicCalendar(modifier, aiGeneratedEvents, unifiedRepository) { currentScreen = it }
                 }
                 is Screen.Settings -> {
                     SettingsScreen(modifier)
@@ -95,7 +123,7 @@ fun App() {
 }
 
 @Composable
-fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -> Unit) {
+fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarRepository, onEventsGenerated: (List<Event>) -> Unit) {
     var showSources by remember { mutableStateOf(true) }
     var showStudio by remember { mutableStateOf(true) }
     var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
@@ -184,14 +212,14 @@ fun DesktopApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -
                         contentDescription = "Hide Studio"
                     )
                 }
-                StudioPanel(modifier = Modifier.weight(1f), selectedSource = selectedSource, onEventsGenerated = onEventsGenerated)
+                StudioPanel(modifier = Modifier.weight(1f), selectedSource = selectedSource, unifiedRepository = unifiedRepository, onEventsGenerated = onEventsGenerated)
             }
         }
     }
 }
 
 @Composable
-fun MobileApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) -> Unit) {
+fun MobileApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarRepository, onEventsGenerated: (List<Event>) -> Unit) {
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
     var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
@@ -247,7 +275,7 @@ fun MobileApp(modifier: Modifier = Modifier, onEventsGenerated: (List<Event>) ->
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AnimatedVisibility(visible = showStudio) {
-                StudioPanel(modifier = Modifier.fillMaxWidth(), selectedSource = selectedSource, onEventsGenerated = onEventsGenerated)
+                StudioPanel(modifier = Modifier.fillMaxWidth(), selectedSource = selectedSource, unifiedRepository = unifiedRepository, onEventsGenerated = onEventsGenerated)
             }
             IconButton(onClick = {
                 val newShowStudio = !showStudio

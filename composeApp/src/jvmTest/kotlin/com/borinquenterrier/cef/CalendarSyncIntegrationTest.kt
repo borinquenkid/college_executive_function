@@ -85,7 +85,8 @@ class CalendarSyncIntegrationTest : FunSpec({
         
         val httpClient = HttpClient(mockEngine) { install(ContentNegotiation) { json(kotlinx.serialization.json.Json { ignoreUnknownKeys = true }) } }
         val syncService = GoogleCalendarSyncService(httpClient)
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo)
+        val authService = GoogleAuthService(tokenRepo.let { MapSettings() }) // Use a fresh MapSettings for dummy auth
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo, authService)
         val unifiedRepo = UnifiedCalendarRepository(localRepo, remoteRepo)
 
         unifiedRepo.synchronize()
@@ -112,13 +113,42 @@ class CalendarSyncIntegrationTest : FunSpec({
         val syncService = GoogleCalendarSyncService(httpClient)
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-access", "mock-refresh")
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo)
+        val authService = GoogleAuthService(MapSettings())
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo, authService)
         val unifiedRepo = UnifiedCalendarRepository(localRepo, remoteRepo)
 
         unifiedRepo.synchronize()
 
         // 3. Verify
         localRepo.getAllEvents() shouldHaveSize 0
+    }
+
+    test("LocalScenario: Addition while online but NOT connected to Workspace fails with exception") {
+        val localRepo = SqlDelightLocalCalendarRepository(createTestDatabase())
+        val tokenRepo = GoogleTokenRepository(MapSettings())
+        // Explicitly NOT saving any tokens
+        val authService = GoogleAuthService(MapSettings())
+        val syncService = GoogleCalendarSyncService(HttpClient(MockEngine { 
+            respond(content = "Unauthorized", status = HttpStatusCode.Unauthorized) 
+        }))
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo, authService)
+        val unifiedRepo = UnifiedCalendarRepository(localRepo, remoteRepo)
+
+        val event = DayEvent(id = "local-1", title = "New Class", source = EventSource.CLASS, date = date)
+
+        // 1. Attempt to save - should now THROW
+        io.kotest.assertions.throwables.shouldThrow<Exception> {
+            unifiedRepo.saveEvent(event)
+        }
+
+        // 2. Verify it's NOT saved locally as SYNCED (it shouldn't be saved at all via saveEvent if remote fails)
+        val allEvents = localRepo.getAllEvents()
+        allEvents shouldHaveSize 0
+        
+        // 3. Save explicitly locally
+        unifiedRepo.saveEventLocally(event)
+        localRepo.getAllEvents() shouldHaveSize 1
+        localRepo.getAllEvents().first().syncStatus shouldBe SyncStatus.LOCAL_ONLY
     }
 
     test("RemoteScenario: Remote changes supersede Local (Gold Standard)") {
@@ -142,7 +172,8 @@ class CalendarSyncIntegrationTest : FunSpec({
         val syncService = GoogleCalendarSyncService(httpClient)
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-access", "mock-refresh")
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo)
+        val authService = GoogleAuthService(MapSettings())
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, tokenRepo, authService)
         val unifiedRepo = UnifiedCalendarRepository(localRepo, remoteRepo)
 
         // Synchronize

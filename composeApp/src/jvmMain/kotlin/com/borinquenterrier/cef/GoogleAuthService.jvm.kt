@@ -28,7 +28,22 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     private val credentialsDir = File(System.getProperty("user.home"), ".cef_credentials")
 
     actual suspend fun login(): Pair<String, String?> {
-        // 1. Resolve Client Secrets path
+        val flow = buildFlow()
+        val receiver = LocalServerReceiver.Builder().setPort(8888).build()
+        val credential = AuthorizationCodeInstalledApp(flow, receiver).authorize("user")
+        return Pair(credential.accessToken, credential.refreshToken)
+    }
+
+    actual suspend fun refreshAccessToken(refreshToken: String): String? {
+        val flow = buildFlow()
+        val credential = flow.loadCredential("user") ?: return null
+        if (credential.refreshToken != refreshToken) {
+            // If they don't match, we might need to manually trigger refresh or reload
+        }
+        return if (credential.refreshToken()) credential.accessToken else null
+    }
+
+    private fun buildFlow(): GoogleAuthorizationCodeFlow {
         val envPath = System.getenv("CEF_GOOGLE_CLIENT_SECRET_PATH")
         val defaultPath = Paths.get(System.getProperty("user.home"), ".cef", "client_secret.json").toString()
         val secretPath = envPath ?: defaultPath
@@ -44,18 +59,10 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
 
         val clientSecrets = GoogleClientSecrets.load(jsonFactory, InputStreamReader(FileInputStream(secretFile)))
 
-        // 2. Build the Flow
-        val flow = GoogleAuthorizationCodeFlow.Builder(
+        return GoogleAuthorizationCodeFlow.Builder(
             transport, jsonFactory, clientSecrets, scopes
         ).setDataStoreFactory(FileDataStoreFactory(credentialsDir))
             .setAccessType("offline")
             .build()
-
-        // 3. Use the helper to handle the browser flow and local receiver
-        val receiver = LocalServerReceiver.Builder().setPort(8888).build()
-        val credential = AuthorizationCodeInstalledApp(flow, receiver).authorize("user")
-
-        // 4. Extract tokens
-        return Pair(credential.accessToken, credential.refreshToken)
     }
 }

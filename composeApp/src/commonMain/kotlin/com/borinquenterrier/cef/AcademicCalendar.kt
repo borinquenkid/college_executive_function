@@ -14,44 +14,23 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.launch
 import kotlinx.datetime.*
-import com.borinquenterrier.cef.db.createDatabase
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AcademicCalendar(modifier: Modifier = Modifier, aiGeneratedEvents: List<Event>, onNavigate: (Screen) -> Unit) {
+fun AcademicCalendar(
+    modifier: Modifier = Modifier, 
+    aiGeneratedEvents: List<Event>, 
+    unifiedRepository: UnifiedCalendarRepository,
+    onNavigate: (Screen) -> Unit
+) {
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
     val routineRepository = remember { RoutineRepository(settings) }
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
     val authService = remember(settings) { GoogleAuthService(settings) }
     
-    // Offline Database Setup
-    val driverFactory = rememberDriverFactory()
-    val database = remember(driverFactory) { createDatabase(driverFactory) }
-    val localRepository = remember(database) { SqlDelightLocalCalendarRepository(database) }
-    
-    val syncService = remember { GoogleCalendarSyncService(HttpClient {
-        install(ContentNegotiation) {
-            json(kotlinx.serialization.json.Json {
-                ignoreUnknownKeys = true
-                coerceInputValues = true
-            })
-        }
-    }) }
-    
-    val remoteRepository = remember(syncService, tokenRepository) {
-        GoogleRemoteCalendarRepository(syncService, tokenRepository)
-    }
-
-    val unifiedRepository = remember(localRepository, remoteRepository) {
-        UnifiedCalendarRepository(localRepository, remoteRepository)
-    }
-
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
     var displayedEvents by remember { mutableStateOf(emptyList<Event>()) }
     var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }

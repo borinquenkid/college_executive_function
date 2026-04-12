@@ -7,4 +7,8 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         // TODO: Implement Google Sign-In for Android using Credential Manager or Google Sign-In SDK
         return Pair("mock-android-access-token", "mock-android-refresh-token")
     }
+
+    actual suspend fun refreshAccessToken(refreshToken: String): String? {
+        return "mock-refreshed-token"
+    }
 }

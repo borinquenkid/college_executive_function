@@ -16,7 +16,12 @@ actual fun FilePicker(show: Boolean, onFileSelected: (String?) -> Unit) {
 
     if (show) {
         LaunchedEffect(Unit) {
-            launcher.launch(arrayOf("*/*"))
+            launcher.launch(arrayOf(
+                "text/calendar", 
+                "application/pdf", 
+                "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+                "text/plain"
+            ))
         }
     }
 }

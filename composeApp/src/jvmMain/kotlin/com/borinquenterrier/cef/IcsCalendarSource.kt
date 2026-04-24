@@ -15,9 +15,9 @@ import kotlinx.datetime.*
  * JVM-specific implementation of a Calendar Source that reads from an .ics string.
  * This uses iCal4j to parse the structure and map it to CEF Events.
  */
-class IcsCalendarSource(private val icsContent: String) : CalendarInterface {
+actual class IcsCalendarSource actual constructor(private val icsContent: String) : CalendarInterface {
 
-    override suspend fun getEvents(): List<Event> {
+    actual override suspend fun getEvents(): List<Event> {
         val builder = CalendarBuilder()
         val calendar = builder.build(StringReader(icsContent))
         val vEvents = calendar.getComponents<VEvent>(Component.VEVENT)

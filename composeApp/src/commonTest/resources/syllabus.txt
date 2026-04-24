@@ -1,0 +1,512 @@
+
+
+Intermediate Algebra, MTH 103, Section 1
+
+Spring 2026; January 12th – May 8th
+
+Lecture 2 hours Lab 1 hour, M/W 10:00 am – 11:20 am, Melton 205
+
+(2 Credit Hours)
+
+Instructor Contact Information
+Instructor: A.J. Trick, MSED; Associate Professor of Mathematics
+
+Office: Melton Hall, room 204
+
+Phone: 417-255-7292
+
+Email: jerrytrick@missouristate.edu
+
+Office Hours: Monday: 1:00 pm – 2:30 pm
+
+Tuesday & Thursday: Noon – 1:00 pm
+
+Friday: By appointment
+
+Catalog Description
+The course will cover order of operations with real and complex numbers; operations with rational exponents and expressions; solutions of equations and inequalities; introduction to basic geometric terms and concepts; linear graphing on a Cartesian Coordinate System; solutions of systems of equations; solving real world applications, including the use of proportions, formulas, and the Pythagorean Theorem. Students not having taken MTH 100 should have one unit of high school algebra and an appropriate score on a departmentally approved placement test. Credits for this class will not count toward a major or minor in mathematics and will not satisfy general education requirements for mathematical sciences. A grade of C or better is required in this course in order to take MTH 136, MTH 138, or MTH 130. This course may not be taken pass/not pass.
+
+Prerequisite(s): Grade of C or better in MTH 100 or MTH 111 or appropriate placement score.
+
+Course Rationale/Purpose
+The purpose of this course is to prepare students to take pre-calculus algebra. This course is designed to provide STEM majors with the algebraic tools needed to be successful in future math courses.
+
+Course Materials
+
+
+
+MYLAB MATH FOR INTERMEDIATE ALGEBRA; Course Code: trick34376
+
+This course is participating in the Affordable Access program. You can access the digital content, such as homework platforms or eBooks through BrightSpace on the first day of class.
+
+THE ACCESS FEE FOR THE MATERIALS LICENSE, AS LISTED ABOVE, WILL BE BILLED TO YOUR MSU-WP STUDENT CHARGE ACCOUNT. You may opt-out of digital access prior to the deadline date, as stated in the Welcome email sent to you. If you opt out, your online access will be turned off and you will not be charged.
+
+If you OPT out of the Affordable Access program, please note that the content is required for the course and would need to be purchased elsewhere.
+
+Some courses offer an ALT Format option for eBooks that do not have a homework platform included. If you wish to OPT out of the eBook, and purchase ALT FORMAT print instead, ensure you OPT out before the deadline.
+
+For Opting in or Out, email dragocollegestore@missouristate.edu before the deadline, use the link in BrightSpace or use the link in your welcome email. Students who drop the course before the add/drop deadline are automatically opted out and will not be charged. Affordable Access FAQ’s
+
+Additional Materials: Pencils, paper, and a scientific calculator. Recommended calculator will be the Casio fx-115.
+
+Technology: The ability to access to the University’s network for email, the Grizzly Den, Brightspace and internet will be needed. The Garnett Library has a variety of technologies available to check out, including laptops on a weekly basis. For more information: https://wp.missouristate.edu/GarnettLibrary/equipment-lending.htm
+
+student Learning Outcomes (SLOS)
+
+
+
+Perform arithmetic operations on real numbers, rational, polynomial, radical and complex expressions.
+
+Solve linear, absolute value, and quadratic equations.
+
+Solve rational and radical equations.
+
+Plot points and graph lines and linear inequalities on a Cartesian coordinate system.
+
+Use proportions and basic formulas including the Pythagorean Theorem to solve application problems.
+
+Solve systems of linear equations using substitution and elimination.
+
+
+
+Institutional Learning Outcomes (ILOs)
+
+
+
+Communicate Effectively
+
+Learning Outcome: Students will be able to use language systems to share meaning.
+
+Think Critically
+
+Learning Outcome: Students will be able to evaluate data and solve problems.
+
+Manage Information
+
+Learning Outcome: Students will be able to locate and evaluate information on various criteria.
+
+Public Affairs
+
+Learning Outcome: Students will be able to purposefully engage as part of a community of citizens of the world.
+
+Personal and Professional Development
+
+Learning Outcome: Students will be able to behave in a responsible manner for personal and professional development.
+
+Program Learning Outcomes (PLOs)
+
+
+
+The Associate of Arts in General Education (AAGS) degree aims to:
+
+Prepare students for transfer to other higher education institutions.
+
+Equip students with the essential knowledge and skills to be responsible members of society.
+
+
+
+When students complete the AAGS degree, they will be able to:
+
+
+
+Communicate Effectively
+
+Think Critically
+
+Manage Information
+
+Reason Scientifically or Quantitatively
+
+
+
+
+Math Department Goals and Objectives:  The goal of the Missouri State University-West Plains mathematics department is to develop students’ understanding of fundamental mathematical concepts and their usefulness in describing and explaining the natural and physical world. To achieve this goal, students taking math courses at Missouri State-West Plains will be prepared to:
+
+
+
+Take and be successful in other math courses.
+
+Function in a technological society and apply mathematical concepts to solve problems which arise in their careers and daily lives.
+
+Value mathematics as an integral part of the world around them; appreciate various historical and contemporary applications of mathematical systems.
+
+Communicate mathematical ideas both verbally and in written form.
+
+Think critically and draw conclusions; read, interpret, develop, and analyze graphs, tables, statistics and other types of quantitative data.
+
+
+
+Unit Objectives: At the beginning of each unit, you will receive a list of the objectives for that unit. The test questions will be worded in the same manner as the objectives. Thus, it is vital that you know the vocabulary as well as the concepts presented in each unit. Additionally, these unit objectives should serve as your study guide for the unit test.
+
+Attendance Expectations
+
+
+
+Because class attendance and course grades are demonstrably and positively related, the University expects students to attend all class sessions of courses in which they are enrolled. Attendance is taken for all courses, the entire semester. Financial aid is not released until after attendance is confirmed. Students who stop attending courses may be held responsible for federal funds received and be required to pay back federal funds. Students should talk with the office of financial aid before no longer attending a course, dropping a course or withdrawing from a semester.
+
+At the end of the second week of classes students who have registered and paid for a class but are reported as never attended will be administratively withdrawn.
+
+Students should be aware that if the University administratively withdraws them due to lack of attendance or non-participation, the amount of financial aid received may be reduced, graduation may be delayed or repayment of aid already received may be required. An administrative withdrawal does not mean students no longer have an obligation to pay any tuition and fees assessed by the University.
+
+International students should be aware that their VISA status may be negatively affected by their failure to attend classes for which they are enrolled.
+
+Students who miss 25% or more of the course class meetings can be dropped by the faculty member. Instructors have the right to request documentation verifying the basis of any absences. The University encourages students to communicate with the instructor regarding class attendance or in the event there are extenuating circumstances affecting a student’s attendance of which the instructor should be aware.
+
+Please be reminded that attendance in an online course is measured by active participation, such as posting on a discussion board, turning in an assignment, completing an exam, etc. Attention online students: Signing into Blackboard does not constitute attendance.
+
+ACADEMIC INTEGRITY AND USE OF GENerative Artificial intelligence
+As members of our academic community, all students should understand the Student Academic Integrity Policies and Procedures in order to succeed in their courses.
+
+
+
+
+
+MTH 103 Academic Integrity Policy:
+
+
+
+I encourage you to use the tutoring center and discuss problems on homework with other students. Tests, however, are to be your individual work. Cheating on an exam includes using unauthorized technology, materials, or information.
+
+
+
+Facilitating academic dishonesty: Assisting or attempting to assist another student to complete a test is also a violation of this policy and will be subject to the disciplinary terms of this policy.
+
+The first incident of Academic Dishonesty on a test will result in a zero on the exam and you must meet with me to discuss the infraction. I will file an Academic Integrity Report with Academic Affairs and the Academic Integrity Council.
+
+If there is a second incident of Academic Dishonesty on a test, I will file another Academic Integrity Report and recommend an XF for the course. Dropping the course does not prevent you from receiving an XF grade.
+
+Generative AI is prohibited. The use of Generative AI for any assignment, either in part or in whole, is not permitted in this course and will be considered a violation of the university’s academic integrity policy and treated as plagiarism.
+
+Assignments/Assessments
+This course participates in the learning assessment program at Missouri State University-West Plains and has an assessment plan to evaluate the effectiveness of the learning/teaching process. This plan is focused on assessing your achievement in meeting the learning objectives of the course and will involve in-course activities and evaluation of learning. This process is to improve learning for you and future students. Your cooperation with this assessment program assists the instructor in improving the quality of the course.
+
+Description
+
+
+
+Number
+
+of Assignments
+
+Points per Assignment
+
+Total Points
+
+Percentage of total points in course
+
+SLOs
+
+Assessed
+
+ILOs Assessed
+
+PLOs
+
+Assessed
+
+Homework
+
+22
+
+10
+
+220
+
+30.6%
+
+1-6
+
+2, 3
+
+2-4
+
+Tests
+
+3
+
+100
+
+300
+
+41.7%
+
+1-6
+
+2, 3
+
+2-4
+
+Final Review
+
+1
+
+50
+
+50
+
+6.9%
+
+1-6
+
+2, 3
+
+2-4
+
+Final Exam
+
+1
+
+150
+
+150
+
+20.8%
+
+1-6
+
+2, 3
+
+2-4
+
+Total
+
+
+
+720
+
+100%
+
+
+
+
+
+
+
+You may also earn up to 20 bonus points during the semester by completing review assignments and keeping a notebook of the various handouts given during the semester.
+
+Final grades will be determined using the total points you earned during the semester. You may always check your grade in the MyMathLab gradebook. A great time to check your grade is after each unit exam before you start the next unit.
+
+Grading Scale
+
+Percentage
+
+Grade
+
+90 -100
+
+A
+
+80 - 89
+
+B
+
+70 - 79
+
+C
+
+55 - 69
+
+D
+
+0 - 54
+
+F
+
+
+
+Homework: Homework is available in the MyMathLab system. Each homework is worth 10 points. There are 22 homework assignments. If you miss a problem, do a similar problem. You can make 100% on each homework by doing the problem until it is correct. You may save an assignment and return to work on it later. Each homework must be completed by its due date. Late homework has a 10% penalty. Homework will no longer be accepted for a unit after the scheduled in-class test.
+
+
+
+Each homework assignment has a video lecture assignment. The video lecture does not give points, but it does explain how to do the problems in each homework assignment. Ideally, you should watch the video lectures and then do the homework.
+
+
+
+Homework help: Each homework question has a question help button. My favorite help is show me how to do this. It shows you step by step how to do the problem you are working on. Then it will give you a problem like it to work on for credit. Each assignment has the chapter and section number that you are covering in the textbook. If you do the textbook help, it will pull up the textbook explanation. There is also a multimedia library button on your home page. If you enter chapter and section, it will give a video lecture on the section, PowerPoint and even sometimes animations. If you use the help button, do a similar problem without using the help.
+
+
+
+Tutoring Availability:
+
+Excellent tutoring help is available in the Grizzly Math and Science Center in Hass-Darr 109. Their hours are Monday – Friday, 8 AM to 5 PM. You may also make an appointment.
+
+Online Zoom Tutoring: See document posted in BrightSpace! There is online help available.
+
+Final Review Assignment: There will be a comprehensive final review assignment worth 50 points. This assignment is not optional.
+
+
+
+Tests: There will be three unit-tests (each worth 100 points) and a final exam worth 150 points. If you are going to miss a test, please contact me before the test so that arrangements can be made to schedule a make-up test. If you miss a test, without making pre-arrangements with me, you will receive a 10% deduction for that exam. Each of the first three tests has a practice exam available in MyMathLab worth 5 bonus points for successfully completing. The test are in-class paper and pencil exams.
+
+HOW TO BE SUCCESSFUL IN THIS COURSE
+
+To be successful in this course, I ask that you focus on these key things:
+
+Exhibit an organized and methodical approach to learning.
+
+Attend class and be on time.
+
+Actively participate in class by taking notes and asking questions when confused.
+
+Complete assignments (show your work) and turn them in on time.
+
+Take steps to avoid distractions while you are working on homework.
+
+Develop a wide variety of problem-solving strategies.
+
+Review assignments and tests when given back; correct and learn from your mistakes.
+
+Seek help outside of class as needed (Visit instructor, go to tutoring, see advisor, etc…).
+
+Be respectful. In this course, we will be exposed to a variety of backgrounds and opinions that may differ from our own. Everyone in this class should feel comfortable expressing their viewpoints and concerns. We are each an important part of creating the atmosphere that makes this possible.
+
+Take pride in a job well done and act with integrity. As a part of a learning community, you are expected to choose to act with integrity in all your classes, including this one. For clarification on academic integrity and to avoid unintentionally violating academic integrity, read the Academic Integrity policy listed on the University Syllabus Policy. If you have any questions about what constitutes a violation of academic integrity, or any other issues related to academic integrity please ask me.
+
+University Policies
+
+
+The purpose of the student University Syllabus Policy Statements and MSU-WP Policies, is to support teaching and learning on the Missouri State campus. The established policies are in place to ensure that students, faculty, and staff may pursue academic endeavors with as few obstacles as possible.
+
+As a student at Missouri State University, you are a part of the university community; therefore, you are responsible for familiarizing yourself with the  University Syllabus Policy Statements. These policies cover topics such as nondiscrimination, disability accommodation, academic integrity, among many others. For program and course specific policies, please refer to the individual course syllabus provided by your instructor.
+
+
+
+COPYRIGHT & FAIR USE
+
+This course may contain copyrighted material, the use of which may not have been specifically authorized by the copyright owner. This material is available in an effort to explain issues relevant to the course or to illustrate the use and benefits of an educational tool. The material contained in this course is distributed without profit for research and educational purposes. Only small portions of the original work are being used, and those could not be used easily to duplicate the original work. This should constitute a ‘fair use’ of any such copyrighted material (referenced and provided for in section 107 of the US Copyright Law).
+
+If you wish to use any copyrighted material from this course for purposes of your own that go beyond ‘fair use’, you must obtain express permission from the copyright owner.
+
+Electronic Devices in the classroom
+
+Please put your cell phones on silent during my class. During a test, make sure your cell phone is in your bag or leave it in your automobile. Don’t touch it during a test.
+
+STATEMENT OF FLEXIBILITY
+
+Please note that the course calendar, my office hours, etc. are subject to change due to inclement weather, student needs, instructional delays, etc. I will communicate any changes that may occur through the course announcements on Brightspace.
+
+Classes during campus closures
+
+We will not have class in person if the university moves to remote learning. If the campus closes due to inclement weather or for other reasons, you should watch the video assignment and do the homework for that day. If it happens on a review or test day, check BrightSpace or your university email for instructions from me.
+
+
+
+
+COURSE CALENDAR MTH 103, Spring 2026
+
+1/12 HW 1 Read Syllabus,
+
+Order of Operations, Combine Like Terms and Distributive Law
+
+and Log into MyMathLab
+
+1/14 HW 2 Solving Linear Equations
+
+1/19 No Class – MLK Jr. Day
+
+1/21 HW 3 Solving for Variables and Geometry Applications
+
+1/26 HW 4 Distance Word Problems
+
+1/28 HW 5 Linear Inequalities
+
+2/2 HW 6 Solve Absolute Value Equations and Inequalities
+
+2/4 PT 1 Review for Test One
+
+2/9 TEST Test One
+
+
+
+
+2/11 HW 7 Graphing Lines Using Charts and Intercepts
+
+2/16 No Class – President’s Day
+
+2/18 HW 8 Finding Slopes and Equations of Lines
+
+2/23 HW 9 Graphing Linear Inequalities in 2D
+
+2/25 HW 10 Solving Systems of Linear Equations
+
+Using Substitution and Elimination
+
+3/2 HW 11 Solving Mixture Word Problems: Review for Test Two
+
+3/4 TEST Test Two MIDTERM
+
+
+
+
+3/9 & 3/11 No Class – Spring Break
+
+3/16 HW 12 Exponent Laws and Scientific Notation
+
+3/18 HW 13 Polynomial Arithmetic (Dist., FOIL, Long Division)
+
+3/23 HW 14 Factor by Grouping, GCF, Squares and Cubes
+
+3/25 HW 15           Factor Trinomials
+
+3/30 HW 16 Solve Quadratic Equations and Inequalities by Factoring
+
+4/1 HW 17 Simplifying Rational Expressions; Arithmetic Operations
+
+4/6 PT3 Review for Test Three
+
+4/8 TEST Test Three
+
+
+
+
+4/13 HW 18 Solving Proportions and Rational Equations
+
+4/15 HW 19 Proportion and Work Applications
+
+4/20 HW 20 Simplifying Radicals, Fractional Exponents
+
+Pythagorean Theorem and Distance Formula
+
+4/22 HW 21 Solving Radical and Quadratic Equations; Quadratic Formula
+
+4/27 HW 22 Radical and Complex Number Arithmetic
+
+4/29 FRA Rationalizing the Denominator; Review for Final
+
+5/4 Final (Test Four)
+
+
+
+
+
+
+
+Important Dates Spring 2026:
+
+January 12th Classes Begin
+
+           January 19th MLK Jr DAY – No Class
+
+February 16th President’s Day – No Class
+
+March 9th Mid-Term Grades Due
+
+March 9th – 13th Spring Break – No Class
+
+March 16th Second 8 Weeks Begin
+
+April 3rd Spring Holiday – No Class
+
+April 24th Last day to drop/withdraw
+
+May 4th – 7th Final Exams
+
+May 9th Graduation – 2:00 pm
+
+May 12th Grades Due
+
+
+
+
+
+

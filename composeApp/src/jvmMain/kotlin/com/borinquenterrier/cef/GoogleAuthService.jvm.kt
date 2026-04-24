@@ -23,7 +23,8 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     private val transport = NetHttpTransport()
     private val scopes = listOf(
         "https://www.googleapis.com/auth/calendar.events",
-        "https://www.googleapis.com/auth/drive.readonly"
+        "https://www.googleapis.com/auth/drive.readonly",
+        "https://www.googleapis.com/auth/generative-language.retriever"
     )
     private val credentialsDir = File(System.getProperty("user.home"), ".cef_credentials")
 

@@ -140,7 +140,17 @@ fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendar
                     sourceItems = sourceItems,
                     selectedSource = selectedSource,
                     onSourceSelected = { selectedSource = it },
-                    onSourceAdded = { sourceItems = sourceItems + it },
+                    onSourceAdded = { source ->
+                        sourceItems = sourceItems + source
+                        coroutineScope.launch {
+                            val events = if (source.title.lowercase().endsWith(".ics")) {
+                                if (isDesktop) IcsCalendarSource(source.content).getEvents() else emptyList()
+                            } else {
+                                aiService.generateCalendarEvents(source.content)
+                            }
+                            onEventsGenerated(events)
+                        }
+                    },
                     onUrlSourceAdded = { url ->
                         coroutineScope.launch {
                             val content = webReader.readTextFromUrl(url)
@@ -252,7 +262,17 @@ fun MobileApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarR
                     sourceItems = sourceItems,
                     selectedSource = selectedSource,
                     onSourceSelected = { selectedSource = it },
-                    onSourceAdded = { sourceItems = sourceItems + it },
+                    onSourceAdded = { source ->
+                        sourceItems = sourceItems + source
+                        coroutineScope.launch {
+                            val events = if (source.title.lowercase().endsWith(".ics")) {
+                                if (isDesktop) IcsCalendarSource(source.content).getEvents() else emptyList()
+                            } else {
+                                aiService.generateCalendarEvents(source.content)
+                            }
+                            onEventsGenerated(events)
+                        }
+                    },
                     onUrlSourceAdded = { url ->
                         coroutineScope.launch {
                             val content = webReader.readTextFromUrl(url)

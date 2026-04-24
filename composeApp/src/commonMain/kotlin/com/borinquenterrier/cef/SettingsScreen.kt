@@ -43,7 +43,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     val authService = remember(settings) { GoogleAuthService(settings) }
     
     var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
-    var apiKey by remember { mutableStateOf(settings.getString("GEMINI_API_KEY", "")) }
+    var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }
     var showAdvanced by remember { mutableStateOf(false) }
     var loginError by remember { mutableStateOf<String?>(null) }
 
@@ -147,7 +147,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                         placeholder = { Text("Paste your key here...") }
                     )
                     
-                    Button(onClick = { settings.putString("GEMINI_API_KEY", apiKey) }) {
+                    Button(onClick = { settings.putString("CEF_GEMINI_API_KEY", apiKey) }) {
                         Text("Save Key")
                     }
                 }

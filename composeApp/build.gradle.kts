@@ -36,6 +36,7 @@ kotlin {
             implementation(libs.androidx.activity.compose)
             implementation(libs.ktor.client.okhttp)
             implementation(libs.sqldelight.android.driver)
+            implementation(libs.pdfbox.android)
         }
         commonMain.dependencies {
             implementation(compose.runtime)
@@ -64,13 +65,22 @@ kotlin {
         }
         commonTest.dependencies {
             implementation(libs.kotlin.test)
-            implementation(libs.kotest.runner.junit5)
             implementation(libs.kotest.assertions.core)
             implementation(libs.kotest.framework.engine)
-            implementation(libs.mockk)
             implementation(libs.ktor.client.mock)
             implementation(libs.multiplatform.settings.test)
-
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation(libs.kotest.runner.junit5)
+                implementation(libs.mockk)
+            }
+        }
+        val androidUnitTest by getting {
+            dependencies {
+                implementation(libs.kotest.runner.junit5)
+                implementation(libs.mockk)
+            }
         }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
@@ -78,6 +88,7 @@ kotlin {
             implementation(libs.ktor.client.java)
             implementation(libs.google.http.client.gson)
             implementation(libs.sqldelight.sqlite.driver)
+            implementation(libs.pdfbox)
         }
     }
 }

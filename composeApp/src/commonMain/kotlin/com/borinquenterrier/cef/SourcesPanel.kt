@@ -43,6 +43,9 @@ fun SourcesPanel(
     val driveService = remember { GoogleDriveService(HttpClient { 
         install(ContentNegotiation) { json() } 
     }) }
+    val fileReader = rememberLocalFileReader()
+    val docxReader = rememberDocxReader()
+    val pdfReader = rememberPdfReader()
 
     Column(
         modifier = modifier
@@ -77,10 +80,18 @@ fun SourcesPanel(
     }
 
     if (showFilePicker) {
-        FilePicker(show = true) { file ->
+        FilePicker(show = true) { path ->
             showFilePicker = false
-            if (file != null) {
-                onSourceAdded(SourceItem(file, file))
+            if (path != null) {
+                scope.launch {
+                    val fileName = path.substringAfterLast("/").substringAfterLast("\\")
+                    val content = when {
+                        fileName.lowercase().endsWith(".docx") -> docxReader.extractText(path)
+                        fileName.lowercase().endsWith(".pdf") -> pdfReader.extractText(path)
+                        else -> fileReader.readText(path)
+                    }
+                    onSourceAdded(SourceItem(fileName, content))
+                }
             }
         }
     }
@@ -155,7 +166,7 @@ fun DrivePickerDialog(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        files = driveService.listFiles(accessToken)
+        files = driveService.listFiles(accessToken, "mimeType = 'application/vnd.google-apps.document' or name contains '.ics'")
         isLoading = false
     }
 

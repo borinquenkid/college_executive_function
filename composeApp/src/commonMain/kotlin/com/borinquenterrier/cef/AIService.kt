@@ -2,7 +2,9 @@ package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
 
-expect class AIService {
+import com.russhwolf.settings.Settings
+
+expect class AIService(settings: Settings) {
     suspend fun generateChatResponse(prompt: String): String
     suspend fun generateCalendarEvents(prompt: String): List<Event>
 }

@@ -58,16 +58,17 @@ All business logic classes (Models, Repositories, Services, and Utilities) must 
 *   **Google Calendar REST Integration:** Implemented a fully KMP-compatible `GoogleCalendarSyncService` using Ktor to synchronize iCal components with the Google Calendar API.
 *   **OAuth2 Authentication:** Implemented `GoogleAuthService` using an `expect/actual` pattern. The JVM target uses the `google-oauth-client-jetty` for a local server flow, and `GoogleTokenRepository` persists credentials across all platforms.
 *   **Programmatic ICal Generation:** Implemented `ICalGenerator` using modern iCal4j 4.x syntax and Java 8+ Temporal types.
-*   **Enhanced Testing:** Integrated `MockK` and `Ktor MockEngine` to verify API interactions and token persistence without real network calls.
+*   **AI Integration:** Replaced the dummy AI service with a real **Gemini 1.5 Flash** model using the stored API key. It now handles event extraction from raw text and syllabi.
+*   **Database Migration:** Integrated **SQLDelight** for robust, KMP-compatible local persistence of events, supporting overlap checks and sync-state tracking.
+*   **Automatic Event Creation:** Automatically triggers AI analysis (Gemini) or programmatic parsing (ICal4j) for all sources added via **URL, Local Files, or Google Drive**.
 
 ### Next Steps
 
 The following tasks are planned for the next phase of development:
 
 #### Core Functionality & AI
-*   **Automatic Event Creation:** Automatically trigger the AI service to analyze a syllabus when it is added, and populate the calendar with the results.
+*   **Multi-Format Support:** Implement text extraction for **DOCX** and **PDF** files to allow the AI to analyze syllabi in these common academic formats, using mobile-optimized libraries.
 *   **AI Task Decomposition:** Implement a "Break It Down" feature to split large assignments into smaller, actionable sub-tasks with suggested deadlines.
-*   **Advanced AI Features:** Replace the dummy AI service with a real generative AI model (e.g., Gemini) using the stored API key.
 *   **Interactive Chat Actions:** Enable the AI to modify the calendar directly (create/move events) based on chat conversations.
 
 #### Calendar & Sync
@@ -78,7 +79,6 @@ The following tasks are planned for the next phase of development:
 
 #### Integration & Persistence
 *   **LMS Integration:** Research and implement connectors for Canvas, Blackboard, or Moodle to pull assignments automatically.
-*   **Database Migration:** Integrate **SQLDelight** for robust, KMP-compatible local persistence of events and source data.
 
 #### UI & UX
 *   **Visual Progress Tracking:** Add progress bars and "Time Remaining" visuals for long-term projects to help with time visualization.

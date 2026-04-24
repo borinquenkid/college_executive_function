@@ -130,7 +130,21 @@ fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendar
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val aiService = rememberAIService()
+    val settings = rememberSettings()
+    val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
+    val driveService = remember { GoogleDriveService(HttpClient { install(ContentNegotiation) { json() } }) }
     val webReader = remember { WebSourceReader() }
+    val fileReader = rememberLocalFileReader()
+    val docxReader = rememberDocxReader()
+    val pdfReader = rememberPdfReader()
+
+    val sourceProviders = remember(tokenRepository) {
+        listOf(
+            LocalFileSourceProvider(fileReader, docxReader, pdfReader),
+            UrlSourceProvider(webReader),
+            GoogleDriveSourceProvider(driveService, tokenRepository)
+        )
+    }
 
     Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
         AnimatedVisibility(visible = showSources, modifier = Modifier.weight(1f)) {
@@ -151,15 +165,7 @@ fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendar
                             onEventsGenerated(events)
                         }
                     },
-                    onUrlSourceAdded = { url ->
-                        coroutineScope.launch {
-                            val content = webReader.readTextFromUrl(url)
-                            val newSource = SourceItem(url, content)
-                            sourceItems = sourceItems + newSource
-                            val events = aiService.generateCalendarEvents(content)
-                            onEventsGenerated(events)
-                        }
-                    }
+                    providers = sourceProviders
                 )
                 Box(
                     Modifier
@@ -236,7 +242,21 @@ fun MobileApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarR
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val aiService = rememberAIService()
+    val settings = rememberSettings()
+    val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
+    val driveService = remember { GoogleDriveService(HttpClient { install(ContentNegotiation) { json() } }) }
     val webReader = remember { WebSourceReader() }
+    val fileReader = rememberLocalFileReader()
+    val docxReader = rememberDocxReader()
+    val pdfReader = rememberPdfReader()
+
+    val sourceProviders = remember(tokenRepository) {
+        listOf(
+            LocalFileSourceProvider(fileReader, docxReader, pdfReader),
+            UrlSourceProvider(webReader),
+            GoogleDriveSourceProvider(driveService, tokenRepository)
+        )
+    }
 
     Column(modifier = modifier) {
         // Sources Panel (Top)
@@ -273,15 +293,7 @@ fun MobileApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarR
                             onEventsGenerated(events)
                         }
                     },
-                    onUrlSourceAdded = { url ->
-                        coroutineScope.launch {
-                            val content = webReader.readTextFromUrl(url)
-                            val newSource = SourceItem(url, content)
-                            sourceItems = sourceItems + newSource
-                            val events = aiService.generateCalendarEvents(content)
-                            onEventsGenerated(events)
-                        }
-                    }
+                    providers = sourceProviders
                 )
             }
         }

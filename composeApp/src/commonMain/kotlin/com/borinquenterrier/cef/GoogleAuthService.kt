@@ -21,10 +21,14 @@ class GoogleTokenRepository(private val settings: Settings) {
         
     fun getRefreshToken(): String? = settings.getString(refreshTokenKey, "")
         .takeIf { it.isNotEmpty() }
-    
-    fun hasTokens(): Boolean = getAccessToken() != null
-}
 
+    fun hasTokens(): Boolean = getAccessToken() != null
+
+    fun clearTokens() {
+        settings.remove(accessTokenKey)
+        settings.remove(refreshTokenKey)
+    }
+}
 /**
  * Platform-specific service to handle the OAuth2 flow.
  */

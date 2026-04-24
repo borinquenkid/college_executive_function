@@ -30,10 +30,52 @@ class GeminiAIService(
         }
     }
 
-    private val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+    private var negotiatedModelName: String? = null
 
+    private suspend fun negotiateModelName(): String {
+        negotiatedModelName?.let { return it }
+
+        val url = "https://generativelanguage.googleapis.com/v1beta/models"
+        val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
+        
+        return try {
+            val response: HttpResponse = client.get(authUrl) {
+                if (accessToken != null) {
+                    header("Authorization", "Bearer $accessToken")
+                }
+            }
+            
+            if (!response.status.isSuccess()) {
+                // Fallback if list models fails
+                return "gemini-1.5-flash"
+            }
+
+            val modelList = json.decodeFromString<ModelListResponse>(response.bodyAsText())
+            val availableNames = modelList.models.map { it.name.removePrefix("models/") }
+
+            // Priority list for negotiation
+            val preferences = listOf(
+                "gemini-3-flash",
+                "gemini-2.5-flash",
+                "gemini-2.0-flash",
+                "gemini-1.5-flash",
+                "gemini-1.5-pro"
+            )
+
+            val bestMatch = preferences.find { pref -> availableNames.contains(pref) }
+                ?: availableNames.firstOrNull { it.contains("flash") }
+                ?: availableNames.firstOrNull()
+                ?: "gemini-1.5-flash"
+
+            negotiatedModelName = bestMatch
+            bestMatch
+        } catch (e: Exception) {
+            "gemini-1.5-flash" // Safe fallback
+        }
+    }
 
     suspend fun generateCalendarEvents(rawText: String): List<Event> {
+        val modelName = negotiateModelName()
         val prompt = AiPrompts.getEventExtractionPrompt(rawText)
         
         val request = GeminiRequest(
@@ -41,6 +83,7 @@ class GeminiAIService(
             generationConfig = GenerationConfig(temperature = 0.0) // Deterministic output
         )
 
+        val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
         val url = if (apiKey != null) "$baseUrl?key=$apiKey" else baseUrl
 
         val httpResponse = client.post(url) {
@@ -129,3 +172,9 @@ data class GeminiResponse(val candidates: List<Candidate>)
 
 @Serializable
 data class Candidate(val content: Content)
+
+@Serializable
+data class ModelListResponse(val models: List<ModelInfo>)
+
+@Serializable
+data class ModelInfo(val name: String, val supportedGenerationMethods: List<String>)

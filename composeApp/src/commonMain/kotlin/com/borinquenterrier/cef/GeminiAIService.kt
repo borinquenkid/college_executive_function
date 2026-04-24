@@ -40,7 +40,7 @@ class GeminiAIService(
         
         return try {
             val response: HttpResponse = client.get(authUrl) {
-                if (accessToken != null) {
+                if (apiKey == null && accessToken != null) {
                     header("Authorization", "Bearer $accessToken")
                 }
             }
@@ -88,7 +88,8 @@ class GeminiAIService(
 
         val httpResponse = client.post(url) {
             contentType(ContentType.Application.Json)
-            if (accessToken != null) {
+            // Use accessToken ONLY if apiKey is not present
+            if (apiKey == null && accessToken != null) {
                 header("Authorization", "Bearer $accessToken")
             }
             setBody(request)

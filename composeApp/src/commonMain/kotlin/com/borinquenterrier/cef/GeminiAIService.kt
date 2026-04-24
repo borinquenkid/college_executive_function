@@ -30,7 +30,8 @@ class GeminiAIService(
         }
     }
 
-    private val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-flash-latest:generateContent"
+    private val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent"
+
 
     suspend fun generateCalendarEvents(rawText: String): List<Event> {
         val prompt = AiPrompts.getEventExtractionPrompt(rawText)

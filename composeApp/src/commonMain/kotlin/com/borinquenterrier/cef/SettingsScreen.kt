@@ -14,6 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.serialization.kotlinx.json.json
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
@@ -41,6 +44,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
     val authService = remember(settings) { GoogleAuthService(settings) }
+    val driveService = remember { GoogleDriveService(HttpClient { install(ContentNegotiation) { json() } }) }
     
     var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
     var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }
@@ -95,9 +99,18 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                             scope.launch {
                                 try {
                                     val result = authService.login()
+                                    // Step 1: Preliminary save
                                     tokenRepository.saveTokens(result.first, result.second)
-                                    isGoogleLinked = true
-                                    loginError = null
+                                    
+                                    // Step 2: Validation (Verify API access)
+                                    val isValid = driveService.validateConnection(result.first)
+                                    if (isValid) {
+                                        isGoogleLinked = true
+                                        loginError = null
+                                    } else {
+                                        tokenRepository.clearTokens()
+                                        loginError = "Connected, but unable to access Drive. Please ensure the Google Drive API is enabled in your Google Cloud Console."
+                                    }
                                 } catch (e: Exception) {
                                     loginError = e.message
                                 }

@@ -30,6 +30,22 @@ class GoogleDriveService(private val httpClient: HttpClient) {
     private val baseUrl = "https://www.googleapis.com/drive/v3"
 
     /**
+     * Verifies that the connection is working by fetching a single file metadata.
+     * Returns true if successful, false otherwise.
+     */
+    suspend fun validateConnection(accessToken: String): Boolean {
+        return try {
+            httpClient.get("$baseUrl/files") {
+                header("Authorization", "Bearer $accessToken")
+                parameter("pageSize", 1)
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
+
+    /**
      * Lists files in the user's Google Drive.
      * Optionally filters by [query] (e.g., "mimeType = 'application/pdf'").
      */

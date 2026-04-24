@@ -1,4 +1,4 @@
-CREATE TABLE EventEntity (
+CREATE TABLE IF NOT EXISTS EventEntity (
     id TEXT PRIMARY KEY NOT NULL,
     title TEXT NOT NULL,
     source TEXT NOT NULL,

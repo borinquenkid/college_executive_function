@@ -31,10 +31,9 @@ class GeminiAIService(
     }
 
     private var negotiatedModelName: String? = null
+    private val blacklistedModels = mutableSetOf<String>()
 
-    private suspend fun negotiateModelName(): String {
-        negotiatedModelName?.let { return it }
-
+    private suspend fun getAvailableModels(): List<String> {
         val url = "https://generativelanguage.googleapis.com/v1beta/models"
         val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
         
@@ -45,67 +44,85 @@ class GeminiAIService(
                 }
             }
             
-            if (!response.status.isSuccess()) {
-                // Fallback if list models fails
-                return "gemini-1.5-flash"
-            }
+            if (!response.status.isSuccess()) return emptyList()
 
             val modelList = json.decodeFromString<ModelListResponse>(response.bodyAsText())
-            val availableNames = modelList.models.map { it.name.removePrefix("models/") }
-
-            // Priority list for negotiation
-            val preferences = listOf(
-                "gemini-3-flash",
-                "gemini-2.5-flash",
-                "gemini-2.0-flash",
-                "gemini-1.5-flash",
-                "gemini-1.5-pro"
-            )
-
-            val bestMatch = preferences.find { pref -> availableNames.contains(pref) }
-                ?: availableNames.firstOrNull { it.contains("flash") }
-                ?: availableNames.firstOrNull()
-                ?: "gemini-1.5-flash"
-
-            negotiatedModelName = bestMatch
-            bestMatch
+            modelList.models.map { it.name.removePrefix("models/") }
         } catch (e: Exception) {
-            "gemini-1.5-flash" // Safe fallback
+            emptyList()
         }
     }
 
-    suspend fun generateCalendarEvents(rawText: String): List<Event> {
-        val modelName = negotiateModelName()
-        val prompt = AiPrompts.getEventExtractionPrompt(rawText)
-        
-        val request = GeminiRequest(
-            contents = listOf(Content(parts = listOf(Part(text = prompt)))),
-            generationConfig = GenerationConfig(temperature = 0.0) // Deterministic output
+    private suspend fun negotiateBestModel(available: List<String>): String {
+        val preferences = listOf(
+            "gemini-3-flash",
+            "gemini-2.5-flash",
+            "gemini-2.0-flash",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
+            "gemini-pro"
         )
 
-        val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
-        val url = if (apiKey != null) "$baseUrl?key=$apiKey" else baseUrl
+        // Find best match that is NOT blacklisted
+        return preferences.firstOrNull { pref -> available.contains(pref) && !blacklistedModels.contains(pref) }
+            ?: available.firstOrNull { it.contains("flash") && !blacklistedModels.contains(it) }
+            ?: available.firstOrNull { !blacklistedModels.contains(it) }
+            ?: "gemini-1.5-flash" // Final desperate fallback
+    }
 
-        val httpResponse = client.post(url) {
-            contentType(ContentType.Application.Json)
-            // Use accessToken ONLY if apiKey is not present
-            if (apiKey == null && accessToken != null) {
-                header("Authorization", "Bearer $accessToken")
+    suspend fun generateCalendarEvents(rawText: String): List<Event> {
+        val available = getAvailableModels()
+        var attempts = 0
+        val maxAttempts = 3
+        var lastError: Exception? = null
+
+        while (attempts < maxAttempts) {
+            val modelName = negotiateBestModel(available)
+            val prompt = AiPrompts.getEventExtractionPrompt(rawText)
+            
+            val request = GeminiRequest(
+                contents = listOf(Content(parts = listOf(Part(text = prompt)))),
+                generationConfig = GenerationConfig(temperature = 0.0)
+            )
+
+            val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
+            val url = if (apiKey != null) "$baseUrl?key=$apiKey" else baseUrl
+
+            try {
+                val httpResponse = client.post(url) {
+                    contentType(ContentType.Application.Json)
+                    if (apiKey == null && accessToken != null) {
+                        header("Authorization", "Bearer $accessToken")
+                    }
+                    setBody(request)
+                }
+
+                val responseBody = httpResponse.bodyAsText()
+                
+                if (httpResponse.status == HttpStatusCode.TooManyRequests || httpResponse.status == HttpStatusCode.NotFound) {
+                    println("⚠️ Model $modelName failed with ${httpResponse.status}. Blacklisting and retrying...")
+                    blacklistedModels.add(modelName)
+                    attempts++
+                    continue
+                }
+
+                if (!httpResponse.status.isSuccess()) {
+                    throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
+                }
+
+                val response = json.decodeFromString<GeminiResponse>(responseBody)
+                val jsonString = response.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                    ?: throw Exception("AI failed to generate a response. Body: $responseBody")
+
+                return parseAiJson(jsonString)
+
+            } catch (e: Exception) {
+                lastError = e
+                attempts++
             }
-            setBody(request)
         }
-
-        val responseBody = httpResponse.bodyAsText()
         
-        if (!httpResponse.status.isSuccess()) {
-            throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
-        }
-
-        val response = json.decodeFromString<GeminiResponse>(responseBody)
-        val jsonString = response.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-            ?: throw Exception("AI failed to generate a response. Body: $responseBody")
-
-        return parseAiJson(jsonString)
+        throw lastError ?: Exception("Failed to generate events after $maxAttempts attempts")
     }
 
     private fun parseAiJson(jsonString: String): List<Event> {

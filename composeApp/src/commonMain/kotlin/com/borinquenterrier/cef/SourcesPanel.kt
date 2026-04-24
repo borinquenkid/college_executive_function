@@ -40,7 +40,10 @@ fun SourcesPanel(
     ) {
         FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
             providers.forEach { provider ->
-                Button(onClick = { activeProviderId = provider.id }) {
+                Button(
+                    onClick = { activeProviderId = provider.id },
+                    enabled = provider.isAuthorized()
+                ) {
                     Icon(provider.icon, contentDescription = "Add from ${provider.displayName}")
                     Text(provider.displayName)
                 }

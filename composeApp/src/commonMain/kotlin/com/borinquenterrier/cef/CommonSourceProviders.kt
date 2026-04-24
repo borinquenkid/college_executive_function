@@ -17,13 +17,14 @@ import kotlinx.coroutines.launch
 class LocalFileSourceProvider(
     private val fileReader: LocalFileReader,
     private val docxReader: DocxReader,
-    private val pdfReader: PdfReader
+    private val pdfReader: PdfReader,
+    private val aiService: AIService
 ) : SourceProvider {
     override val id = "local_file"
     override val displayName = "File"
     override val icon = Icons.Default.Add
 
-    override fun isAuthorized() = true
+    override fun isAuthorized() = aiService.isConfigured()
 
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
@@ -47,13 +48,14 @@ class LocalFileSourceProvider(
 }
 
 class UrlSourceProvider(
-    private val webReader: WebSourceReader
+    private val webReader: WebSourceReader,
+    private val aiService: AIService
 ) : SourceProvider {
     override val id = "url"
     override val displayName = "URL"
     override val icon = Icons.Default.Link
 
-    override fun isAuthorized() = true
+    override fun isAuthorized() = aiService.isConfigured()
 
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {

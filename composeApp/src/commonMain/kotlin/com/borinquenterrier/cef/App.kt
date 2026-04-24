@@ -138,10 +138,10 @@ fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendar
     val docxReader = rememberDocxReader()
     val pdfReader = rememberPdfReader()
 
-    val sourceProviders = remember(tokenRepository) {
+    val sourceProviders = remember(tokenRepository, aiService) {
         listOf(
-            LocalFileSourceProvider(fileReader, docxReader, pdfReader),
-            UrlSourceProvider(webReader),
+            LocalFileSourceProvider(fileReader, docxReader, pdfReader, aiService),
+            UrlSourceProvider(webReader, aiService),
             GoogleDriveSourceProvider(driveService, tokenRepository)
         )
     }
@@ -250,10 +250,10 @@ fun MobileApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarR
     val docxReader = rememberDocxReader()
     val pdfReader = rememberPdfReader()
 
-    val sourceProviders = remember(tokenRepository) {
+    val sourceProviders = remember(tokenRepository, aiService) {
         listOf(
-            LocalFileSourceProvider(fileReader, docxReader, pdfReader),
-            UrlSourceProvider(webReader),
+            LocalFileSourceProvider(fileReader, docxReader, pdfReader, aiService),
+            UrlSourceProvider(webReader, aiService),
             GoogleDriveSourceProvider(driveService, tokenRepository)
         )
     }

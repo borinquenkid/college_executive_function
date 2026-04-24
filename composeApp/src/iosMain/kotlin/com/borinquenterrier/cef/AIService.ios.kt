@@ -9,6 +9,12 @@ import com.russhwolf.settings.Settings
  */
 actual class AIService actual constructor(private val settings: Settings) {
     
+    actual fun isConfigured(): Boolean {
+        val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
+        val accessToken = settings.getString("GOOGLE_ACCESS_TOKEN", "")
+        return apiKey.isNotBlank() || accessToken.isNotBlank()
+    }
+
     private fun getGeminiService(): GeminiAIService {
         val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
         val accessToken = settings.getString("GOOGLE_ACCESS_TOKEN", "")

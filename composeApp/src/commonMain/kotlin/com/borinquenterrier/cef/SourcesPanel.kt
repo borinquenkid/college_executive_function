@@ -166,7 +166,12 @@ fun DrivePickerDialog(
     var isLoading by remember { mutableStateOf(true) }
 
     LaunchedEffect(Unit) {
-        files = driveService.listFiles(accessToken, "mimeType = 'application/vnd.google-apps.document' or name contains '.ics'")
+        val query = "mimeType = 'application/vnd.google-apps.document' " +
+                "or mimeType = 'application/pdf' " +
+                "or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' " +
+                "or mimeType = 'text/plain' " +
+                "or name contains '.ics'"
+        files = driveService.listFiles(accessToken, query)
         isLoading = false
     }
 

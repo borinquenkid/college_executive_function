@@ -8,12 +8,12 @@ class SourcesPanelTest : FunSpec({
 
     test("New source is added to the list") {
         val initialSources = listOf(
-            SourceItem("Syllabus", "CS 101 Syllabus"),
-            SourceItem("Calendar", "Fall 2024 Calendar")
+            SourceItem("Syllabus", TextChunker.chunk("CS 101 Syllabus")),
+            SourceItem("Calendar", TextChunker.chunk("Fall 2024 Calendar"))
         )
         var updatedSources = initialSources
 
-        val newSource = SourceItem("New Document", "This is a new document")
+        val newSource = SourceItem("New Document", TextChunker.chunk("This is a new document"))
 
         // Simulate the onSourceAdded callback
         val onSourceAdded = { source: SourceItem ->

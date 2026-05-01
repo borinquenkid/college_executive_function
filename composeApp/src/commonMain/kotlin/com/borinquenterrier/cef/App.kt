@@ -41,6 +41,14 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import com.borinquenterrier.cef.db.createDatabase
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.ui.window.Dialog
+import androidx.compose.ui.graphics.Color
+import androidx.compose.foundation.background
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import kotlinx.coroutines.flow.collect
 
 sealed class Screen {
     object Home : Screen()
@@ -58,6 +66,50 @@ fun App() {
         var aiGeneratedEvents by remember { mutableStateOf(listOf<Event>()) }
 
         val settings = rememberSettings()
+        val logger = rememberLogger()
+        val modelBasePath = rememberModelDirectoryPath()
+        val httpClient = remember { 
+            HttpClient {
+                install(ContentNegotiation) {
+                    json(kotlinx.serialization.json.Json {
+                        ignoreUnknownKeys = true
+                        coerceInputValues = true
+                    })
+                }
+            } 
+        }
+        val modelManager = remember(httpClient, modelBasePath, logger) { 
+            ModelManager(httpClient, modelBasePath, logger) 
+        }
+        
+        var isDownloadingModel by remember { mutableStateOf(!modelManager.isModelDownloaded()) }
+        
+        if (isDownloadingModel) {
+            LaunchedEffect(Unit) {
+                modelManager.downloadModel().collect { progress ->
+                    if (progress.isDone) {
+                        isDownloadingModel = false
+                    }
+                }
+            }
+            
+            Dialog(onDismissRequest = {}) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(Color.Black.copy(alpha = 0.5f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                        CircularProgressIndicator(color = Color.White)
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text("Downloading AI Model...", color = Color.White)
+                        Text("This may take a few minutes (9B params, ~5.6GB)", color = Color.White)
+                    }
+                }
+            }
+        }
+
         val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
         val authService = remember(settings) { GoogleAuthService(settings) }
         val driverFactory = rememberDriverFactory()
@@ -157,12 +209,12 @@ fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendar
                     onSourceAdded = { source ->
                         sourceItems = sourceItems + source
                         coroutineScope.launch {
-                            val events = if (source.title.lowercase().endsWith(".ics")) {
-                                if (isDesktop) IcsCalendarSource(source.content).getEvents() else emptyList()
+                            val allEvents = if (aiService.isConfigured()) {
+                                aiService.generateCalendarEvents(source.chunks)
                             } else {
-                                aiService.generateCalendarEvents(source.content)
+                                emptyList()
                             }
-                            onEventsGenerated(events)
+                            onEventsGenerated(allEvents)
                         }
                     },
                     providers = sourceProviders
@@ -285,12 +337,12 @@ fun MobileApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarR
                     onSourceAdded = { source ->
                         sourceItems = sourceItems + source
                         coroutineScope.launch {
-                            val events = if (source.title.lowercase().endsWith(".ics")) {
-                                if (isDesktop) IcsCalendarSource(source.content).getEvents() else emptyList()
+                            val allEvents = if (aiService.isConfigured()) {
+                                aiService.generateCalendarEvents(source.chunks)
                             } else {
-                                aiService.generateCalendarEvents(source.content)
+                                emptyList()
                             }
-                            onEventsGenerated(events)
+                            onEventsGenerated(allEvents)
                         }
                     },
                     providers = sourceProviders

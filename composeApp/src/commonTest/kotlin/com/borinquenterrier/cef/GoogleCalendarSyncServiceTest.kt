@@ -43,7 +43,7 @@ class GoogleCalendarSyncServiceTest : FunSpec({
 
         val response = service.syncEvent(event, "mock-token", "school-cal")
 
-        response shouldContain "200 OK"
+        response shouldContain "123"
         val request = mockEngine.requestHistory.first()
         request.url.toString() shouldBe "https://www.googleapis.com/calendar/v3/calendars/school-cal/events"
         request.headers["Authorization"] shouldBe "Bearer mock-token"

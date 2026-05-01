@@ -133,10 +133,12 @@ class GoogleCalendarSyncService(private val httpClient: HttpClient) {
         val googleResponse = response.body<GoogleCalendarEventsResponse>()
         
         return googleResponse.items.map { item ->
-            if (item.start.dateTime != null && item.end.dateTime != null) {
+            val start = item.start
+            val end = item.end
+            if (start?.dateTime != null && end?.dateTime != null) {
                 // Handle various RFC3339 formats (Z, +HH:MM, or none)
-                val cleanStart = item.start.dateTime.take(16) // "YYYY-MM-DDTHH:MM"
-                val cleanEnd = item.end.dateTime.take(16)
+                val cleanStart = start.dateTime.take(16) // "YYYY-MM-DDTHH:MM"
+                val cleanEnd = end.dateTime.take(16)
                 
                 TimeEvent(
                     id = item.id,
@@ -151,7 +153,7 @@ class GoogleCalendarSyncService(private val httpClient: HttpClient) {
                     id = item.id,
                     title = item.summary ?: "Untitled Event",
                     source = EventSource.STUDENT,
-                    date = LocalDate.parse(item.start.date ?: "2024-01-01")
+                    date = LocalDate.parse(start?.date ?: "2024-01-01")
                 )
             }
         }
@@ -179,6 +181,6 @@ data class GoogleCalendarItem(
     val id: String? = null,
     val summary: String? = null,
     val description: String? = null,
-    val start: GoogleEventDateTime,
-    val end: GoogleEventDateTime
+    val start: GoogleEventDateTime? = null,
+    val end: GoogleEventDateTime? = null
 )

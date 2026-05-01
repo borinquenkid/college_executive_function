@@ -6,39 +6,40 @@ import io.kotest.matchers.collections.shouldNotBeEmpty
 import kotlinx.datetime.LocalDate
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import com.russhwolf.settings.MapSettings
 
 class MultiFormatAiIntegrationTest : FunSpec({
 
-    test("AI should generate equivalent events from HTML, DOCX, and PDF") {
-        println("Working Dir: ${File(".").absolutePath}")
-        // 1. Resolve Credentials
-        val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
-        if (envFile == null) {
-            println("SKIPPING MULTI-FORMAT TEST: No .env file found in . or ..")
-            return@test
+    test("AI should generate equivalent events from HTML, DOCX, and PDF using local model") {
+        // 1. Resolve Model Path
+        val userDir = System.getProperty("user.dir") ?: "."
+        val root = if (userDir.endsWith("composeApp")) {
+            File(userDir).parentFile ?: File(userDir)
+        } else {
+            File(userDir)
         }
-        println("Using .env from: ${envFile.absolutePath}")
+        val modelDir = File(root, "models")
+        val modelFile = File(modelDir, "Qwen3.5-9B-Q4_K_M.gguf")
         
-        val envMap = envFile.readLines()
-            .filter { it.contains("=") && !it.startsWith("#") }
-            .associate { 
-                val key = it.substringBefore("=").trim()
-                val value = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
-                key to value 
+        if (!modelFile.exists()) {
+            println("AI model missing. Downloading to ${modelFile.absolutePath}...")
+            val httpClient = io.ktor.client.HttpClient(io.ktor.client.engine.java.Java)
+            val modelManager = ModelManager(httpClient, modelDir.absolutePath)
+            runBlocking {
+                modelManager.downloadModel().collect { progress ->
+                    if (progress.isDone) println("Download complete.")
+                }
             }
-
-        val apiKey = (envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"])?.takeIf { it.isNotBlank() }
-        val accessToken = envMap["GOOGLE_ACCESS_TOKEN"]?.takeIf { it.isNotBlank() }
-        
-        if (apiKey == null && accessToken == null) {
-            println("SKIPPING MULTI-FORMAT TEST: No credentials found in .env")
-            return@test
+            httpClient.close()
         }
 
-        val geminiService = when {
-            apiKey != null -> GeminiAIService(apiKey = apiKey)
-            else -> GeminiAIService(accessToken = accessToken)
+        if (!modelFile.exists()) {
+            throw AssertionError("Failed to download AI model.")
         }
+
+        val settings = MapSettings()
+        val logger = Logger(settings)
+        val aiService = AIService(settings, logger, null, modelFile.absolutePath)
 
         // 2. Prepare Source Contents
         
@@ -46,31 +47,35 @@ class MultiFormatAiIntegrationTest : FunSpec({
         val htmlContent = "<html><body>MATH 101 on 2026-01-01 from 08:00 to 09:00 MWF</body></html>"
         val webReader = WebSourceReader()
         val cleanedHtmlText = webReader.cleanHtml(htmlContent)
+        val htmlChunks = TextChunker.chunk(cleanedHtmlText)
 
         // B. DOCX
-        val docxFile = File("src/commonTest/resources/calendar.docx")
+        var docxFile = File("src/commonTest/resources/calendar.docx")
         if (!docxFile.exists()) {
             val altPath = File("composeApp/src/commonTest/resources/calendar.docx")
-            if (altPath.exists()) docxFile.parentFile.mkdirs() // Not really possible but for safety
+            if (altPath.exists()) {
+                 docxFile = altPath
+            }
         }
         val docxReader = DocxReader()
-        val docxText = runBlocking { docxReader.extractText(docxFile.absolutePath) }
+        val docxChunks = runBlocking { docxReader.extractChunks(docxFile.absolutePath) }
 
         // C. PDF
-        val pdfFile = File("src/commonTest/resources/calendar.pdf")
+        var pdfFile = File("src/commonTest/resources/calendar.pdf")
+        if (!pdfFile.exists()) {
+            val altPath = File("composeApp/src/commonTest/resources/calendar.pdf")
+            if (altPath.exists()) {
+                pdfFile = altPath
+            }
+        }
         val pdfReader = PdfReader()
-        val pdfText = runBlocking { pdfReader.extractText(pdfFile.absolutePath) }
-
-        println("HTML Cleaned: $cleanedHtmlText")
-        println("DOCX Extracted: $docxText")
-        println("PDF Extracted: $pdfText")
+        val pdfChunks = runBlocking { pdfReader.extractChunks(pdfFile.absolutePath) }
 
         // 3. Run AI Extraction for each
-        val htmlEvents = runBlocking { geminiService.generateCalendarEvents(cleanedHtmlText) }
-        kotlinx.coroutines.delay(3000) // Stay under rate limit
-        val docxEvents = runBlocking { geminiService.generateCalendarEvents(docxText) }
-        kotlinx.coroutines.delay(3000)
-        val pdfEvents = runBlocking { geminiService.generateCalendarEvents(pdfText) }
+        val htmlEvents = runBlocking { htmlChunks.flatMap { aiService.generateCalendarEvents(it) } }
+        val docxEvents = runBlocking { docxChunks.flatMap { aiService.generateCalendarEvents(it) } }
+        val pdfEvents = runBlocking { pdfChunks.flatMap { aiService.generateCalendarEvents(it) } }
+
 
         // 4. Verify Equivalence
         htmlEvents.shouldNotBeEmpty()
@@ -82,13 +87,10 @@ class MultiFormatAiIntegrationTest : FunSpec({
             date == LocalDate(2026, 1, 1)
         }
 
-        val htmlMatch = htmlEvents.findEventOnTargetDate() ?: throw AssertionError("HTML extraction failed. Events: $htmlEvents")
-        val docxMatch = docxEvents.findEventOnTargetDate() ?: throw AssertionError("DOCX extraction failed. Events: $docxEvents")
-        val pdfMatch = pdfEvents.findEventOnTargetDate() ?: throw AssertionError("PDF extraction failed. Events: $pdfEvents")
+        htmlEvents.findEventOnTargetDate() ?: throw AssertionError("HTML extraction failed. Events: $htmlEvents")
+        docxEvents.findEventOnTargetDate() ?: throw AssertionError("DOCX extraction failed. Events: $docxEvents")
+        pdfEvents.findEventOnTargetDate() ?: throw AssertionError("PDF extraction failed. Events: $pdfEvents")
 
         println("SUCCESS: All formats generated an event on 2026-01-01")
-        println("HTML Title: ${htmlMatch.title}")
-        println("DOCX Title: ${docxMatch.title}")
-        println("PDF Title: ${pdfMatch.title}")
     }
 })

@@ -2,9 +2,11 @@ package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import com.tom_roush.pdfbox.pdmodel.PDDocument
+import com.tom_roush.pdfbox.text.PDFTextStripper
+
 import java.io.File
-import com.tom_rouse.pdfbox.pdmodel.PDDocument
-import com.tom_rouse.pdfbox.text.PDFTextStripper
+
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 

@@ -9,17 +9,30 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class PdfReader {
-    actual suspend fun extractText(path: String): String = withContext(Dispatchers.IO) {
+    actual suspend fun extractChunks(path: String): List<SourceChunk> = withContext(Dispatchers.IO) {
+        val chunks = mutableListOf<SourceChunk>()
         try {
             val file = File(path)
             val document = Loader.loadPDF(file)
             val stripper = PDFTextStripper()
-            val text = stripper.getText(document)
+            
+            for (i in 1..document.numberOfPages) {
+                stripper.startPage = i
+                stripper.endPage = i
+                val pageText = stripper.getText(document).trim()
+                if (pageText.isNotEmpty()) {
+                    chunks.add(SourceChunk(
+                        text = pageText,
+                        pageNumber = i,
+                        type = SourceType.TEXT
+                    ))
+                }
+            }
             document.close()
-            text.trim()
         } catch (e: Exception) {
-            "Error extracting text from PDF: ${e.message}"
+            chunks.add(SourceChunk(text = "Error: ${e.message}"))
         }
+        chunks
     }
 }
 

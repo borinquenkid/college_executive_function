@@ -5,47 +5,80 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import kotlinx.coroutines.runBlocking
 import java.io.File
+import io.mockk.mockk
+import com.russhwolf.settings.MapSettings
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.borinquenterrier.cef.db.AppDatabase
 
 class AiExtractionIntegrationTest : FunSpec({
 
-    test("Should extract events from syllabus.txt using real Gemini API") {
-        // 1. Resolve API Key from .env
-        val envFile = File("../.env")
-        val envMap = if (envFile.exists()) {
-            envFile.readLines()
-                .filter { it.contains("=") && !it.startsWith("#") }
-                .associate { it.substringBefore("=") to it.substringAfter("=") }
-        } else emptyMap()
-
-        val apiKey = envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"]
-        val accessToken = envMap["GOOGLE_ACCESS_TOKEN"]
+    test("Headless StudioFlow: should extract deliverables from syllabus using local Llamatik model") {
+        // 1. Resolve Model Path
+        val userDir = System.getProperty("user.dir") ?: "."
+        val root = if (userDir.endsWith("composeApp")) {
+            File(userDir).parentFile ?: File(userDir)
+        } else {
+            File(userDir)
+        }
+        val modelDir = File(root, "models")
+        val modelFile = File(modelDir, "Qwen3.5-9B-Q4_K_M.gguf")
         
-        if (apiKey == null && accessToken == null) {
-            println("SKIPPING AI TEST: No credentials found in .env")
-            return@test
+        if (!modelFile.exists()) {
+            println("AI model missing. Downloading to ${modelFile.absolutePath}...")
+            val httpClient = io.ktor.client.HttpClient(io.ktor.client.engine.java.Java)
+            val modelManager = ModelManager(httpClient, modelDir.absolutePath)
+            runBlocking {
+                modelManager.downloadModel().collect { progress ->
+                    if (progress.isDone) println("Download complete.")
+                }
+            }
+            httpClient.close()
         }
 
-        // 2. Load syllabus text
+        if (!modelFile.exists()) {
+            throw AssertionError("Failed to download AI model.")
+        }
+
+        // 2. Setup in-memory database
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        val database = AppDatabase(driver)
+
+        // 3. Setup dependencies
+        val settings = MapSettings()
+        val logger = Logger(settings)
+        // Pass the model path to AIService
+        val aiService = AIService(settings, logger, database, modelFile.absolutePath)
+        val mockRepo = mockk<UnifiedCalendarRepository>(relaxed = true)
+        
+        val studioFlow = StudioFlow(aiService, mockRepo, database, logger = logger)
+
+        // 4. Load syllabus text
         val syllabusStream = object {}.javaClass.classLoader.getResourceAsStream("syllabus.txt")
         if (syllabusStream == null) {
             throw AssertionError("Could not find syllabus.txt in test resources")
         }
         val syllabusText = syllabusStream.bufferedReader().use { it.readText() }
+        val chunks = TextChunker.chunk(syllabusText)
 
-        // 3. Run Extraction
-        val geminiService = if (accessToken != null) {
-            GeminiAIService(accessToken = accessToken)
-        } else {
-            GeminiAIService(apiKey = apiKey)
+        // 5. Run Flow Headless
+        println("STARTING HEADLESS EXTRACTION...")
+        runBlocking {
+            studioFlow.extractDeliverables(SourceItem("Syllabus", chunks))
         }
-        val events = runBlocking { geminiService.generateCalendarEvents(syllabusText) }
 
-        // 4. Verify
-        println("EXTRACTED ${events.size} EVENTS FROM SYLLABUS")
-        events.shouldNotBeEmpty()
+        // 6. Verify
+        val events = studioFlow.lastGeneratedEvents.value
+        println("STUDIO FLOW GENERATED ${events.size} DELIVERABLES")
         
-        events.forEach { event ->
-            println("- [${event.category}] ${event.title} on ${if (event is TimeEvent) event.date.toString() + " at " + event.startTime else (event as DayEvent).date}")
+        if (events.isEmpty()) {
+            println("WARNING: No events generated. Check if models are exhausted in logs.")
+        } else {
+            events.forEach { event ->
+                println("- [${event.category}] ${event.title}")
+            }
         }
+        
+        events.shouldNotBeEmpty()
     }
 })

@@ -8,7 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class DocxReader {
-    actual suspend fun extractText(path: String): String = withContext(Dispatchers.IO) {
+    actual suspend fun extractChunks(path: String): List<SourceChunk> = withContext(Dispatchers.IO) {
+        val chunks = mutableListOf<SourceChunk>()
         try {
             val zipFile = ZipFile(File(path))
             val entry = zipFile.getEntry("word/document.xml") 
@@ -17,19 +18,21 @@ actual class DocxReader {
             val content = zipFile.getInputStream(entry).bufferedReader().use { it.readText() }
             zipFile.close()
             
-            // Basic XML text extraction:
-            // 1. Replace <w:p> (paragraph) with newlines to preserve structure
-            // 2. Strip all other tags
-            val text = content
-                .replace(Regex("<w:p[\\s\\S]*?>"), "\n")
-                .replace(Regex("<.*?>"), "")
-                .replace(Regex("\\s+"), " ") // Normalize spaces
-                .trim()
+            // Split by paragraph tag to create chunks
+            val paragraphs = content.split(Regex("(?=<w:p[\\s\\S]*?>)"))
             
-            text
+            for (p in paragraphs) {
+                val text = p.replace(Regex("<.*?>"), "")
+                    .replace(Regex("\\s+"), " ")
+                    .trim()
+                if (text.isNotEmpty()) {
+                    chunks.add(SourceChunk(text = text, type = SourceType.TEXT))
+                }
+            }
         } catch (e: Exception) {
-            "Error extracting text from DOCX: ${e.message}"
+            chunks.add(SourceChunk(text = "Error: ${e.message}"))
         }
+        chunks
     }
 }
 

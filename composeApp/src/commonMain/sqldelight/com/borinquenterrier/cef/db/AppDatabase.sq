@@ -33,3 +33,19 @@ UPDATE EventEntity SET syncStatus = 'DELETED_LOCALLY', updatedAt = ? WHERE id = 
 
 deleteAllEvents:
 DELETE FROM EventEntity;
+
+CREATE TABLE IF NOT EXISTS ModelCache (
+    key TEXT PRIMARY KEY NOT NULL,
+    modelName TEXT NOT NULL,
+    updatedAt INTEGER NOT NULL
+);
+
+insertModel:
+INSERT OR REPLACE INTO ModelCache(key, modelName, updatedAt)
+VALUES (?, ?, ?);
+
+getSelectedModel:
+SELECT modelName FROM ModelCache WHERE key = ?;
+
+deleteModel:
+DELETE FROM ModelCache WHERE key = ?;

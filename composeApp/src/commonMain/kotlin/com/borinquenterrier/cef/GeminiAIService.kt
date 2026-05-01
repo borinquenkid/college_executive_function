@@ -7,33 +7,45 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonArray
-import kotlinx.serialization.json.jsonObject
-import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.datetime.Clock
+import com.borinquenterrier.cef.db.AppDatabase
 
 /**
  * Common implementation for interacting with the Google Gemini API.
  */
 class GeminiAIService(
     private val apiKey: String? = null,
-    private val accessToken: String? = null
+    private val accessToken: String? = null,
+    private val logger: Logger? = null,
+    private val database: AppDatabase? = null
 ) {
-
-    private val json = Json { ignoreUnknownKeys = true }
+    private val tag = "GeminiAI"
     private val client = HttpClient {
         install(ContentNegotiation) {
-            json(json)
+            json(Json { 
+                ignoreUnknownKeys = true 
+                coerceInputValues = true
+            })
         }
     }
 
-    private var negotiatedModelName: String? = null
-    private val blacklistedModels = mutableSetOf<String>()
+    private val json = Json { 
+        ignoreUnknownKeys = true 
+        isLenient = true
+    }
 
-    private suspend fun getAvailableModels(): List<String> {
+    companion object {
+        // Global blacklist to persist across service recreations during a session
+        private val blacklistedModels = mutableMapOf<String, Long>()
+        private const val BLACKLIST_DURATION_MS = 60 * 60 * 1000L // 1 hour
+        private const val PREFERRED_MODEL_KEY = "preferred_gemini_model"
+    }
+
+    private suspend fun getAvailableModels(): List<ModelInfo> {
         val url = "https://generativelanguage.googleapis.com/v1beta/models"
         val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
         
@@ -44,36 +56,87 @@ class GeminiAIService(
                 }
             }
             
-            if (!response.status.isSuccess()) return emptyList()
+            if (!response.status.isSuccess()) {
+                val body = response.bodyAsText()
+                logger?.e(tag, "Failed to get available models: ${response.status}. Body: $body")
+                return emptyList()
+            }
 
             val modelList = json.decodeFromString<ModelListResponse>(response.bodyAsText())
-            modelList.models.map { it.name.removePrefix("models/") }
+            modelList.models
         } catch (e: Exception) {
+            logger?.e(tag, "Exception fetching models: ${e.message}")
             emptyList()
         }
     }
 
-    private suspend fun negotiateBestModel(available: List<String>): String {
+    private suspend fun negotiateBestModel(available: List<ModelInfo>): String {
+        val currentTime = Clock.System.now().toEpochMilliseconds()
+        
+        // 1. Check SQLite Cache first
+        val cachedModel = database?.appDatabaseQueries?.getSelectedModel(PREFERRED_MODEL_KEY)?.executeAsOneOrNull()
+        if (cachedModel != null) {
+            val expiry = blacklistedModels[cachedModel]
+            if (expiry == null || currentTime > expiry) {
+                logger?.d(tag, "Using cached model from database: $cachedModel")
+                return cachedModel
+            } else {
+                logger?.d(tag, "Cached model $cachedModel is currently blacklisted. Re-negotiating...")
+            }
+        }
+
+        // 2. Perform negotiation
+        val generationCapable = available.filter { it.supportedGenerationMethods.contains("generateContent") }
+        val names = generationCapable.map { it.name.removePrefix("models/") }
+        
+        // Filter out models that are still blacklisted
+        val nonBlacklistedNames = names.filter { name ->
+            val expiry = blacklistedModels[name]
+            expiry == null || currentTime > expiry
+        }
+
+        logger?.d(tag, "Negotiating best model. Available: ${names.size}, Non-blacklisted: ${nonBlacklistedNames.size}")
+        
         val preferences = listOf(
-            "gemini-3-flash",
-            "gemini-2.5-flash",
-            "gemini-2.5-pro",
+            "gemini-1.5-flash",
+            "gemini-1.5-pro",
             "gemini-2.0-flash",
             "gemini-2-flash",
             "gemini-2-flash-lite",
-            "gemini-1.5-flash",
-            "gemini-1.5-pro",
+            "gemini-2.0-flash-lite",
+            "gemini-2.5-flash",
+            "gemini-2.5-pro",
+            "gemini-3-flash",
             "gemini-pro"
         )
 
-        // Find best match that is NOT blacklisted
-        return preferences.firstOrNull { pref -> available.contains(pref) && !blacklistedModels.contains(pref) }
-            ?: available.firstOrNull { it.contains("flash") && !blacklistedModels.contains(it) }
-            ?: available.firstOrNull { !blacklistedModels.contains(it) }
-            ?: "gemini-1.5-flash" // Final desperate fallback
+        // Find best match among non-blacklisted models
+        val selected = preferences.firstOrNull { pref -> nonBlacklistedNames.contains(pref) }
+            ?: nonBlacklistedNames.firstOrNull { it.contains("flash") }
+            ?: nonBlacklistedNames.firstOrNull()
+            ?: "gemini-1.5-flash"
+
+        // 3. Save to Cache
+        try {
+            database?.appDatabaseQueries?.insertModel(PREFERRED_MODEL_KEY, selected, currentTime)
+            logger?.d(tag, "Saved newly negotiated model to database: $selected")
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to save model to cache: ${e.message}")
+        }
+
+        return selected
     }
 
-    suspend fun generateCalendarEvents(rawText: String): List<Event> {
+    suspend fun generateCalendarEvents(chunks: List<SourceChunk>): List<Event> {
+        val combinedJson = buildJsonArray {
+            chunks.forEach { chunk ->
+                add(Json.parseToJsonElement(chunk.toJson()))
+            }
+        }.toString()
+        return generateCalendarEventsFromPrompt(AiPrompts.getChunkEventExtractionPrompt(combinedJson))
+    }
+
+    suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
         val available = getAvailableModels()
         var attempts = 0
         val maxAttempts = 3
@@ -81,31 +144,54 @@ class GeminiAIService(
 
         while (attempts < maxAttempts) {
             val modelName = negotiateBestModel(available)
-            val prompt = AiPrompts.getEventExtractionPrompt(rawText)
             
-            val request = GeminiRequest(
-                contents = listOf(Content(parts = listOf(Part(text = prompt)))),
-                generationConfig = GenerationConfig(temperature = 0.0)
-            )
-
-            val baseUrl = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
-            val url = if (apiKey != null) "$baseUrl?key=$apiKey" else baseUrl
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
+            val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
 
             try {
-                val httpResponse = client.post(url) {
+                val httpResponse: HttpResponse = client.post(authUrl) {
                     contentType(ContentType.Application.Json)
                     if (apiKey == null && accessToken != null) {
                         header("Authorization", "Bearer $accessToken")
                     }
-                    setBody(request)
+                    setBody(buildJsonObject {
+                        putJsonArray("contents") {
+                            addJsonObject {
+                                putJsonArray("parts") {
+                                    addJsonObject { put("text", prompt) }
+                                }
+                            }
+                        }
+                        // Enable native JSON output mode for Gemini 1.5+
+                        putJsonObject("generationConfig") {
+                            put("responseMimeType", "application/json")
+                        }
+                    })
                 }
 
                 val responseBody = httpResponse.bodyAsText()
                 
-                if (httpResponse.status == HttpStatusCode.TooManyRequests || httpResponse.status == HttpStatusCode.NotFound) {
-                    println("⚠️ Model $modelName failed with ${httpResponse.status}. Blacklisting and retrying...")
-                    blacklistedModels.add(modelName)
+                if (httpResponse.status == HttpStatusCode.Unauthorized) {
+                    logger?.e(tag, "401 Unauthorized: Your API Key or Access Token is invalid/expired.")
+                    throw Exception("Unauthorized")
+                }
+
+                if (httpResponse.status == HttpStatusCode.Forbidden) {
+                    logger?.e(tag, "403 Forbidden: Ensure the Gemini API is enabled in your Google Cloud Project.")
+                    throw Exception("Forbidden")
+                }
+
+                if (httpResponse.status == HttpStatusCode.TooManyRequests || 
+                    httpResponse.status == HttpStatusCode.NotFound ||
+                    httpResponse.status == HttpStatusCode.ServiceUnavailable) {
+                    
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    
+                    logger?.d(tag, "⚠️ Model $modelName exhausted (${httpResponse.status}). Retrying...")
                     attempts++
+                    kotlinx.coroutines.delay(2000L * attempts)
                     continue
                 }
 
@@ -113,83 +199,77 @@ class GeminiAIService(
                     throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
                 }
 
-                val response = json.decodeFromString<GeminiResponse>(responseBody)
-                val jsonString = response.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                    ?: throw Exception("AI failed to generate a response. Body: $responseBody")
+                val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
+                val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                    ?: throw Exception("Empty response from AI")
 
-                return parseAiJson(jsonString)
+                // With responseMimeType: "application/json", responseText is already raw JSON.
+                // However, some versions still wrap it in markdown. Let's be safe.
+                val cleanJson = responseText.trim()
+                    .removePrefix("```json")
+                    .removeSuffix("```")
+                    .trim()
 
+                val root = json.parseToJsonElement(cleanJson)
+                val jsonArray = if (root is JsonArray) {
+                    root
+                } else if (root is JsonObject && root.containsKey("events")) {
+                    root["events"]!!.jsonArray
+                } else {
+                    throw Exception("Unexpected JSON structure: $cleanJson")
+                }
+
+                return jsonArray.map { element ->
+                    val obj = element.jsonObject
+                    val title = obj["title"]?.jsonPrimitive?.content ?: "Untitled Event"
+                    val type = obj["type"]?.jsonPrimitive?.content ?: "DAY"
+                    val dateStr = obj["date"]?.jsonPrimitive?.content ?: "2024-01-01"
+                    val categoryStr = obj["category"]?.jsonPrimitive?.content ?: "REGULAR"
+                    val category = try {
+                        AcademicCategory.valueOf(categoryStr)
+                    } catch (e: Exception) {
+                        AcademicCategory.REGULAR
+                    }
+
+                    if (type == "TIME") {
+                        val startTime = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
+                        val endTime = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
+                        TimeEvent(
+                            title = title,
+                            source = EventSource.AI_GENERATED,
+                            category = category,
+                            date = LocalDate.parse(dateStr),
+                            startTime = LocalTime.parse(startTime),
+                            endTime = LocalTime.parse(endTime)
+                        )
+                    } else {
+                        DayEvent(
+                            title = title,
+                            source = EventSource.AI_GENERATED,
+                            category = category,
+                            date = LocalDate.parse(dateStr)
+                        )
+                    }
+                }
             } catch (e: Exception) {
                 lastError = e
+                logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
                 attempts++
+                kotlinx.coroutines.delay(1000)
             }
         }
-        
         throw lastError ?: Exception("Failed to generate events after $maxAttempts attempts")
-    }
-
-    private fun parseAiJson(jsonString: String): List<Event> {
-        return try {
-            val cleanedJson = jsonString.trim()
-                .removeSurrounding("```json", "```")
-                .trim()
-            
-            val jsonArray = Json.parseToJsonElement(cleanedJson) as JsonArray
-            jsonArray.map { element ->
-                val obj = element.jsonObject
-                val title = obj["title"]?.jsonPrimitive?.content ?: "Untitled"
-                val type = obj["type"]?.jsonPrimitive?.content ?: "DAY"
-                val categoryStr = obj["category"]?.jsonPrimitive?.content ?: "REGULAR"
-                val category = try {
-                    AcademicCategory.valueOf(categoryStr)
-                } catch (e: Exception) {
-                    AcademicCategory.REGULAR
-                }
-                val date = LocalDate.parse(obj["date"]?.jsonPrimitive?.content ?: "2024-01-01")
-
-                if (type == "TIME") {
-                    val startTime = LocalTime.parse(obj["startTime"]?.jsonPrimitive?.content ?: "09:00")
-                    val endTime = LocalTime.parse(obj["endTime"]?.jsonPrimitive?.content ?: "10:00")
-                    TimeEvent(
-                        title = title,
-                        source = EventSource.AI_GENERATED,
-                        category = category,
-                        date = date,
-                        startTime = startTime,
-                        endTime = endTime
-                    )
-                } else {
-                    DayEvent(
-                        title = title,
-                        source = EventSource.AI_GENERATED,
-                        category = category,
-                        date = date
-                    )
-                }
-            }
-        } catch (e: Exception) {
-            throw Exception("Failed to parse AI JSON: ${e.message}. Raw string: $jsonString")
-        }
     }
 }
 
 @Serializable
-data class GeminiRequest(
-    val contents: List<Content>,
-    val generationConfig: GenerationConfig? = null
-)
+data class GeminiResponse(val candidates: List<Candidate>)
 
 @Serializable
 data class Content(val parts: List<Part>)
 
 @Serializable
 data class Part(val text: String)
-
-@Serializable
-data class GenerationConfig(val temperature: Double)
-
-@Serializable
-data class GeminiResponse(val candidates: List<Candidate>)
 
 @Serializable
 data class Candidate(val content: Content)

@@ -1,7 +1,7 @@
 [versions]
 agp = "8.13.2"
 android-compileSdk = "36"
-android-minSdk = "24"
+android-minSdk = "26"
 android-targetSdk = "36"
 androidx-activity = "1.11.0"
 androidx-appcompat = "1.7.1"
@@ -10,28 +10,32 @@ androidx-espresso = "3.7.0"
 androidx-lifecycle = "2.9.4"
 androidx-testExt = "1.3.0"
 composeHotReload = "1.0.0-beta07"
-composeMultiplatform = "1.9.0"
+composeMultiplatform = "1.10.3"
 junit = "4.13.2"
-kotlin = "2.2.20"
+kotlin = "2.3.21"
 kotlinx-coroutines = "1.10.2"
 kotlinx-serialization = "1.7.1"
-kotest = "5.9.1"
-ktor = "2.3.12"
+kotest = "6.1.11"
+ktor = "3.4.3"
 multiplatform-settings = "1.1.1"
 ical4j = "4.2.5"
 google-calendar = "v3-rev20260225-2.0.0"
 google-api-client = "2.9.0"
 google-oauth-jetty = "1.39.0"
 google-http-client-gson = "1.44.1"
-kotlinx-datetime = "0.5.0"
+kotlinx-datetime = "0.7.1-0.6.x-compat"
 mockk = "1.14.9"
 sqldelight = "2.0.2"
+llamatik = "1.2.0"
+okio = "3.4.0"
 pdfbox = "3.0.3"
 pdfbox-android = "2.0.27.0"
 
 [libraries]
+okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
+llamatik = { module = "com.llamatik:library", version.ref = "llamatik" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }
-pdfbox-android = { module = "com.tom_rouse:pdfbox-android", version.ref = "pdfbox-android" }
+pdfbox-android = { module = "com.tom-roush:pdfbox-android", version.ref = "pdfbox-android" }
 google-http-client-gson = { module = "com.google.http-client:google-http-client-gson", version.ref = "google-http-client-gson" }
 kotlin-test = { module = "org.jetbrains.kotlin:kotlin-test", version.ref = "kotlin" }
 kotlin-testJunit = { module = "org.jetbrains.kotlin:kotlin-test-junit", version.ref = "kotlin" }

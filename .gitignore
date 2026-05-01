@@ -21,3 +21,12 @@ captures
 !*.xcworkspace/contents.xcworkspacedata
 **/xcshareddata/WorkspaceSettings.xcsettings
 node_modules/
+models/
+*.gguf
+debug_logs.txt
+test_output.txt
+*.log
+*.docx
+*.pdf
+*.ics
+~$*

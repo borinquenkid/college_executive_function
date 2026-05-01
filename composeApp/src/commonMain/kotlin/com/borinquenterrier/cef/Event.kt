@@ -10,7 +10,7 @@ enum class EventSource {
 }
 
 enum class AcademicCategory {
-    REGULAR, HOLIDAY, DEADLINE, FINALS, SEMESTER_BOUND
+    REGULAR, HOLIDAY, DEADLINE, FINALS, SEMESTER_BOUND, STUDY_BLOCK
 }
 
 enum class SyncStatus {
@@ -32,6 +32,7 @@ sealed interface Event {
     val source: EventSource
     val category: AcademicCategory
     val syncStatus: SyncStatus
+    val date: LocalDate
     val updatedAt: Long
 
     /**
@@ -53,7 +54,7 @@ data class TimeEvent(
     @Serializable(with = LocalTimeSerializer::class)
     val endTime: LocalTime,
     @Serializable(with = LocalDateSerializer::class)
-    val date: LocalDate,
+    override val date: LocalDate,
     val recurrence: Recurrence? = null
 ) : Event {
     override fun overlaps(other: Event): Boolean {
@@ -76,7 +77,7 @@ data class DayEvent(
     override val syncStatus: SyncStatus = SyncStatus.SYNCED,
     override val updatedAt: Long = 0,
     @Serializable(with = LocalDateSerializer::class)
-    val date: LocalDate,
+    override val date: LocalDate,
     val recurrence: Recurrence? = null
 ) : Event {
     override fun overlaps(other: Event): Boolean {

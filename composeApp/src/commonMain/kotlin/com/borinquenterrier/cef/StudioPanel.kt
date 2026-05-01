@@ -14,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.launch
+import com.borinquenterrier.cef.db.AppDatabase
 
 @Composable
 fun StudioPanel(
@@ -22,19 +23,31 @@ fun StudioPanel(
     unifiedRepository: UnifiedCalendarRepository,
     onEventsGenerated: (List<Event>) -> Unit
 ) {
-    var isLoading by remember { mutableStateOf(false) }
-    var generatedContent by remember { mutableStateOf("Select a source and an action.") }
     val coroutineScope = rememberCoroutineScope()
     val aiService = rememberAIService()
+    val logger = rememberLogger()
     
+    val driverFactory = rememberDriverFactory()
+    val database = remember(driverFactory) { AppDatabase(driverFactory.createDriver()) }
+    
+    val studioFlow = remember(aiService, unifiedRepository, database) {
+        StudioFlow(aiService, unifiedRepository, database, logger = logger)
+    }
+
+    val isLoading by studioFlow.isLoading.collectAsState()
+    val statusMessage by studioFlow.statusMessage.collectAsState()
+    val lastGeneratedEvents by studioFlow.lastGeneratedEvents.collectAsState()
+
     val settings = rememberSettings()
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
-    val programmaticExtractor = remember { KeywordEventExtractor() }
-    
-    // Track the last generated events locally to push them
-    var lastGeneratedEvents by remember { mutableStateOf<List<Event>>(emptyList()) }
-
     val isConnected = tokenRepository.hasTokens()
+
+    // Push events back to parent when they are generated in the flow
+    LaunchedEffect(lastGeneratedEvents) {
+        if (lastGeneratedEvents.isNotEmpty()) {
+            onEventsGenerated(lastGeneratedEvents)
+        }
+    }
 
     Column(
         modifier = modifier
@@ -55,40 +68,28 @@ fun StudioPanel(
             Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
                 Text("Generate Q&A")
             }
+            
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        isLoading = true
-                        val rawEvents = aiService.generateCalendarEvents("Extract Academic Milestones from this calendar source: ${selectedSource.content}")
-                        // Apply programmatic rules on top of AI/Raw results
-                        val categorizedEvents = programmaticExtractor.extract(rawEvents)
-                        
-                        onEventsGenerated(categorizedEvents)
-                        lastGeneratedEvents = categorizedEvents
-                        generatedContent = "Academic milestones (Holidays, Deadlines, Finals) identified."
-                        isLoading = false
+                        studioFlow.generateStudyPlan(selectedSource)
                     }
                 },
                 modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                enabled = !isLoading
             ) {
-                Text("Analyze Academic Calendar (AI)")
+                Text("Generate Study Plan (AI)")
             }
 
             Button(
                 onClick = {
                     coroutineScope.launch {
-                        isLoading = true
-                        val rawEvents = aiService.generateCalendarEvents("Analyze the syllabus ${selectedSource.content} for dates and deliverables.")
-                        val categorizedEvents = programmaticExtractor.extract(rawEvents)
-                        
-                        onEventsGenerated(categorizedEvents)
-                        lastGeneratedEvents = categorizedEvents
-                        generatedContent = "${categorizedEvents.size} events added to your internal calendar."
-                        isLoading = false
+                        studioFlow.extractDeliverables(selectedSource)
                     }
                 },
-                modifier = Modifier.fillMaxWidth()
+                modifier = Modifier.fillMaxWidth(),
+                enabled = !isLoading
             ) {
                 Text("Extract Deliverables (AI)")
             }
@@ -99,43 +100,17 @@ fun StudioPanel(
                     onClick = {
                         coroutineScope.launch {
                             if (!isConnected) {
-                                generatedContent = "Error: Not connected to Google Workspace. Please link your account in Settings or the Calendar tab."
+                                // Handled in flow's message but we can add a check
                                 return@launch
                             }
-
-                            isLoading = true
-                            generatedContent = "Checking for conflicts and pushing ${lastGeneratedEvents.size} events..."
-                            
-                            var successCount = 0
-                            var conflictFound = false
-                            
-                            for (event in lastGeneratedEvents) {
-                                try {
-                                    // Use 'default' to target the CEF Academic calendar
-                                    unifiedRepository.saveEvent(event, "default")
-                                    successCount++
-                                } catch (e: OverlapException) {
-                                    generatedContent = "Conflict: '${event.title}' overlaps with '${e.existingEvent.title}' on your calendar."
-                                    conflictFound = true
-                                    break
-                                } catch (e: Exception) {
-                                    generatedContent = "Error: ${e.message}"
-                                    conflictFound = true
-                                    break
-                                }
-                            }
-                            
-                            if (!conflictFound) {
-                                generatedContent = "Success! $successCount events pushed to your CEF Academic Calendar."
-                            }
-                            isLoading = false
+                            studioFlow.pushToCalendar()
                         }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isConnected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
                     ),
-                    enabled = !isLoading
+                    enabled = !isLoading && isConnected
                 ) {
                     Text(if (isConnected) "Push to Google Calendar" else "Connect to Google to Push")
                 }
@@ -151,7 +126,7 @@ fun StudioPanel(
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
-                Text(generatedContent)
+                Text(statusMessage)
             }
         }
     }

@@ -21,6 +21,8 @@ The application follows a strict data flow to consolidate academic data into a s
     *   **External Calendars (High Priority):** Read-only feeds from Google Calendar, Microsoft Outlook, or iCal (.ics) URLs (e.g., University Academic Calendars).
     *   **Syllabus (High Priority):** Course documents containing deadlines and deliverables parsed via AI.
     *   **Class Documents:** Supporting materials belonging to specific courses.
+*   **Logic Layer (The Flow):**
+    *   **`StudioFlow`:** Decoupled business logic that manages AI negotiation, extraction, and sync independent of the UI.
 *   **The Object (Event):** All inputs are parsed (via AI or direct API/ICS parsing) into a unified `Event` model.
 *   **The Destination:** All generated events are synchronized into the **Student's Master Calendar** (the primary calendar they use daily).
 
@@ -28,19 +30,21 @@ The application follows a strict data flow to consolidate academic data into a s
 
 *   **Sources Panel:** Manage inputs from Local Files, URLs (Public/Private), and Google Drive.
 *   **Academic Calendar:** A central, editable dashboard that aggregates and synchronizes events from all sources.
-*   **AI Integration:** Performs automated analysis of Syllabi and Documents to extract events and decompose complex tasks.
+*   **AI Integration:** Performs automated analysis of Syllabi and Documents to extract events and suggest proactive study blocks.
 *   **Synchronization Service:** Handles the push/pull logic between the app's internal state and the Student's external calendar providers.
 
 ## AI Integration
 
-The application will leverage a generative AI model to perform the following key tasks:
+The application leverages a generative AI model to perform the following key tasks:
 
-*   **Syllabus Analysis:** When a syllabus is added, the AI will identify all deliverables and add them to the Academic Calendar.
-*   **Calendar Management:** The AI will automatically update the Academic Calendar when new sources are added.
+*   **Syllabus Analysis:** Automatically identifies all deliverables (Assignments, Exams, etc.) and suggests proactive study blocks.
+*   **Persistent Negotiation:** Intelligent model selection that prefers high-capability models (like Gemini 1.5 Flash) and caches the successful choice in SQLite to avoid redundant dialogs.
+*   **Exhaustion Resilience:** Implements a 1-hour blacklist for models that return 429 (Rate Limit) or 503 (Overloaded) errors.
 
 ## Testing Requirements
 
-All business logic classes (Models, Repositories, Services, and Utilities) must have associated unit tests using the Kotest framework. UI components should have corresponding Compose tests where appropriate to verify state changes and user interactions.
+All business logic classes (Models, Repositories, Services, and Utilities) must have associated unit tests using the Kotest framework. 
+*   **Integration Tests:** Headless IT tests (e.g., `AiExtractionIntegrationTest`) verify full AI pipelines using real dev keys and in-memory databases.
 
 ## Development Roadmap
 
@@ -51,35 +55,33 @@ All business logic classes (Models, Repositories, Services, and Utilities) must 
 *   **File Picker:** A functional file picker has been implemented for desktop and Android.
 *   **Settings Screen:** A functional settings screen for entering and saving an API key has been implemented.
 *   **Unified Event Model:** Refactored the entire application to use a unified `Event` data model, which supports recurrence, different event types, and color-coding by source.
-*   **Routine Management:** A complete flow for creating, viewing, and persisting a recurring weekly schedule. The UI includes robust date, time, and day-of-week pickers.
-*   **Calendar View:** The academic calendar now displays events from all sources (currently Routine and AI-Generated), grouped by date with sticky headers.
-*   **Testing Framework:** Added the Kotest testing framework and wrote unit tests for data models, repositories, and serializers.
+*   **Routine Management:** A complete flow for creating, viewing, and persisting a recurring weekly schedule. 
+*   **Calendar View:** The academic calendar now displays events from all sources, grouped by date with sticky headers.
+*   **Testing Framework:** Added Kotest and wrote unit tests for data models, repositories, and serializers.
 *   **iCalendar Support:** Added `ical4j` library for handling `.ics` file generation and parsing.
-*   **Google Calendar REST Integration:** Implemented a fully KMP-compatible `GoogleCalendarSyncService` using Ktor to synchronize iCal components with the Google Calendar API.
-*   **OAuth2 Authentication:** Implemented `GoogleAuthService` using an `expect/actual` pattern. The JVM target uses the `google-oauth-client-jetty` for a local server flow, and `GoogleTokenRepository` persists credentials across all platforms.
-*   **Programmatic ICal Generation:** Implemented `ICalGenerator` using modern iCal4j 4.x syntax and Java 8+ Temporal types.
-*   **AI Integration:** Replaced the dummy AI service with a real **Gemini 1.5 Flash** model using the stored API key. It now handles event extraction from raw text and syllabi.
-*   **Database Migration:** Integrated **SQLDelight** for robust, KMP-compatible local persistence of events, supporting overlap checks and sync-state tracking.
-*   **Automatic Event Creation:** Automatically triggers AI analysis (Gemini) or programmatic parsing (ICal4j) for all sources added via **URL, Local Files, or Google Drive**.
+*   **Google Calendar REST Integration:** Fully KMP-compatible synchronization using Ktor.
+*   **OAuth2 Authentication:** Implemented `GoogleAuthService` with support for local server flow (JVM) and persistent token storage.
+*   **Programmatic ICal Generation:** Implemented `ICalGenerator` using modern iCal4j 4.x syntax.
+*   **AI Integration (Local):** Migrated from Gemini to **Llamatik** for privacy-first, on-device syllabus analysis using local GGUF models.
+*   **Study Plan Generation:** Specialized AI prompts to suggest proactive "STUDY_BLOCK" events leading up to major deadlines.
+*   **StudioFlow Separation:** Refactored the UI to use a decoupled logic layer for headless testing and cleaner state management.
+*   **Debug Logging:** Integrated platform-aware logging that writes to `debug_logs.txt` at the project root in dev mode.
+*   **Automatic Schema Migrations:** Updated `DriverFactory` to automatically detect and create missing tables (like `ModelCache`).
 
 ### Next Steps
 
 The following tasks are planned for the next phase of development:
 
 #### Core Functionality & AI
-*   **Multi-Format Support:** Implement text extraction for **DOCX** and **PDF** files to allow the AI to analyze syllabi in these common academic formats, using mobile-optimized libraries.
-*   **AI Task Decomposition:** Implement a "Break It Down" feature to split large assignments into smaller, actionable sub-tasks with suggested deadlines.
-*   **Interactive Chat Actions:** Enable the AI to modify the calendar directly (create/move events) based on chat conversations.
+*   **Multi-Format Support:** Robust text extraction for **DOCX** and **PDF** files using native libraries for Android/iOS.
+*   **AI Task Decomposition:** Full UI flow for the "Break It Down" feature to split assignments into 1-2 hour sub-tasks.
+*   **Syllabus-to-Study Schedule:** Further refine the logic that suggests study periods based on weighted deliverables.
 
 #### Calendar & Sync
-*   **Client Secrets Management:** Provide a secure way to inject `client_secret.json` for Google OAuth.
-*   **Native Mobile Auth:** Replace mock implementations in `GoogleAuthService.android.kt` and `GoogleAuthService.ios.kt` with native Google Sign-In SDKs.
-*   **Two-Way Synchronization:** Complete full synchronization with Google Calendar.
-*   **Conflict & Load Flagging:** Implement "Exam Season" detection to flag high-load weeks and suggest proactive study blocks.
-
-#### Integration & Persistence
-*   **LMS Integration:** Research and implement connectors for Canvas, Blackboard, or Moodle to pull assignments automatically.
+*   **Client Secrets Management:** Secure injection mechanism for `client_secret.json`.
+*   **Native Mobile Auth:** Native Google Sign-In SDKs for Android and iOS.
+*   **Two-Way Synchronization:** Complete full bi-directional sync with Google Calendar.
 
 #### UI & UX
-*   **Visual Progress Tracking:** Add progress bars and "Time Remaining" visuals for long-term projects to help with time visualization.
-*   **Export Support:** Implement `.ics` file export using `ICalGenerator`.
+*   **Visual Progress Tracking:** Progress bars and "Time Remaining" visuals for long-term projects.
+*   **Export Support:** Implement `.ics` file export for the entire generated study plan.

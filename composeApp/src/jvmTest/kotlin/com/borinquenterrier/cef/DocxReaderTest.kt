@@ -16,11 +16,12 @@ class DocxReaderTest : FunSpec({
         }
         
         val reader = DocxReader()
-        val text = reader.extractText(fixtureFile.absolutePath)
-        println("Extracted text: $text")
+        val chunks = reader.extractChunks(fixtureFile.absolutePath)
+        println("Extracted ${chunks.size} chunks")
         
-        text shouldContain "MATH 101"
-        text shouldContain "2026"
-        // Add more specific expectations based on what's in your docx
+        val fullText = chunks.joinToString(" ") { it.text }
+        fullText shouldContain "MATH 101"
+        fullText shouldContain "2026"
+        chunks.all { it.type == SourceType.TEXT } shouldBe true
     }
 })

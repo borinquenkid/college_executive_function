@@ -58,6 +58,8 @@ kotlin {
             implementation(libs.google.api.services.calendar)
             implementation(libs.google.api.client)
             implementation(libs.google.oauth.client.jetty)
+            implementation(libs.llamatik)
+            implementation(libs.okio)
         }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
@@ -69,11 +71,13 @@ kotlin {
             implementation(libs.kotest.framework.engine)
             implementation(libs.ktor.client.mock)
             implementation(libs.multiplatform.settings.test)
+            implementation(libs.kotlinx.datetime)
         }
         val jvmTest by getting {
             dependencies {
                 implementation(libs.kotest.runner.junit5)
                 implementation(libs.mockk)
+                implementation(libs.kotlinx.datetime)
             }
         }
         val androidUnitTest by getting {
@@ -154,4 +158,5 @@ compose.desktop {
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    maxHeapSize = "8g"
 }

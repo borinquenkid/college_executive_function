@@ -23,6 +23,7 @@ fun SourceItemView(item: SourceItem, isSelected: Boolean, onClick: () -> Unit) {
             .padding(8.dp)
     ) {
         Text(item.title, style = MaterialTheme.typography.titleMedium)
-        Text(item.content, style = MaterialTheme.typography.bodySmall)
+        val summary = if (item.chunks.isNotEmpty()) "${item.chunks.size} chunks" else "No content"
+        Text(summary, style = MaterialTheme.typography.bodySmall)
     }
 }

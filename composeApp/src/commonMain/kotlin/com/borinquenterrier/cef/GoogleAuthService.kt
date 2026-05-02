@@ -35,4 +35,5 @@ class GoogleTokenRepository(private val settings: Settings) {
 expect class GoogleAuthService(settings: Settings) {
     suspend fun login(): Pair<String, String?> // Returns AccessToken and optional RefreshToken
     suspend fun refreshAccessToken(refreshToken: String): String?
+    fun logout()
 }

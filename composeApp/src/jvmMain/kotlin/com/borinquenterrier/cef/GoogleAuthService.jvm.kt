@@ -37,10 +37,13 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     actual suspend fun refreshAccessToken(refreshToken: String): String? {
         val flow = buildFlow()
         val credential = flow.loadCredential("user") ?: return null
-        if (credential.refreshToken != refreshToken) {
-            // If they don't match, we might need to manually trigger refresh or reload
-        }
         return if (credential.refreshToken()) credential.accessToken else null
+    }
+
+    actual fun logout() {
+        if (credentialsDir.exists()) {
+            credentialsDir.deleteRecursively()
+        }
     }
 
     private fun buildFlow(): GoogleAuthorizationCodeFlow {
@@ -63,6 +66,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
             transport, jsonFactory, clientSecrets, scopes
         ).setDataStoreFactory(FileDataStoreFactory(credentialsDir))
             .setAccessType("offline")
+            .setApprovalPrompt("force") // Ensures a refresh token is always returned
             .build()
     }
 }

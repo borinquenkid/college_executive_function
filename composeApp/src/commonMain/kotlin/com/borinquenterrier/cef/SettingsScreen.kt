@@ -199,6 +199,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                     }
                 } else {
                     TextButton(onClick = { 
+                        authService.logout()
                         tokenRepository.clearTokens()
                         isGoogleLinked = false
                     }) {

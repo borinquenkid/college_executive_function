@@ -15,9 +15,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 class LocalFileSourceProvider(
-    private val fileReader: LocalFileReader,
-    private val docxReader: DocxReader,
-    private val pdfReader: PdfReader,
+    private val sourceFlow: SourceFlow,
     private val aiService: AIService
 ) : SourceProvider {
     override val id = "local_file"
@@ -38,17 +36,8 @@ class LocalFileSourceProvider(
                     onDismiss()
                 } else {
                     scope.launch {
-                        val fileName = path.substringAfterLast("/").substringAfterLast("\\")
-                        val parts = when {
-                            fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
-                            fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
-                            fileName.lowercase().endsWith(".ics") -> {
-                                val raw = fileReader.readText(path)
-                                IcsCalendarSource(raw).readSource()
-                            }
-                            else -> SourceProcessor.process(fileReader.readText(path))
-                        }
-                        onSourceAdded(SourceItem(fileName, parts))
+                        val source = sourceFlow.addLocalFile(path)
+                        onSourceAdded(source)
                     }
                 }
             }
@@ -57,7 +46,7 @@ class LocalFileSourceProvider(
 }
 
 class UrlSourceProvider(
-    private val webReader: WebSourceReader,
+    private val sourceFlow: SourceFlow,
     private val aiService: AIService
 ) : SourceProvider {
     override val id = "url"
@@ -86,13 +75,8 @@ class UrlSourceProvider(
                 TextButton(onClick = {
                     if (url.isNotBlank()) {
                         scope.launch {
-                            val rawContent = webReader.readTextFromUrl(url)
-                            val parts = if (url.lowercase().endsWith(".ics")) {
-                                IcsCalendarSource(rawContent).readSource()
-                            } else {
-                                SourceProcessor.process(rawContent)
-                            }
-                            onSourceAdded(SourceItem(url, parts))
+                            val source = sourceFlow.addUrl(url)
+                            onSourceAdded(source)
                         }
                     }
                 }) {
@@ -109,6 +93,7 @@ class UrlSourceProvider(
 }
 
 class GoogleDriveSourceProvider(
+    private val sourceFlow: SourceFlow,
     private val driveService: GoogleDriveService,
     private val tokenRepository: GoogleTokenRepository
 ) : SourceProvider {
@@ -140,12 +125,8 @@ class GoogleDriveSourceProvider(
                 onDismiss = onDismiss,
                 onFileSelected = { file ->
                     scope.launch {
-                        val rawContent = driveService.getFileContent(file.id, file.mimeType)
-                        val parts = when {
-                            file.name.lowercase().endsWith(".ics") -> IcsCalendarSource(rawContent).readSource()
-                            else -> SourceProcessor.process(rawContent)
-                        }
-                        onSourceAdded(SourceItem(file.name, parts))
+                        val source = sourceFlow.addDriveFile(file)
+                        onSourceAdded(source)
                     }
                 }
             )

@@ -20,26 +20,17 @@ fun StudioPanel(
     modifier: Modifier = Modifier, 
     selectedSource: SourceItem?, 
     unifiedRepository: UnifiedCalendarRepository,
+    container: DependencyContainer,
     onEventsGenerated: (List<Event>) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val aiService = rememberAIService()
-    val logger = rememberLogger()
-    
-    val driverFactory = rememberDriverFactory()
-    val database = remember(driverFactory) { AppDatabase(driverFactory.createDriver()) }
-    
-    val studioFlow = remember(aiService, unifiedRepository, database) {
-        StudioFlow(aiService, unifiedRepository, database, logger = logger)
-    }
+    val studioFlow = container.studioFlow
 
     val isLoading by studioFlow.isLoading.collectAsState()
     val statusMessage by studioFlow.statusMessage.collectAsState()
     val lastGeneratedEvents by studioFlow.lastGeneratedEvents.collectAsState()
 
-    val settings = rememberSettings()
-    val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
-    val isConnected = tokenRepository.hasTokens()
+    val isConnected by container.tokenRepository.isLinked.collectAsState()
 
     // Push events back to parent when they are generated in the flow
     LaunchedEffect(lastGeneratedEvents) {

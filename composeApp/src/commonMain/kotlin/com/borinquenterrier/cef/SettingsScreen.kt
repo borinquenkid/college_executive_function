@@ -35,24 +35,27 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.size
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.CircularProgressIndicator
 
 @Composable
 fun SettingsScreen(
-    tokenRepository: GoogleTokenRepository,
-    authService: GoogleAuthService,
-    driveService: GoogleDriveService,
+    container: DependencyContainer,
     modifier: Modifier = Modifier
 ) {
-    val settings = rememberSettings()
+    val settings = container.settings
     val scope = rememberCoroutineScope()
     
-    val isGoogleLinked by tokenRepository.isLinked.collectAsState()
+    val isGoogleLinked by container.tokenRepository.isLinked.collectAsState()
+    val googleFlow = container.googleAccountFlow
+    val loginError by googleFlow.error.collectAsState()
+    val isBusy by googleFlow.isBusy.collectAsState()
+
     var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }
     var showAdvanced by remember { mutableStateOf(false) }
-    var loginError by remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = modifier.fillMaxSize().padding(24.dp),
@@ -171,39 +174,22 @@ fun SettingsScreen(
                 if (!isGoogleLinked) {
                     Button(
                         onClick = { 
-                            scope.launch {
-                                try {
-                                    println("[Settings] Starting login flow...")
-                                    val result = authService.login()
-                                    println("[Settings] Login successful. Saving tokens...")
-                                    tokenRepository.saveTokens(result.first, result.second)
-                                    
-                                    println("[Settings] Validating Drive connection...")
-                                    val isValid = driveService.validateConnection(result.first)
-                                    println("[Settings] Drive validation result: $isValid")
-                                    
-                                    if (isValid) {
-                                        loginError = null
-                                    } else {
-                                        tokenRepository.clearTokens()
-                                        loginError = "Connected to Google, but Drive access failed. Please ensure you checked the permission box in the browser."
-                                    }
-                                } catch (e: Exception) {
-                                    println("[Settings] Login failed with exception: ${e.message}")
-                                    loginError = e.message
-                                }
-                            }
+                            scope.launch { googleFlow.connect() }
                         },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isBusy
                     ) {
-                        Text("Connect Google Account")
+                        if (isBusy) {
+                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                        } else {
+                            Text("Connect Google Account")
+                        }
                     }
                 } else {
-                    TextButton(onClick = { 
-                        println("[Settings] Wiping local session...")
-                        authService.logout()
-                        tokenRepository.clearTokens()
-                    }) {
+                    TextButton(
+                        onClick = { googleFlow.disconnect() },
+                        enabled = !isBusy
+                    ) {
                         Text("Disconnect Account")
                     }
                 }

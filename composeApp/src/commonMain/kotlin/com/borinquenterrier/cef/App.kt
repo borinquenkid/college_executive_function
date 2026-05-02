@@ -61,32 +61,24 @@ sealed class Screen {
 @Composable
 @Preview
 fun App() {
+    val settings = rememberSettings()
+    val logger = rememberLogger()
+    val driverFactory = rememberDriverFactory()
+    val modelBasePath = rememberModelDirectoryPath()
+
+    val container = remember(settings, logger, driverFactory, modelBasePath) {
+        DependencyContainer(settings, logger, driverFactory, modelBasePath)
+    }
+
     CollegeExecutiveFunctionTheme {
         var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
         var aiGeneratedEvents by remember { mutableStateOf(listOf<Event>()) }
-
-        val settings = rememberSettings()
-        val logger = rememberLogger()
-        val modelBasePath = rememberModelDirectoryPath()
-        val httpClient = remember { 
-            HttpClient {
-                install(ContentNegotiation) {
-                    json(kotlinx.serialization.json.Json {
-                        ignoreUnknownKeys = true
-                        coerceInputValues = true
-                    })
-                }
-            } 
-        }
-        val modelManager = remember(httpClient, modelBasePath, logger) { 
-            ModelManager(httpClient, modelBasePath, logger) 
-        }
         
-        var isDownloadingModel by remember { mutableStateOf(!modelManager.isModelDownloaded()) }
+        var isDownloadingModel by remember { mutableStateOf(!container.modelManager.isModelDownloaded()) }
         
         if (isDownloadingModel) {
             LaunchedEffect(Unit) {
-                modelManager.downloadModel().collect { progress ->
+                container.modelManager.downloadModel().collect { progress ->
                     if (progress.isDone) {
                         isDownloadingModel = false
                     }
@@ -110,28 +102,6 @@ fun App() {
             }
         }
 
-        val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
-        val authService = remember(settings) { GoogleAuthService(settings) }
-        val driverFactory = rememberDriverFactory()
-        val database = remember(driverFactory) { createDatabase(driverFactory) }
-        val localRepository = remember(database) { SqlDelightLocalCalendarRepository(database) }
-        val syncService = remember { 
-            GoogleCalendarSyncService(HttpClient {
-                install(ContentNegotiation) {
-                    json(kotlinx.serialization.json.Json {
-                        ignoreUnknownKeys = true
-                        coerceInputValues = true
-                    })
-                }
-            }) 
-        }
-        val remoteRepository = remember(syncService, tokenRepository, authService) {
-            GoogleRemoteCalendarRepository(syncService, tokenRepository, authService)
-        }
-        val unifiedRepository = remember(localRepository, remoteRepository) {
-            UnifiedCalendarRepository(localRepository, remoteRepository)
-        }
-
         Scaffold(
             topBar = {
                 TopAppBar(
@@ -151,44 +121,26 @@ fun App() {
             }
         ) { paddingValues ->
             val modifier = Modifier.fillMaxSize().padding(paddingValues)
-            val driveService = remember { 
-                GoogleDriveService(
-                    HttpClient { install(ContentNegotiation) { json() } },
-                    tokenRepository,
-                    authService
-                ) 
-            }
 
             when (currentScreen) {
                 is Screen.Home -> {
                     if (isDesktop) {
                         DesktopApp(
                             modifier, 
-                            unifiedRepository, 
-                            tokenRepository,
-                            authService,
-                            driveService
+                            container
                         ) { aiGeneratedEvents = aiGeneratedEvents + it }
                     } else {
                         MobileApp(
                             modifier, 
-                            unifiedRepository,
-                            tokenRepository,
-                            authService,
-                            driveService
+                            container
                         ) { aiGeneratedEvents = aiGeneratedEvents + it }
                     }
                 }
                 is Screen.Calendar -> {
-                    AcademicCalendar(modifier, aiGeneratedEvents, unifiedRepository) { currentScreen = it }
+                    AcademicCalendar(modifier, aiGeneratedEvents, container.unifiedRepository) { currentScreen = it }
                 }
                 is Screen.Settings -> {
-                    SettingsScreen(
-                        tokenRepository,
-                        authService,
-                        driveService,
-                        modifier
-                    )
+                    SettingsScreen(container, modifier)
                 }
                 is Screen.Routine -> {
                     RoutineScreen(modifier)
@@ -201,10 +153,7 @@ fun App() {
 @Composable
 fun DesktopApp(
     modifier: Modifier = Modifier, 
-    unifiedRepository: UnifiedCalendarRepository, 
-    tokenRepository: GoogleTokenRepository,
-    authService: GoogleAuthService,
-    driveService: GoogleDriveService,
+    container: DependencyContainer,
     onEventsGenerated: (List<Event>) -> Unit
 ) {
     var showSources by remember { mutableStateOf(true) }
@@ -212,18 +161,12 @@ fun DesktopApp(
     var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
-    val aiService = rememberAIService()
     
-    val webReader = remember { WebSourceReader() }
-    val fileReader = rememberLocalFileReader()
-    val docxReader = rememberDocxReader()
-    val pdfReader = rememberPdfReader()
-
-    val sourceProviders = remember(tokenRepository, aiService, driveService) {
+    val sourceProviders = remember(container) {
         listOf(
-            LocalFileSourceProvider(fileReader, docxReader, pdfReader, aiService),
-            UrlSourceProvider(webReader, aiService),
-            GoogleDriveSourceProvider(driveService, tokenRepository)
+            LocalFileSourceProvider(container.sourceFlow, container.aiService),
+            UrlSourceProvider(container.sourceFlow, container.aiService),
+            GoogleDriveSourceProvider(container.sourceFlow, container.driveService, container.tokenRepository)
         )
     }
 
@@ -238,8 +181,8 @@ fun DesktopApp(
                     onSourceAdded = { source ->
                         sourceItems = sourceItems + source
                         coroutineScope.launch {
-                            val allEvents = if (aiService.isConfigured()) {
-                                aiService.generateCalendarEvents(source.parts)
+                            val allEvents = if (container.aiService.isConfigured()) {
+                                container.aiService.generateCalendarEvents(source.parts)
                             } else {
                                 emptyList()
                             }
@@ -309,7 +252,13 @@ fun DesktopApp(
                         contentDescription = "Hide Studio"
                     )
                 }
-                StudioPanel(modifier = Modifier.weight(1f), selectedSource = selectedSource, unifiedRepository = unifiedRepository, onEventsGenerated = onEventsGenerated)
+                StudioPanel(
+                    modifier = Modifier.weight(1f), 
+                    selectedSource = selectedSource, 
+                    unifiedRepository = container.unifiedRepository, 
+                    container = container,
+                    onEventsGenerated = onEventsGenerated
+                )
             }
         }
     }
@@ -318,10 +267,7 @@ fun DesktopApp(
 @Composable
 fun MobileApp(
     modifier: Modifier = Modifier, 
-    unifiedRepository: UnifiedCalendarRepository, 
-    tokenRepository: GoogleTokenRepository,
-    authService: GoogleAuthService,
-    driveService: GoogleDriveService,
+    container: DependencyContainer,
     onEventsGenerated: (List<Event>) -> Unit
 ) {
     var showSources by remember { mutableStateOf(false) }
@@ -329,18 +275,12 @@ fun MobileApp(
     var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
-    val aiService = rememberAIService()
     
-    val webReader = remember { WebSourceReader() }
-    val fileReader = rememberLocalFileReader()
-    val docxReader = rememberDocxReader()
-    val pdfReader = rememberPdfReader()
-
-    val sourceProviders = remember(tokenRepository, aiService, driveService) {
+    val sourceProviders = remember(container) {
         listOf(
-            LocalFileSourceProvider(fileReader, docxReader, pdfReader, aiService),
-            UrlSourceProvider(webReader, aiService),
-            GoogleDriveSourceProvider(driveService, tokenRepository)
+            LocalFileSourceProvider(container.sourceFlow, container.aiService),
+            UrlSourceProvider(container.sourceFlow, container.aiService),
+            GoogleDriveSourceProvider(container.sourceFlow, container.driveService, container.tokenRepository)
         )
     }
 
@@ -371,8 +311,8 @@ fun MobileApp(
                     onSourceAdded = { source ->
                         sourceItems = sourceItems + source
                         coroutineScope.launch {
-                            val allEvents = if (aiService.isConfigured()) {
-                                aiService.generateCalendarEvents(source.parts)
+                            val allEvents = if (container.aiService.isConfigured()) {
+                                container.aiService.generateCalendarEvents(source.parts)
                             } else {
                                 emptyList()
                             }
@@ -393,7 +333,13 @@ fun MobileApp(
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
             AnimatedVisibility(visible = showStudio) {
-                StudioPanel(modifier = Modifier.fillMaxWidth(), selectedSource = selectedSource, unifiedRepository = unifiedRepository, onEventsGenerated = onEventsGenerated)
+                StudioPanel(
+                    modifier = Modifier.fillMaxWidth(), 
+                    selectedSource = selectedSource, 
+                    unifiedRepository = container.unifiedRepository, 
+                    container = container,
+                    onEventsGenerated = onEventsGenerated
+                )
             }
             IconButton(onClick = {
                 val newShowStudio = !showStudio

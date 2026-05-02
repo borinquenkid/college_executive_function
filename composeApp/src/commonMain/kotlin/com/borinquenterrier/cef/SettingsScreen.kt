@@ -49,7 +49,7 @@ fun SettingsScreen(
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
     
-    var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
+    val isGoogleLinked by tokenRepository.isLinked.collectAsState()
     var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }
     var showAdvanced by remember { mutableStateOf(false) }
     var loginError by remember { mutableStateOf<String?>(null) }
@@ -173,17 +173,23 @@ fun SettingsScreen(
                         onClick = { 
                             scope.launch {
                                 try {
+                                    println("[Settings] Starting login flow...")
                                     val result = authService.login()
+                                    println("[Settings] Login successful. Saving tokens...")
                                     tokenRepository.saveTokens(result.first, result.second)
+                                    
+                                    println("[Settings] Validating Drive connection...")
                                     val isValid = driveService.validateConnection(result.first)
+                                    println("[Settings] Drive validation result: $isValid")
+                                    
                                     if (isValid) {
-                                        isGoogleLinked = true
                                         loginError = null
                                     } else {
                                         tokenRepository.clearTokens()
-                                        loginError = "Drive access failed. Please enable Google Drive API."
+                                        loginError = "Connected to Google, but Drive access failed. Please ensure you checked the permission box in the browser."
                                     }
                                 } catch (e: Exception) {
+                                    println("[Settings] Login failed with exception: ${e.message}")
                                     loginError = e.message
                                 }
                             }
@@ -194,9 +200,9 @@ fun SettingsScreen(
                     }
                 } else {
                     TextButton(onClick = { 
+                        println("[Settings] Wiping local session...")
                         authService.logout()
                         tokenRepository.clearTokens()
-                        isGoogleLinked = false
                     }) {
                         Text("Disconnect Account")
                     }

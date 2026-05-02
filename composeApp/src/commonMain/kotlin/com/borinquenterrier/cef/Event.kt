@@ -34,6 +34,7 @@ sealed interface Event {
     val syncStatus: SyncStatus
     val date: LocalDate
     val updatedAt: Long
+    val warning: String? // Added for "Strict but Warn" capability
 
     /**
      * Checks if this event overlaps with another event in time.
@@ -49,6 +50,7 @@ data class TimeEvent(
     override val category: AcademicCategory = AcademicCategory.REGULAR,
     override val syncStatus: SyncStatus = SyncStatus.SYNCED,
     override val updatedAt: Long = 0,
+    override val warning: String? = null,
     @Serializable(with = LocalTimeSerializer::class)
     val startTime: LocalTime,
     @Serializable(with = LocalTimeSerializer::class)
@@ -76,6 +78,7 @@ data class DayEvent(
     override val category: AcademicCategory = AcademicCategory.REGULAR,
     override val syncStatus: SyncStatus = SyncStatus.SYNCED,
     override val updatedAt: Long = 0,
+    override val warning: String? = null,
     @Serializable(with = LocalDateSerializer::class)
     override val date: LocalDate,
     val recurrence: Recurrence? = null

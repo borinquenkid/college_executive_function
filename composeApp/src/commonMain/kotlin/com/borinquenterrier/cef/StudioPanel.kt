@@ -1,12 +1,11 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -59,60 +58,91 @@ fun StudioPanel(
         Text("Studio", style = MaterialTheme.typography.headlineSmall)
 
         if (selectedSource != null) {
-            Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
-                Text("Generate Summary")
-            }
-            Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
-                Text("Create Outline")
-            }
-            Button(onClick = { /*TODO*/ }, modifier = Modifier.fillMaxWidth()) {
-                Text("Generate Q&A")
-            }
-            
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        studioFlow.generateStudyPlan(selectedSource)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
-                enabled = !isLoading
+            LazyColumn(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text("Generate Study Plan (AI)")
-            }
-
-            Button(
-                onClick = {
-                    coroutineScope.launch {
-                        studioFlow.extractDeliverables(selectedSource)
-                    }
-                },
-                modifier = Modifier.fillMaxWidth(),
-                enabled = !isLoading
-            ) {
-                Text("Extract Deliverables (AI)")
-            }
-
-            if (lastGeneratedEvents.isNotEmpty()) {
-                HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                Button(
-                    onClick = {
-                        coroutineScope.launch {
-                            if (!isConnected) {
-                                // Handled in flow's message but we can add a check
-                                return@launch
+                item {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                studioFlow.generateStudyPlan(selectedSource)
                             }
-                            studioFlow.pushToCalendar()
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        enabled = !isLoading
+                    ) {
+                        Text("Generate Study Plan (AI)")
+                    }
+                }
+
+                item {
+                    Button(
+                        onClick = {
+                            coroutineScope.launch {
+                                studioFlow.extractDeliverables(selectedSource)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isLoading
+                    ) {
+                        Text("Extract Deliverables (AI)")
+                    }
+                }
+
+                if (lastGeneratedEvents.isNotEmpty()) {
+                    item {
+                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    }
+
+                    val eventsWithWarnings = lastGeneratedEvents.filter { it.warning != null }
+                    if (eventsWithWarnings.isNotEmpty()) {
+                        item {
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Column(modifier = Modifier.padding(8.dp)) {
+                                    Row(verticalAlignment = Alignment.CenterVertically) {
+                                        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                        Spacer(Modifier.width(8.dp))
+                                        Text("Source Discrepancies Found", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
+                                    }
+                                    eventsWithWarnings.forEach { event ->
+                                        Text("- ${event.title}: ${event.warning}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                                    }
+                                }
+                            }
                         }
-                    },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isConnected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
-                    ),
-                    enabled = !isLoading && isConnected
-                ) {
-                    Text(if (isConnected) "Push to Google Calendar" else "Connect to Google to Push")
+                    }
+
+                    item {
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    if (!isConnected) return@launch
+                                    studioFlow.pushToCalendar()
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth(),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (isConnected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
+                            ),
+                            enabled = !isLoading && isConnected
+                        ) {
+                            Text(if (isConnected) "Push to Google Calendar" else "Connect to Google to Push")
+                        }
+                    }
+                    
+                    items(lastGeneratedEvents) { event ->
+                        Card(modifier = Modifier.fillMaxWidth()) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Text(event.title, style = MaterialTheme.typography.bodyMedium)
+                                Text(event.date.toString(), style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    }
                 }
             }
         } else {
@@ -120,13 +150,13 @@ fun StudioPanel(
         }
 
         Box(
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth().height(48.dp),
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
                 CircularProgressIndicator()
             } else {
-                Text(statusMessage)
+                Text(statusMessage, style = MaterialTheme.typography.bodySmall)
             }
         }
     }

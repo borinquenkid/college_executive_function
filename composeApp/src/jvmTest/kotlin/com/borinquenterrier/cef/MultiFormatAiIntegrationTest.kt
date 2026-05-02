@@ -73,20 +73,24 @@ class MultiFormatAiIntegrationTest : FunSpec({
         htmlEvents.shouldNotBeEmpty()
         docxEvents.shouldNotBeEmpty()
         pdfEvents.shouldNotBeEmpty()
-        
-        fun List<Event>.findEventNearTargetDate() = this.find { 
+        fun List<Event>.findEventOnTargetDate() = this.find { 
             val date = (it as? TimeEvent)?.date ?: (it as DayEvent).date
-            date == LocalDate(2026, 1, 1) || date == LocalDate(2026, 1, 2)
+            date == LocalDate(2026, 1, 1)
         }
 
         println("HTML Events: $htmlEvents")
         println("DOCX Events: $docxEvents")
         println("PDF Events: $pdfEvents")
 
-        htmlEvents.findEventNearTargetDate() ?: throw AssertionError("HTML extraction failed. Events: $htmlEvents")
-        docxEvents.findEventNearTargetDate() ?: throw AssertionError("DOCX extraction failed. Events: $docxEvents")
-        pdfEvents.findEventNearTargetDate() ?: throw AssertionError("PDF extraction failed. Events: $pdfEvents")
+        val htmlMatch = htmlEvents.findEventOnTargetDate() ?: throw AssertionError("HTML extraction failed (Strict Date). Events: $htmlEvents")
+        val docxMatch = docxEvents.findEventOnTargetDate() ?: throw AssertionError("DOCX extraction failed (Strict Date). Events: $docxEvents")
+        val pdfMatch = pdfEvents.findEventOnTargetDate() ?: throw AssertionError("PDF extraction failed (Strict Date). Events: $pdfEvents")
 
-        println("SUCCESS: All formats generated an event on or near 2026-01-01")
+        // Optional: Log warnings if found
+        listOf(htmlMatch, docxMatch, pdfMatch).forEach { 
+            if (it.warning != null) println("Discrepancy Warning for '${it.title}': ${it.warning}")
+        }
+
+        println("SUCCESS: All formats strictly respected Jan 1, 2026")
     }
 })

@@ -47,7 +47,8 @@ object AiPrompts {
                 "category": "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", "SEMESTER_BOUND", or "STUDY_BLOCK",
                 "date": "YYYY-MM-DD",
                 "startTime": "HH:mm" (optional),
-                "endTime": "HH:mm" (optional)
+                "endTime": "HH:mm" (optional),
+                "warning": "String" (Optional. Use this if the source text is contradictory, e.g., 'Document says Monday Jan 1st, but Jan 1st is a Thursday'. Be STRICT about the literal date provided.)
               }
             ]
             

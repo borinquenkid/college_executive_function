@@ -226,29 +226,37 @@ class GeminiAIService(
                     val type = obj["type"]?.jsonPrimitive?.content ?: "DAY"
                     val dateStr = obj["date"]?.jsonPrimitive?.content ?: "2024-01-01"
                     val categoryStr = obj["category"]?.jsonPrimitive?.content ?: "REGULAR"
+                    val warning = obj["warning"]?.jsonPrimitive?.content
                     val category = try {
                         AcademicCategory.valueOf(categoryStr)
                     } catch (e: Exception) {
                         AcademicCategory.REGULAR
                     }
 
+                    val date = try { LocalDate.parse(dateStr) } catch (e: Exception) { LocalDate(2024,1,1) }
+
                     if (type == "TIME") {
-                        val startTime = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
-                        val endTime = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
+                        val startTimeStr = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
+                        val endTimeStr = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
+                        val start = try { LocalTime.parse(startTimeStr) } catch (e: Exception) { LocalTime(9,0) }
+                        val end = try { LocalTime.parse(endTimeStr) } catch (e: Exception) { LocalTime(10,0) }
+                        
                         TimeEvent(
                             title = title,
                             source = EventSource.AI_GENERATED,
                             category = category,
-                            date = LocalDate.parse(dateStr),
-                            startTime = LocalTime.parse(startTime),
-                            endTime = LocalTime.parse(endTime)
+                            date = date,
+                            startTime = start,
+                            endTime = end,
+                            warning = warning
                         )
                     } else {
                         DayEvent(
                             title = title,
                             source = EventSource.AI_GENERATED,
                             category = category,
-                            date = LocalDate.parse(dateStr)
+                            date = date,
+                            warning = warning
                         )
                     }
                 }

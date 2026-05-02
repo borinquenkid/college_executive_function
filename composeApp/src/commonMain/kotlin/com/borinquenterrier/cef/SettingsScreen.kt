@@ -40,19 +40,14 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 
 @Composable
-fun SettingsScreen(modifier: Modifier = Modifier) {
+fun SettingsScreen(
+    tokenRepository: GoogleTokenRepository,
+    authService: GoogleAuthService,
+    driveService: GoogleDriveService,
+    modifier: Modifier = Modifier
+) {
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
-    
-    val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
-    val authService = remember(settings) { GoogleAuthService(settings) }
-    val driveService = remember { 
-        GoogleDriveService(
-            HttpClient { install(ContentNegotiation) { json() } },
-            tokenRepository,
-            authService
-        ) 
-    }
     
     var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
     var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }

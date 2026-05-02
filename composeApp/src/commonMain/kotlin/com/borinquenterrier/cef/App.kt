@@ -183,7 +183,12 @@ fun App() {
                     AcademicCalendar(modifier, aiGeneratedEvents, unifiedRepository) { currentScreen = it }
                 }
                 is Screen.Settings -> {
-                    SettingsScreen(modifier)
+                    SettingsScreen(
+                        tokenRepository,
+                        authService,
+                        driveService,
+                        modifier
+                    )
                 }
                 is Screen.Routine -> {
                     RoutineScreen(modifier)

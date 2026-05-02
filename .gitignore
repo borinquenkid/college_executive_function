@@ -25,6 +25,7 @@ models/
 *.gguf
 debug_logs.txt
 test_output.txt
+img*.png
 *.log
 *.docx
 *.pdf

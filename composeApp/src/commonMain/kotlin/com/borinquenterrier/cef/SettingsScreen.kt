@@ -123,7 +123,11 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 apiKey = ""
                                 settings.putString("CEF_GEMINI_API_KEY", "")
                             }) {
-                                Icon(Icons.Default.Error, contentDescription = "Clear", tint = MaterialTheme.colorScheme.error)
+                                Icon(
+                                    imageVector = androidx.compose.material.icons.filled.Clear, 
+                                    contentDescription = "Clear", 
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
                             }
                         }
                     }

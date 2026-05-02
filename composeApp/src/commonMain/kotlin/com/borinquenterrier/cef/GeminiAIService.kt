@@ -89,6 +89,8 @@ class GeminiAIService(
         val generationCapable = available.filter { it.supportedGenerationMethods.contains("generateContent") }
         val names = generationCapable.map { it.name.removePrefix("models/") }
         
+        logger?.d(tag, "Negotiation Step - Available names: ${names.joinToString(", ")}")
+
         // Filter out models that are still blacklisted
         val nonBlacklistedNames = names.filter { name ->
             val expiry = blacklistedModels[name]
@@ -99,14 +101,12 @@ class GeminiAIService(
         
         val preferences = listOf(
             "gemini-1.5-flash",
+            "gemini-1.5-flash-latest",
             "gemini-1.5-pro",
             "gemini-2.0-flash",
+            "gemini-2.0-flash-exp",
             "gemini-2-flash",
-            "gemini-2-flash-lite",
             "gemini-2.0-flash-lite",
-            "gemini-2.5-flash",
-            "gemini-2.5-pro",
-            "gemini-3-flash",
             "gemini-pro"
         )
 
@@ -139,7 +139,7 @@ class GeminiAIService(
     suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
         val available = getAvailableModels()
         var attempts = 0
-        val maxAttempts = 3
+        val maxAttempts = 5
         var lastError: Exception? = null
 
         while (attempts < maxAttempts) {
@@ -189,9 +189,10 @@ class GeminiAIService(
                     blacklistedModels[modelName] = expiry
                     database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
                     
-                    logger?.d(tag, "⚠️ Model $modelName exhausted (${httpResponse.status}). Retrying...")
+                    val delayMs = if (httpResponse.status == HttpStatusCode.TooManyRequests) 10000L else 2000L
+                    logger?.d(tag, "⚠️ Model $modelName exhausted (${httpResponse.status}). Blacklisted. Retrying (${attempts + 1}/$maxAttempts) after ${delayMs/1000}s...")
                     attempts++
-                    kotlinx.coroutines.delay(2000L * attempts)
+                    kotlinx.coroutines.delay(delayMs * attempts)
                     continue
                 }
 

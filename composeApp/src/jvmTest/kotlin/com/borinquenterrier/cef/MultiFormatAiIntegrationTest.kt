@@ -63,7 +63,9 @@ class MultiFormatAiIntegrationTest : FunSpec({
 
         // 3. Run AI Extraction for each
         val htmlEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(htmlParts) else emptyList() }
+        kotlinx.coroutines.delay(5000)
         val docxEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(docxParts) else emptyList() }
+        kotlinx.coroutines.delay(5000)
         val pdfEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(pdfParts) else emptyList() }
 
 

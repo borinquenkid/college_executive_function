@@ -8,7 +8,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class DocxReader {
-    actual suspend fun extractText(path: String): String = withContext(Dispatchers.IO) {
+    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.IO) {
         try {
             val zipFile = ZipFile(File(path))
             val entry = zipFile.getEntry("word/document.xml") 
@@ -23,9 +23,9 @@ actual class DocxReader {
                 .replace(Regex("\\s+"), " ")
                 .trim()
             
-            text
+            SourceProcessor.process(text, SourceType.TEXT)
         } catch (e: Exception) {
-            "Error extracting text from DOCX: ${e.message}"
+            listOf(SourcePart(text = "Error extracting text from DOCX: ${e.message}", pageNumber = 0, type = SourceType.TEXT))
         }
     }
 }

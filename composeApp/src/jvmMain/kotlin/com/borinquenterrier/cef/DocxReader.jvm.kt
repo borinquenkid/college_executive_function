@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class DocxReader {
-    actual suspend fun extractChunks(path: String): List<SourceChunk> = withContext(Dispatchers.IO) {
-        val chunks = mutableListOf<SourceChunk>()
+    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.IO) {
+        val parts = mutableListOf<SourcePart>()
         try {
             val zipFile = ZipFile(File(path))
             val entry = zipFile.getEntry("word/document.xml") 
@@ -18,7 +18,7 @@ actual class DocxReader {
             val content = zipFile.getInputStream(entry).bufferedReader().use { it.readText() }
             zipFile.close()
             
-            // Split by paragraph tag to create chunks
+            // Split by paragraph tag to create parts
             val paragraphs = content.split(Regex("(?=<w:p[\\s\\S]*?>)"))
             
             for (p in paragraphs) {
@@ -26,13 +26,13 @@ actual class DocxReader {
                     .replace(Regex("\\s+"), " ")
                     .trim()
                 if (text.isNotEmpty()) {
-                    chunks.add(SourceChunk(text = text, type = SourceType.TEXT))
+                    parts.add(SourcePart(text = text, type = SourceType.TEXT))
                 }
             }
         } catch (e: Exception) {
-            chunks.add(SourceChunk(text = "Error: ${e.message}"))
+            parts.add(SourcePart(text = "Error: ${e.message}", type = SourceType.TEXT))
         }
-        chunks
+        parts
     }
 }
 

@@ -36,13 +36,13 @@ class LlamatikAIService(
         }
     }
 
-    suspend fun generateCalendarEvents(chunks: List<SourceChunk>): List<Event> {
+    suspend fun generateCalendarEvents(parts: List<SourcePart>): List<Event> {
         val combinedJson = buildJsonArray {
-            chunks.forEach { chunk ->
-                add(Json.parseToJsonElement(chunk.toJson()))
+            parts.forEach { part ->
+                add(Json.parseToJsonElement(part.toJson()))
             }
         }.toString()
-        val prompt = AiPrompts.getChunkEventExtractionPrompt(combinedJson)
+        val prompt = AiPrompts.getSourceEventExtractionPrompt(combinedJson)
         return generateEventsFromRawPrompt(prompt)
     }
 

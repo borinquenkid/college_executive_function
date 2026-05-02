@@ -16,12 +16,12 @@ class DocxReaderTest : FunSpec({
         }
         
         val reader = DocxReader()
-        val chunks = reader.extractChunks(fixtureFile.absolutePath)
-        println("Extracted ${chunks.size} chunks")
+        val parts = reader.readSource(fixtureFile.absolutePath)
+        println("Extracted ${parts.size} parts")
         
-        val fullText = chunks.joinToString(" ") { it.text }
+        val fullText = parts.joinToString(" ") { it.text }
         fullText shouldContain "MATH 101"
         fullText shouldContain "2026"
-        chunks.all { it.type == SourceType.TEXT } shouldBe true
+        parts.all { it.type == SourceType.TEXT } shouldBe true
     }
 })

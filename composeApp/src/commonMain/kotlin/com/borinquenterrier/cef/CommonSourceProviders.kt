@@ -35,16 +35,16 @@ class LocalFileSourceProvider(
             } else {
                 scope.launch {
                     val fileName = path.substringAfterLast("/").substringAfterLast("\\")
-                    val chunks = when {
-                        fileName.lowercase().endsWith(".docx") -> docxReader.extractChunks(path)
-                        fileName.lowercase().endsWith(".pdf") -> pdfReader.extractChunks(path)
+                    val parts = when {
+                        fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
+                        fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
                         fileName.lowercase().endsWith(".ics") -> {
                             val raw = fileReader.readText(path)
-                            IcsCalendarSource(raw).extractChunks()
+                            IcsCalendarSource(raw).readSource()
                         }
-                        else -> TextChunker.chunk(fileReader.readText(path))
+                        else -> SourceProcessor.process(fileReader.readText(path))
                     }
-                    onSourceAdded(SourceItem(fileName, chunks))
+                    onSourceAdded(SourceItem(fileName, parts))
                 }
             }
         }
@@ -82,12 +82,12 @@ class UrlSourceProvider(
                     if (url.isNotBlank()) {
                         scope.launch {
                             val rawContent = webReader.readTextFromUrl(url)
-                            val chunks = if (url.lowercase().endsWith(".ics")) {
-                                IcsCalendarSource(rawContent).extractChunks()
+                            val parts = if (url.lowercase().endsWith(".ics")) {
+                                IcsCalendarSource(rawContent).readSource()
                             } else {
-                                TextChunker.chunk(rawContent)
+                                SourceProcessor.process(rawContent)
                             }
-                            onSourceAdded(SourceItem(url, chunks))
+                            onSourceAdded(SourceItem(url, parts))
                         }
                     }
                 }) {
@@ -137,13 +137,13 @@ class GoogleDriveSourceProvider(
                 onFileSelected = { file ->
                     scope.launch {
                         val rawContent = driveService.getFileContent(accessToken, file.id, file.mimeType)
-                        val chunks = when {
-                            file.name.lowercase().endsWith(".ics") -> IcsCalendarSource(rawContent).extractChunks()
+                        val parts = when {
+                            file.name.lowercase().endsWith(".ics") -> IcsCalendarSource(rawContent).readSource()
                             // Note: Google Drive service would need to be updated to support PDF/Docx chunking directly
                             // For now, we treat them as text if the mimeType allows, or just chunk the raw output
-                            else -> TextChunker.chunk(rawContent)
+                            else -> SourceProcessor.process(rawContent)
                         }
-                        onSourceAdded(SourceItem(file.name, chunks))
+                        onSourceAdded(SourceItem(file.name, parts))
                     }
                 }
             )

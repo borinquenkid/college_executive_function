@@ -12,31 +12,20 @@ import com.borinquenterrier.cef.db.AppDatabase
 
 class AiExtractionIntegrationTest : FunSpec({
 
-    test("Headless StudioFlow: should extract deliverables from syllabus using local Llamatik model") {
-        // 1. Resolve Model Path
-        val userDir = System.getProperty("user.dir") ?: "."
-        val root = if (userDir.endsWith("composeApp")) {
-            File(userDir).parentFile ?: File(userDir)
-        } else {
-            File(userDir)
-        }
-        val modelDir = File(root, "models")
-        val modelFile = File(modelDir, "Qwen3.5-9B-Q4_K_M.gguf")
-        
-        if (!modelFile.exists()) {
-            println("AI model missing. Downloading to ${modelFile.absolutePath}...")
-            val httpClient = io.ktor.client.HttpClient(io.ktor.client.engine.java.Java)
-            val modelManager = ModelManager(httpClient, modelDir.absolutePath)
-            runBlocking {
-                modelManager.downloadModel().collect { progress ->
-                    if (progress.isDone) println("Download complete.")
-                }
-            }
-            httpClient.close()
-        }
+    test("Headless StudioFlow: should extract deliverables from syllabus using Gemini") {
+        // 1. Resolve Credentials
+        val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
+        val envMap = envFile?.readLines()?.associate { 
+            val key = it.substringBefore("=").trim()
+            val value = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
+            key to value 
+        } ?: emptyMap()
 
-        if (!modelFile.exists()) {
-            throw AssertionError("Failed to download AI model.")
+        val apiKey = (envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"])?.takeIf { it.isNotBlank() }
+        
+        if (apiKey == null) {
+            println("SKIPPING AI EXTRACTION TEST: No Gemini API Key found in .env")
+            return@test
         }
 
         // 2. Setup in-memory database
@@ -46,9 +35,9 @@ class AiExtractionIntegrationTest : FunSpec({
 
         // 3. Setup dependencies
         val settings = MapSettings()
+        settings.putString("CEF_GEMINI_API_KEY", apiKey)
         val logger = Logger(settings)
-        // Pass the model path to AIService
-        val aiService = AIService(settings, logger, database, modelFile.absolutePath)
+        val aiService = AIService(settings, logger, database, null)
         val mockRepo = mockk<UnifiedCalendarRepository>(relaxed = true)
         
         val studioFlow = StudioFlow(aiService, mockRepo, database, logger = logger)
@@ -59,12 +48,12 @@ class AiExtractionIntegrationTest : FunSpec({
             throw AssertionError("Could not find syllabus.txt in test resources")
         }
         val syllabusText = syllabusStream.bufferedReader().use { it.readText() }
-        val chunks = TextChunker.chunk(syllabusText)
+        val parts = SourceProcessor.process(syllabusText)
 
         // 5. Run Flow Headless
-        println("STARTING HEADLESS EXTRACTION...")
+        println("STARTING HEADLESS EXTRACTION WITH GEMINI...")
         runBlocking {
-            studioFlow.extractDeliverables(SourceItem("Syllabus", chunks))
+            studioFlow.extractDeliverables(SourceItem("Syllabus", parts))
         }
 
         // 6. Verify

@@ -71,14 +71,14 @@ class IcsToGoogleIntegrationTest : FunSpec({
         }
 
         // 5. Extract via unified pipeline and Push
-        val chunks = runBlocking { icsSource.extractChunks() }
-        chunks.isNotEmpty() shouldBe true
+        val parts = runBlocking { icsSource.readSource() }
+        parts.isNotEmpty() shouldBe true
         
-        val allEvents = mutableListOf<Event>()
-        runBlocking {
-            chunks.take(5).forEach { chunk ->
-                val chunkEvents = aiService.generateCalendarEvents(chunk)
-                allEvents.addAll(chunkEvents)
+        val allEvents = runBlocking {
+            if (aiService.isConfigured()) {
+                aiService.generateCalendarEvents(parts.take(5))
+            } else {
+                emptyList()
             }
         }
         

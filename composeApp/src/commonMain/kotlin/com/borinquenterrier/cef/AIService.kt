@@ -14,7 +14,7 @@ expect class AIService(
 ) {
     fun isConfigured(): Boolean
     suspend fun generateChatResponse(prompt: String): String
-    suspend fun generateCalendarEvents(chunks: List<SourceChunk>): List<Event>
+    suspend fun generateCalendarEvents(parts: List<SourcePart>): List<Event>
     suspend fun generateStudyPlan(syllabusText: String): List<Event>
 }
 

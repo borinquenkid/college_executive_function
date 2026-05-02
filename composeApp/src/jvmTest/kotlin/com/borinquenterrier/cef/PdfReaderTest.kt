@@ -15,16 +15,16 @@ class PdfReaderTest : FunSpec({
         }
         
         val reader = PdfReader()
-        val chunks = reader.extractChunks(fixtureFile.absolutePath)
-        println("Extracted ${chunks.size} chunks (pages)")
+        val parts = reader.readSource(fixtureFile.absolutePath)
+        println("Extracted ${parts.size} parts (pages)")
         
-        val fullText = chunks.joinToString(" ") { it.text }
+        val fullText = parts.joinToString(" ") { it.text }
         fullText shouldContain "MATH 101"
         fullText shouldContain "2026"
         
-        chunks.forEach { chunk ->
-            chunk.pageNumber shouldBe chunk.pageNumber // ensure it's present
-            chunk.type shouldBe SourceType.TEXT
+        parts.forEach { part ->
+            part.pageNumber shouldBe part.pageNumber // ensure it's present
+            part.type shouldBe SourceType.TEXT
         }
     }
 })

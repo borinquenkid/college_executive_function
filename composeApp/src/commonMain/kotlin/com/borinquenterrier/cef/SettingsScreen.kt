@@ -20,6 +20,7 @@ import io.ktor.serialization.kotlinx.json.json
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
+import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
@@ -124,7 +125,7 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
                                 settings.putString("CEF_GEMINI_API_KEY", "")
                             }) {
                                 Icon(
-                                    imageVector = androidx.compose.material.icons.filled.Clear, 
+                                    imageVector = Icons.Default.Clear, 
                                     contentDescription = "Clear", 
                                     tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )

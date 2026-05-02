@@ -17,13 +17,13 @@ import kotlinx.datetime.*
  */
 actual class IcsCalendarSource actual constructor(private val icsContent: String) {
 
-    actual suspend fun extractChunks(): List<SourceChunk> {
+    actual suspend fun readSource(): List<SourcePart> {
         val builder = CalendarBuilder()
         val calendar = builder.build(StringReader(icsContent))
         val vEvents = calendar.getComponents<VEvent>(Component.VEVENT)
 
         return vEvents.map { vEvent ->
-            SourceChunk(
+            SourcePart(
                 text = vEvent.toString().trim(),
                 type = SourceType.CALENDAR
             )

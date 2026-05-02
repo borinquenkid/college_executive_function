@@ -210,7 +210,7 @@ fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendar
                         sourceItems = sourceItems + source
                         coroutineScope.launch {
                             val allEvents = if (aiService.isConfigured()) {
-                                aiService.generateCalendarEvents(source.chunks)
+                                aiService.generateCalendarEvents(source.parts)
                             } else {
                                 emptyList()
                             }
@@ -338,7 +338,7 @@ fun MobileApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarR
                         sourceItems = sourceItems + source
                         coroutineScope.launch {
                             val allEvents = if (aiService.isConfigured()) {
-                                aiService.generateCalendarEvents(source.chunks)
+                                aiService.generateCalendarEvents(source.parts)
                             } else {
                                 emptyList()
                             }

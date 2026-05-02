@@ -5,11 +5,11 @@ import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 
 /**
- * A record representing a chunk of source material (PDF page, DOCX paragraph, or ICS event).
+ * A record representing a part of source material (PDF page, DOCX paragraph, or ICS event).
  * This allows for passing metadata along with the raw text to the AI.
  */
 @Serializable
-data class SourceChunk(
+data class SourcePart(
     val text: String,
     val pageNumber: Int? = null,
     val sectionTitle: String? = null,

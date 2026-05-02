@@ -11,16 +11,17 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class PdfReader {
-    actual suspend fun extractText(path: String): String = withContext(Dispatchers.IO) {
+    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.IO) {
         try {
             val file = File(path)
             val document = PDDocument.load(file)
             val stripper = PDFTextStripper()
             val text = stripper.getText(document)
             document.close()
-            text.trim()
+            
+            SourceProcessor.process(text.trim(), SourceType.TEXT)
         } catch (e: Exception) {
-            "Error extracting text from PDF: ${e.message}"
+            listOf(SourcePart(text = "Error extracting text from PDF: ${e.message}", pageNumber = 0, type = SourceType.TEXT))
         }
     }
 }

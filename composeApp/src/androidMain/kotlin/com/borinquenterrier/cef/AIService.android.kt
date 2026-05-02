@@ -33,8 +33,8 @@ actual class AIService actual constructor(
         return "Chat not yet implemented with Gemini."
     }
 
-    actual suspend fun generateCalendarEvents(chunks: List<SourceChunk>): List<Event> {
-        return getGeminiService().generateCalendarEvents(chunks)
+    actual suspend fun generateCalendarEvents(parts: List<SourcePart>): List<Event> {
+        return getGeminiService().generateCalendarEvents(parts)
     }
 
     actual suspend fun generateStudyPlan(syllabusText: String): List<Event> {

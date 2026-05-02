@@ -10,36 +10,26 @@ import com.russhwolf.settings.MapSettings
 
 class MultiFormatAiIntegrationTest : FunSpec({
 
-    test("AI should generate equivalent events from HTML, DOCX, and PDF using local model") {
-        // 1. Resolve Model Path
-        val userDir = System.getProperty("user.dir") ?: "."
-        val root = if (userDir.endsWith("composeApp")) {
-            File(userDir).parentFile ?: File(userDir)
-        } else {
-            File(userDir)
-        }
-        val modelDir = File(root, "models")
-        val modelFile = File(modelDir, "Qwen3.5-9B-Q4_K_M.gguf")
-        
-        if (!modelFile.exists()) {
-            println("AI model missing. Downloading to ${modelFile.absolutePath}...")
-            val httpClient = io.ktor.client.HttpClient(io.ktor.client.engine.java.Java)
-            val modelManager = ModelManager(httpClient, modelDir.absolutePath)
-            runBlocking {
-                modelManager.downloadModel().collect { progress ->
-                    if (progress.isDone) println("Download complete.")
-                }
-            }
-            httpClient.close()
-        }
+    test("AI should generate equivalent events from HTML, DOCX, and PDF using Gemini") {
+        // 1. Resolve Credentials
+        val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
+        val envMap = envFile?.readLines()?.associate { 
+            val key = it.substringBefore("=").trim()
+            val value = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
+            key to value 
+        } ?: emptyMap()
 
-        if (!modelFile.exists()) {
-            throw AssertionError("Failed to download AI model.")
+        val apiKey = (envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"])?.takeIf { it.isNotBlank() }
+        
+        if (apiKey == null) {
+            println("SKIPPING MULTI-FORMAT AI TEST: No Gemini API Key found in .env")
+            return@test
         }
 
         val settings = MapSettings()
+        settings.putString("CEF_GEMINI_API_KEY", apiKey)
         val logger = Logger(settings)
-        val aiService = AIService(settings, logger, null, modelFile.absolutePath)
+        val aiService = AIService(settings, logger, null, null)
 
         // 2. Prepare Source Contents
         
@@ -47,7 +37,7 @@ class MultiFormatAiIntegrationTest : FunSpec({
         val htmlContent = "<html><body>MATH 101 on 2026-01-01 from 08:00 to 09:00 MWF</body></html>"
         val webReader = WebSourceReader()
         val cleanedHtmlText = webReader.cleanHtml(htmlContent)
-        val htmlChunks = TextChunker.chunk(cleanedHtmlText)
+        val htmlParts = SourceProcessor.process(cleanedHtmlText)
 
         // B. DOCX
         var docxFile = File("src/commonTest/resources/calendar.docx")
@@ -58,7 +48,7 @@ class MultiFormatAiIntegrationTest : FunSpec({
             }
         }
         val docxReader = DocxReader()
-        val docxChunks = runBlocking { docxReader.extractChunks(docxFile.absolutePath) }
+        val docxParts = runBlocking { docxReader.readSource(docxFile.absolutePath) }
 
         // C. PDF
         var pdfFile = File("src/commonTest/resources/calendar.pdf")
@@ -69,12 +59,12 @@ class MultiFormatAiIntegrationTest : FunSpec({
             }
         }
         val pdfReader = PdfReader()
-        val pdfChunks = runBlocking { pdfReader.extractChunks(pdfFile.absolutePath) }
+        val pdfParts = runBlocking { pdfReader.readSource(pdfFile.absolutePath) }
 
         // 3. Run AI Extraction for each
-        val htmlEvents = runBlocking { htmlChunks.flatMap { aiService.generateCalendarEvents(it) } }
-        val docxEvents = runBlocking { docxChunks.flatMap { aiService.generateCalendarEvents(it) } }
-        val pdfEvents = runBlocking { pdfChunks.flatMap { aiService.generateCalendarEvents(it) } }
+        val htmlEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(htmlParts) else emptyList() }
+        val docxEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(docxParts) else emptyList() }
+        val pdfEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(pdfParts) else emptyList() }
 
 
         // 4. Verify Equivalence
@@ -86,6 +76,10 @@ class MultiFormatAiIntegrationTest : FunSpec({
             val date = (it as? TimeEvent)?.date ?: (it as DayEvent).date
             date == LocalDate(2026, 1, 1)
         }
+
+        println("HTML Events: $htmlEvents")
+        println("DOCX Events: $docxEvents")
+        println("PDF Events: $pdfEvents")
 
         htmlEvents.findEventOnTargetDate() ?: throw AssertionError("HTML extraction failed. Events: $htmlEvents")
         docxEvents.findEventOnTargetDate() ?: throw AssertionError("DOCX extraction failed. Events: $docxEvents")

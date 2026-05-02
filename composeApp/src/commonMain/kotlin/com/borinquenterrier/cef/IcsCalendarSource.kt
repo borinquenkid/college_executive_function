@@ -1,5 +1,5 @@
 package com.borinquenterrier.cef
 
 expect class IcsCalendarSource(icsContent: String) {
-    suspend fun extractChunks(): List<SourceChunk>
+    suspend fun readSource(): List<SourcePart>
 }

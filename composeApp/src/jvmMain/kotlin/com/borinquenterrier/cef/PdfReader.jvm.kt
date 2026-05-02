@@ -3,26 +3,27 @@ package com.borinquenterrier.cef
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import java.io.File
+import org.apache.pdfbox.pdmodel.PDDocument
 import org.apache.pdfbox.Loader
 import org.apache.pdfbox.text.PDFTextStripper
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class PdfReader {
-    actual suspend fun extractChunks(path: String): List<SourceChunk> = withContext(Dispatchers.IO) {
-        val chunks = mutableListOf<SourceChunk>()
+    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.IO) {
+        val parts = mutableListOf<SourcePart>()
         try {
             val file = File(path)
             val document = Loader.loadPDF(file)
             val stripper = PDFTextStripper()
-            
+
             for (i in 1..document.numberOfPages) {
                 stripper.startPage = i
                 stripper.endPage = i
-                val pageText = stripper.getText(document).trim()
-                if (pageText.isNotEmpty()) {
-                    chunks.add(SourceChunk(
-                        text = pageText,
+                val text = stripper.getText(document).trim()
+                if (text.isNotEmpty()) {
+                    parts.add(SourcePart(
+                        text = text,
                         pageNumber = i,
                         type = SourceType.TEXT
                     ))
@@ -30,9 +31,9 @@ actual class PdfReader {
             }
             document.close()
         } catch (e: Exception) {
-            chunks.add(SourceChunk(text = "Error: ${e.message}"))
+            parts.add(SourcePart(text = "Error: ${e.message}", type = SourceType.TEXT))
         }
-        chunks
+        parts
     }
 }
 

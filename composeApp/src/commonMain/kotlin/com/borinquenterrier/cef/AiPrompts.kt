@@ -11,9 +11,9 @@ object AiPrompts {
 
     private val currentYear = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
 
-    val CHUNKING_INSTRUCTIONS = """
-        # Source Chunk Interpretation Instructions
-        You are receiving a JSON object representing a 'SourceChunk'. 
+    val SOURCE_PART_INSTRUCTIONS = """
+        # Source Part Interpretation Instructions
+        You are receiving a JSON object representing a 'SourcePart'. 
         
         ## Fields:
         - `text`: The raw content to analyze.
@@ -28,14 +28,14 @@ object AiPrompts {
     """.trimIndent()
 
     /**
-     * Prompt for extracting events from a specific SourceChunk.
+     * Prompt for extracting events from a specific SourcePart.
      */
-    fun getChunkEventExtractionPrompt(chunkJson: String): String {
+    fun getSourceEventExtractionPrompt(partJson: String): String {
         return """
-            $CHUNKING_INSTRUCTIONS
+            $SOURCE_PART_INSTRUCTIONS
             
             # Objective
-            Analyze the provided SourceChunk and identify all academic deliverables, deadlines, or calendar events.
+            Analyze the provided SourcePart and identify all academic deliverables, deadlines, or calendar events.
             
             # Output Format
             Return ONLY a raw JSON array of objects. No filler.
@@ -54,8 +54,8 @@ object AiPrompts {
             # Context
             Current Year: $currentYear
             
-            # Data to Process (SourceChunk JSON)
-            $chunkJson
+            # Data to Process (SourcePart JSON)
+            $partJson
         """.trimIndent()
     }
 

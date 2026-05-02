@@ -33,7 +33,7 @@ class ModelNegotiationIntegrationTest : FunSpec({
         // 3. Trigger a call that requires negotiation
         // Since negotiateModelName is private, we call generateCalendarEvents with minimal text
         val events = runBlocking { 
-            geminiService.generateCalendarEvents(SourceChunk("Test event on 2024-12-01")) 
+            geminiService.generateCalendarEvents(listOf(SourcePart("Test event on 2024-12-01"))) 
         }
 
         // 4. Verify results

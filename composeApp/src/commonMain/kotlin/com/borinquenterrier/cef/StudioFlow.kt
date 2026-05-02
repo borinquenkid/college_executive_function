@@ -35,7 +35,7 @@ class StudioFlow(
         _statusMessage.value = "Analyzing ${source.title}..."
         
         try {
-            val allEvents = aiService.generateCalendarEvents(source.chunks)
+            val allEvents = aiService.generateCalendarEvents(source.parts)
             
             // De-duplicate events by properties (title, date, time)
             val processed = programmaticExtractor.extract(allEvents).distinctBy { 
@@ -60,8 +60,8 @@ class StudioFlow(
         _statusMessage.value = "Generating study plan from full context..."
         
         try {
-            // Join chunks for study plan logic
-            val syllabusText = source.chunks.joinToString("\n\n") { it.text }
+            // Join parts for study plan logic
+            val syllabusText = source.parts.joinToString("\n\n") { it.text }
             val planEvents = aiService.generateStudyPlan(syllabusText)
             
             val processed = programmaticExtractor.extract(planEvents).distinctBy { 

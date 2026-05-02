@@ -65,8 +65,8 @@ fun SourcesPanel(
         val provider = providers.find { it.id == providerId }
         provider?.SelectorUI(
             onSourceAdded = {
-                onSourceAdded(it)
                 activeProviderId = null
+                onSourceAdded(it)
             },
             onDismiss = { activeProviderId = null }
         )

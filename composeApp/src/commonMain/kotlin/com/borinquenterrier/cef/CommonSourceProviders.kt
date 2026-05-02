@@ -29,22 +29,27 @@ class LocalFileSourceProvider(
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
-        FilePicker(show = true) { path ->
-            if (path == null) {
-                onDismiss()
-            } else {
-                scope.launch {
-                    val fileName = path.substringAfterLast("/").substringAfterLast("\\")
-                    val parts = when {
-                        fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
-                        fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
-                        fileName.lowercase().endsWith(".ics") -> {
-                            val raw = fileReader.readText(path)
-                            IcsCalendarSource(raw).readSource()
+        var hasTriggered by remember { mutableStateOf(false) }
+        
+        if (!hasTriggered) {
+            FilePicker(show = true) { path ->
+                hasTriggered = true
+                if (path == null) {
+                    onDismiss()
+                } else {
+                    scope.launch {
+                        val fileName = path.substringAfterLast("/").substringAfterLast("\\")
+                        val parts = when {
+                            fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
+                            fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
+                            fileName.lowercase().endsWith(".ics") -> {
+                                val raw = fileReader.readText(path)
+                                IcsCalendarSource(raw).readSource()
+                            }
+                            else -> SourceProcessor.process(fileReader.readText(path))
                         }
-                        else -> SourceProcessor.process(fileReader.readText(path))
+                        onSourceAdded(SourceItem(fileName, parts))
                     }
-                    onSourceAdded(SourceItem(fileName, parts))
                 }
             }
         }

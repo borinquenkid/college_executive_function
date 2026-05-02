@@ -46,7 +46,13 @@ fun SettingsScreen(modifier: Modifier = Modifier) {
     
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
     val authService = remember(settings) { GoogleAuthService(settings) }
-    val driveService = remember { GoogleDriveService(HttpClient { install(ContentNegotiation) { json() } }) }
+    val driveService = remember { 
+        GoogleDriveService(
+            HttpClient { install(ContentNegotiation) { json() } },
+            tokenRepository,
+            authService
+        ) 
+    }
     
     var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
     var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }

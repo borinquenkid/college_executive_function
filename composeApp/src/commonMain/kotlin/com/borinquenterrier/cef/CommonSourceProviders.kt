@@ -137,15 +137,12 @@ class GoogleDriveSourceProvider(
         } else {
             DrivePickerDialog(
                 driveService = driveService,
-                accessToken = accessToken,
                 onDismiss = onDismiss,
                 onFileSelected = { file ->
                     scope.launch {
-                        val rawContent = driveService.getFileContent(accessToken, file.id, file.mimeType)
+                        val rawContent = driveService.getFileContent(file.id, file.mimeType)
                         val parts = when {
                             file.name.lowercase().endsWith(".ics") -> IcsCalendarSource(rawContent).readSource()
-                            // Note: Google Drive service would need to be updated to support PDF/Docx chunking directly
-                            // For now, we treat them as text if the mimeType allows, or just chunk the raw output
                             else -> SourceProcessor.process(rawContent)
                         }
                         onSourceAdded(SourceItem(file.name, parts))
@@ -159,7 +156,6 @@ class GoogleDriveSourceProvider(
 @Composable
 fun DrivePickerDialog(
     driveService: GoogleDriveService,
-    accessToken: String,
     onDismiss: () -> Unit,
     onFileSelected: (DriveFile) -> Unit
 ) {
@@ -172,7 +168,7 @@ fun DrivePickerDialog(
                 "or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' " +
                 "or mimeType = 'text/plain' " +
                 "or name contains '.ics'"
-        files = driveService.listFiles(accessToken, query)
+        files = driveService.listFiles(query)
         isLoading = false
     }
 

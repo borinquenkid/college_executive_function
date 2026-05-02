@@ -151,13 +151,32 @@ fun App() {
             }
         ) { paddingValues ->
             val modifier = Modifier.fillMaxSize().padding(paddingValues)
+            val driveService = remember { 
+                GoogleDriveService(
+                    HttpClient { install(ContentNegotiation) { json() } },
+                    tokenRepository,
+                    authService
+                ) 
+            }
 
             when (currentScreen) {
                 is Screen.Home -> {
                     if (isDesktop) {
-                        DesktopApp(modifier, unifiedRepository) { aiGeneratedEvents = aiGeneratedEvents + it }
+                        DesktopApp(
+                            modifier, 
+                            unifiedRepository, 
+                            tokenRepository,
+                            authService,
+                            driveService
+                        ) { aiGeneratedEvents = aiGeneratedEvents + it }
                     } else {
-                        MobileApp(modifier, unifiedRepository) { aiGeneratedEvents = aiGeneratedEvents + it }
+                        MobileApp(
+                            modifier, 
+                            unifiedRepository,
+                            tokenRepository,
+                            authService,
+                            driveService
+                        ) { aiGeneratedEvents = aiGeneratedEvents + it }
                     }
                 }
                 is Screen.Calendar -> {
@@ -175,22 +194,27 @@ fun App() {
 }
 
 @Composable
-fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarRepository, onEventsGenerated: (List<Event>) -> Unit) {
+fun DesktopApp(
+    modifier: Modifier = Modifier, 
+    unifiedRepository: UnifiedCalendarRepository, 
+    tokenRepository: GoogleTokenRepository,
+    authService: GoogleAuthService,
+    driveService: GoogleDriveService,
+    onEventsGenerated: (List<Event>) -> Unit
+) {
     var showSources by remember { mutableStateOf(true) }
     var showStudio by remember { mutableStateOf(true) }
     var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val aiService = rememberAIService()
-    val settings = rememberSettings()
-    val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
-    val driveService = remember { GoogleDriveService(HttpClient { install(ContentNegotiation) { json() } }) }
+    
     val webReader = remember { WebSourceReader() }
     val fileReader = rememberLocalFileReader()
     val docxReader = rememberDocxReader()
     val pdfReader = rememberPdfReader()
 
-    val sourceProviders = remember(tokenRepository, aiService) {
+    val sourceProviders = remember(tokenRepository, aiService, driveService) {
         listOf(
             LocalFileSourceProvider(fileReader, docxReader, pdfReader, aiService),
             UrlSourceProvider(webReader, aiService),
@@ -287,22 +311,27 @@ fun DesktopApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendar
 }
 
 @Composable
-fun MobileApp(modifier: Modifier = Modifier, unifiedRepository: UnifiedCalendarRepository, onEventsGenerated: (List<Event>) -> Unit) {
+fun MobileApp(
+    modifier: Modifier = Modifier, 
+    unifiedRepository: UnifiedCalendarRepository, 
+    tokenRepository: GoogleTokenRepository,
+    authService: GoogleAuthService,
+    driveService: GoogleDriveService,
+    onEventsGenerated: (List<Event>) -> Unit
+) {
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
     var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
     var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
     val aiService = rememberAIService()
-    val settings = rememberSettings()
-    val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
-    val driveService = remember { GoogleDriveService(HttpClient { install(ContentNegotiation) { json() } }) }
+    
     val webReader = remember { WebSourceReader() }
     val fileReader = rememberLocalFileReader()
     val docxReader = rememberDocxReader()
     val pdfReader = rememberPdfReader()
 
-    val sourceProviders = remember(tokenRepository, aiService) {
+    val sourceProviders = remember(tokenRepository, aiService, driveService) {
         listOf(
             LocalFileSourceProvider(fileReader, docxReader, pdfReader, aiService),
             UrlSourceProvider(webReader, aiService),

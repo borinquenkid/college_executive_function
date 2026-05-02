@@ -11,6 +11,9 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 
+import io.mockk.every
+import io.mockk.mockk
+
 class GoogleDriveServiceTest : FunSpec({
 
     test("listFiles sends correct GET request") {
@@ -26,8 +29,12 @@ class GoogleDriveServiceTest : FunSpec({
             install(ContentNegotiation) { json() }
         }
         
-        val service = GoogleDriveService(httpClient)
-        val files = service.listFiles("mock-token")
+        val tokenRepo = mockk<GoogleTokenRepository>()
+        val authService = mockk<GoogleAuthService>()
+        every { tokenRepo.getAccessToken() } returns "mock-token"
+
+        val service = GoogleDriveService(httpClient, tokenRepo, authService)
+        val files = service.listFiles()
 
         files.size shouldBe 1
         files.first().name shouldBe "Syllabus.pdf"
@@ -49,8 +56,12 @@ class GoogleDriveServiceTest : FunSpec({
             install(ContentNegotiation) { json() }
         }
         
-        val service = GoogleDriveService(httpClient)
-        val content = service.getFileContent("mock-token", "doc-123", "application/vnd.google-apps.document")
+        val tokenRepo = mockk<GoogleTokenRepository>()
+        val authService = mockk<GoogleAuthService>()
+        every { tokenRepo.getAccessToken() } returns "mock-token"
+
+        val service = GoogleDriveService(httpClient, tokenRepo, authService)
+        val content = service.getFileContent("doc-123", "application/vnd.google-apps.document")
 
         content shouldBe "Exported Text"
         

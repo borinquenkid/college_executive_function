@@ -12,6 +12,7 @@ plugins {
 }
 
 kotlin {
+    jvmToolchain(17)
     androidTarget {
         compilerOptions {
             jvmTarget.set(JvmTarget.JVM_11)

@@ -1,14 +1,18 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
@@ -18,6 +22,7 @@ import androidx.compose.material.icons.filled.KeyboardArrowLeft
 import androidx.compose.material.icons.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.KeyboardArrowUp
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -37,19 +42,6 @@ import androidx.compose.ui.unit.dp
 import com.borinquenterrier.cef.ui.theme.CollegeExecutiveFunctionTheme
 import kotlinx.coroutines.launch
 import org.jetbrains.compose.ui.tooling.preview.Preview
-
-import io.ktor.client.HttpClient
-import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.serialization.kotlinx.json.json
-import com.borinquenterrier.cef.db.createDatabase
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.ui.window.Dialog
-import androidx.compose.ui.graphics.Color
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.height
-import kotlinx.coroutines.flow.collect
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -98,13 +90,13 @@ fun App() {
                     if (isDesktop) {
                         DesktopApp(
                             modifier, 
-                            container
-                        ) { appController.addEvents(it) }
+                            appController
+                        )
                     } else {
                         MobileApp(
                             modifier, 
-                            container
-                        ) { appController.addEvents(it) }
+                            appController
+                        )
                     }
                 }
                 is AppScreen.Calendar -> {
@@ -124,13 +116,14 @@ fun App() {
 @Composable
 fun DesktopApp(
     modifier: Modifier = Modifier, 
-    container: DependencyContainer,
-    onEventsGenerated: (List<Event>) -> Unit
+    appController: AppController
 ) {
+    val container = appController.container
+    val sourceItems by appController.sourceItems.collectAsState()
+    val selectedSource by appController.selectedSource.collectAsState()
+
     var showSources by remember { mutableStateOf(true) }
     var showStudio by remember { mutableStateOf(true) }
-    var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
-    var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
     
     val sourceProviders = remember(container) {
@@ -148,16 +141,16 @@ fun DesktopApp(
                     modifier = Modifier.weight(1f),
                     sourceItems = sourceItems,
                     selectedSource = selectedSource,
-                    onSourceSelected = { selectedSource = it },
+                    onSourceSelected = { appController.selectSource(it) },
                     onSourceAdded = { source ->
-                        sourceItems = sourceItems + source
+                        appController.addSource(source)
                         coroutineScope.launch {
                             val allEvents = if (container.aiService.isConfigured()) {
                                 container.aiService.generateCalendarEvents(source.parts)
                             } else {
                                 emptyList()
                             }
-                            onEventsGenerated(allEvents)
+                            appController.addEvents(allEvents)
                         }
                     },
                     providers = sourceProviders
@@ -228,7 +221,7 @@ fun DesktopApp(
                     selectedSource = selectedSource, 
                     unifiedRepository = container.unifiedRepository, 
                     container = container,
-                    onEventsGenerated = onEventsGenerated
+                    onEventsGenerated = { appController.addEvents(it) }
                 )
             }
         }
@@ -238,13 +231,14 @@ fun DesktopApp(
 @Composable
 fun MobileApp(
     modifier: Modifier = Modifier, 
-    container: DependencyContainer,
-    onEventsGenerated: (List<Event>) -> Unit
+    appController: AppController
 ) {
-    var showSources by remember { mutableStateOf(false) }
+    val container = appController.container
+    val sourceItems by appController.sourceItems.collectAsState()
+    val selectedSource by appController.selectedSource.collectAsState()
+
+    var showSources by remember { mutableStateOf(sourceItems.isEmpty()) }
     var showStudio by remember { mutableStateOf(false) }
-    var sourceItems by remember { mutableStateOf(emptyList<SourceItem>()) }
-    var selectedSource by remember { mutableStateOf<SourceItem?>(null) }
     val coroutineScope = rememberCoroutineScope()
     
     val sourceProviders = remember(container) {
@@ -278,16 +272,16 @@ fun MobileApp(
                     modifier = Modifier.fillMaxWidth(),
                     sourceItems = sourceItems,
                     selectedSource = selectedSource,
-                    onSourceSelected = { selectedSource = it },
+                    onSourceSelected = { appController.selectSource(it) },
                     onSourceAdded = { source ->
-                        sourceItems = sourceItems + source
+                        appController.addSource(source)
                         coroutineScope.launch {
                             val allEvents = if (container.aiService.isConfigured()) {
                                 container.aiService.generateCalendarEvents(source.parts)
                             } else {
                                 emptyList()
                             }
-                            onEventsGenerated(allEvents)
+                            appController.addEvents(allEvents)
                         }
                     },
                     providers = sourceProviders
@@ -309,7 +303,7 @@ fun MobileApp(
                     selectedSource = selectedSource, 
                     unifiedRepository = container.unifiedRepository, 
                     container = container,
-                    onEventsGenerated = onEventsGenerated
+                    onEventsGenerated = { appController.addEvents(it) }
                 )
             }
             IconButton(onClick = {

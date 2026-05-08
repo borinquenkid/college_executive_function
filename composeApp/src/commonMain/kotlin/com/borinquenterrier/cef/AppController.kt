@@ -23,6 +23,13 @@ class AppController(val container: DependencyContainer) {
     private val _aiGeneratedEvents = MutableStateFlow<List<Event>>(emptyList())
     val aiGeneratedEvents: StateFlow<List<Event>> = _aiGeneratedEvents.asStateFlow()
 
+    // Source State
+    private val _sourceItems = MutableStateFlow<List<SourceItem>>(emptyList())
+    val sourceItems: StateFlow<List<SourceItem>> = _sourceItems.asStateFlow()
+
+    private val _selectedSource = MutableStateFlow<SourceItem?>(null)
+    val selectedSource: StateFlow<SourceItem?> = _selectedSource.asStateFlow()
+
     // Listeners for platform-specific UI (like native iOS)
     private var screenListener: ((AppScreen) -> Unit)? = null
     private var eventsListener: ((List<Event>) -> Unit)? = null
@@ -51,6 +58,17 @@ class AppController(val container: DependencyContainer) {
 
     fun clearEvents() {
         _aiGeneratedEvents.value = emptyList()
+    }
+
+    fun addSource(source: SourceItem) {
+        _sourceItems.value = _sourceItems.value + source
+        if (_selectedSource.value == null) {
+            _selectedSource.value = source
+        }
+    }
+
+    fun selectSource(source: SourceItem?) {
+        _selectedSource.value = source
     }
 
     /**

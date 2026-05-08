@@ -140,7 +140,15 @@ fun AcademicCalendar(
                 onClick = { onNavigate(AppScreen.Routine) },
                 modifier = Modifier.weight(1f)
             ) {
-                Text("Manage Weekly Routine")
+                Text("Weekly Routine")
+            }
+
+            Button(
+                onClick = { onNavigate(AppScreen.Home) },
+                modifier = Modifier.weight(1f),
+                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+            ) {
+                Text("Add Source")
             }
             
             if (isGoogleLinked) {

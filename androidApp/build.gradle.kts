@@ -1,6 +1,7 @@
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 import java.io.OutputStream
+import java.io.ByteArrayOutputStream
 import javax.inject.Inject
 
 plugins {
@@ -58,20 +59,26 @@ abstract class PrepareEmulatorTask @Inject constructor(
                     false
                 }
                 if (result) {
-                    // One more check to ensure it's really responsive
+                    // One more check to ensure it's really responsive and package service is up
                     val ready = try {
+                        val output = ByteArrayOutputStream()
                         execOperations.exec {
-                            commandLine(adb, "shell", "echo", "ready")
+                            commandLine(adb, "shell", "service", "check", "package")
                             isIgnoreExitValue = true
-                            standardOutput = OutputStream.nullOutputStream()
+                            standardOutput = output
                             errorOutput = OutputStream.nullOutputStream()
-                        }.exitValue == 0
+                        }
+                        output.toString().contains("Service package: found")
                     } catch (e: Exception) { false }
-                    if (ready) booted = true
+                    if (ready) {
+                        println("Package service found. Stabilizing...")
+                        Thread.sleep(10000)
+                        booted = true
+                    }
                 }
                 
                 if (!booted) {
-                    println("Device still booting...")
+                    println("Device still booting (package service not ready)...")
                     Thread.sleep(5000)
                 }
             }

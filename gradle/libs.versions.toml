@@ -31,7 +31,10 @@ okio = "3.4.0"
 pdfbox = "3.0.3"
 pdfbox-android = "2.0.27.0"
 
+play-services-auth = "21.0.0"
+
 [libraries]
+play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 llamatik = { module = "com.llamatik:library", version.ref = "llamatik" }
 pdfbox = { module = "org.apache.pdfbox:pdfbox", version.ref = "pdfbox" }

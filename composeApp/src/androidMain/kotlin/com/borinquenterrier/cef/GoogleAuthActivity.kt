@@ -1,0 +1,70 @@
+package com.borinquenterrier.cef
+
+import android.app.Activity
+import android.content.Context
+import android.content.Intent
+import android.os.Bundle
+import androidx.activity.ComponentActivity
+import com.google.android.gms.auth.GoogleAuthUtil
+import com.google.android.gms.auth.api.signin.GoogleSignIn
+import com.google.android.gms.auth.api.signin.GoogleSignInAccount
+import com.google.android.gms.auth.api.signin.GoogleSignInOptions
+import com.google.android.gms.common.api.Scope
+import com.google.android.gms.tasks.Task
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
+
+object GoogleAuthCallback {
+    var pendingDeferred: CompletableDeferred<Pair<String, String?>>? = null
+}
+
+class GoogleAuthActivity : ComponentActivity() {
+
+    override fun onCreate(savedInstanceState: Bundle?) {
+        super.onCreate(savedInstanceState)
+        
+        // This is a transparent activity just to launch the Google Sign In Intent
+        val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
+            .requestEmail()
+            .requestScopes(
+                Scope("https://www.googleapis.com/auth/calendar"),
+                Scope("https://www.googleapis.com/auth/drive.readonly")
+            )
+            .build()
+
+        val googleSignInClient = GoogleSignIn.getClient(this, gso)
+        startActivityForResult(googleSignInClient.signInIntent, 1001)
+    }
+
+    override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
+        super.onActivityResult(requestCode, resultCode, data)
+        if (requestCode == 1001) {
+            val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
+            try {
+                val account = task.result
+                if (account != null && account.account != null) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val scopes = "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
+                            val token = GoogleAuthUtil.getToken(this@GoogleAuthActivity, account.account!!, scopes)
+                            GoogleAuthCallback.pendingDeferred?.complete(Pair(token, null))
+                        } catch (e: Exception) {
+                            GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)
+                        } finally {
+                            finish()
+                        }
+                    }
+                } else {
+                    GoogleAuthCallback.pendingDeferred?.completeExceptionally(Exception("Google Sign-In failed or cancelled by user."))
+                    finish()
+                }
+            } catch (e: Exception) {
+                GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)
+                finish()
+            }
+        }
+    }
+}

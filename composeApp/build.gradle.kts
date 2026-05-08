@@ -38,6 +38,7 @@ kotlin {
             implementation(libs.ktor.client.okhttp)
             implementation(libs.sqldelight.android.driver)
             implementation(libs.pdfbox.android)
+            implementation(libs.play.services.auth)
         }
         commonMain.dependencies {
             implementation(compose.runtime)

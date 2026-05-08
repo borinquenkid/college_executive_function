@@ -8,6 +8,11 @@ import com.borinquenterrier.cef.db.DriverFactory
 
 import android.util.Log
 import com.borinquenterrier.college_executive_function.BuildConfig
+import android.content.Context
+
+object AndroidAppContext {
+    var applicationContext: Context? = null
+}
 
 actual val isDesktop: Boolean = false
 actual val isDebug: Boolean = BuildConfig.DEBUG

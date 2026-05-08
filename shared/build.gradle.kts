@@ -1,7 +1,6 @@
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
     alias(libs.plugins.androidLibrary)
-    alias(libs.plugins.composeCompiler)
 }
 
 kotlin {
@@ -11,9 +10,22 @@ kotlin {
     iosArm64()
     iosSimulatorArm64()
 
+    listOf(
+        iosArm64(),
+        iosSimulatorArm64()
+    ).forEach {
+        it.binaries.framework {
+            baseName = "shared"
+            isStatic = true
+        }
+    }
+
     sourceSets {
         commonMain.dependencies {
-            // Dependencies will be added here later if needed
+            // Logic-only dependencies
+        }
+        commonTest.dependencies {
+            implementation(libs.kotlin.test)
         }
     }
 }

@@ -7,7 +7,7 @@ import com.borinquenterrier.cef.db.DriverFactory
 
 
 import android.util.Log
-import com.russhwolf.settings.BuildConfig
+import com.borinquenterrier.college_executive_function.BuildConfig
 
 actual val isDesktop: Boolean = false
 actual val isDebug: Boolean = BuildConfig.DEBUG

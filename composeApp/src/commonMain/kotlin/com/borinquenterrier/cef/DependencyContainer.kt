@@ -18,7 +18,10 @@ class DependencyContainer(
     val settings: Settings,
     val logger: Logger,
     val driverFactory: DriverFactory,
-    val modelBasePath: String
+    val modelBasePath: String,
+    val fileReader: LocalFileReader,
+    val docxReader: DocxReader,
+    val pdfReader: PdfReader
 ) {
     val httpClient = HttpClient {
         install(ContentNegotiation) {
@@ -43,11 +46,10 @@ class DependencyContainer(
     val aiService = AIService(settings, logger, database)
     
     val webReader = WebSourceReader()
-    val fileReader = LocalFileReader()
-    val docxReader = DocxReader()
-    val pdfReader = PdfReader()
 
     val googleAccountFlow = GoogleAccountFlow(authService, tokenRepository, driveService)
     val sourceFlow = SourceFlow(fileReader, docxReader, pdfReader, webReader, driveService, aiService)
     val studioFlow = StudioFlow(aiService, unifiedRepository, database, KeywordEventExtractor(), logger)
+
+    val appController = AppController(this)
 }

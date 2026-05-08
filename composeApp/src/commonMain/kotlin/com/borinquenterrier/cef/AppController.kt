@@ -1,0 +1,78 @@
+package com.borinquenterrier.cef
+
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
+
+/**
+ * A centralized controller that manages the overall application state and navigation.
+ * It acts as the bridge between the core logic (DependencyContainer) and the various UIs.
+ */
+class AppController(val container: DependencyContainer) {
+    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+
+    // Navigation State
+    private val _currentScreen = MutableStateFlow<AppScreen>(AppScreen.Home)
+    val currentScreen: StateFlow<AppScreen> = _currentScreen.asStateFlow()
+
+    // Data State
+    private val _aiGeneratedEvents = MutableStateFlow<List<Event>>(emptyList())
+    val aiGeneratedEvents: StateFlow<List<Event>> = _aiGeneratedEvents.asStateFlow()
+
+    // Listeners for platform-specific UI (like native iOS)
+    private var screenListener: ((AppScreen) -> Unit)? = null
+    private var eventsListener: ((List<Event>) -> Unit)? = null
+
+    init {
+        // Collect flows and notify listeners if any
+        scope.launch {
+            currentScreen.collect { screen ->
+                screenListener?.invoke(screen)
+            }
+        }
+        scope.launch {
+            aiGeneratedEvents.collect { events ->
+                eventsListener?.invoke(events)
+            }
+        }
+    }
+
+    fun navigateTo(screen: AppScreen) {
+        _currentScreen.value = screen
+    }
+
+    fun addEvents(events: List<Event>) {
+        _aiGeneratedEvents.value = _aiGeneratedEvents.value + events
+    }
+
+    fun clearEvents() {
+        _aiGeneratedEvents.value = emptyList()
+    }
+
+    /**
+     * Helper for iOS/Swift to register a listener for screen changes.
+     */
+    fun setScreenListener(listener: (AppScreen) -> Unit) {
+        this.screenListener = listener
+        listener(currentScreen.value)
+    }
+
+    /**
+     * Helper for iOS/Swift to register a listener for event updates.
+     */
+    fun setEventsListener(listener: (List<Event>) -> Unit) {
+        this.eventsListener = listener
+        listener(aiGeneratedEvents.value)
+    }
+}
+
+sealed class AppScreen {
+    object Home : AppScreen()
+    object Calendar : AppScreen()
+    object Settings : AppScreen()
+    object Routine : AppScreen()
+}

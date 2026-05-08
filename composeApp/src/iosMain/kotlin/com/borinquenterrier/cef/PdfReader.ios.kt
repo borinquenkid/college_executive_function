@@ -4,8 +4,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 
 actual class PdfReader {
-    actual suspend fun extractText(path: String): String {
-        return "PDF extraction not yet implemented on iOS"
+    actual suspend fun readSource(path: String): List<SourcePart> {
+        return listOf(SourcePart("PDF extraction not yet implemented on iOS"))
     }
 }
 

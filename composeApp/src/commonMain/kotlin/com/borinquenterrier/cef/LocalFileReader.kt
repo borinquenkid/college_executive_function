@@ -2,7 +2,7 @@ package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
 
-expect class LocalFileReader() {
+expect class LocalFileReader {
     suspend fun readText(path: String): String
 }
 

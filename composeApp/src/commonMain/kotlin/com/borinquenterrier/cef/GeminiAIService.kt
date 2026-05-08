@@ -272,7 +272,7 @@ class GeminiAIService(
 }
 
 @Serializable
-data class GeminiResponse(val candidates: List<Candidate>)
+data class GeminiResponse(val candidates: List<Candidate> = emptyList())
 
 @Serializable
 data class Content(val parts: List<Part>)

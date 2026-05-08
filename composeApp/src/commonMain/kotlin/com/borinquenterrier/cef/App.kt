@@ -25,6 +25,7 @@ import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -50,13 +51,6 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import kotlinx.coroutines.flow.collect
 
-sealed class Screen {
-    object Home : Screen()
-    object Calendar : Screen()
-    object Settings : Screen()
-    object Routine : Screen()
-}
-
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Preview
@@ -65,55 +59,32 @@ fun App() {
     val logger = rememberLogger()
     val driverFactory = rememberDriverFactory()
     val modelBasePath = rememberModelDirectoryPath()
+    val fileReader = rememberLocalFileReader()
+    val docxReader = rememberDocxReader()
+    val pdfReader = rememberPdfReader()
 
-    val container = remember(settings, logger, driverFactory, modelBasePath) {
-        DependencyContainer(settings, logger, driverFactory, modelBasePath)
+    val container = remember(settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader) {
+        DependencyContainer(settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader)
     }
+    
+    val appController = container.appController
 
     CollegeExecutiveFunctionTheme {
-        var currentScreen by remember { mutableStateOf<Screen>(Screen.Home) }
-        var aiGeneratedEvents by remember { mutableStateOf(listOf<Event>()) }
+        val currentScreen by appController.currentScreen.collectAsState()
+        val aiGeneratedEvents by appController.aiGeneratedEvents.collectAsState()
         
-        var isDownloadingModel by remember { mutableStateOf(!container.modelManager.isModelDownloaded()) }
-        
-        if (isDownloadingModel) {
-            LaunchedEffect(Unit) {
-                container.modelManager.downloadModel().collect { progress ->
-                    if (progress.isDone) {
-                        isDownloadingModel = false
-                    }
-                }
-            }
-            
-            Dialog(onDismissRequest = {}) {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .background(Color.Black.copy(alpha = 0.5f)),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                        CircularProgressIndicator(color = Color.White)
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text("Downloading AI Model...", color = Color.White)
-                        Text("This may take a few minutes (9B params, ~5.6GB)", color = Color.White)
-                    }
-                }
-            }
-        }
-
         Scaffold(
             topBar = {
                 TopAppBar(
                     title = { Text("College Executive Function") },
                     actions = {
-                        IconButton(onClick = { currentScreen = Screen.Home }) {
+                        IconButton(onClick = { appController.navigateTo(AppScreen.Home) }) {
                             Icon(Icons.Default.Home, contentDescription = "Home")
                         }
-                        IconButton(onClick = { currentScreen = Screen.Calendar }) {
+                        IconButton(onClick = { appController.navigateTo(AppScreen.Calendar) }) {
                             Icon(Icons.Default.DateRange, contentDescription = "Academic Calendar")
                         }
-                        IconButton(onClick = { currentScreen = Screen.Settings }) {
+                        IconButton(onClick = { appController.navigateTo(AppScreen.Settings) }) {
                             Icon(Icons.Default.Settings, contentDescription = "Settings")
                         }
                     }
@@ -123,26 +94,26 @@ fun App() {
             val modifier = Modifier.fillMaxSize().padding(paddingValues)
 
             when (currentScreen) {
-                is Screen.Home -> {
+                is AppScreen.Home -> {
                     if (isDesktop) {
                         DesktopApp(
                             modifier, 
                             container
-                        ) { aiGeneratedEvents = aiGeneratedEvents + it }
+                        ) { appController.addEvents(it) }
                     } else {
                         MobileApp(
                             modifier, 
                             container
-                        ) { aiGeneratedEvents = aiGeneratedEvents + it }
+                        ) { appController.addEvents(it) }
                     }
                 }
-                is Screen.Calendar -> {
-                    AcademicCalendar(modifier, aiGeneratedEvents, container.unifiedRepository) { currentScreen = it }
+                is AppScreen.Calendar -> {
+                    AcademicCalendar(modifier, aiGeneratedEvents, container.unifiedRepository) { appController.navigateTo(it) }
                 }
-                is Screen.Settings -> {
+                is AppScreen.Settings -> {
                     SettingsScreen(container, modifier)
                 }
-                is Screen.Routine -> {
+                is AppScreen.Routine -> {
                     RoutineScreen(modifier)
                 }
             }

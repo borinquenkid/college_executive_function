@@ -23,7 +23,7 @@ fun AcademicCalendar(
     modifier: Modifier = Modifier, 
     aiGeneratedEvents: List<Event>, 
     unifiedRepository: UnifiedCalendarRepository,
-    onNavigate: (Screen) -> Unit
+    onNavigate: (AppScreen) -> Unit
 ) {
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
@@ -137,7 +137,7 @@ fun AcademicCalendar(
 
         Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
             Button(
-                onClick = { onNavigate(Screen.Routine) },
+                onClick = { onNavigate(AppScreen.Routine) },
                 modifier = Modifier.weight(1f)
             ) {
                 Text("Manage Weekly Routine")

@@ -31,13 +31,14 @@ actual class AIService actual constructor(
         return "Chat not yet implemented with Llamatik."
     }
 
-    actual suspend fun generateCalendarEvents(prompt: String): List<Event> {
-        return getLlamatikService().generateCalendarEvents(prompt)
+    actual suspend fun generateCalendarEvents(parts: List<SourcePart>): List<Event> {
+        return getLlamatikService().generateCalendarEvents(parts)
     }
 
     actual suspend fun generateStudyPlan(syllabusText: String): List<Event> {
+        val parts = listOf(SourcePart(syllabusText))
         val prompt = AiPrompts.getSyllabusStudyPlanPrompt(syllabusText)
-        return getLlamatikService().generateCalendarEvents(prompt)
+        return getLlamatikService().generateEventsFromRawPrompt(prompt)
     }
 }
 

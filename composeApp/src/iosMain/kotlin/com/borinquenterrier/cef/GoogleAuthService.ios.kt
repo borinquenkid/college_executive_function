@@ -11,4 +11,8 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     actual suspend fun refreshAccessToken(refreshToken: String): String? {
         return "mock-refreshed-token"
     }
+
+    actual fun logout() {
+        // TODO: Implement native logout
+    }
 }

@@ -6,6 +6,7 @@ import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.utils.io.*
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.withContext
@@ -28,7 +29,7 @@ class ModelManager(
 
     fun isModelDownloaded(): Boolean {
         return try {
-            FileSystem.SYSTEM.exists(getModelFile())
+            getFileSystem().exists(getModelFile())
         } catch (e: Exception) {
             false
         }
@@ -36,11 +37,12 @@ class ModelManager(
 
     suspend fun downloadModel(): Flow<DownloadProgress> = flow {
         val destination = getModelFile()
+        val fileSystem = getFileSystem()
         
         // Ensure directory exists
         val parent = destination.parent
-        if (parent != null && !FileSystem.SYSTEM.exists(parent)) {
-            FileSystem.SYSTEM.createDirectories(parent)
+        if (parent != null && !fileSystem.exists(parent)) {
+            fileSystem.createDirectories(parent)
         }
 
         logger?.d(tag, "Starting streaming download from $modelUrl to $destination")
@@ -54,22 +56,14 @@ class ModelManager(
             val contentLength = response.contentLength() ?: -1L
             var totalBytesRead = 0L
 
-            withContext(Dispatchers.Default) {
-                FileSystem.SYSTEM.write(destination) {
+            withContext(Dispatchers.IO) {
+                fileSystem.write(destination) {
                     while (!channel.isClosedForRead) {
                         val packet = channel.readRemaining(1024 * 64) // 64KB chunks
                         while (!packet.exhausted()) {
                             val bytes = packet.readByteArray()
                             write(bytes)
                             totalBytesRead += bytes.size
-                            
-                            if (contentLength > 0) {
-                                val progress = totalBytesRead.toFloat() / contentLength
-                                // Emit progress every 1MB to avoid flooding the flow
-                                if (totalBytesRead % (1024 * 1024) == 0L) {
-                                    // Note: flow collector handles emission
-                                }
-                            }
                         }
                     }
                 }

@@ -1,6 +1,11 @@
 # Project Mandates
 
-## AI Requirements (Hybrid Strategy)
+## Build Verification Protocol
+Whenever the agent reports that a task or feature is "done," it MUST verify that all three primary build targets compile successfully by running the following command: `./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble`. The agent must confirm these three builds pass before confirming completion to the user.
+
+## Native Dependency Management
+Manual modification of Xcode project files (.pbxproj) and adding external Swift packages is strictly prohibited due to their brittleness in KMP builds. All native features MUST be implemented using platform-native APIs already available in the system frameworks, accessible via pure Kotlin/Native interop, to ensure build stability.
+
 
 The application uses a hybrid AI strategy to balance performance, privacy, and accessibility.
 
@@ -94,6 +99,7 @@ All business logic classes (Models, Repositories, Services, and Utilities) must 
 The following tasks are planned for the next phase of development:
 
 #### Core Functionality & AI
+*   **iOS Feature Parity:** [TODO] Enable and implement native File Picker and Web Picker for the iOS target (currently disabled/unavailable).
 *   **Multi-Format Support:** Robust text extraction for **DOCX** and **PDF** files using native libraries for Android/iOS.
 *   **AI Task Decomposition:** Full UI flow for the "Break It Down" feature to split assignments into 1-2 hour sub-tasks.
 *   **Syllabus-to-Study Schedule:** Further refine the logic that suggests study periods based on weighted deliverables.
@@ -109,6 +115,7 @@ The following tasks are planned for the next phase of development:
 *   **Option C: Hybrid Approach:** Use small 2B-3B models locally in the browser for simple tasks, and server-side models only for heavy syllabus parsing.
 
 #### UI & UX
+*   **Vertical Layout Optimization:** [TODO] Shrink the vertical layout by approximately half to ensure buttons (like 'Accept') are reachable without tabbing; currently, users must use 'Tab' to reach certain off-screen elements.
 *   **Visual Progress Tracking:** Progress bars and "Time Remaining" visuals for long-term projects.
 *   **Export Support:** Implement `.ics` file export for the entire generated study plan.
 

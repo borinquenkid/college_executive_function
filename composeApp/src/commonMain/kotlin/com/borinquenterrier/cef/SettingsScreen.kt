@@ -41,6 +41,9 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
 import androidx.compose.material3.CircularProgressIndicator
 
+import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.rememberScrollState
+
 @Composable
 fun SettingsScreen(
     container: DependencyContainer,
@@ -58,7 +61,10 @@ fun SettingsScreen(
     var showAdvanced by remember { mutableStateOf(false) }
 
     Column(
-        modifier = modifier.fillMaxSize().padding(24.dp),
+        modifier = modifier
+            .fillMaxSize()
+            .padding(24.dp)
+            .verticalScroll(rememberScrollState()),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         Text("Setup & Connections", style = MaterialTheme.typography.headlineMedium)

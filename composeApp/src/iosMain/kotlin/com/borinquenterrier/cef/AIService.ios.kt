@@ -6,7 +6,8 @@ import com.russhwolf.settings.Settings
 import com.borinquenterrier.cef.db.AppDatabase
 
 /**
- * iOS Implementation of AIService using Llamatik.
+ * iOS Implementation of AIService.
+ * Uses Gemini as primary engine and Llamatik as local fallback.
  */
 actual class AIService actual constructor(
     private val settings: Settings,
@@ -16,7 +17,21 @@ actual class AIService actual constructor(
 ) {
     
     actual fun isConfigured(): Boolean {
+        // First check if Gemini is configured via API key
+        val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
+        if (apiKey.isNotBlank()) return true
+        
+        // Fallback to checking if a local model is available
         return !modelPath.isNullOrBlank()
+    }
+
+    private fun getGeminiService(): GeminiAIService {
+        val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
+        return GeminiAIService(
+            apiKey = apiKey,
+            logger = logger,
+            database = database
+        )
     }
 
     private fun getLlamatikService(): LlamatikAIService {
@@ -28,17 +43,26 @@ actual class AIService actual constructor(
     }
 
     actual suspend fun generateChatResponse(prompt: String): String {
-        return "Chat not yet implemented with Llamatik."
+        return "Chat not yet implemented on iOS."
     }
 
     actual suspend fun generateCalendarEvents(parts: List<SourcePart>): List<Event> {
-        return getLlamatikService().generateCalendarEvents(parts)
+        val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
+        return if (apiKey.isNotBlank()) {
+            getGeminiService().generateCalendarEvents(parts)
+        } else {
+            getLlamatikService().generateCalendarEvents(parts)
+        }
     }
 
     actual suspend fun generateStudyPlan(syllabusText: String): List<Event> {
-        val parts = listOf(SourcePart(syllabusText))
+        val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
         val prompt = AiPrompts.getSyllabusStudyPlanPrompt(syllabusText)
-        return getLlamatikService().generateEventsFromRawPrompt(prompt)
+        return if (apiKey.isNotBlank()) {
+            getGeminiService().generateCalendarEventsFromPrompt(prompt)
+        } else {
+            getLlamatikService().generateEventsFromRawPrompt(prompt)
+        }
     }
 }
 

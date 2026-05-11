@@ -13,14 +13,6 @@ struct iOSApp: App {
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
-        #if DEBUG
-        // Clear all UserDefaults on debug launch to prevent stale/mock data
-        if let bundleID = Bundle.main.bundleIdentifier {
-            UserDefaults.standard.removePersistentDomain(forName: bundleID)
-            UserDefaults.standard.synchronize()
-            print("DEBUG: Storage wiped for fresh auth flow")
-        }
-        #endif
         return true
     }
 

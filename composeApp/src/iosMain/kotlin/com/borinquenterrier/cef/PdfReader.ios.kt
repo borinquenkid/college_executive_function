@@ -2,10 +2,22 @@ package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
+import platform.Foundation.NSURL
+import platform.PDFKit.PDFDocument
 
 actual class PdfReader {
-    actual suspend fun readSource(path: String): List<SourcePart> {
-        return listOf(SourcePart("PDF extraction not yet implemented on iOS"))
+    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.Default) {
+        try {
+            val url = NSURL(string = path) ?: return@withContext listOf(SourcePart("Invalid PDF path"))
+            val document = PDFDocument(uRL = url)
+            val text = document.string ?: ""
+            
+            SourceProcessor.process(text, SourceType.TEXT)
+        } catch (e: Exception) {
+            listOf(SourcePart("Error extracting PDF text: ${e.message}"))
+        }
     }
 }
 

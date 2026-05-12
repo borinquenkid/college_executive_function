@@ -8,15 +8,15 @@ import platform.Foundation.NSURL
 import platform.PDFKit.PDFDocument
 
 actual class PdfReader {
-    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.Default) {
+    actual suspend fun readSource(path: String): List<SourceFragment> = withContext(Dispatchers.Default) {
         try {
-            val url = NSURL(string = path) ?: return@withContext listOf(SourcePart("Invalid PDF path"))
+            val url = NSURL(string = path) ?: return@withContext listOf(SourceFragment("Invalid PDF path"))
             val document = PDFDocument(uRL = url)
             val text = document.string ?: ""
             
             SourceProcessor.process(text, SourceType.TEXT)
         } catch (e: Exception) {
-            listOf(SourcePart("Error extracting PDF text: ${e.message}"))
+            listOf(SourceFragment("Error extracting PDF text: ${e.message}"))
         }
     }
 }

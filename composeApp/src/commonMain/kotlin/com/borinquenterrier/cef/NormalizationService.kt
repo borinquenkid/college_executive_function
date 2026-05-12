@@ -4,7 +4,7 @@ package com.borinquenterrier.cef
  * A programmatic implementation of [EventExtractor] that uses keyword matching
  * to categorize raw events into academic milestones.
  */
-class KeywordEventExtractor : EventExtractor {
+class NormalizationService : EventExtractor {
 
     override fun extract(events: List<Event>): List<Event> {
         return events.map { event ->

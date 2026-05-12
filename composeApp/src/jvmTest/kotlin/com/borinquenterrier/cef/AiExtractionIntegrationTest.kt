@@ -12,7 +12,7 @@ import com.borinquenterrier.cef.db.AppDatabase
 
 class AiExtractionIntegrationTest : FunSpec({
 
-    test("Headless StudioFlow: should extract deliverables from syllabus using Gemini") {
+    test("Headless EventAgent: should extract deliverables from syllabus using Gemini") {
         // 1. Resolve Credentials
         val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
         val envMap = envFile?.readLines()?.associate { 
@@ -38,9 +38,9 @@ class AiExtractionIntegrationTest : FunSpec({
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
         val logger = Logger(settings)
         val aiService = AIService(settings, logger, database, null)
-        val mockRepo = mockk<UnifiedCalendarRepository>(relaxed = true)
+        val mockRepo = mockk<CalendarAgent>(relaxed = true)
         
-        val studioFlow = StudioFlow(aiService, mockRepo, database, logger = logger)
+        val eventAgent = EventAgent(aiService, mockRepo, database, logger = logger)
 
         // 4. Load syllabus text
         val syllabusStream = object {}.javaClass.classLoader.getResourceAsStream("syllabus.txt")
@@ -53,11 +53,11 @@ class AiExtractionIntegrationTest : FunSpec({
         // 5. Run Flow Headless
         println("STARTING HEADLESS EXTRACTION WITH GEMINI...")
         runBlocking {
-            studioFlow.extractDeliverables(SourceItem("Syllabus", parts))
+            eventAgent.extractDeliverables(SourceItem("Syllabus", parts))
         }
 
         // 6. Verify
-        val events = studioFlow.lastGeneratedEvents.value
+        val events = eventAgent.lastGeneratedEvents.value
         println("STUDIO FLOW GENERATED ${events.size} DELIVERABLES")
         
         if (events.isEmpty()) {

@@ -30,7 +30,7 @@ class HeadlessLogicTest : FunSpec({
 
         // 3. Verify member access
         container.googleAccountFlow.error.value shouldBe null
-        container.studioFlow.isLoading.value shouldBe false
+        container.eventAgent.isLoading.value shouldBe false
         
         // 4. Run a simple headless operation
         val text = "Test Event on 2026-01-01"

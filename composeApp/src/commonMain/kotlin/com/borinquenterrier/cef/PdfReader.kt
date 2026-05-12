@@ -3,7 +3,7 @@ package com.borinquenterrier.cef
 import androidx.compose.runtime.Composable
 
 expect class PdfReader {
-    suspend fun readSource(path: String): List<SourcePart>
+    suspend fun readSource(path: String): List<SourceFragment>
 }
 
 @Composable

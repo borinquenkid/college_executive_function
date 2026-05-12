@@ -11,10 +11,9 @@ import com.borinquenterrier.cef.db.AppDatabase
 actual class AIService actual constructor(
     private val settings: Settings,
     private val logger: Logger,
-    private val database: AppDatabase?,
-    private val modelPath: String?
+    private val database: AppDatabase?
 ) {
-    
+
     actual fun isConfigured(): Boolean {
         val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
         return apiKey.isNotBlank()
@@ -33,8 +32,8 @@ actual class AIService actual constructor(
         return "Chat not yet implemented with Gemini."
     }
 
-    actual suspend fun generateCalendarEvents(parts: List<SourcePart>): List<Event> {
-        return getGeminiService().generateCalendarEvents(parts)
+    actual suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
+        return getGeminiService().generateCalendarEvents(fragments)
     }
 
     actual suspend fun generateStudyPlan(syllabusText: String): List<Event> {
@@ -50,10 +49,8 @@ actual fun rememberAIService(): AIService {
     val logger = rememberLogger()
     val driverFactory = rememberDriverFactory()
     val database = remember(driverFactory) { AppDatabase(driverFactory.createDriver()) }
-    val modelDir = rememberModelDirectoryPath()
-    val modelPath = remember(modelDir) { "$modelDir/Qwen3.5-9B-Q4_K_M.gguf" }
-    
-    return remember(settings, logger, database, modelPath) { 
-        AIService(settings, logger, database, modelPath) 
+
+    return remember(settings, logger, database) { 
+        AIService(settings, logger, database) 
     }
 }

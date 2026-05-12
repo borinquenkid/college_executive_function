@@ -10,8 +10,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class PdfReader {
-    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.IO) {
-        val parts = mutableListOf<SourcePart>()
+    actual suspend fun readSource(path: String): List<SourceFragment> = withContext(Dispatchers.IO) {
+        val parts = mutableListOf<SourceFragment>()
         try {
             val file = File(path)
             val document = Loader.loadPDF(file)
@@ -22,7 +22,7 @@ actual class PdfReader {
                 stripper.endPage = i
                 val text = stripper.getText(document).trim()
                 if (text.isNotEmpty()) {
-                    parts.add(SourcePart(
+                    parts.add(SourceFragment(
                         text = text,
                         pageNumber = i,
                         type = SourceType.TEXT
@@ -31,7 +31,7 @@ actual class PdfReader {
             }
             document.close()
         } catch (e: Exception) {
-            parts.add(SourcePart(text = "Error: ${e.message}", type = SourceType.TEXT))
+            parts.add(SourceFragment(text = "Error: ${e.message}", type = SourceType.TEXT))
         }
         parts
     }

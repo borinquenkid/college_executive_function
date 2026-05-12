@@ -89,6 +89,30 @@ abstract class PrepareEmulatorTask @Inject constructor(
     }
 }
 
+abstract class RunAppTask @Inject constructor(
+    private val execOperations: ExecOperations
+) : DefaultTask() {
+    @get:Internal
+    abstract val localPropertiesFile: RegularFileProperty
+
+    @TaskAction
+    fun run() {
+        val props = Properties()
+        val file = localPropertiesFile.get().asFile
+        if (file.exists()) {
+            file.inputStream().use { props.load(it) }
+        }
+        val sdkDir = props.getProperty("sdk.dir")
+        val adb = "${sdkDir}/platform-tools/adb"
+        val namespace = "com.borinquenterrier.cef"
+        
+        println("Launching MainActivity...")
+        execOperations.exec {
+            commandLine(adb, "shell", "am", "start", "-n", "$namespace/$namespace.MainActivity")
+        }
+    }
+}
+
 kotlin {
     compilerOptions {
         jvmTarget.set(JvmTarget.JVM_11)
@@ -146,29 +170,12 @@ tasks.whenTaskAdded {
     }
 }
 
-tasks.register("runApp") {
+tasks.register<RunAppTask>("runApp") {
     group = "application"
     description = "Starts emulator, installs, and launches the app."
-    // We can't easily use dependsOn with a task that might not exist yet in a type-safe way
-    // without more boilerplate, so we'll just trigger installDebug by name if it exists.
     dependsOn(prepareEmulator)
     dependsOn("installDebug")
-    
-    doLast {
-        val props = Properties()
-        val file = project.rootProject.file("local.properties")
-        if (file.exists()) {
-            file.inputStream().use { props.load(it) }
-        }
-        val sdkDir = props.getProperty("sdk.dir")
-        val adb = "${sdkDir}/platform-tools/adb"
-        val namespace = "com.borinquenterrier.cef"
-        
-        println("Launching MainActivity...")
-        exec {
-            commandLine(adb, "shell", "am", "start", "-n", "$namespace/$namespace.MainActivity")
-        }
-    }
+    localPropertiesFile.set(project.rootProject.layout.projectDirectory.file("local.properties"))
 }
 
 dependencies {

@@ -1,30 +1,30 @@
 package com.borinquenterrier.cef
 
 /**
- * Utility to process plain text into structured parts for AI processing.
+ * Utility to process plain text into structured fragments for AI processing.
  */
 object SourceProcessor {
 
     /**
-     * Processes text into parts. By default, it returns the entire text as a single part.
+     * Processes text into fragments. By default, it returns the entire text as a single fragment.
      */
-    fun process(text: String, type: SourceType = SourceType.TEXT): List<SourcePart> {
+    fun process(text: String, type: SourceType = SourceType.TEXT): List<SourceFragment> {
         if (text.isBlank()) return emptyList()
-        return listOf(SourcePart(text = text, type = type))
+        return listOf(SourceFragment(text = text, type = type))
     }
 
     /**
-     * Splits text into smaller parts if necessary (e.g. for extremely large files).
+     * Splits text into smaller fragments if necessary (e.g. for extremely large files).
      */
-    fun split(text: String, size: Int = 10000): List<SourcePart> {
+    fun split(text: String, size: Int = 10000): List<SourceFragment> {
         if (text.isBlank()) return emptyList()
-        val parts = mutableListOf<SourcePart>()
+        val fragments = mutableListOf<SourceFragment>()
         var start = 0
         while (start < text.length) {
             val end = (start + size).coerceAtMost(text.length)
-            parts.add(SourcePart(text = text.substring(start, end), type = SourceType.TEXT))
+            fragments.add(SourceFragment(text = text.substring(start, end), type = SourceType.TEXT))
             start = end
         }
-        return parts
+        return fragments
     }
 }

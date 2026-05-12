@@ -60,9 +60,7 @@ kotlin {
             implementation(libs.google.api.services.calendar)
             implementation(libs.google.api.client)
             implementation(libs.google.oauth.client.jetty)
-            implementation(libs.llamatik)
-            implementation(libs.okio)
-        }
+            implementation(libs.okio)        }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.sqldelight.native.driver)

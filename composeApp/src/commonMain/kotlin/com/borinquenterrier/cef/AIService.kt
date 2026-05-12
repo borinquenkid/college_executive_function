@@ -9,12 +9,11 @@ import com.borinquenterrier.cef.db.AppDatabase
 expect class AIService(
     settings: Settings,
     logger: Logger,
-    database: AppDatabase? = null,
-    modelPath: String? = null
+    database: AppDatabase? = null
 ) {
     fun isConfigured(): Boolean
     suspend fun generateChatResponse(prompt: String): String
-    suspend fun generateCalendarEvents(parts: List<SourcePart>): List<Event>
+    suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event>
     suspend fun generateStudyPlan(syllabusText: String): List<Event>
 }
 

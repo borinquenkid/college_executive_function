@@ -100,7 +100,7 @@ fun App() {
                     }
                 }
                 is AppScreen.Calendar -> {
-                    AcademicCalendar(modifier, aiGeneratedEvents, container.unifiedRepository) { appController.navigateTo(it) }
+                    AcademicCalendar(modifier, aiGeneratedEvents, container.calendarAgent) { appController.navigateTo(it) }
                 }
                 is AppScreen.Settings -> {
                     SettingsScreen(container, modifier)
@@ -128,9 +128,9 @@ fun DesktopApp(
     
     val sourceProviders = remember(container) {
         listOf(
-            LocalFileSourceProvider(container.sourceFlow, container.aiService),
-            UrlSourceProvider(container.sourceFlow, container.aiService),
-            GoogleDriveSourceProvider(container.sourceFlow, container.driveService, container.tokenRepository)
+            LocalFileSourceProvider(container.ingestionAgent, container.aiService),
+            UrlSourceProvider(container.ingestionAgent, container.aiService),
+            GoogleDriveSourceProvider(container.ingestionAgent, container.driveService, container.tokenRepository)
         )
     }
 
@@ -146,7 +146,7 @@ fun DesktopApp(
                         appController.addSource(source)
                         coroutineScope.launch {
                             val allEvents = if (container.aiService.isConfigured()) {
-                                container.aiService.generateCalendarEvents(source.parts)
+                                container.aiService.generateCalendarEvents(source.fragments)
                             } else {
                                 emptyList()
                             }
@@ -219,7 +219,7 @@ fun DesktopApp(
                 StudioPanel(
                     modifier = Modifier.weight(1f), 
                     selectedSource = selectedSource, 
-                    unifiedRepository = container.unifiedRepository, 
+                    calendarAgent = container.calendarAgent, 
                     container = container,
                     onEventsGenerated = { appController.addEvents(it) }
                 )
@@ -243,9 +243,9 @@ fun MobileApp(
     
     val sourceProviders = remember(container) {
         listOf(
-            LocalFileSourceProvider(container.sourceFlow, container.aiService),
-            UrlSourceProvider(container.sourceFlow, container.aiService),
-            GoogleDriveSourceProvider(container.sourceFlow, container.driveService, container.tokenRepository)
+            LocalFileSourceProvider(container.ingestionAgent, container.aiService),
+            UrlSourceProvider(container.ingestionAgent, container.aiService),
+            GoogleDriveSourceProvider(container.ingestionAgent, container.driveService, container.tokenRepository)
         )
     }
 
@@ -277,7 +277,7 @@ fun MobileApp(
                         appController.addSource(source)
                         coroutineScope.launch {
                             val allEvents = if (container.aiService.isConfigured()) {
-                                container.aiService.generateCalendarEvents(source.parts)
+                                container.aiService.generateCalendarEvents(source.fragments)
                             } else {
                                 emptyList()
                             }
@@ -301,7 +301,7 @@ fun MobileApp(
                 StudioPanel(
                     modifier = Modifier.fillMaxWidth(), 
                     selectedSource = selectedSource, 
-                    unifiedRepository = container.unifiedRepository, 
+                    calendarAgent = container.calendarAgent, 
                     container = container,
                     onEventsGenerated = { appController.addEvents(it) }
                 )

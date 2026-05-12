@@ -5,7 +5,7 @@ import kotlinx.datetime.LocalDate
 /**
  * Orchestrator that manages synchronization between Local (Offline) and Remote (Gold Standard) repositories.
  */
-class UnifiedCalendarRepository(
+class CalendarAgent(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository
 ) {

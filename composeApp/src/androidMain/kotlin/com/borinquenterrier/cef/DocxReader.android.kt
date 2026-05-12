@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class DocxReader(private val context: Context) {
-    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.IO) {
+    actual suspend fun readSource(path: String): List<SourceFragment> = withContext(Dispatchers.IO) {
         var tempFile: File? = null
         try {
             val fileToRead = if (path.startsWith("content://")) {
@@ -45,7 +45,7 @@ actual class DocxReader(private val context: Context) {
             
             SourceProcessor.process(text, SourceType.TEXT)
         } catch (e: Exception) {
-            listOf(SourcePart(text = "Error extracting text from DOCX: ${e.message}", pageNumber = 0, type = SourceType.TEXT))
+            listOf(SourceFragment(text = "Error extracting text from DOCX: ${e.message}", pageNumber = 0, type = SourceType.TEXT))
         } finally {
             tempFile?.delete()
         }

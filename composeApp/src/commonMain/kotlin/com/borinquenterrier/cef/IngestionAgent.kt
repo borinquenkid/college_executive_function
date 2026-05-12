@@ -8,7 +8,7 @@ import kotlinx.coroutines.flow.asStateFlow
  * Handles the logic for adding and processing different types of sources.
  * Decoupled from the UI to allow for headless testing.
  */
-class SourceFlow(
+class IngestionAgent(
     private val fileReader: LocalFileReader,
     private val docxReader: DocxReader,
     private val pdfReader: PdfReader,

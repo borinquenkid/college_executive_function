@@ -19,16 +19,16 @@ import com.borinquenterrier.cef.db.AppDatabase
 fun StudioPanel(
     modifier: Modifier = Modifier, 
     selectedSource: SourceItem?, 
-    unifiedRepository: UnifiedCalendarRepository,
+    calendarAgent: CalendarAgent,
     container: DependencyContainer,
     onEventsGenerated: (List<Event>) -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
-    val studioFlow = container.studioFlow
+    val eventAgent = container.eventAgent
 
-    val isLoading by studioFlow.isLoading.collectAsState()
-    val statusMessage by studioFlow.statusMessage.collectAsState()
-    val lastGeneratedEvents by studioFlow.lastGeneratedEvents.collectAsState()
+    val isLoading by eventAgent.isLoading.collectAsState()
+    val statusMessage by eventAgent.statusMessage.collectAsState()
+    val lastGeneratedEvents by eventAgent.lastGeneratedEvents.collectAsState()
 
     val isConnected by container.tokenRepository.isLinked.collectAsState()
 
@@ -57,14 +57,14 @@ fun StudioPanel(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                studioFlow.generateStudyPlan(selectedSource)
+                                eventAgent.generateStudyPlan(selectedSource)
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         enabled = !isLoading
                     ) {
-                        Text("Generate Study Plan (AI)")
+                        Text("Plan Study Time (AI)")
                     }
                 }
 
@@ -72,13 +72,13 @@ fun StudioPanel(
                     Button(
                         onClick = {
                             coroutineScope.launch {
-                                studioFlow.extractDeliverables(selectedSource)
+                                eventAgent.extractDeliverables(selectedSource)
                             }
                         },
                         modifier = Modifier.fillMaxWidth(),
                         enabled = !isLoading
                     ) {
-                        Text("Extract Deliverables (AI)")
+                        Text("Find Deadlines & Exams (AI)")
                     }
                 }
 
@@ -113,7 +113,7 @@ fun StudioPanel(
                             onClick = {
                                 coroutineScope.launch {
                                     if (!isConnected) return@launch
-                                    studioFlow.pushToCalendar()
+                                    eventAgent.pushToCalendar()
                                 }
                             },
                             modifier = Modifier.fillMaxWidth(),

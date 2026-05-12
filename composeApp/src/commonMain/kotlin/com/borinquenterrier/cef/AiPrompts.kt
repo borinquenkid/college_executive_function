@@ -11,9 +11,9 @@ object AiPrompts {
 
     private val currentYear = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
 
-    val SOURCE_PART_INSTRUCTIONS = """
-        # Source Part Interpretation Instructions
-        You are receiving a JSON object representing a 'SourcePart'. 
+    val SOURCE_FRAGMENT_INSTRUCTIONS = """
+        # Source Fragment Interpretation Instructions
+        You are receiving a JSON object representing a 'SourceFragment'. 
         
         ## Fields:
         - `text`: The raw content to analyze.
@@ -28,14 +28,14 @@ object AiPrompts {
     """.trimIndent()
 
     /**
-     * Prompt for extracting events from a specific SourcePart.
+     * Prompt for extracting events from a specific SourceFragment.
      */
-    fun getSourceEventExtractionPrompt(partJson: String): String {
+    fun getSourceEventExtractionPrompt(fragmentJson: String): String {
         return """
-            $SOURCE_PART_INSTRUCTIONS
+            ${'$'}SOURCE_FRAGMENT_INSTRUCTIONS
             
             # Objective
-            Analyze the provided SourcePart and identify all academic deliverables, deadlines, or calendar events.
+            Analyze the provided SourceFragment and identify all academic deliverables, deadlines, or calendar events.
             
             # Output Format
             Return ONLY a raw JSON array of objects. No filler.
@@ -53,10 +53,10 @@ object AiPrompts {
             ]
             
             # Context
-            Current Year: $currentYear
+            Current Year: ${'$'}currentYear
             
-            # Data to Process (SourcePart JSON)
-            $partJson
+            # Data to Process (SourceFragment JSON)
+            ${'$'}fragmentJson
         """.trimIndent()
     }
 

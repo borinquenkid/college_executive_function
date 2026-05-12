@@ -9,7 +9,7 @@ import kotlinx.serialization.encodeToString
  * This allows for passing metadata along with the raw text to the AI.
  */
 @Serializable
-data class SourcePart(
+data class SourceFragment(
     val text: String,
     val pageNumber: Int? = null,
     val sectionTitle: String? = null,

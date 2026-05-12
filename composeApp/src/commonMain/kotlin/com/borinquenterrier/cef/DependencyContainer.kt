@@ -40,7 +40,7 @@ class DependencyContainer(
     val localRepository = SqlDelightLocalCalendarRepository(database)
     val syncService = GoogleCalendarSyncService(httpClient)
     val remoteRepository = GoogleRemoteCalendarRepository(syncService, tokenRepository, authService)
-    val unifiedRepository = UnifiedCalendarRepository(localRepository, remoteRepository)
+    val calendarAgent = CalendarAgent(localRepository, remoteRepository)
 
     val driveService = GoogleDriveService(httpClient, tokenRepository, authService)
     val aiService = AIService(settings, logger, database)
@@ -48,8 +48,8 @@ class DependencyContainer(
     val webReader = WebSourceReader()
 
     val googleAccountFlow = GoogleAccountFlow(authService, tokenRepository, driveService)
-    val sourceFlow = SourceFlow(fileReader, docxReader, pdfReader, webReader, driveService, aiService)
-    val studioFlow = StudioFlow(aiService, unifiedRepository, database, KeywordEventExtractor(), logger)
+    val ingestionAgent = IngestionAgent(fileReader, docxReader, pdfReader, webReader, driveService, aiService)
+    val eventAgent = EventAgent(aiService, calendarAgent, database, NormalizationService(), logger)
 
     val appController = AppController(this)
 }

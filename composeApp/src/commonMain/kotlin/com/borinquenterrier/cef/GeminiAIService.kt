@@ -127,10 +127,10 @@ class GeminiAIService(
         return selected
     }
 
-    suspend fun generateCalendarEvents(parts: List<SourcePart>): List<Event> {
+    suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         val combinedJson = buildJsonArray {
-            parts.forEach { part ->
-                add(Json.parseToJsonElement(part.toJson()))
+            fragments.forEach { fragment ->
+                add(Json.parseToJsonElement(fragment.toJson()))
             }
         }.toString()
         return generateCalendarEventsFromPrompt(AiPrompts.getSourceEventExtractionPrompt(combinedJson))

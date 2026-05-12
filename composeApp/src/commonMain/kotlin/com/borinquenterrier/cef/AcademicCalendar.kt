@@ -22,7 +22,7 @@ import kotlinx.datetime.*
 fun AcademicCalendar(
     modifier: Modifier = Modifier, 
     aiGeneratedEvents: List<Event>, 
-    unifiedRepository: UnifiedCalendarRepository,
+    calendarAgent: CalendarAgent,
     onNavigate: (AppScreen) -> Unit
 ) {
     val settings = rememberSettings()
@@ -43,13 +43,13 @@ fun AcademicCalendar(
 
     // Initial Load and Sync
     LaunchedEffect(isGoogleLinked) {
-        displayedEvents = unifiedRepository.getEvents("default")
+        displayedEvents = calendarAgent.getEvents("default")
         if (isGoogleLinked) {
             scope.launch {
                 isSyncing = true
                 try {
-                    unifiedRepository.synchronize("default")
-                    displayedEvents = unifiedRepository.getEvents("default")
+                    calendarAgent.synchronize("default")
+                    displayedEvents = calendarAgent.getEvents("default")
                 } catch (e: Exception) {
                     // Sync failed, using cached local data
                 } finally {
@@ -157,8 +157,8 @@ fun AcademicCalendar(
                         scope.launch {
                             isSyncing = true
                             try {
-                                unifiedRepository.synchronize("default")
-                                displayedEvents = unifiedRepository.getEvents("default")
+                                calendarAgent.synchronize("default")
+                                displayedEvents = calendarAgent.getEvents("default")
                             } catch (e: Exception) {
                             } finally {
                                 isSyncing = false

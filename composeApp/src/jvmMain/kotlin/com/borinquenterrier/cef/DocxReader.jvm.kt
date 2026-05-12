@@ -8,8 +8,8 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
 actual class DocxReader {
-    actual suspend fun readSource(path: String): List<SourcePart> = withContext(Dispatchers.IO) {
-        val parts = mutableListOf<SourcePart>()
+    actual suspend fun readSource(path: String): List<SourceFragment> = withContext(Dispatchers.IO) {
+        val parts = mutableListOf<SourceFragment>()
         try {
             val zipFile = ZipFile(File(path))
             val entry = zipFile.getEntry("word/document.xml") 
@@ -26,11 +26,11 @@ actual class DocxReader {
                     .replace(Regex("\\s+"), " ")
                     .trim()
                 if (text.isNotEmpty()) {
-                    parts.add(SourcePart(text = text, type = SourceType.TEXT))
+                    parts.add(SourceFragment(text = text, type = SourceType.TEXT))
                 }
             }
         } catch (e: Exception) {
-            parts.add(SourcePart(text = "Error: ${e.message}", type = SourceType.TEXT))
+            parts.add(SourceFragment(text = "Error: ${e.message}", type = SourceType.TEXT))
         }
         parts
     }

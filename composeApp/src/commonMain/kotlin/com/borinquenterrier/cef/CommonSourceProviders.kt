@@ -15,7 +15,7 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
 class LocalFileSourceProvider(
-    private val sourceFlow: SourceFlow,
+    private val ingestionAgent: IngestionAgent,
     private val aiService: AIService
 ) : SourceProvider {
     override val id = "local_file"
@@ -36,7 +36,7 @@ class LocalFileSourceProvider(
                     onDismiss()
                 } else {
                     scope.launch {
-                        val source = sourceFlow.addLocalFile(path)
+                        val source = ingestionAgent.addLocalFile(path)
                         onSourceAdded(source)
                     }
                 }
@@ -46,7 +46,7 @@ class LocalFileSourceProvider(
 }
 
 class UrlSourceProvider(
-    private val sourceFlow: SourceFlow,
+    private val ingestionAgent: IngestionAgent,
     private val aiService: AIService
 ) : SourceProvider {
     override val id = "url"
@@ -75,7 +75,7 @@ class UrlSourceProvider(
                 TextButton(onClick = {
                     if (url.isNotBlank()) {
                         scope.launch {
-                            val source = sourceFlow.addUrl(url)
+                            val source = ingestionAgent.addUrl(url)
                             onSourceAdded(source)
                         }
                     }
@@ -93,7 +93,7 @@ class UrlSourceProvider(
 }
 
 class GoogleDriveSourceProvider(
-    private val sourceFlow: SourceFlow,
+    private val ingestionAgent: IngestionAgent,
     private val driveService: GoogleDriveService,
     private val tokenRepository: GoogleTokenRepository
 ) : SourceProvider {
@@ -125,7 +125,7 @@ class GoogleDriveSourceProvider(
                 onDismiss = onDismiss,
                 onFileSelected = { file ->
                     scope.launch {
-                        val source = sourceFlow.addDriveFile(file)
+                        val source = ingestionAgent.addDriveFile(file)
                         onSourceAdded(source)
                     }
                 }

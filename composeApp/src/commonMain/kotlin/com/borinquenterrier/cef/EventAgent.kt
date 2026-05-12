@@ -9,14 +9,14 @@ import com.borinquenterrier.cef.db.AppDatabase
  * Encapsulates the business logic for the Studio panel, 
  * separating AI processing and event management from the UI.
  */
-class StudioFlow(
+class EventAgent(
     private val aiService: AIService,
-    private val repository: UnifiedCalendarRepository,
+    private val repository: CalendarAgent,
     private val database: AppDatabase? = null,
-    private val programmaticExtractor: KeywordEventExtractor = KeywordEventExtractor(),
+    private val normalizationService: NormalizationService = NormalizationService(),
     private val logger: Logger? = null
 ) {
-    private val tag = "StudioFlow"
+    private val tag = "EventAgent"
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -35,15 +35,15 @@ class StudioFlow(
         _statusMessage.value = "Analyzing ${source.title}..."
         
         try {
-            val allEvents = aiService.generateCalendarEvents(source.parts)
+            val allEvents = aiService.generateCalendarEvents(source.fragments)
             
             // De-duplicate events by properties (title, date, time)
-            val processed = programmaticExtractor.extract(allEvents).distinctBy { 
+            val processed = normalizationService.extract(allEvents).distinctBy { 
                 "${it.title}-${it.date}-${if (it is TimeEvent) it.startTime else ""}"
             }
             
             _lastGeneratedEvents.value = processed
-            _statusMessage.value = "${processed.size} deliverables identified from entire source."
+            _statusMessage.value = "${processed.size} deadlines and exams found from entire source."
         } catch (e: Exception) {
             logger?.e(tag, "Error extracting deliverables", e)
             _statusMessage.value = "Error: ${e.message}"
@@ -57,19 +57,19 @@ class StudioFlow(
      */
     suspend fun generateStudyPlan(source: SourceItem) {
         _isLoading.value = true
-        _statusMessage.value = "Generating study plan from full context..."
+        _statusMessage.value = "Planning study time from full context..."
         
         try {
             // Join parts for study plan logic
-            val syllabusText = source.parts.joinToString("\n\n") { it.text }
+            val syllabusText = source.fragments.joinToString("\n\n") { it.text }
             val planEvents = aiService.generateStudyPlan(syllabusText)
             
-            val processed = programmaticExtractor.extract(planEvents).distinctBy { 
+            val processed = normalizationService.extract(planEvents).distinctBy { 
                 "${it.title}-${it.date}-${if (it is TimeEvent) it.startTime else ""}"
             }
             
             _lastGeneratedEvents.value = processed
-            _statusMessage.value = "${processed.size} events generated in study plan."
+            _statusMessage.value = "${processed.size} events planned for study time."
         } catch (e: Exception) {
             logger?.e(tag, "Error generating study plan", e)
             _statusMessage.value = "Error: ${e.message}"

@@ -22,6 +22,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,12 +39,12 @@ data class ChatMessage(val author: String, val content: String)
 @Composable
 fun ChatPanel(
     modifier: Modifier = Modifier, 
-    selectedSource: SourceItem?,
-    contextAgent: ContextAgent
+    appController: AppController
 ) {
-    var messages by remember {
-        mutableStateOf(listOf(ChatMessage("AI", "Hello! How can I help you today?")))
-    }
+    val selectedSource by appController.selectedSource.collectAsState()
+    val messages by appController.chatMessages.collectAsState()
+    val contextAgent = appController.container.contextAgent
+    
     var newMessage by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
 
@@ -88,16 +89,16 @@ fun ChatPanel(
                     coroutineScope.launch {
                         if (newMessage.isNotBlank()) {
                             val userText = newMessage
-                            messages = messages + ChatMessage("User", userText)
+                            appController.addChatMessage(ChatMessage("User", userText))
                             newMessage = ""
 
                             val aiResponse = if (selectedSource != null) {
-                                contextAgent.querySource(selectedSource, userText)
+                                contextAgent.querySource(selectedSource!!, userText)
                             } else {
                                 // Fallback for general chat
                                 "Please select a source (like a syllabus) so I can answer your questions accurately."
                             }
-                            messages = messages + ChatMessage("AI", aiResponse)
+                            appController.addChatMessage(ChatMessage("AI", aiResponse))
                         }
                     }
                 },

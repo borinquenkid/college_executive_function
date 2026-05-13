@@ -30,6 +30,10 @@ class AppController(val container: DependencyContainer) {
     private val _selectedSource = MutableStateFlow<SourceItem?>(null)
     val selectedSource: StateFlow<SourceItem?> = _selectedSource.asStateFlow()
 
+    // Chat State
+    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(listOf(ChatMessage("AI", "Hello! How can I help you today?")))
+    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages.asStateFlow()
+
     // Listeners for platform-specific UI (like native iOS)
     private var screenListener: ((AppScreen) -> Unit)? = null
     private var eventsListener: ((List<Event>) -> Unit)? = null
@@ -69,6 +73,10 @@ class AppController(val container: DependencyContainer) {
 
     fun selectSource(source: SourceItem?) {
         _selectedSource.value = source
+    }
+
+    fun addChatMessage(message: ChatMessage) {
+        _chatMessages.value = _chatMessages.value + message
     }
 
     /**

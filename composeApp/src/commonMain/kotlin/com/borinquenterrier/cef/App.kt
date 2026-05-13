@@ -107,8 +107,7 @@ fun UniversalHomeLayout(container: DependencyContainer) {
         // This is always the foundation. It fills the screen and is never squished.
         ChatPanel(
             modifier = Modifier.fillMaxSize(),
-            selectedSource = selectedSource,
-            contextAgent = container.contextAgent
+            appController = appController
         )
 
         // --- LAYER 2: EDGE NAVIGATION (THE FLOATING CONTROLS) ---

@@ -8,6 +8,11 @@ class NormalizationService : EventExtractor {
 
     override fun extract(events: List<Event>): List<Event> {
         return events.map { event ->
+            // Do not override categories that AI has explicitly tagged as STUDY_BLOCK or CLASS
+            if (event.category == AcademicCategory.STUDY_BLOCK || event.category == AcademicCategory.CLASS) {
+                return@map event
+            }
+            
             val title = event.title.lowercase()
             val newCategory = when {
                 title.contains("holiday") || title.contains("break") || title.contains("no class") -> 

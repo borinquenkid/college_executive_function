@@ -1,43 +1,23 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.animation.AnimatedVisibility
+import androidx.compose.animation.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Row
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxHeight
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.DateRange
-import androidx.compose.material.icons.filled.Home
-import androidx.compose.material.icons.filled.KeyboardArrowDown
-import androidx.compose.material.icons.filled.KeyboardArrowLeft
-import androidx.compose.material.icons.filled.KeyboardArrowRight
-import androidx.compose.material.icons.filled.KeyboardArrowUp
-import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.CircularProgressIndicator
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.Scaffold
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.collectAsState
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberCoroutineScope
-import androidx.compose.runtime.setValue
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowLeft
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import com.borinquenterrier.cef.ui.theme.CollegeExecutiveFunctionTheme
 import kotlinx.coroutines.launch
@@ -67,8 +47,8 @@ fun App() {
         
         Scaffold(
             topBar = {
-                TopAppBar(
-                    title = { Text("College Executive Function") },
+                CenterAlignedTopAppBar(
+                    title = { Text("College Executive Function", style = MaterialTheme.typography.titleMedium) },
                     actions = {
                         IconButton(onClick = { appController.navigateTo(AppScreen.Home) }) {
                             Icon(Icons.Default.Home, contentDescription = "Home")
@@ -83,164 +63,36 @@ fun App() {
                 )
             }
         ) { paddingValues ->
-            val modifier = Modifier.fillMaxSize().padding(paddingValues)
-
-            when (currentScreen) {
-                is AppScreen.Home -> {
-                    if (isDesktop) {
-                        DesktopApp(
-                            modifier, 
-                            appController
-                        )
-                    } else {
-                        MobileApp(
-                            modifier, 
-                            appController
-                        )
+            Box(Modifier.fillMaxSize().padding(paddingValues)) {
+                when (currentScreen) {
+                    is AppScreen.Home -> {
+                        UniversalHomeLayout(container)
+                    }
+                    is AppScreen.Calendar -> {
+                        AcademicCalendar(Modifier.fillMaxSize(), aiGeneratedEvents, container.calendarAgent) { appController.navigateTo(it) }
+                    }
+                    is AppScreen.Settings -> {
+                        SettingsScreen(container, Modifier.fillMaxSize())
+                    }
+                    is AppScreen.Routine -> {
+                        RoutineScreen(Modifier.fillMaxSize())
                     }
                 }
-                is AppScreen.Calendar -> {
-                    AcademicCalendar(modifier, aiGeneratedEvents, container.calendarAgent) { appController.navigateTo(it) }
-                }
-                is AppScreen.Settings -> {
-                    SettingsScreen(container, modifier)
-                }
-                is AppScreen.Routine -> {
-                    RoutineScreen(modifier)
-                }
             }
         }
     }
 }
 
 @Composable
-fun DesktopApp(
-    modifier: Modifier = Modifier, 
-    appController: AppController
-) {
-    val container = appController.container
+fun UniversalHomeLayout(container: DependencyContainer) {
+    val appController = container.appController
     val sourceItems by appController.sourceItems.collectAsState()
     val selectedSource by appController.selectedSource.collectAsState()
-
-    var showSources by remember { mutableStateOf(true) }
-    var showStudio by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
-    
-    val sourceProviders = remember(container) {
-        listOf(
-            LocalFileSourceProvider(container.ingestionAgent, container.aiService),
-            UrlSourceProvider(container.ingestionAgent, container.aiService),
-            GoogleDriveSourceProvider(container.ingestionAgent, container.driveService, container.tokenRepository)
-        )
-    }
 
-    Row(modifier = modifier, verticalAlignment = Alignment.CenterVertically) {
-        AnimatedVisibility(visible = showSources, modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                SourcesPanel(
-                    modifier = Modifier.weight(1f),
-                    sourceItems = sourceItems,
-                    selectedSource = selectedSource,
-                    onSourceSelected = { appController.selectSource(it) },
-                    onSourceAdded = { source ->
-                        appController.addSource(source)
-                        coroutineScope.launch {
-                            val allEvents = if (container.aiService.isConfigured()) {
-                                container.aiService.generateCalendarEvents(source.fragments)
-                            } else {
-                                emptyList()
-                            }
-                            appController.addEvents(allEvents)
-                        }
-                    },
-                    providers = sourceProviders
-                )
-                Box(
-                    Modifier
-                        .fillMaxHeight()
-                        .width(24.dp)
-                        .clickable { showSources = false },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowLeft,
-                        contentDescription = "Hide Sources"
-                    )
-                }
-            }
-        }
-
-        if (!showSources) {
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .width(24.dp)
-                    .clickable { showSources = true },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowRight,
-                    contentDescription = "Show Sources"
-                )
-            }
-        }
-
-        ChatPanel(modifier = Modifier.weight(2f), selectedSource = selectedSource)
-
-        if (!showStudio) {
-            Box(
-                Modifier
-                    .fillMaxHeight()
-                    .width(24.dp)
-                    .clickable { showStudio = true },
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Filled.KeyboardArrowLeft,
-                    contentDescription = "Show Studio"
-                )
-            }
-        }
-
-        AnimatedVisibility(visible = showStudio, modifier = Modifier.weight(1f)) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Box(
-                    Modifier
-                        .fillMaxHeight()
-                        .width(24.dp)
-                        .clickable { showStudio = false },
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Filled.KeyboardArrowRight,
-                        contentDescription = "Hide Studio"
-                    )
-                }
-                StudioPanel(
-                    modifier = Modifier.weight(1f), 
-                    selectedSource = selectedSource, 
-                    calendarAgent = container.calendarAgent, 
-                    container = container,
-                    onEventsGenerated = { appController.addEvents(it) }
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun MobileApp(
-    modifier: Modifier = Modifier, 
-    appController: AppController
-) {
-    val container = appController.container
-    val sourceItems by appController.sourceItems.collectAsState()
-    val selectedSource by appController.selectedSource.collectAsState()
-
-    var showSources by remember { mutableStateOf(sourceItems.isEmpty()) }
+    var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
-    val coroutineScope = rememberCoroutineScope()
-    
+
     val sourceProviders = remember(container) {
         listOf(
             LocalFileSourceProvider(container.ingestionAgent, container.aiService),
@@ -249,74 +101,103 @@ fun MobileApp(
         )
     }
 
-    Column(modifier = modifier) {
-        // Sources Panel (Top)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            IconButton(onClick = {
-                val newShowSources = !showSources
-                if (newShowSources) {
-                    showStudio = false
-                }
-                showSources = newShowSources
-            }) {
-                Icon(
-                    imageVector = if (showSources) Icons.Filled.KeyboardArrowUp else Icons.Filled.KeyboardArrowDown,
-                    contentDescription = if (showSources) "Hide Sources" else "Show Sources"
-                )
-            }
-            AnimatedVisibility(visible = showSources) {
-                SourcesPanel(
-                    modifier = Modifier.fillMaxWidth(),
-                    sourceItems = sourceItems,
-                    selectedSource = selectedSource,
-                    onSourceSelected = { appController.selectSource(it) },
-                    onSourceAdded = { source ->
-                        appController.addSource(source)
-                        coroutineScope.launch {
-                            val allEvents = if (container.aiService.isConfigured()) {
-                                container.aiService.generateCalendarEvents(source.fragments)
-                            } else {
-                                emptyList()
-                            }
-                            appController.addEvents(allEvents)
-                        }
-                    },
-                    providers = sourceProviders
-                )
+    Box(Modifier.fillMaxSize().background(MaterialTheme.colorScheme.surface)) {
+        
+        // --- BASE LAYER: THE PERMANENT CHAT CANVAS ---
+        // This is always the foundation. It fills the screen and is never squished.
+        ChatPanel(
+            modifier = Modifier.fillMaxSize(),
+            selectedSource = selectedSource,
+            contextAgent = container.contextAgent
+        )
+
+        // --- LAYER 2: EDGE NAVIGATION (THE FLOATING CONTROLS) ---
+        // Left Edge: Sources Trigger
+        Box(Modifier.fillMaxHeight().align(Alignment.CenterStart).padding(start = 8.dp), contentAlignment = Alignment.Center) {
+            FloatingActionButton(
+                onClick = { showSources = !showSources; if(showSources) showStudio = false },
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(if (showSources) Icons.AutoMirrored.Filled.KeyboardArrowLeft else Icons.Default.Menu, "Sources")
             }
         }
 
-        // Chat Panel (Middle)
-        ChatPanel(modifier = Modifier.weight(1f), selectedSource = selectedSource)
-
-        // Studio Panel (Bottom)
-        Column(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            AnimatedVisibility(visible = showStudio) {
-                StudioPanel(
-                    modifier = Modifier.fillMaxWidth(), 
-                    selectedSource = selectedSource, 
-                    calendarAgent = container.calendarAgent, 
-                    container = container,
-                    onEventsGenerated = { appController.addEvents(it) }
-                )
+        // Right Edge: Studio Trigger
+        Box(Modifier.fillMaxHeight().align(Alignment.CenterEnd).padding(end = 8.dp), contentAlignment = Alignment.Center) {
+            FloatingActionButton(
+                onClick = { showStudio = !showStudio; if(showStudio) showSources = false },
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                modifier = Modifier.size(48.dp)
+            ) {
+                Icon(if (showStudio) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.Build, "Studio")
             }
-            IconButton(onClick = {
-                val newShowStudio = !showStudio
-                if (newShowStudio) {
-                    showSources = false
+        }
+
+        // --- LAYER 3: ADAPTIVE OVERLAY DRAWERS ---
+        // Sources Overlay (Left)
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showSources,
+            enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+            exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(),
+            modifier = Modifier.align(Alignment.CenterStart)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxHeight().width(320.dp).shadow(16.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Box {
+                    SourcesPanel(
+                        sourceItems = sourceItems,
+                        selectedSource = selectedSource,
+                        onSourceSelected = { appController.selectSource(it); showSources = false },
+                        onSourceAdded = { source ->
+                            appController.addSource(source)
+                            coroutineScope.launch {
+                                if (container.aiService.isConfigured()) {
+                                    val allEvents = container.aiService.generateCalendarEvents(source.fragments)
+                                    appController.addEvents(allEvents)
+                                    container.contextAgent.analyzeSource(source)
+                                }
+                            }
+                        },
+                        providers = sourceProviders
+                    )
+                    // Close shortcut
+                    IconButton(
+                        onClick = { showSources = false },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                    ) { Icon(Icons.Default.Close, null) }
                 }
-                showStudio = newShowStudio
-            }) {
-                Icon(
-                    imageVector = if (showStudio) Icons.Filled.KeyboardArrowDown else Icons.Filled.KeyboardArrowUp,
-                    contentDescription = if (showStudio) "Hide Studio" else "Show Studio"
-                )
+            }
+        }
+
+        // Studio Overlay (Right)
+        androidx.compose.animation.AnimatedVisibility(
+            visible = showStudio,
+            enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+            exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+            modifier = Modifier.align(Alignment.CenterEnd)
+        ) {
+            Surface(
+                modifier = Modifier.fillMaxHeight().width(360.dp).shadow(16.dp),
+                color = MaterialTheme.colorScheme.surface,
+                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            ) {
+                Box {
+                    StudioPanel(
+                        selectedSource = selectedSource,
+                        calendarAgent = container.calendarAgent,
+                        container = container,
+                        onEventsGenerated = { appController.addEvents(it) }
+                    )
+                    // Close shortcut
+                    IconButton(
+                        onClick = { showStudio = false },
+                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                    ) { Icon(Icons.Default.Close, null) }
+                }
             }
         }
     }

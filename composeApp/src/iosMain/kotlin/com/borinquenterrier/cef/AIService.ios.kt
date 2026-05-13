@@ -30,16 +30,19 @@ actual class AIService actual constructor(
     }
 
     actual suspend fun generateChatResponse(prompt: String): String {
-        return "Chat not yet implemented on iOS."
+        return getGeminiService().generateChatResponse(prompt)
     }
 
     actual suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         return getGeminiService().generateCalendarEvents(fragments)
     }
 
-    actual suspend fun generateStudyPlan(syllabusText: String): List<Event> {
-        val prompt = AiPrompts.getSyllabusStudyPlanPrompt(syllabusText)
-        return getGeminiService().generateCalendarEventsFromPrompt(prompt)
+    actual suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String): List<Event> {
+        return getGeminiService().generateStudyPlan(syllabusText, existingSchedule)
+    }
+
+    actual suspend fun analyzeDocument(text: String): String? {
+        return getGeminiService().analyzeDocument(text)
     }
 }
 

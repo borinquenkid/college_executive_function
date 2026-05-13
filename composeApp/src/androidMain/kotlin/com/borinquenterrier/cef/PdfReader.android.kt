@@ -33,10 +33,28 @@ actual class PdfReader(private val context: Context) {
 
             val document = PDDocument.load(fileToRead)
             val stripper = PDFTextStripper()
-            val text = stripper.getText(document)
+            val fragments = mutableListOf<SourceFragment>()
+            
+            for (i in 0 until document.numberOfPages) {
+                stripper.startPage = i + 1
+                stripper.endPage = i + 1
+                val text = stripper.getText(document).trim()
+                if (text.isNotEmpty()) {
+                    fragments.add(SourceFragment(
+                        text = text,
+                        pageNumber = i + 1,
+                        type = SourceType.TEXT,
+                        sectionTitle = "Page ${i + 1}"
+                    ))
+                }
+            }
             document.close()
             
-            SourceProcessor.process(text.trim(), SourceType.TEXT)
+            if (fragments.isEmpty()) {
+                listOf(SourceFragment(text = "No text content found in PDF", pageNumber = 0, type = SourceType.TEXT))
+            } else {
+                fragments
+            }
         } catch (e: Exception) {
             listOf(SourceFragment(text = "Error extracting text from PDF: ${e.message}", pageNumber = 0, type = SourceType.TEXT))
         } finally {

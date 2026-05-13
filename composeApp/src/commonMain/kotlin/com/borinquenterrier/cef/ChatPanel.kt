@@ -9,6 +9,7 @@ import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.widthIn
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
@@ -35,13 +36,16 @@ import kotlinx.coroutines.launch
 data class ChatMessage(val author: String, val content: String)
 
 @Composable
-fun ChatPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
+fun ChatPanel(
+    modifier: Modifier = Modifier, 
+    selectedSource: SourceItem?,
+    contextAgent: ContextAgent
+) {
     var messages by remember {
         mutableStateOf(listOf(ChatMessage("AI", "Hello! How can I help you today?")))
     }
     var newMessage by remember { mutableStateOf("") }
     val coroutineScope = rememberCoroutineScope()
-    val aiService = rememberAIService()
 
     Column(
         modifier = modifier
@@ -58,34 +62,41 @@ fun ChatPanel(modifier: Modifier = Modifier, selectedSource: SourceItem?) {
         Row(
             modifier = Modifier.fillMaxWidth()
                 .padding(8.dp)
-                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(32.dp)),
+                .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(32.dp))
+                .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(modifier = Modifier.weight(1f).padding(horizontal = 16.dp)) {
+            Box(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
                 if (newMessage.isEmpty()) {
-                    Text("Type your message...", style = MaterialTheme.typography.bodyLarge)
+                    Text(
+                        "Ask about syllabus...", 
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        maxLines = 1
+                    )
                 }
                 BasicTextField(
                     value = newMessage,
                     onValueChange = { newMessage = it },
                     modifier = Modifier.fillMaxWidth(),
-                    textStyle = MaterialTheme.typography.bodyLarge.copy(color = MaterialTheme.colorScheme.onSurface)
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
+                    singleLine = true
                 )
             }
             IconButton(
                 onClick = {
                     coroutineScope.launch {
                         if (newMessage.isNotBlank()) {
-                            val userMessage = ChatMessage("User", newMessage)
-                            messages = messages + userMessage
+                            val userText = newMessage
+                            messages = messages + ChatMessage("User", userText)
                             newMessage = ""
 
-                            val prompt = if (selectedSource != null) {
-                                "Based on ${selectedSource.title}, ${userMessage.content}"
+                            val aiResponse = if (selectedSource != null) {
+                                contextAgent.querySource(selectedSource, userText)
                             } else {
-                                userMessage.content
+                                // Fallback for general chat
+                                "Please select a source (like a syllabus) so I can answer your questions accurately."
                             }
-                            val aiResponse = aiService.generateChatResponse(prompt)
                             messages = messages + ChatMessage("AI", aiResponse)
                         }
                     }
@@ -103,18 +114,28 @@ fun MessageView(message: ChatMessage) {
     val isUser = message.author == "User"
     val horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     val backgroundColor = if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
+    val textColor = if (isUser) MaterialTheme.colorScheme.onPrimaryContainer else MaterialTheme.colorScheme.onSurfaceVariant
 
     Row(
-        modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+        modifier = Modifier.fillMaxWidth().padding(vertical = 2.dp, horizontal = 4.dp),
         horizontalArrangement = horizontalArrangement
     ) {
         Column(
             modifier = Modifier
-                .background(backgroundColor, RoundedCornerShape(8.dp))
-                .padding(8.dp)
+                .widthIn(max = 280.dp)
+                .background(backgroundColor, RoundedCornerShape(12.dp))
+                .padding(horizontal = 12.dp, vertical = 6.dp)
         ) {
-            Text(message.author, style = MaterialTheme.typography.titleSmall)
-            Text(message.content, style = MaterialTheme.typography.bodyMedium)
+            Text(
+                message.author, 
+                style = MaterialTheme.typography.labelSmall,
+                color = textColor.copy(alpha = 0.7f)
+            )
+            Text(
+                message.content, 
+                style = MaterialTheme.typography.bodyMedium,
+                color = textColor
+            )
         }
     }
 }

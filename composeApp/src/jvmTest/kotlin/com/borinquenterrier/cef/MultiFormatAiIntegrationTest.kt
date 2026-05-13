@@ -29,7 +29,7 @@ class MultiFormatAiIntegrationTest : FunSpec({
         val settings = MapSettings()
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
         val logger = Logger(settings)
-        val aiService = AIService(settings, logger, null, null)
+        val aiService = AIService(settings, logger, null)
 
         // 2. Prepare Source Contents
         

@@ -32,6 +32,11 @@ data class RemoteCalendarMetadata(val id: String, val name: String)
  */
 interface StudentCalendarRepository {
     /**
+     * Optional settings access for run profile checks.
+     */
+    fun getSettings(): com.russhwolf.settings.Settings?
+
+    /**
      * Retrieves all saved events from a specific calendar.
      */
     suspend fun getAllEvents(calendarId: String = "default"): List<Event>

@@ -11,6 +11,8 @@ class GoogleRemoteCalendarRepository(
     private val authService: GoogleAuthService
 ) : RemoteCalendarRepository {
 
+    override fun getSettings(): com.russhwolf.settings.Settings? = null
+
     private suspend fun <T> withToken(block: suspend (String) -> T): T {
         val currentToken = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
         return try {

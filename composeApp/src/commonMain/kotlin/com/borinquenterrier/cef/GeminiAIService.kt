@@ -269,6 +269,86 @@ class GeminiAIService(
         }
         throw lastError ?: Exception("Failed to generate events after $maxAttempts attempts")
     }
+
+    suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String = ""): List<Event> {
+        return generateCalendarEventsFromPrompt(AiPrompts.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule))
+    }
+
+    suspend fun generateChatResponse(prompt: String): String {
+        val available = getAvailableModels()
+        val modelName = negotiateBestModel(available)
+        
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
+        val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
+
+        return try {
+            val httpResponse: HttpResponse = client.post(authUrl) {
+                contentType(ContentType.Application.Json)
+                if (apiKey == null && accessToken != null) {
+                    header("Authorization", "Bearer $accessToken")
+                }
+                setBody(buildJsonObject {
+                    putJsonArray("contents") {
+                        addJsonObject {
+                            putJsonArray("parts") {
+                                addJsonObject { put("text", prompt) }
+                            }
+                        }
+                    }
+                })
+            }
+
+            if (!httpResponse.status.isSuccess()) {
+                throw Exception("Gemini API Error: ${httpResponse.status}")
+            }
+
+            val geminiResponse = json.decodeFromString<GeminiResponse>(httpResponse.bodyAsText())
+            geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                ?: "No response from AI."
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to generate chat response: ${e.message}")
+            "Error: ${e.message}"
+        }
+    }
+
+    suspend fun analyzeDocument(text: String): String? {
+        val available = getAvailableModels()
+        val modelName = negotiateBestModel(available)
+        
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
+        val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
+
+        return try {
+            val httpResponse: HttpResponse = client.post(authUrl) {
+                contentType(ContentType.Application.Json)
+                if (apiKey == null && accessToken != null) {
+                    header("Authorization", "Bearer $accessToken")
+                }
+                setBody(buildJsonObject {
+                    putJsonArray("contents") {
+                        addJsonObject {
+                            putJsonArray("parts") {
+                                addJsonObject { put("text", AiPrompts.getDocumentIntelligencePrompt(text)) }
+                            }
+                        }
+                    }
+                    putJsonObject("generationConfig") {
+                        put("responseMimeType", "application/json")
+                    }
+                })
+            }
+
+            if (!httpResponse.status.isSuccess()) {
+                throw Exception("Gemini API Error: ${httpResponse.status}")
+            }
+
+            val geminiResponse = json.decodeFromString<GeminiResponse>(httpResponse.bodyAsText())
+            geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to analyze document: ${e.message}")
+            null
+        }
+    }
 }
 
 @Serializable

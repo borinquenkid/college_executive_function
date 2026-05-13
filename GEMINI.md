@@ -3,6 +3,9 @@
 ## Build Verification Protocol
 Whenever the agent reports that a task or feature is "done," it MUST verify that all three primary build targets compile successfully by running the following command: `./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble`. The agent must confirm these three builds pass before confirming completion to the user.
 
+## UI Verification Protocol
+For UI-related changes, the agent MUST verify the visual state by running the relevant module (e.g., `:composeApp:jvmRun`) and performing a screen capture (e.g., using macOS `screencapture`). This ensures that layout optimizations and visual features are physically verified on-screen before being reported as complete.
+
 ## Native Dependency Management
 Manual modification of Xcode project files (.pbxproj) and adding external Swift packages is strictly prohibited due to their brittleness in KMP builds. All native features MUST be implemented using platform-native APIs already available in the system frameworks, accessible via pure Kotlin/Native interop, to ensure build stability.
 
@@ -78,7 +81,7 @@ All business logic classes (Models, Agents, Services, and Utilities) must have a
 
 *   **UI Scaffolding:** Initial UI for all three panels is complete.
 *   **General Styling:** A consistent theme, including colors, typography, and borders, has been applied.
-*   **File Picker:** A functional file picker has been implemented for desktop and Android.
+*   **File Picker:** A functional file picker has been implemented for desktop, Android, and natively on iOS using `UIDocumentPickerViewController`.
 *   **Settings Screen:** A functional settings screen for entering and saving an API key has been implemented.
 *   **Unified Event Model:** Refactored the entire application to use a unified `Event` data model.
 *   **Routine Management:** A complete flow for creating, viewing, and persisting a recurring weekly schedule.
@@ -88,7 +91,10 @@ All business logic classes (Models, Agents, Services, and Utilities) must have a
 *   **Google Calendar REST Integration:** Fully KMP-compatible synchronization using Ktor.
 *   **OAuth2 Authentication:** Implemented support for local server flow (JVM) and persistent token storage.
 *   **AI Integration (Robust):** Real intelligence implementation with auto-negotiation, persistent model caching in SQLite.
-*   **Agentic Separation:** Refactored the UI to use a decoupled logic layer for headless testing and cleaner state management.
+*   **Agentic Separation & Refactoring:** Refactored the UI to use a decoupled logic layer. Successfully transitioned to an Agentic Architecture (`IngestionAgent`, `EventAgent`, `CalendarAgent`, `NormalizationService`, `SourceFragment`).
+*   **Multi-Format Extraction:** Robust text extraction for DOCX and PDF files using native libraries for Android, iOS, and JVM.
+*   **Native Mobile Auth:** Implemented native Google Sign-In using `GoogleSignInClient` (Android) and `ASWebAuthenticationSession` (iOS).
+*   **AI Study Plan Constraints:** Implemented strict AI-driven scheduling rules (9-5 limits, daily breaks, class priority, collision resolution) via high-context Gemini reasoning.
 *   **Debug Logging:** Integrated platform-aware logging.
 *   **Automatic Schema Migrations:** Updated database factory to automatically detect and create missing tables.
 
@@ -96,26 +102,17 @@ All business logic classes (Models, Agents, Services, and Utilities) must have a
 
 The following tasks are planned for the next phase of development:
 
-#### Core Refactoring (Agentic Transition)
-*   **Refactor Logic Layer:** [TODO] Rename and refactor core components to align with the agentic architecture:
-    *   `SourceFlow` ➔ **`IngestionAgent`**
-    *   `StudioFlow` ➔ **`EventAgent`**
-    *   `UnifiedCalendarRepository` ➔ **`CalendarAgent`**
-    *   `KeywordEventExtractor` ➔ **`NormalizationService`**
-    *   `SourcePart` ➔ **`SourceFragment`**
-
 #### Core Functionality & AI
-*   **iOS Feature Parity:** [TODO] Enable and implement native File Picker and Web Picker for the iOS target (currently disabled/unavailable).
-*   **Multi-Format Support:** Robust text extraction for **DOCX** and **PDF** files using native libraries for Android/iOS.
 *   **AI Task Decomposition:** Full UI flow for the "Break It Down" feature to split assignments into 1-2 hour sub-tasks.
-*   **Syllabus-to-Study Schedule:** Further refine the logic that suggests study periods based on weighted deliverables.
+*   **Automatic Source Categorization:** (Google Notebook style) Automatically tag sources as "Syllabus", "Reading Material", "Lab Manual", or "Lecture Notes" during ingestion to optimize AI retrieval.
+*   **Multi-Source Chat Context:** Refactor `ContextAgent` to allow the Chat panel to reason across *all* stored sources simultaneously (e.g., "What are all my grading policies across all classes?").
+*   **Syllabus-to-Study Schedule (Fine-tuning):** We have the core constraints working in the LLM. Next step is iterating over the scheduling parameters via user surveys (e.g., custom study hours, custom break lengths).
 
 #### Calendar & Sync
 *   **Client Secrets Management:** Secure injection mechanism for `client_secret.json`.
-*   **Native Mobile Auth:** Native Google Sign-In SDKs for Android and iOS.
-*   **Two-Way Synchronization:** Complete full bi-directional sync with Google Calendar.
+*   **Two-Way Synchronization (Edge Cases):** The core sync is implemented. Need to handle edge cases like remote deletions reflecting locally, and offline mutation queues.
 
 #### UI & UX
-*   **Vertical Layout Optimization:** [TODO] Shrink the vertical layout by approximately half to ensure buttons (like 'Accept') are reachable without tabbing.
+*   **Vertical Layout Optimization:** Shrink the vertical layout by approximately half to ensure buttons (like 'Accept') are reachable without tabbing.
 *   **Visual Progress Tracking:** Progress bars and "Time Remaining" visuals for long-term projects.
 *   **Export Support:** Implement `.ics` file export for the entire generated study plan.

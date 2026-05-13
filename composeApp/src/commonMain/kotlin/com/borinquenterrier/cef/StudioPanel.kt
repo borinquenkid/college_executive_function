@@ -42,16 +42,17 @@ fun StudioPanel(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(8.dp)
-            .border(1.dp, MaterialTheme.colorScheme.outline),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(4.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text("Studio", style = MaterialTheme.typography.headlineSmall)
+        Text("Studio", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 4.dp))
 
         if (selectedSource != null) {
             LazyColumn(
                 modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                contentPadding = PaddingValues(4.dp)
             ) {
                 item {
                     Button(
@@ -60,25 +61,27 @@ fun StudioPanel(
                                 eventAgent.generateStudyPlan(selectedSource)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().height(40.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
+                        contentPadding = PaddingValues(0.dp),
                         enabled = !isLoading
                     ) {
-                        Text("Plan Study Time (AI)")
+                        Text("Plan Study Time (AI)", style = MaterialTheme.typography.labelLarge)
                     }
                 }
 
                 item {
-                    Button(
+                    OutlinedButton(
                         onClick = {
                             coroutineScope.launch {
                                 eventAgent.extractDeliverables(selectedSource)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().height(40.dp),
+                        contentPadding = PaddingValues(0.dp),
                         enabled = !isLoading
                     ) {
-                        Text("Find Deadlines & Exams (AI)")
+                        Text("Find Deadlines & Exams (AI)", style = MaterialTheme.typography.labelLarge)
                     }
                 }
 

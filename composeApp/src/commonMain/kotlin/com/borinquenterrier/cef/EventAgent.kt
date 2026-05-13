@@ -53,7 +53,7 @@ class EventAgent(
     }
 
     /**
-     * Generates a proactive study plan, using the full document context.
+     * Generates a proactive study plan, using the full document context and existing calendar events.
      */
     suspend fun generateStudyPlan(source: SourceItem) {
         _isLoading.value = true
@@ -62,7 +62,17 @@ class EventAgent(
         try {
             // Join parts for study plan logic
             val syllabusText = source.fragments.joinToString("\n\n") { it.text }
-            val planEvents = aiService.generateStudyPlan(syllabusText)
+            
+            // Get existing events to prevent collisions
+            val existingEvents = repository.getEvents("default")
+            val existingScheduleText = existingEvents.joinToString("\n") { event ->
+                when (event) {
+                    is TimeEvent -> "- ${event.title} on ${event.date} from ${event.startTime} to ${event.endTime}"
+                    is DayEvent -> "- ${event.title} on ${event.date} (All Day)"
+                }
+            }
+            
+            val planEvents = aiService.generateStudyPlan(syllabusText, existingScheduleText)
             
             val processed = normalizationService.extract(planEvents).distinctBy { 
                 "${it.title}-${it.date}-${if (it is TimeEvent) it.startTime else ""}"

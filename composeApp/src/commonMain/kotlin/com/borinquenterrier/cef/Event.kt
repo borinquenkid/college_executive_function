@@ -10,7 +10,7 @@ enum class EventSource {
 }
 
 enum class AcademicCategory {
-    REGULAR, HOLIDAY, DEADLINE, FINALS, SEMESTER_BOUND, STUDY_BLOCK
+    REGULAR, HOLIDAY, DEADLINE, FINALS, SEMESTER_BOUND, STUDY_BLOCK, CLASS
 }
 
 enum class SyncStatus {

@@ -49,3 +49,47 @@ SELECT modelName FROM ModelCache WHERE key = ?;
 
 deleteModel:
 DELETE FROM ModelCache WHERE key = ?;
+
+-- RAG & Document Persistence
+CREATE TABLE IF NOT EXISTS SourceEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    title TEXT NOT NULL,
+    originUri TEXT,
+    type TEXT NOT NULL, -- TEXT, CALENDAR
+    metadata TEXT, -- JSON map containing AI-extracted policies, grading scales, etc.
+    updatedAt INTEGER NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS FragmentEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    sourceId TEXT NOT NULL,
+    text TEXT NOT NULL,
+    pageNumber INTEGER,
+    sectionTitle TEXT,
+    type TEXT NOT NULL,
+    metadata TEXT, -- JSON map
+    FOREIGN KEY(sourceId) REFERENCES SourceEntity(id) ON DELETE CASCADE
+);
+
+insertSource:
+INSERT OR REPLACE INTO SourceEntity(id, title, originUri, type, metadata, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?);
+
+insertFragment:
+INSERT OR REPLACE INTO FragmentEntity(id, sourceId, text, pageNumber, sectionTitle, type, metadata)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectAllSources:
+SELECT * FROM SourceEntity;
+
+selectSourceById:
+SELECT * FROM SourceEntity WHERE id = ?;
+
+selectFragmentsBySource:
+SELECT * FROM FragmentEntity WHERE sourceId = ? ORDER BY pageNumber ASC;
+
+deleteSource:
+DELETE FROM SourceEntity WHERE id = ?;
+
+deleteAllSources:
+DELETE FROM SourceEntity;

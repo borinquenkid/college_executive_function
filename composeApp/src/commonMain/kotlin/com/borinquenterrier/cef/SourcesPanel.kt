@@ -7,8 +7,10 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
+import androidx.compose.material3.AssistChip
 import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -34,19 +36,23 @@ fun SourcesPanel(
 
     Column(
         modifier = modifier
-            .padding(8.dp)
-            .border(1.dp, MaterialTheme.colorScheme.outline),
-        verticalArrangement = Arrangement.spacedBy(8.dp)
+            .padding(4.dp)
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp), modifier = Modifier.fillMaxWidth()) {
+        Text("Sources", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 4.dp))
+        
+        FlowRow(
+            horizontalArrangement = Arrangement.spacedBy(4.dp), 
+            modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
+        ) {
             providers.forEach { provider ->
-                Button(
+                AssistChip(
                     onClick = { activeProviderId = provider.id },
-                    enabled = provider.isAuthorized()
-                ) {
-                    Icon(provider.icon, contentDescription = "Add from ${provider.displayName}")
-                    Text(provider.displayName)
-                }
+                    enabled = provider.isAuthorized(),
+                    label = { Text(provider.displayName, style = MaterialTheme.typography.labelSmall) },
+                    leadingIcon = { Icon(provider.icon, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                )
             }
         }
 

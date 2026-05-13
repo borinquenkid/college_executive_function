@@ -1,15 +1,21 @@
 package com.borinquenterrier.cef
 
 import com.borinquenterrier.cef.db.AppDatabase
+import com.russhwolf.settings.Settings
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.decodeFromString
 
-class SqlDelightLocalCalendarRepository(private val database: AppDatabase) : StudentCalendarRepository {
+class SqlDelightLocalCalendarRepository(
+    private val database: AppDatabase,
+    private val settings: Settings? = null
+) : StudentCalendarRepository {
 
     private val json = Json { ignoreUnknownKeys = true }
+
+    override fun getSettings(): Settings? = settings
 
     override suspend fun getAllEvents(calendarId: String): List<Event> {
         return database.appDatabaseQueries.selectAllEvents().executeAsList()

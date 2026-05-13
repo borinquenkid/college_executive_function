@@ -3,6 +3,8 @@ package com.borinquenterrier.cef
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.datetime.Clock
+import com.borinquenterrier.cef.db.AppDatabase
 
 /**
  * Handles the logic for adding and processing different types of sources.
@@ -14,7 +16,8 @@ class IngestionAgent(
     private val pdfReader: PdfReader,
     private val webReader: WebSourceReader,
     private val driveService: GoogleDriveService,
-    private val aiService: AIService
+    private val aiService: AIService,
+    private val database: AppDatabase? = null
 ) {
     private val _isBusy = MutableStateFlow(false)
     val isBusy: StateFlow<Boolean> = _isBusy.asStateFlow()
@@ -22,11 +25,14 @@ class IngestionAgent(
     private val _error = MutableStateFlow<String?>(null)
     val error: StateFlow<String?> = _error.asStateFlow()
 
+    private val _sources = MutableStateFlow<List<SourceItem>>(emptyList())
+    val sources: StateFlow<List<SourceItem>> = _sources.asStateFlow()
+
     suspend fun addLocalFile(path: String): SourceItem {
         _isBusy.value = true
         return try {
             val fileName = path.substringAfterLast("/").substringAfterLast("\\")
-            val parts = when {
+            val fragments = when {
                 fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
                 fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
                 fileName.lowercase().endsWith(".ics") -> {
@@ -35,7 +41,9 @@ class IngestionAgent(
                 }
                 else -> SourceProcessor.process(fileReader.readText(path))
             }
-            SourceItem(fileName, parts)
+            val sourceItem = SourceItem(fileName, fragments)
+            persistSource(sourceItem, path)
+            sourceItem
         } finally {
             _isBusy.value = false
         }
@@ -45,12 +53,14 @@ class IngestionAgent(
         _isBusy.value = true
         return try {
             val rawContent = webReader.readTextFromUrl(url)
-            val parts = if (url.lowercase().endsWith(".ics")) {
+            val fragments = if (url.lowercase().endsWith(".ics")) {
                 IcsCalendarSource(rawContent).readSource()
             } else {
                 SourceProcessor.process(rawContent)
             }
-            SourceItem(url, parts)
+            val sourceItem = SourceItem(url, fragments)
+            persistSource(sourceItem, url)
+            sourceItem
         } finally {
             _isBusy.value = false
         }
@@ -60,13 +70,41 @@ class IngestionAgent(
         _isBusy.value = true
         return try {
             val rawContent = driveService.getFileContent(file.id, file.mimeType)
-            val parts = when {
+            val fragments = when {
                 file.name.lowercase().endsWith(".ics") -> IcsCalendarSource(rawContent).readSource()
                 else -> SourceProcessor.process(rawContent)
             }
-            SourceItem(file.name, parts)
+            val sourceItem = SourceItem(file.name, fragments)
+            persistSource(sourceItem, "google_drive://${file.id}")
+            sourceItem
         } finally {
             _isBusy.value = false
+        }
+    }
+
+    private suspend fun persistSource(item: SourceItem, originUri: String?) {
+        val db = database ?: return
+        val sourceId = item.title // Using title as ID for now, should be UUID
+        
+        db.appDatabaseQueries.insertSource(
+            id = sourceId,
+            title = item.title,
+            originUri = originUri,
+            type = if (item.fragments.any { it.type == SourceType.CALENDAR }) "CALENDAR" else "TEXT",
+            metadata = null, // Will be filled by AI Analysis later
+            updatedAt = Clock.System.now().toEpochMilliseconds()
+        )
+
+        item.fragments.forEachIndexed { index, fragment ->
+            db.appDatabaseQueries.insertFragment(
+                id = "${sourceId}_$index",
+                sourceId = sourceId,
+                text = fragment.text,
+                pageNumber = fragment.pageNumber?.toLong(),
+                sectionTitle = fragment.sectionTitle,
+                type = fragment.type.name,
+                metadata = null // JSON map
+            )
         }
     }
 }

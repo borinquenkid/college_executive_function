@@ -14,7 +14,8 @@ expect class AIService(
     fun isConfigured(): Boolean
     suspend fun generateChatResponse(prompt: String): String
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event>
-    suspend fun generateStudyPlan(syllabusText: String): List<Event>
+    suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String = ""): List<Event>
+    suspend fun analyzeDocument(text: String): String?
 }
 
 @Composable

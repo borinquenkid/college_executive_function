@@ -209,6 +209,7 @@ fun EventItemView(event: Event) {
         AcademicCategory.FINALS -> Color(0xFF9C27B0) // Purple for Finals
         AcademicCategory.SEMESTER_BOUND -> Color(0xFF607D8B) // Grey for Start/End
         AcademicCategory.STUDY_BLOCK -> Color(0xFF8BC34A) // Light Green for Study
+        AcademicCategory.CLASS -> Color(0xFF3F51B5) // Indigo for Class
         AcademicCategory.REGULAR -> when (event.source) {
             EventSource.ROUTINE -> Color(0xFF4CAF50) // Green
             EventSource.AI_GENERATED -> Color(0xFF2196F3) // Blue
@@ -225,6 +226,7 @@ fun EventItemView(event: Event) {
         AcademicCategory.FINALS -> "Finals Week"
         AcademicCategory.SEMESTER_BOUND -> "Semester Boundary"
         AcademicCategory.STUDY_BLOCK -> "Suggested Study Period"
+        AcademicCategory.CLASS -> "Scheduled Class"
         AcademicCategory.REGULAR -> when (event.source) {
             EventSource.ROUTINE -> "Class/Routine"
             EventSource.AI_GENERATED -> "Homework/Assignment"

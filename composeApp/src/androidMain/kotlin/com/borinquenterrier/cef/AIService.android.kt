@@ -43,6 +43,10 @@ actual class AIService actual constructor(
     actual suspend fun analyzeDocument(text: String): String? {
         return getGeminiService().analyzeDocument(text)
     }
+
+    actual suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
+        return getGeminiService().decomposeTask(taskTitle, dueDate)
+    }
 }
 
 @Composable

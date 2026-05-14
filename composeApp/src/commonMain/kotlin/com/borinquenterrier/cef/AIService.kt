@@ -16,6 +16,7 @@ expect class AIService(
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event>
     suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String = ""): List<Event>
     suspend fun analyzeDocument(text: String): String?
+    suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask>
 }
 
 @Composable

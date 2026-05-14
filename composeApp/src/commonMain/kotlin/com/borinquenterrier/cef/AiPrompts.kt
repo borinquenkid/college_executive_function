@@ -32,11 +32,12 @@ object AiPrompts {
      */
     fun getSourceEventExtractionPrompt(fragmentJson: String): String {
         return """
-            ${'$'}SOURCE_FRAGMENT_INSTRUCTIONS
-            
+            $SOURCE_FRAGMENT_INSTRUCTIONS
+
             # Objective
             Analyze the provided SourceFragment and identify all academic deliverables, deadlines, or calendar events.
-            
+            IMPORTANT: Only extract events that are EXPLICITLY stated in the provided text. Do NOT generate, infer, or add events from your training data or general knowledge.
+
             # Output Format
             Return ONLY a raw JSON array of objects. No filler.
             Structure:
@@ -51,12 +52,12 @@ object AiPrompts {
                 "warning": "String" (Optional. Use this if the source text is contradictory, e.g., 'Document says Monday Jan 1st, but Jan 1st is a Thursday'. Be STRICT about the literal date provided.)
               }
             ]
-            
+
             # Context
-            Current Year: ${'$'}currentYear
-            
+            Current Year: $currentYear
+
             # Data to Process (SourceFragment JSON)
-            ${'$'}fragmentJson
+            $fragmentJson
         """.trimIndent()
     }
 
@@ -111,8 +112,8 @@ object AiPrompts {
      */
     fun getTaskDecompositionPrompt(taskTitle: String, dueDate: String, context: String = ""): String {
         return """
-            You are an Executive Function Coach. Your goal is to help a student break down a large, 
-            intimidating assignment ("${'$'}taskTitle" due on ${'$'}dueDate) into smaller, manageable, and 
+            You are an Executive Function Coach. Your goal is to help a student break down a large,
+            intimidating assignment ("$taskTitle" due on $dueDate) into smaller, manageable, and
             actionable sub-tasks to prevent overwhelm and procrastination.
 
             Provide a step-by-step plan with suggested intermediate deadlines.
@@ -129,10 +130,10 @@ object AiPrompts {
             Guidelines:
             - Each step should take no more than 1-2 hours.
             - Focus on the very first "low-friction" step to get started.
-            - Work backwards from the due date ${'$'}dueDate.
+            - Work backwards from the due date $dueDate.
 
             Context (if any):
-            ${'$'}context
+            $context
         """.trimIndent()
     }
 
@@ -157,7 +158,7 @@ object AiPrompts {
             If a value is not found, use null.
 
             Document Text:
-            ${'$'}text
+            $text
         """.trimIndent()
     }
     }

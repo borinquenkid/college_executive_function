@@ -69,7 +69,7 @@ fun App() {
                         UniversalHomeLayout(container)
                     }
                     is AppScreen.Calendar -> {
-                        AcademicCalendar(Modifier.fillMaxSize(), aiGeneratedEvents, container.calendarAgent) { appController.navigateTo(it) }
+                        AcademicCalendar(Modifier.fillMaxSize(), aiGeneratedEvents, container.calendarAgent, container.eventAgent) { appController.navigateTo(it) }
                     }
                     is AppScreen.Settings -> {
                         SettingsScreen(container, Modifier.fillMaxSize())

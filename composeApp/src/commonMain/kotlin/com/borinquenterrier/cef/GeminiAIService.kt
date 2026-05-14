@@ -91,30 +91,45 @@ class GeminiAIService(
         
         logger?.d(tag, "Negotiation Step - Available names: ${names.joinToString(", ")}")
 
-        // Filter out models that are still blacklisted
-        val nonBlacklistedNames = names.filter { name ->
+        // Filter out non-text models (TTS, image, audio, specialized) and blacklisted ones
+        val textCapableNames = names.filter { name ->
             val expiry = blacklistedModels[name]
-            expiry == null || currentTime > expiry
+            val notBlacklisted = expiry == null || currentTime > expiry
+            val isTextCapable = !name.contains("tts") &&
+                !name.contains("-image") &&
+                !name.contains("-audio") &&
+                !name.contains("robotics") &&
+                !name.contains("lyria") &&
+                !name.contains("deep-research") &&
+                !name.contains("computer-use") &&
+                !name.contains("nano-banana")
+            notBlacklisted && isTextCapable
         }
 
-        logger?.d(tag, "Negotiating best model. Available: ${names.size}, Non-blacklisted: ${nonBlacklistedNames.size}")
-        
+        logger?.d(tag, "Negotiating best model. Available: ${names.size}, Text-capable & non-blacklisted: ${textCapableNames.size}")
+
         val preferences = listOf(
+            "gemini-2.5-flash",
+            "gemini-2.5-flash-lite",
+            "gemini-2.5-pro",
+            "gemini-2.0-flash",
+            "gemini-2.0-flash-001",
+            "gemini-2.0-flash-lite",
+            "gemini-2.0-flash-lite-001",
             "gemini-1.5-flash",
             "gemini-1.5-flash-latest",
             "gemini-1.5-pro",
-            "gemini-2.0-flash",
-            "gemini-2.0-flash-exp",
-            "gemini-2-flash",
-            "gemini-2.0-flash-lite",
+            "gemini-flash-latest",
+            "gemini-flash-lite-latest",
+            "gemini-pro-latest",
             "gemini-pro"
         )
 
-        // Find best match among non-blacklisted models
-        val selected = preferences.firstOrNull { pref -> nonBlacklistedNames.contains(pref) }
-            ?: nonBlacklistedNames.firstOrNull { it.contains("flash") }
-            ?: nonBlacklistedNames.firstOrNull()
-            ?: "gemini-1.5-flash"
+        // Find best match among text-capable models
+        val selected = preferences.firstOrNull { pref -> textCapableNames.contains(pref) }
+            ?: textCapableNames.firstOrNull { it.contains("flash") && !it.contains("tts") }
+            ?: textCapableNames.firstOrNull()
+            ?: "gemini-2.5-flash"
 
         // 3. Save to Cache
         try {
@@ -181,18 +196,30 @@ class GeminiAIService(
                     throw Exception("Forbidden")
                 }
 
-                if (httpResponse.status == HttpStatusCode.TooManyRequests || 
+                if (httpResponse.status == HttpStatusCode.TooManyRequests ||
                     httpResponse.status == HttpStatusCode.NotFound ||
                     httpResponse.status == HttpStatusCode.ServiceUnavailable) {
-                    
+
                     val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
                     blacklistedModels[modelName] = expiry
                     database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-                    
+
                     val delayMs = if (httpResponse.status == HttpStatusCode.TooManyRequests) 10000L else 2000L
                     logger?.d(tag, "⚠️ Model $modelName exhausted (${httpResponse.status}). Blacklisted. Retrying (${attempts + 1}/$maxAttempts) after ${delayMs/1000}s...")
                     attempts++
                     kotlinx.coroutines.delay(delayMs * attempts)
+                    continue
+                }
+
+                // 400 with a modality error means this model doesn't support text/JSON output (e.g. TTS-only models).
+                // Blacklist it and try the next best model rather than failing hard.
+                if (httpResponse.status == HttpStatusCode.BadRequest && responseBody.contains("response modalities")) {
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    logger?.d(tag, "⚠️ Model $modelName does not support text responses. Blacklisted. Retrying (${attempts + 1}/$maxAttempts)...")
+                    attempts++
+                    kotlinx.coroutines.delay(1000)
                     continue
                 }
 
@@ -272,6 +299,107 @@ class GeminiAIService(
 
     suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String = ""): List<Event> {
         return generateCalendarEventsFromPrompt(AiPrompts.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule))
+    }
+
+    suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
+        val available = getAvailableModels()
+        var attempts = 0
+        val maxAttempts = 5
+        var lastError: Exception? = null
+        val prompt = AiPrompts.getTaskDecompositionPrompt(taskTitle, dueDate)
+
+        while (attempts < maxAttempts) {
+            val modelName = negotiateBestModel(available)
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
+            val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
+
+            try {
+                val httpResponse: HttpResponse = client.post(authUrl) {
+                    contentType(ContentType.Application.Json)
+                    if (apiKey == null && accessToken != null) {
+                        header("Authorization", "Bearer $accessToken")
+                    }
+                    setBody(buildJsonObject {
+                        putJsonArray("contents") {
+                            addJsonObject {
+                                putJsonArray("parts") {
+                                    addJsonObject { put("text", prompt) }
+                                }
+                            }
+                        }
+                        putJsonObject("generationConfig") {
+                            put("responseMimeType", "application/json")
+                        }
+                    })
+                }
+
+                val responseBody = httpResponse.bodyAsText()
+
+                if (httpResponse.status == HttpStatusCode.Unauthorized) throw Exception("Unauthorized")
+                if (httpResponse.status == HttpStatusCode.Forbidden) throw Exception("Forbidden")
+
+                if (httpResponse.status == HttpStatusCode.TooManyRequests ||
+                    httpResponse.status == HttpStatusCode.NotFound ||
+                    httpResponse.status == HttpStatusCode.ServiceUnavailable) {
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    val delayMs = if (httpResponse.status == HttpStatusCode.TooManyRequests) 10000L else 2000L
+                    logger?.d(tag, "Model $modelName exhausted. Retrying (${attempts + 1}/$maxAttempts)...")
+                    attempts++
+                    kotlinx.coroutines.delay(delayMs * attempts)
+                    continue
+                }
+
+                if (httpResponse.status == HttpStatusCode.BadRequest && responseBody.contains("response modalities")) {
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    logger?.d(tag, "⚠️ Model $modelName does not support text responses. Blacklisted. Retrying (${attempts + 1}/$maxAttempts)...")
+                    attempts++
+                    kotlinx.coroutines.delay(1000)
+                    continue
+                }
+
+                if (!httpResponse.status.isSuccess()) {
+                    throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
+                }
+
+                val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
+                val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                    ?: throw Exception("Empty response from AI")
+
+                val cleanJson = responseText.trim()
+                    .removePrefix("```json")
+                    .removeSuffix("```")
+                    .trim()
+
+                val root = json.parseToJsonElement(cleanJson)
+                val jsonArray = when {
+                    root is JsonArray -> root
+                    root is JsonObject && root.containsKey("tasks") -> root["tasks"]!!.jsonArray
+                    else -> throw Exception("Unexpected JSON structure: $cleanJson")
+                }
+
+                return jsonArray.map { element ->
+                    val obj = element.jsonObject
+                    val daysBeforeDue = obj["daysBeforeDue"]?.jsonPrimitive?.let {
+                        it.intOrNull ?: it.content.toDoubleOrNull()?.toInt() ?: 1
+                    } ?: 1
+                    DecomposedTask(
+                        title = obj["title"]?.jsonPrimitive?.content ?: "Sub-task",
+                        daysBeforeDue = daysBeforeDue,
+                        description = obj["description"]?.jsonPrimitive?.content ?: ""
+                    )
+                }
+            } catch (e: Exception) {
+                lastError = e
+                logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
+                attempts++
+                kotlinx.coroutines.delay(1000)
+            }
+        }
+        throw lastError ?: Exception("Failed to decompose task after $maxAttempts attempts")
     }
 
     suspend fun generateChatResponse(prompt: String): String {

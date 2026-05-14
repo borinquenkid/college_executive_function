@@ -1,96 +1,87 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.shouldNotBe
 import kotlinx.datetime.LocalDate
 import kotlinx.coroutines.runBlocking
 import java.io.File
 import com.russhwolf.settings.MapSettings
 
+/**
+ * Integration test for the AI text-to-events pipeline.
+ *
+ * Scope: given a fixed, known text input (syllabus.txt), verify that the AI correctly
+ * identifies and structures academic events with accurate dates and categories.
+ *
+ * Format extraction (DOCX/PDF/HTML → text) is tested separately in DocxReaderTest,
+ * PdfReaderTest, and WebSourceReaderTest.
+ */
 class MultiFormatAiIntegrationTest : FunSpec({
 
-    test("AI should generate equivalent events from HTML, DOCX, and PDF using Gemini") {
-        // 1. Resolve Credentials
+    test("AI should extract structured events from a real syllabus text") {
         val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
-        val envMap = envFile?.readLines()?.associate { 
+        val envMap = envFile?.readLines()?.associate {
             val key = it.substringBefore("=").trim()
             val value = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
-            key to value 
+            key to value
         } ?: emptyMap()
 
         val apiKey = (envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"])?.takeIf { it.isNotBlank() }
-        
         if (apiKey == null) {
-            println("SKIPPING MULTI-FORMAT AI TEST: No Gemini API Key found in .env")
+            println("SKIPPING AI TEXT-TO-EVENTS TEST: No Gemini API Key found in .env")
             return@test
         }
 
         val settings = MapSettings()
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
-        val logger = Logger(settings)
-        val aiService = AIService(settings, logger, null)
+        val aiService = AIService(settings, Logger(settings), null)
 
-        // 2. Prepare Source Contents
-        
-        // A. HTML - Very simple, same info as DOCX/PDF
-        val htmlContent = "<html><body>MATH 101 on 2026-01-01 from 08:00 to 09:00 MWF</body></html>"
-        val webReader = WebSourceReader()
-        val cleanedHtmlText = webReader.cleanHtml(htmlContent)
-        val htmlParts = SourceProcessor.process(cleanedHtmlText)
+        // Synthetic fixture with fully-specified 2026 dates — no AI inference required
+        val fixtureFile = listOf(
+            File("src/commonTest/resources/test_events.txt"),
+            File("composeApp/src/commonTest/resources/test_events.txt")
+        ).first { it.exists() }
+        val fragments = SourceProcessor.process(fixtureFile.readText())
 
-        // B. DOCX
-        var docxFile = File("src/commonTest/resources/calendar.docx")
-        if (!docxFile.exists()) {
-            val altPath = File("composeApp/src/commonTest/resources/calendar.docx")
-            if (altPath.exists()) {
-                 docxFile = altPath
-            }
-        }
-        val docxReader = DocxReader()
-        val docxParts = runBlocking { docxReader.readSource(docxFile.absolutePath) }
+        // Run AI extraction
+        val events = runBlocking { aiService.generateCalendarEvents(fragments) }
 
-        // C. PDF
-        var pdfFile = File("src/commonTest/resources/calendar.pdf")
-        if (!pdfFile.exists()) {
-            val altPath = File("composeApp/src/commonTest/resources/calendar.pdf")
-            if (altPath.exists()) {
-                pdfFile = altPath
-            }
-        }
-        val pdfReader = PdfReader()
-        val pdfParts = runBlocking { pdfReader.readSource(pdfFile.absolutePath) }
+        println("Extracted ${events.size} events from syllabus:")
+        events.forEach { println("  - ${it.date} | ${it.category} | ${it.title}") }
 
-        // 3. Run AI Extraction for each
-        val htmlEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(htmlParts) else emptyList() }
-        kotlinx.coroutines.delay(5000)
-        val docxEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(docxParts) else emptyList() }
-        kotlinx.coroutines.delay(5000)
-        val pdfEvents = runBlocking { if (aiService.isConfigured()) aiService.generateCalendarEvents(pdfParts) else emptyList() }
+        // Should extract a meaningful number of events from a full syllabus
+        events.shouldNotBeEmpty()
+        events.size shouldBeGreaterThan 5
 
-
-        // 4. Verify Equivalence
-        htmlEvents.shouldNotBeEmpty()
-        docxEvents.shouldNotBeEmpty()
-        pdfEvents.shouldNotBeEmpty()
-        fun List<Event>.findEventOnTargetDate() = this.find { 
-            val date = (it as? TimeEvent)?.date ?: (it as DayEvent).date
-            date == LocalDate(2026, 1, 1)
+        fun dateOf(e: Event) = when (e) {
+            is TimeEvent -> e.date
+            is DayEvent -> e.date
         }
 
-        println("HTML Events: $htmlEvents")
-        println("DOCX Events: $docxEvents")
-        println("PDF Events: $pdfEvents")
-
-        val htmlMatch = htmlEvents.findEventOnTargetDate() ?: throw AssertionError("HTML extraction failed (Strict Date). Events: $htmlEvents")
-        val docxMatch = docxEvents.findEventOnTargetDate() ?: throw AssertionError("DOCX extraction failed (Strict Date). Events: $docxEvents")
-        val pdfMatch = pdfEvents.findEventOnTargetDate() ?: throw AssertionError("PDF extraction failed (Strict Date). Events: $pdfEvents")
-
-        // Optional: Log warnings if found
-        listOf(htmlMatch, docxMatch, pdfMatch).forEach { 
-            if (it.warning != null) println("Discrepancy Warning for '${it.title}': ${it.warning}")
+        // Final exam must appear — explicitly listed in syllabus as "5/4 Final (Test Four)"
+        val hasFinalExam = events.any { e ->
+            val d = dateOf(e)
+            d == LocalDate(2026, 5, 4) &&
+                (e.category == AcademicCategory.FINALS || e.category == AcademicCategory.DEADLINE)
         }
+        hasFinalExam shouldNotBe false
 
-        println("SUCCESS: All formats strictly respected Jan 1, 2026")
+        // A unit test must appear — "2/9 TEST Test One"
+        val hasTestOne = events.any { e ->
+            dateOf(e) == LocalDate(2026, 2, 9) &&
+                (e.category == AcademicCategory.FINALS || e.category == AcademicCategory.DEADLINE || e.category == AcademicCategory.REGULAR)
+        }
+        hasTestOne shouldNotBe false
+
+        // MLK Jr. Day holiday must appear — explicitly listed as "1/19 No Class – MLK Jr. Day"
+        val hasMLKDay = events.any { e ->
+            dateOf(e) == LocalDate(2026, 1, 19) &&
+                (e.category == AcademicCategory.HOLIDAY || e.category == AcademicCategory.REGULAR)
+        }
+        hasMLKDay shouldNotBe false
+
+        println("SUCCESS: AI correctly extracted exam dates and holidays from syllabus text.")
     }
 })

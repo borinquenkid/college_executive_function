@@ -3,6 +3,7 @@ package com.borinquenterrier.cef
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -20,9 +21,10 @@ import kotlinx.datetime.*
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AcademicCalendar(
-    modifier: Modifier = Modifier, 
-    aiGeneratedEvents: List<Event>, 
+    modifier: Modifier = Modifier,
+    aiGeneratedEvents: List<Event>,
     calendarAgent: CalendarAgent,
+    eventAgent: EventAgent,
     onNavigate: (AppScreen) -> Unit
 ) {
     val settings = rememberSettings()
@@ -35,6 +37,7 @@ fun AcademicCalendar(
     var displayedEvents by remember { mutableStateOf(emptyList<Event>()) }
     var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
     var isSyncing by remember { mutableStateOf(false) }
+    var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
 
     // Load the routine items
     LaunchedEffect(routineRepository) {
@@ -103,6 +106,17 @@ fun AcademicCalendar(
             is TimeEvent -> event.date
             is DayEvent -> event.date
         }
+    }
+
+    selectedEventForDecomposition?.let { event ->
+        TaskDecompositionDialog(
+            event = event,
+            eventAgent = eventAgent,
+            onDismiss = {
+                eventAgent.clearDecomposition()
+                selectedEventForDecomposition = null
+            }
+        )
     }
 
     Column(modifier = modifier) {
@@ -193,7 +207,11 @@ fun AcademicCalendar(
                         )
                     }
                     items(eventsOnDate) { event ->
-                        EventItemView(event)
+                        val isBreakable = event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS
+                        EventItemView(
+                            event = event,
+                            onBreakItDown = if (isBreakable) { { selectedEventForDecomposition = event } } else null
+                        )
                     }
                 }
             }
@@ -202,7 +220,89 @@ fun AcademicCalendar(
 }
 
 @Composable
-fun EventItemView(event: Event) {
+fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () -> Unit) {
+    val scope = rememberCoroutineScope()
+    val decomposedTasks by eventAgent.decomposedTasks.collectAsState()
+    val isLoading by eventAgent.isLoading.collectAsState()
+    val statusMessage by eventAgent.statusMessage.collectAsState()
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Break It Down", style = MaterialTheme.typography.titleLarge) },
+        text = {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                Text(event.title, style = MaterialTheme.typography.titleMedium)
+                Text("Due: ${event.date}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+
+                if (decomposedTasks.isEmpty()) {
+                    Spacer(Modifier.height(8.dp))
+                    if (isLoading) {
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            CircularProgressIndicator()
+                        }
+                    } else {
+                        Button(
+                            onClick = { scope.launch { eventAgent.decomposeTask(event) } },
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Text("Break It Down (AI)")
+                        }
+                    }
+                } else {
+                    HorizontalDivider()
+                    LazyColumn(
+                        verticalArrangement = Arrangement.spacedBy(8.dp),
+                        modifier = Modifier.heightIn(max = 320.dp)
+                    ) {
+                        items(decomposedTasks) { task ->
+                            Card(
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
+                            ) {
+                                Column(modifier = Modifier.padding(12.dp)) {
+                                    Text(
+                                        "${task.daysBeforeDue} day${if (task.daysBeforeDue != 1) "s" else ""} before due",
+                                        style = MaterialTheme.typography.labelSmall,
+                                        color = MaterialTheme.colorScheme.primary
+                                    )
+                                    Text(task.title, style = MaterialTheme.typography.bodyMedium)
+                                    if (task.description.isNotBlank()) {
+                                        Text(
+                                            task.description,
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.outline
+                                        )
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    Button(
+                        onClick = { scope.launch { eventAgent.acceptDecomposition(); onDismiss() } },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !isLoading
+                    ) {
+                        Text("Add Steps to Calendar")
+                    }
+                }
+
+                if (statusMessage.isNotBlank() && statusMessage != "Select a source and an action.") {
+                    Text(statusMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                }
+            }
+        },
+        confirmButton = {},
+        dismissButton = {
+            TextButton(onClick = onDismiss) { Text("Close") }
+        }
+    )
+}
+
+@Composable
+fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
     val borderColor = when (event.category) {
         AcademicCategory.HOLIDAY -> Color(0xFFFF5252) // Red-ish for Holidays
         AcademicCategory.DEADLINE -> Color(0xFFFF9800) // Orange for Deadlines
@@ -253,6 +353,16 @@ fun EventItemView(event: Event) {
                 is DayEvent -> {
                     Text(event.title, style = MaterialTheme.typography.titleMedium)
                     Text("All day")
+                }
+            }
+            if (onBreakItDown != null) {
+                Spacer(Modifier.height(8.dp))
+                OutlinedButton(
+                    onClick = onBreakItDown,
+                    modifier = Modifier.fillMaxWidth(),
+                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 4.dp)
+                ) {
+                    Text("Break It Down (AI)", style = MaterialTheme.typography.labelMedium)
                 }
             }
         }

@@ -3,6 +3,8 @@ package com.borinquenterrier.cef
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.minus
 import com.borinquenterrier.cef.db.AppDatabase
 
 /**
@@ -26,6 +28,12 @@ class EventAgent(
 
     private val _lastGeneratedEvents = MutableStateFlow<List<Event>>(emptyList())
     val lastGeneratedEvents: StateFlow<List<Event>> = _lastGeneratedEvents.asStateFlow()
+
+    private val _decomposedTasks = MutableStateFlow<List<DecomposedTask>>(emptyList())
+    val decomposedTasks: StateFlow<List<DecomposedTask>> = _decomposedTasks.asStateFlow()
+
+    private val _decompositionTarget = MutableStateFlow<Event?>(null)
+    val decompositionTarget: StateFlow<Event?> = _decompositionTarget.asStateFlow()
 
     /**
      * Extracts standard deliverables from a source using AI, processing the full context at once.
@@ -122,5 +130,63 @@ class EventAgent(
     fun clear() {
         _lastGeneratedEvents.value = emptyList()
         _statusMessage.value = "Select a source and an action."
+    }
+
+    suspend fun decomposeTask(event: Event) {
+        _isLoading.value = true
+        _decompositionTarget.value = event
+        _decomposedTasks.value = emptyList()
+        _statusMessage.value = "Breaking down '${event.title}'..."
+
+        try {
+            val tasks = aiService.decomposeTask(event.title, event.date.toString())
+            _decomposedTasks.value = tasks
+            _statusMessage.value = "${tasks.size} steps created."
+        } catch (e: Exception) {
+            logger?.e(tag, "Error decomposing task", e)
+            _statusMessage.value = "Error: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    suspend fun acceptDecomposition(calendarId: String = "default") {
+        val tasks = _decomposedTasks.value
+        val target = _decompositionTarget.value ?: return
+        if (tasks.isEmpty()) return
+
+        _isLoading.value = true
+        _statusMessage.value = "Adding ${tasks.size} steps to calendar..."
+
+        var count = 0
+        try {
+            for (task in tasks) {
+                val taskDate = target.date.minus(task.daysBeforeDue, DateTimeUnit.DAY)
+                val event = DayEvent(
+                    title = task.title,
+                    source = EventSource.AI_GENERATED,
+                    category = AcademicCategory.STUDY_BLOCK,
+                    date = taskDate
+                )
+                try {
+                    repository.saveEvent(event, calendarId)
+                    count++
+                } catch (e: OverlapException) {
+                    // Skip conflicting steps and continue
+                }
+            }
+            _statusMessage.value = "$count steps added to calendar."
+            clearDecomposition()
+        } catch (e: Exception) {
+            logger?.e(tag, "Error accepting decomposition", e)
+            _statusMessage.value = "Error: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    fun clearDecomposition() {
+        _decomposedTasks.value = emptyList()
+        _decompositionTarget.value = null
     }
 }

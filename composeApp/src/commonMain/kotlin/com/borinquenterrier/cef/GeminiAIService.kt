@@ -43,6 +43,22 @@ class GeminiAIService(
         private val blacklistedModels = mutableMapOf<String, Long>()
         private const val BLACKLIST_DURATION_MS = 60 * 60 * 1000L // 1 hour
         private const val PREFERRED_MODEL_KEY = "preferred_gemini_model"
+
+        internal val YEAR_PATTERN = Regex("""\b(20\d{2})\b""")
+
+        fun extractSourceYears(sourceText: String): Set<Int> =
+            YEAR_PATTERN.findAll(sourceText).map { it.value.toInt() }.toSet()
+
+        fun filterToSourceYears(events: List<Event>, sourceYears: Set<Int>): List<Event> {
+            if (sourceYears.isEmpty()) return events
+            return events.filter { event ->
+                val year = when (event) {
+                    is TimeEvent -> event.date.year
+                    is DayEvent -> event.date.year
+                }
+                year in sourceYears
+            }
+        }
     }
 
     private suspend fun getAvailableModels(): List<ModelInfo> {
@@ -143,12 +159,19 @@ class GeminiAIService(
     }
 
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
+        val sourceText = fragments.joinToString(" ") { it.text }
+        val sourceYears = extractSourceYears(sourceText)
+
         val combinedJson = buildJsonArray {
             fragments.forEach { fragment ->
                 add(Json.parseToJsonElement(fragment.toJson()))
             }
         }.toString()
-        return generateCalendarEventsFromPrompt(AiPrompts.getSourceEventExtractionPrompt(combinedJson))
+        val events = generateCalendarEventsFromPrompt(AiPrompts.getSourceEventExtractionPrompt(combinedJson))
+        val filtered = filterToSourceYears(events, sourceYears)
+        val dropped = events.size - filtered.size
+        if (dropped > 0) logger?.d(tag, "⚠️ Dropped $dropped confabulated event(s) outside source years $sourceYears")
+        return filtered
     }
 
     suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
@@ -180,6 +203,7 @@ class GeminiAIService(
                         // Enable native JSON output mode for Gemini 1.5+
                         putJsonObject("generationConfig") {
                             put("responseMimeType", "application/json")
+                            put("temperature", 0.0)
                         }
                     })
                 }
@@ -329,6 +353,7 @@ class GeminiAIService(
                         }
                         putJsonObject("generationConfig") {
                             put("responseMimeType", "application/json")
+                            put("temperature", 0.0)
                         }
                     })
                 }

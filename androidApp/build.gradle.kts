@@ -48,37 +48,56 @@ abstract class PrepareEmulatorTask @Inject constructor(
             println("Waiting for device to be online...")
             var booted = false
             while (!booted) {
+                val output = ByteArrayOutputStream()
                 val result = try {
                     execOperations.exec {
                         commandLine(adb, "shell", "getprop", "sys.boot_completed")
                         isIgnoreExitValue = true
-                        standardOutput = OutputStream.nullOutputStream()
+                        standardOutput = output
                         errorOutput = OutputStream.nullOutputStream()
                     }.exitValue == 0
                 } catch (e: Exception) {
                     false
                 }
-                if (result) {
+                
+                val isBootCompleted = output.toString().trim() == "1"
+                
+                if (result && isBootCompleted) {
                     // One more check to ensure it's really responsive and package service is up
                     val ready = try {
-                        val output = ByteArrayOutputStream()
+                        val checkOutput = ByteArrayOutputStream()
                         execOperations.exec {
                             commandLine(adb, "shell", "service", "check", "package")
                             isIgnoreExitValue = true
-                            standardOutput = output
+                            standardOutput = checkOutput
                             errorOutput = OutputStream.nullOutputStream()
                         }
-                        output.toString().contains("Service package: found")
+                        checkOutput.toString().contains("Service package: found")
                     } catch (e: Exception) { false }
+                    
                     if (ready) {
-                        println("Package service found. Stabilizing...")
-                        Thread.sleep(10000)
-                        booted = true
+                        // The service check might pass while pm is still warming up
+                        val pmReady = try {
+                            val pmOutput = ByteArrayOutputStream()
+                            execOperations.exec {
+                                commandLine(adb, "shell", "pm", "list", "packages", "android")
+                                isIgnoreExitValue = true
+                                standardOutput = pmOutput
+                                errorOutput = OutputStream.nullOutputStream()
+                            }
+                            pmOutput.toString().contains("package:android")
+                        } catch (e: Exception) { false }
+                        
+                        if (pmReady) {
+                            println("Package manager is ready. Stabilizing...")
+                            Thread.sleep(20000) // 20s for safe measure
+                            booted = true
+                        }
                     }
                 }
                 
                 if (!booted) {
-                    println("Device still booting (package service not ready)...")
+                    println("Device still booting (sys.boot_completed=${output.toString().trim()})...")
                     Thread.sleep(5000)
                 }
             }
@@ -163,17 +182,16 @@ val prepareEmulator = tasks.register<PrepareEmulatorTask>("prepareEmulator") {
     localPropertiesFile.set(project.rootProject.layout.projectDirectory.file("local.properties"))
 }
 
-// Safely order tasks after they are registered by the Android plugin
+// Ensure the installer WAITS for the emulator to be fully ready
 tasks.whenTaskAdded {
     if (name == "installDebug") {
-        mustRunAfter(prepareEmulator)
+        dependsOn(prepareEmulator)
     }
 }
 
 tasks.register<RunAppTask>("runApp") {
     group = "application"
     description = "Starts emulator, installs, and launches the app."
-    dependsOn(prepareEmulator)
     dependsOn("installDebug")
     localPropertiesFile.set(project.rootProject.layout.projectDirectory.file("local.properties"))
 }

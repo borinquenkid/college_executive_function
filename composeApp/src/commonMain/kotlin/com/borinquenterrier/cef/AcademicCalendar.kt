@@ -230,12 +230,12 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
         onDismissRequest = onDismiss,
         title = { Text("Break It Down", style = MaterialTheme.typography.titleLarge) },
         text = {
-            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+            Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(event.title, style = MaterialTheme.typography.titleMedium)
                 Text("Due: ${event.date}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
 
                 if (decomposedTasks.isEmpty()) {
-                    Spacer(Modifier.height(8.dp))
+                    Spacer(Modifier.height(4.dp))
                     if (isLoading) {
                         Row(
                             horizontalArrangement = Arrangement.Center,
@@ -254,14 +254,14 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
                 } else {
                     HorizontalDivider()
                     LazyColumn(
-                        verticalArrangement = Arrangement.spacedBy(8.dp),
-                        modifier = Modifier.heightIn(max = 320.dp)
+                        verticalArrangement = Arrangement.spacedBy(4.dp),
+                        modifier = Modifier.heightIn(max = 160.dp)
                     ) {
                         items(decomposedTasks) { task ->
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surfaceVariant)
                             ) {
-                                Column(modifier = Modifier.padding(12.dp)) {
+                                Column(modifier = Modifier.padding(8.dp)) {
                                     Text(
                                         "${task.daysBeforeDue} day${if (task.daysBeforeDue != 1) "s" else ""} before due",
                                         style = MaterialTheme.typography.labelSmall,
@@ -279,7 +279,7 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
                             }
                         }
                     }
-                    Spacer(Modifier.height(4.dp))
+                    Spacer(Modifier.height(2.dp))
                     Button(
                         onClick = { scope.launch { eventAgent.acceptDecomposition(); onDismiss() } },
                         modifier = Modifier.fillMaxWidth(),

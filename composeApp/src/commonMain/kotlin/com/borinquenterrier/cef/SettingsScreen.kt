@@ -52,13 +52,15 @@ fun SettingsScreen(
     val settings = container.settings
     val scope = rememberCoroutineScope()
     
-    val isGoogleLinked by container.tokenRepository.isLinked.collectAsState()
     val googleFlow = container.googleAccountFlow
-    val loginError by googleFlow.error.collectAsState()
-    val isBusy by googleFlow.isBusy.collectAsState()
+    val connectionState by googleFlow.state.collectAsState()
 
     var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }
     var showAdvanced by remember { mutableStateOf(false) }
+
+    val isGoogleLinked = connectionState is GoogleConnectionState.Linked
+    val isBusy = connectionState is GoogleConnectionState.Connecting
+    val loginError = (connectionState as? GoogleConnectionState.Error)?.message
 
     Column(
         modifier = modifier

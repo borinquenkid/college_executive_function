@@ -5,47 +5,62 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 
 /**
- * Handles the logic for connecting and disconnecting Google accounts.
- * Decoupled from the UI to allow for headless testing.
+ * A Finite State Automaton (FSA) that manages the Google Account connection lifecycle.
  */
 class GoogleAccountFlow(
     private val authService: GoogleAuthService,
-    private val tokenRepository: GoogleTokenRepository,
-    private val driveService: GoogleDriveService
+    private val tokenRepository: GoogleTokenRepository
 ) {
-    private val _error = MutableStateFlow<String?>(null)
-    val error: StateFlow<String?> = _error.asStateFlow()
+    lateinit var driveService: GoogleDriveService
 
-    private val _isBusy = MutableStateFlow(false)
-    val isBusy: StateFlow<Boolean> = _isBusy.asStateFlow()
+    private val _state = MutableStateFlow<GoogleConnectionState>(
+        if (tokenRepository.hasTokens()) GoogleConnectionState.Linked else GoogleConnectionState.Unlinked
+    )
+    val state: StateFlow<GoogleConnectionState> = _state.asStateFlow()
 
     suspend fun connect() {
-        _isBusy.value = true
-        _error.value = null
+        if (_state.value is GoogleConnectionState.Connecting) return
+        
+        _state.value = GoogleConnectionState.Connecting
         try {
-            println("[GoogleAccountFlow] Starting login...")
+            println("[GoogleAccountFlow] Transition: Unlinked -> Connecting")
             val result = authService.login()
-            println("[GoogleAccountFlow] Login success, saving tokens...")
+            
+            println("[GoogleAccountFlow] Saving tokens...")
             tokenRepository.saveTokens(result.first, result.second)
             
             println("[GoogleAccountFlow] Validating Drive access...")
             val isValid = driveService.validateConnection(result.first)
-            if (!isValid) {
+            
+            if (isValid) {
+                println("[GoogleAccountFlow] Transition: Connecting -> Linked")
+                _state.value = GoogleConnectionState.Linked
+            } else {
+                println("[GoogleAccountFlow] Transition: Connecting -> Error (Drive Access Denied)")
                 tokenRepository.clearTokens()
-                _error.value = "Connected to Google, but Drive access failed. Please ensure you checked the permission box in the browser."
+                _state.value = GoogleConnectionState.Error(
+                    "Connected to Google, but Drive access failed. Please ensure you checked the permission box in the browser.",
+                    canRetry = true
+                )
             }
         } catch (e: Exception) {
-            println("[GoogleAccountFlow] Login error: ${e.message}")
-            _error.value = e.message ?: "Unknown login error"
-        } finally {
-            _isBusy.value = false
+            println("[GoogleAccountFlow] Transition: Connecting -> Error (${e.message})")
+            _state.value = GoogleConnectionState.Error(e.message ?: "Unknown login error")
         }
     }
 
     fun disconnect() {
-        println("[GoogleAccountFlow] Disconnecting...")
+        println("[GoogleAccountFlow] Transition: * -> Unlinked")
         authService.logout()
         tokenRepository.clearTokens()
-        _error.value = null
+        _state.value = GoogleConnectionState.Unlinked
+    }
+    
+    /**
+     * Call this when a background operation (like listFiles) fails due to auth.
+     */
+    fun reportAuthError(message: String) {
+        println("[GoogleAccountFlow] Transition: Linked -> Error ($message)")
+        _state.value = GoogleConnectionState.Error(message)
     }
 }

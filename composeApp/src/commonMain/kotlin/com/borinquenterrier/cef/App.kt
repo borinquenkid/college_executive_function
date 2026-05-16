@@ -35,47 +35,64 @@ fun App() {
     val docxReader = rememberDocxReader()
     val pdfReader = rememberPdfReader()
 
-    val container = remember(settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader) {
-        DependencyContainer(settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader)
+    // Initialize the container off the main thread to prevent ANRs
+    val containerState = produceState<DependencyContainer?>(
+        initialValue = null,
+        settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader
+    ) {
+        value = kotlinx.coroutines.withContext(kotlinx.coroutines.Dispatchers.Default) {
+            val c = DependencyContainer(settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader)
+            // Pre-trigger database initialization to ensure it happens off-thread
+            val db = c.database 
+            println("[App] Core services initialized off-thread.")
+            c
+        }
     }
-    
-    val appController = container.appController
+
+    val container = containerState.value
 
     CollegeExecutiveFunctionTheme {
-        val currentScreen by appController.currentScreen.collectAsState()
-        val aiGeneratedEvents by appController.aiGeneratedEvents.collectAsState()
-        
-        Scaffold(
-            topBar = {
-                CenterAlignedTopAppBar(
-                    title = { Text("College Executive Function", style = MaterialTheme.typography.titleMedium) },
-                    actions = {
-                        IconButton(onClick = { appController.navigateTo(AppScreen.Home) }) {
-                            Icon(Icons.Default.Home, contentDescription = "Home")
-                        }
-                        IconButton(onClick = { appController.navigateTo(AppScreen.Calendar) }) {
-                            Icon(Icons.Default.DateRange, contentDescription = "Academic Calendar")
-                        }
-                        IconButton(onClick = { appController.navigateTo(AppScreen.Settings) }) {
-                            Icon(Icons.Default.Settings, contentDescription = "Settings")
-                        }
-                    }
-                )
+        if (container == null) {
+            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator()
             }
-        ) { paddingValues ->
-            Box(Modifier.fillMaxSize().padding(paddingValues)) {
-                when (currentScreen) {
-                    is AppScreen.Home -> {
-                        UniversalHomeLayout(container)
-                    }
-                    is AppScreen.Calendar -> {
-                        AcademicCalendar(Modifier.fillMaxSize(), aiGeneratedEvents, container.calendarAgent, container.eventAgent) { appController.navigateTo(it) }
-                    }
-                    is AppScreen.Settings -> {
-                        SettingsScreen(container, Modifier.fillMaxSize())
-                    }
-                    is AppScreen.Routine -> {
-                        RoutineScreen(Modifier.fillMaxSize())
+        } else {
+            val appController = container.appController
+            val currentScreen by appController.currentScreen.collectAsState()
+            val aiGeneratedEvents by appController.aiGeneratedEvents.collectAsState()
+            
+            Scaffold(
+                topBar = {
+                    CenterAlignedTopAppBar(
+                        title = { Text("College Executive Function", style = MaterialTheme.typography.titleMedium) },
+                        actions = {
+                            IconButton(onClick = { appController.navigateTo(AppScreen.Home) }) {
+                                Icon(Icons.Default.Home, contentDescription = "Home")
+                            }
+                            IconButton(onClick = { appController.navigateTo(AppScreen.Calendar) }) {
+                                Icon(Icons.Default.DateRange, contentDescription = "Academic Calendar")
+                            }
+                            IconButton(onClick = { appController.navigateTo(AppScreen.Settings) }) {
+                                Icon(Icons.Default.Settings, contentDescription = "Settings")
+                            }
+                        }
+                    )
+                }
+            ) { paddingValues ->
+                Box(Modifier.fillMaxSize().padding(paddingValues)) {
+                    when (currentScreen) {
+                        is AppScreen.Home -> {
+                            UniversalHomeLayout(container)
+                        }
+                        is AppScreen.Calendar -> {
+                            AcademicCalendar(Modifier.fillMaxSize(), aiGeneratedEvents, container.calendarAgent, container.eventAgent) { appController.navigateTo(it) }
+                        }
+                        is AppScreen.Settings -> {
+                            SettingsScreen(container, Modifier.fillMaxSize())
+                        }
+                        is AppScreen.Routine -> {
+                            RoutineScreen(Modifier.fillMaxSize())
+                        }
                     }
                 }
             }

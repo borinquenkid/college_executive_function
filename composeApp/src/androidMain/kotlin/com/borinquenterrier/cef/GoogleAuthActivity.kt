@@ -36,7 +36,11 @@ class GoogleAuthActivity : ComponentActivity() {
             .build()
 
         val googleSignInClient = GoogleSignIn.getClient(this, gso)
-        startActivityForResult(googleSignInClient.signInIntent, 1001)
+        
+        // Ensure we start with a clean slate to avoid stale session issues
+        googleSignInClient.signOut().addOnCompleteListener {
+            startActivityForResult(googleSignInClient.signInIntent, 1001)
+        }
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {
@@ -51,9 +55,18 @@ class GoogleAuthActivity : ComponentActivity() {
                             val scopes = "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
                             val token = GoogleAuthUtil.getToken(this@GoogleAuthActivity, account.account!!, scopes)
                             GoogleAuthCallback.pendingDeferred?.complete(Pair(token, null))
+                            finish()
+                        } catch (e: com.google.android.gms.auth.UserRecoverableAuthException) {
+                            // If the error is recoverable, start the intent provided by Google
+                            val recoveryIntent = e.intent
+                            if (recoveryIntent != null) {
+                                startActivityForResult(recoveryIntent, 1002)
+                            } else {
+                                GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)
+                                finish()
+                            }
                         } catch (e: Exception) {
                             GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)
-                        } finally {
                             finish()
                         }
                     }
@@ -63,6 +76,30 @@ class GoogleAuthActivity : ComponentActivity() {
                 }
             } catch (e: Exception) {
                 GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)
+                finish()
+            }
+        } else if (requestCode == 1002) {
+            // After recovery intent finishes, try login again (or finish)
+            if (resultCode == Activity.RESULT_OK) {
+                // Try to get token again
+                val account = GoogleSignIn.getLastSignedInAccount(this)
+                if (account != null && account.account != null) {
+                    CoroutineScope(Dispatchers.IO).launch {
+                        try {
+                            val scopes = "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
+                            val token = GoogleAuthUtil.getToken(this@GoogleAuthActivity, account.account!!, scopes)
+                            GoogleAuthCallback.pendingDeferred?.complete(Pair(token, null))
+                        } catch (e: Exception) {
+                            GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)
+                        } finally {
+                            finish()
+                        }
+                    }
+                } else {
+                    finish()
+                }
+            } else {
+                GoogleAuthCallback.pendingDeferred?.completeExceptionally(Exception("User failed to recover authentication."))
                 finish()
             }
         }

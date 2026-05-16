@@ -201,7 +201,7 @@ private fun ClickableField(value: String, label: String, onClick: () -> Unit, mo
             .fillMaxWidth()
             .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f), shape = MaterialTheme.shapes.small)
             .clickable(onClick = onClick)
-            .padding(horizontal = 12.dp, vertical = 8.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Column {
             Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)

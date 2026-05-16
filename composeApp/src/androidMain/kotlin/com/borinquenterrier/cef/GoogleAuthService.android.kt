@@ -34,7 +34,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
             val account = GoogleSignIn.getLastSignedInAccount(context)?.account ?: return@withContext null
             val scopes = "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
             GoogleAuthUtil.getToken(context, account, scopes)
-        } catch (e: Exception) {
+        } catch (e: Throwable) {
             null
         }
     }

@@ -31,6 +31,7 @@ class GoogleDriveService(
     private val httpClient: HttpClient,
     private val tokenRepository: GoogleTokenRepository,
     private val authService: GoogleAuthService,
+    private val onAuthError: ((String) -> Unit)? = null,
     private val logger: Logger? = null
 ) {
 
@@ -43,15 +44,24 @@ class GoogleDriveService(
         return try {
             block(currentToken)
         } catch (e: Exception) {
-            val isUnauthorized = e.message?.contains("401") == true
+            val isUnauthorized = e.message?.contains("401") == true || e.message?.contains("Unauthorized") == true
             if (isUnauthorized) {
                 logger?.d("GoogleDriveService", "Received 401, attempting token refresh.")
-                val refreshToken = tokenRepository.getRefreshToken() ?: throw Exception("No refresh token available for 401 recovery")
-                val newToken = authService.refreshAccessToken(refreshToken) ?: throw Exception("Token refresh failed")
-                logger?.d("GoogleDriveService", "Successfully refreshed token: ${newToken.take(10)}...")
+                val refreshToken = tokenRepository.getRefreshToken() ?: run {
+                    onAuthError?.invoke("Session expired. Please reconnect.")
+                    throw Exception("No refresh token available for 401 recovery")
+                }
                 
-                tokenRepository.saveTokens(newToken, refreshToken)
-                block(newToken)
+                try {
+                    val newToken = authService.refreshAccessToken(refreshToken) ?: throw Exception("Token refresh failed")
+                    logger?.d("GoogleDriveService", "Successfully refreshed token: ${newToken.take(10)}...")
+                    
+                    tokenRepository.saveTokens(newToken, refreshToken)
+                    block(newToken)
+                } catch (refreshError: Exception) {
+                    onAuthError?.invoke("Google connection lost: ${refreshError.message}")
+                    throw refreshError
+                }
             } else {
                 logger?.e("GoogleDriveService", "API call failed with: ${e.message}")
                 throw e

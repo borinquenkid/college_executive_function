@@ -142,15 +142,21 @@ fun DrivePickerDialog(
 ) {
     var files by remember { mutableStateOf<List<DriveFile>?>(null) }
     var isLoading by remember { mutableStateOf(true) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {
-        val query = "mimeType = 'application/vnd.google-apps.document' " +
-                "or mimeType = 'application/pdf' " +
-                "or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' " +
-                "or mimeType = 'text/plain' " +
-                "or name contains '.ics'"
-        files = driveService.listFiles(query)
-        isLoading = false
+        try {
+            val query = "mimeType = 'application/vnd.google-apps.document' " +
+                    "or mimeType = 'application/pdf' " +
+                    "or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' " +
+                    "or mimeType = 'text/plain' " +
+                    "or name contains '.ics'"
+            files = driveService.listFiles(query)
+        } catch (e: Exception) {
+            errorMessage = e.message ?: "Failed to list files from Google Drive."
+        } finally {
+            isLoading = false
+        }
     }
 
     AlertDialog(
@@ -160,6 +166,10 @@ fun DrivePickerDialog(
             Column(modifier = Modifier.fillMaxWidth()) {
                 if (isLoading) {
                     CircularProgressIndicator(modifier = Modifier.padding(16.dp))
+                } else if (errorMessage != null) {
+                    Text(errorMessage!!, color = MaterialTheme.colorScheme.error)
+                    Spacer(Modifier.height(8.dp))
+                    Text("If this persists, try disconnecting and reconnecting your account in Settings.")
                 } else if (files.isNullOrEmpty()) {
                     Text("No files found.")
                 } else {

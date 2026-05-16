@@ -39,7 +39,7 @@ class HeadlessLogicTest : FunSpec({
         )
 
         // 3. Verify member access
-        container.googleAccountFlow.error.value shouldBe null
+        container.googleAccountFlow.state.value shouldBe GoogleConnectionState.Unlinked
         container.eventAgent.isLoading.value shouldBe false
         
         // 4. Run a simple headless operation

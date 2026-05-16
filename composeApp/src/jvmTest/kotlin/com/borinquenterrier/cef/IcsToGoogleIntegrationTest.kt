@@ -22,7 +22,7 @@ import java.io.File
 
 class IcsToGoogleIntegrationTest : FunSpec({
 
-    test("Should clear calendar, parse sample.ics and push events to Google Repository") {
+    test("Should clear calendar, parse sample.ics and push events to Google Repository").config(enabled = false) {
         // 1. Load sample.ics from resources
         val icsStream = object {}.javaClass.classLoader.getResourceAsStream("sample.ics")
         if (icsStream == null) {
@@ -33,6 +33,7 @@ class IcsToGoogleIntegrationTest : FunSpec({
 
         // 2. Setup Google API
         val settings = com.russhwolf.settings.MapSettings()
+        
         val authService = GoogleAuthService(settings)
         val (accessToken, refreshToken) = runBlocking {
             println("Attempting to log in with Google. Please follow the browser prompts.")

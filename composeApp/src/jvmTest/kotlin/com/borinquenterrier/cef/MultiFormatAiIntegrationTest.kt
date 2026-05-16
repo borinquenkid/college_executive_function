@@ -40,9 +40,11 @@ class MultiFormatAiIntegrationTest : FunSpec({
 
         // Synthetic fixture with fully-specified 2026 dates — no AI inference required
         val fixtureFile = listOf(
-            File("src/commonTest/resources/test_events.txt"),
-            File("composeApp/src/commonTest/resources/test_events.txt")
-        ).first { it.exists() }
+            File("src/commonTest/resources/syllabus.txt"),
+            File("composeApp/src/commonTest/resources/syllabus.txt"),
+            File("../composeApp/src/commonTest/resources/syllabus.txt")
+        ).find { it.exists() } ?: throw IllegalStateException("Could not find syllabus.txt fixture")
+        
         val fragments = SourceProcessor.process(fixtureFile.readText())
 
         // Run AI extraction

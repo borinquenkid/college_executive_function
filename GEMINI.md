@@ -113,6 +113,5 @@ The following tasks are planned for the next phase of development:
 *   **Two-Way Synchronization (Edge Cases):** The core sync is implemented. Need to handle edge cases like remote deletions reflecting locally, and offline mutation queues.
 
 #### UI & UX
-*   **Vertical Layout Optimization:** Shrink the vertical layout by approximately half to ensure buttons (like 'Accept') are reachable without tabbing.
 *   **Visual Progress Tracking:** Progress bars and "Time Remaining" visuals for long-term projects.
 *   **Export Support:** Implement `.ics` file export for the entire generated study plan.

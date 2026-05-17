@@ -120,74 +120,82 @@ fun AcademicCalendar(
     }
 
     Column(modifier = modifier) {
-        if (!isGoogleLinked) {
-            Card(
-                modifier = Modifier.fillMaxWidth().padding(16.dp),
-                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
-            ) {
-                Column(modifier = Modifier.padding(16.dp)) {
-                    Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
-                        Icon(Icons.Default.CloudCircle, contentDescription = null)
-                        Spacer(Modifier.padding(horizontal = 4.dp))
-                        Text("Sync with Google Calendar", style = MaterialTheme.typography.titleMedium)
-                    }
-                    Text("Link your account to import syllabi from Drive and push events to your Google Calendar.")
-                    Spacer(Modifier.height(8.dp))
-                    Button(onClick = {
-                        scope.launch {
-                            try {
-                                val result = authService.login()
-                                tokenRepository.saveTokens(result.first, result.second)
-                                isGoogleLinked = true
-                            } catch (e: Exception) {
-                            }
-                        }
-                    }) {
-                        Text("Link Google Account")
-                    }
-                }
-            }
-        }
-
-        Row(modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp), horizontalArrangement = Arrangement.spacedBy(8.dp)) {
-            Button(
-                onClick = { onNavigate(AppScreen.Routine) },
-                modifier = Modifier.weight(1f)
-            ) {
-                Text("Weekly Routine")
-            }
-
-            Button(
-                onClick = { onNavigate(AppScreen.Home) },
-                modifier = Modifier.weight(1f),
-                colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
-            ) {
-                Text("Add Source")
-            }
-            
-            if (isGoogleLinked) {
-                IconButton(
-                    onClick = {
-                        scope.launch {
-                            isSyncing = true
-                            try {
-                                calendarAgent.synchronize("default")
-                                displayedEvents = calendarAgent.getEvents("default")
-                            } catch (e: Exception) {
-                            } finally {
-                                isSyncing = false
-                            }
-                        }
-                    },
-                    enabled = !isSyncing
-                ) {
-                    if (isSyncing) CircularProgressIndicator(modifier = Modifier.size(24.dp))
-                    else Icon(Icons.Default.Sync, contentDescription = "Sync Now")
-                }
-            }
-        }
-
         LazyColumn(modifier = Modifier.fillMaxSize()) {
+            if (!isGoogleLinked) {
+                item {
+                    Card(
+                        modifier = Modifier.fillMaxWidth().padding(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.primaryContainer)
+                    ) {
+                        Column(modifier = Modifier.padding(16.dp)) {
+                            Row(verticalAlignment = androidx.compose.ui.Alignment.CenterVertically) {
+                                Icon(Icons.Default.CloudCircle, contentDescription = null)
+                                Spacer(Modifier.padding(horizontal = 4.dp))
+                                Text("Sync with Google Calendar", style = MaterialTheme.typography.titleMedium)
+                            }
+                            Text("Link your account to import syllabi from Drive and push events to your Google Calendar.")
+                            Spacer(Modifier.height(8.dp))
+                            Button(onClick = {
+                                scope.launch {
+                                    try {
+                                        val result = authService.login()
+                                        tokenRepository.saveTokens(result.first, result.second)
+                                        isGoogleLinked = true
+                                    } catch (e: Exception) {
+                                    }
+                                }
+                            }) {
+                                Text("Link Google Account")
+                            }
+                        }
+                    }
+                }
+            }
+
+            item {
+                Row(
+                    modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp),
+                    verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+                ) {
+                    Button(
+                        onClick = { onNavigate(AppScreen.Routine) },
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Weekly Routine")
+                    }
+
+                    Button(
+                        onClick = { onNavigate(AppScreen.Home) },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.secondary)
+                    ) {
+                        Text("Add Source")
+                    }
+
+                    if (isGoogleLinked) {
+                        IconButton(
+                            onClick = {
+                                scope.launch {
+                                    isSyncing = true
+                                    try {
+                                        calendarAgent.synchronize("default")
+                                        displayedEvents = calendarAgent.getEvents("default")
+                                    } catch (e: Exception) {
+                                    } finally {
+                                        isSyncing = false
+                                    }
+                                }
+                            },
+                            enabled = !isSyncing
+                        ) {
+                            if (isSyncing) CircularProgressIndicator(modifier = Modifier.size(24.dp))
+                            else Icon(Icons.Default.Sync, contentDescription = "Sync Now")
+                        }
+                    }
+                }
+            }
+
             if (groupedEvents.isEmpty()) {
                 item {
                     Text(

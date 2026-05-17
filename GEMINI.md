@@ -1,5 +1,16 @@
 # Project Mandates
 
+## Environment Setup
+### Codebase Intelligence (MCP)
+This project uses `repowise` as an MCP server to provide codebase intelligence (docs, graph, git signals, etc.). To use it, you must install `repowise` on your system:
+
+```bash
+# Install repowise globally using uv
+uv tool install repowise
+```
+
+The MCP server is configured in `.gemini/settings.json` to start automatically.
+
 ## Build Verification Protocol
 Whenever the agent reports that a task or feature is "done," it MUST verify that all three primary build targets compile successfully by running the following command: `./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble`. The agent must confirm these three builds pass before confirming completion to the user.
 

@@ -36,6 +36,7 @@ import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.material3.TextButton
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.graphics.Color
@@ -65,14 +66,14 @@ fun SettingsScreen(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .padding(24.dp)
+            .padding(16.dp)
             .verticalScroll(rememberScrollState()),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        verticalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        Text("Setup & Connections", style = MaterialTheme.typography.headlineMedium)
+        Text("Setup & Connections", style = MaterialTheme.typography.headlineSmall)
         Text(
             "Connect your accounts to let the AI help you manage your studies.",
-            style = MaterialTheme.typography.bodyMedium,
+            style = MaterialTheme.typography.bodySmall,
             color = MaterialTheme.colorScheme.onSurfaceVariant
         )
 
@@ -86,40 +87,38 @@ fun SettingsScreen(
                     MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.3f)
             )
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = if (apiKey.isNotBlank()) Icons.Default.CheckCircle else Icons.Default.Info,
                         contentDescription = null,
-                        tint = if (apiKey.isNotBlank()) Color(0xFF4CAF50) else MaterialTheme.colorScheme.secondary
+                        tint = if (apiKey.isNotBlank()) Color(0xFF4CAF50) else MaterialTheme.colorScheme.secondary,
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(Modifier.width(12.dp))
-                    Text("AI Brain (Gemini)", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.width(8.dp))
+                    Text("AI Brain (Gemini)", style = MaterialTheme.typography.titleMedium)
                 }
                 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
                 Text(
-                    "To keep this app free and private, it uses your own free AI key from Google. It takes 30 seconds to set up."
+                    "To keep this app free and private, it uses your own free AI key from Google.",
+                    style = MaterialTheme.typography.bodySmall
                 )
                 
-                Spacer(Modifier.height(16.dp))
-
                 if (apiKey.isBlank()) {
-                    Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
-                        Text("1. Click 'Get Free Key' to open Google AI Studio.")
-                        Text("2. Click 'Create API key' and copy it.")
-                        Text("3. Paste the key below.")
-                        
+                    Spacer(Modifier.height(8.dp))
+                    Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                         Button(
                             onClick = { PlatformUtils.openBrowser("https://aistudio.google.com/app/apikey") },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth(),
+                            contentPadding = PaddingValues(vertical = 4.dp)
                         ) {
-                            Text("Get Free API Key")
+                            Text("Get Free API Key", style = MaterialTheme.typography.labelLarge)
                         }
                     }
                 }
 
-                Spacer(Modifier.height(12.dp))
+                Spacer(Modifier.height(8.dp))
                 
                 OutlinedTextField(
                     value = apiKey,
@@ -129,6 +128,7 @@ fun SettingsScreen(
                     },
                     modifier = Modifier.fillMaxWidth(),
                     label = { Text("Gemini API Key") },
+                    textStyle = MaterialTheme.typography.bodySmall,
                     placeholder = { Text("Paste your key here...") },
                     trailingIcon = {
                         if (apiKey.isNotBlank()) {
@@ -139,7 +139,8 @@ fun SettingsScreen(
                                 Icon(
                                     imageVector = Icons.Default.Clear, 
                                     contentDescription = "Clear", 
-                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
                                 )
                             }
                         }
@@ -158,26 +159,28 @@ fun SettingsScreen(
                     MaterialTheme.colorScheme.surfaceVariant
             )
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
+            Column(modifier = Modifier.padding(12.dp)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         imageVector = if (isGoogleLinked) Icons.Default.CheckCircle else Icons.Default.Lock,
                         contentDescription = null,
-                        tint = if (isGoogleLinked) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary
+                        tint = if (isGoogleLinked) Color(0xFF4CAF50) else MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
                     )
-                    Spacer(Modifier.width(12.dp))
-                    Text("Calendar & Drive", style = MaterialTheme.typography.titleLarge)
+                    Spacer(Modifier.width(8.dp))
+                    Text("Calendar & Drive", style = MaterialTheme.typography.titleMedium)
                 }
                 
-                Spacer(Modifier.height(8.dp))
+                Spacer(Modifier.height(4.dp))
                 Text(
                     if (isGoogleLinked) 
                         "Connected! We can now import documents and sync events."
                     else 
-                        "Link your Google account to automatically import syllabi and sync your schedule."
+                        "Link your Google account to automatically import syllabi and sync your schedule.",
+                    style = MaterialTheme.typography.bodySmall
                 )
                 
-                Spacer(Modifier.height(16.dp))
+                Spacer(Modifier.height(12.dp))
                 
                 if (!isGoogleLinked) {
                     Button(
@@ -185,10 +188,11 @@ fun SettingsScreen(
                             scope.launch { googleFlow.connect() }
                         },
                         modifier = Modifier.fillMaxWidth(),
-                        enabled = !isBusy
+                        enabled = !isBusy,
+                        contentPadding = PaddingValues(vertical = 4.dp)
                     ) {
                         if (isBusy) {
-                            CircularProgressIndicator(modifier = Modifier.size(24.dp), color = MaterialTheme.colorScheme.onPrimary)
+                            CircularProgressIndicator(modifier = Modifier.size(20.dp), color = MaterialTheme.colorScheme.onPrimary)
                         } else {
                             Text("Connect Google Account")
                         }
@@ -196,7 +200,8 @@ fun SettingsScreen(
                 } else {
                     TextButton(
                         onClick = { googleFlow.disconnect() },
-                        enabled = !isBusy
+                        enabled = !isBusy,
+                        modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Disconnect Account")
                     }

@@ -1,3 +1,4 @@
+.repowise/
 *.iml
 .kotlin
 # Environment variables

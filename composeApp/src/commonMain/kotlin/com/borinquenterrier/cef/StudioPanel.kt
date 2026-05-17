@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material.icons.filled.AutoAwesome
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -61,29 +62,17 @@ fun StudioPanel(
                                 eventAgent.generateStudyPlan(selectedSource)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(40.dp),
+                        modifier = Modifier.fillMaxWidth().height(48.dp),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(0.dp),
                         enabled = !isLoading
                     ) {
-                        Text("Plan Study Time (AI)", style = MaterialTheme.typography.labelLarge)
-                    }
-                }
-
-                item {
-                    OutlinedButton(
-                        onClick = {
-                            coroutineScope.launch {
-                                eventAgent.extractDeliverables(selectedSource)
-                            }
-                        },
-                        modifier = Modifier.fillMaxWidth().height(40.dp),
-                        contentPadding = PaddingValues(0.dp),
-                        enabled = !isLoading
-                    ) {
-                        Text("Find Deadlines & Exams (AI)", style = MaterialTheme.typography.labelLarge)
-                    }
-                }
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Process Syllabus & Plan Study", style = MaterialTheme.typography.labelLarge)
+                        }
+                    }                }
 
                 if (lastGeneratedEvents.isNotEmpty()) {
                     item {
@@ -111,6 +100,12 @@ fun StudioPanel(
                         }
                     }
 
+                    val hasConflicts = lastGeneratedEvents.any { event -> 
+                        // Logic to detect if this event was already rejected 
+                        // (In this pass, if it's still in the list after a sync attempt, it's a conflict)
+                        statusMessage.contains("conflicts need review")
+                    }
+
                     item {
                         Button(
                             onClick = {
@@ -121,11 +116,26 @@ fun StudioPanel(
                             },
                             modifier = Modifier.fillMaxWidth(),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (isConnected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = if (hasConflicts) MaterialTheme.colorScheme.error else if (isConnected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
                             ),
                             enabled = !isLoading && isConnected
                         ) {
-                            Text(if (isConnected) "Push to Google Calendar" else "Connect to Google to Push")
+                            Text(
+                                if (hasConflicts) "Force Sync Remaining" 
+                                else if (isConnected) "Push to Google Calendar" 
+                                else "Connect to Google to Push"
+                            )
+                        }
+                    }
+
+                    if (hasConflicts) {
+                        item {
+                            Text(
+                                "The items below overlap with your existing schedule. You can modify them or force them into the calendar.",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.error,
+                                modifier = Modifier.padding(8.dp)
+                            )
                         }
                     }
                     

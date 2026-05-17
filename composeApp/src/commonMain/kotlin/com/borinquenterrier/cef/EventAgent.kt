@@ -98,33 +98,44 @@ class EventAgent(
 
     /**
      * Pushes the last generated batch of events to the calendar, checking for conflicts.
+     * Returns a list of events that COULD NOT be pushed due to overlaps.
      */
-    suspend fun pushToCalendar(calendarId: String = "default") {
+    suspend fun pushToCalendar(calendarId: String = "default"): List<Event> {
         val events = _lastGeneratedEvents.value
-        if (events.isEmpty()) return
+        if (events.isEmpty()) return emptyList()
 
         _isLoading.value = true
         _statusMessage.value = "Syncing ${events.size} events to your calendar..."
         
+        val conflicts = mutableListOf<Event>()
         var successCount = 0
+        
         try {
             for (event in events) {
                 try {
                     repository.saveEvent(event, calendarId)
                     successCount++
                 } catch (e: OverlapException) {
-                    _statusMessage.value = "Conflict: '${event.title}' overlaps with an existing event. Stopping sync."
-                    return
+                    logger?.d(tag, "Conflict detected for: ${event.title}")
+                    conflicts.add(event)
                 }
             }
-            _statusMessage.value = "Success! $successCount events pushed to your calendar."
-            _lastGeneratedEvents.value = emptyList() // Clear after successful push
+            
+            if (conflicts.isEmpty()) {
+                _statusMessage.value = "Success! All $successCount events pushed."
+                _lastGeneratedEvents.value = emptyList()
+            } else {
+                _statusMessage.value = "Synced $successCount events. ${conflicts.size} conflicts need review."
+                // Update the visible list to ONLY show the items that failed
+                _lastGeneratedEvents.value = conflicts
+            }
         } catch (e: Exception) {
             logger?.e(tag, "Error pushing to calendar", e)
             _statusMessage.value = "Sync Error: ${e.message}"
         } finally {
             _isLoading.value = false
         }
+        return conflicts
     }
 
     fun clear() {

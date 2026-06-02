@@ -41,6 +41,7 @@ class EventSyncTest : FunSpec({
         (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(safeEvent, conflictingEvent)
         
         // Mock the calendar agent: one success, one conflict
+        coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
         coEvery { mockCalendarAgent.saveEvent(safeEvent, "default") } returns Unit
         coEvery { mockCalendarAgent.saveEvent(conflictingEvent, "default") } throws OverlapException(safeEvent, conflictingEvent)
         
@@ -75,6 +76,7 @@ class EventSyncTest : FunSpec({
         stateProp.isAccessible = true
         (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(event)
         
+        coEvery { mockCalendarAgent.getEvents(any()) } returns emptyList()
         coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
         
         runBlocking { eventAgent.pushToCalendar() }

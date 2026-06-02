@@ -111,13 +111,39 @@ class EventAgent(
         var successCount = 0
         
         try {
+            val existing = repository.getEvents(calendarId)
+            val currentCalendarState = existing.toMutableList()
+            
+            val resolvedList = mutableListOf<Event>()
+            val resolver = CollisionResolver()
+            
             for (event in events) {
+                val result = resolver.resolve(event, currentCalendarState)
+                when (result) {
+                    is ResolutionResult.Success -> {
+                        // Update currentCalendarState so subsequent events in this batch resolve against it
+                        for (resolved in result.resolvedEvents) {
+                            resolved.id?.let { id ->
+                                currentCalendarState.removeAll { it.id == id }
+                            }
+                            currentCalendarState.add(resolved)
+                        }
+                        resolvedList.addAll(result.resolvedEvents)
+                    }
+                    is ResolutionResult.Conflict -> {
+                        conflicts.add(event)
+                    }
+                }
+            }
+
+            // Save all successfully resolved events (both new and bumped)
+            for (resolved in resolvedList) {
                 try {
-                    repository.saveEvent(event, calendarId)
+                    repository.saveEvent(resolved, calendarId)
                     successCount++
                 } catch (e: OverlapException) {
-                    logger?.d(tag, "Conflict detected for: ${event.title}")
-                    conflicts.add(event)
+                    logger?.d(tag, "Conflict detected for: ${resolved.title}")
+                    conflicts.add(resolved)
                 }
             }
             
@@ -126,7 +152,6 @@ class EventAgent(
                 _lastGeneratedEvents.value = emptyList()
             } else {
                 _statusMessage.value = "Synced $successCount events. ${conflicts.size} conflicts need review."
-                // Update the visible list to ONLY show the items that failed
                 _lastGeneratedEvents.value = conflicts
             }
         } catch (e: Exception) {

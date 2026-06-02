@@ -13,6 +13,17 @@ enum class AcademicCategory {
     REGULAR, HOLIDAY, DEADLINE, FINALS, SEMESTER_BOUND, STUDY_BLOCK, CLASS
 }
 
+val AcademicCategory.priority: Int
+    get() = when (this) {
+        AcademicCategory.FINALS -> 100
+        AcademicCategory.DEADLINE -> 90
+        AcademicCategory.CLASS -> 80
+        AcademicCategory.HOLIDAY -> 70
+        AcademicCategory.SEMESTER_BOUND -> 60
+        AcademicCategory.REGULAR -> 30
+        AcademicCategory.STUDY_BLOCK -> 10
+    }
+
 enum class SyncStatus {
     SYNCED, LOCAL_ONLY, DELETED_LOCALLY
 }
@@ -35,6 +46,9 @@ sealed interface Event {
     val date: LocalDate
     val updatedAt: Long
     val warning: String? // Added for "Strict but Warn" capability
+
+    val priority: Int
+        get() = category.priority
 
     /**
      * Checks if this event overlaps with another event in time.

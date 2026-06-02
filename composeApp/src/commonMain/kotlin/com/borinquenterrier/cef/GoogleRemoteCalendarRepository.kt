@@ -51,11 +51,11 @@ class GoogleRemoteCalendarRepository(
         withToken { token ->
             val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
             
-            // 1. Fetch current events for THAT specific calendar to check for overlaps
+                        // 1. Fetch current events for THAT specific calendar to check for overlaps
             val existingEvents = syncService.getEvents(token, targetId)
 
             // 2. Perform the overlap check
-            val conflict = existingEvents.find { it.overlaps(event) }
+            val conflict = existingEvents.find { it.id != event.id && it.overlaps(event) }
             if (conflict != null) {
                 throw OverlapException(existingEvent = conflict, newEvent = event)
             }

@@ -108,16 +108,13 @@ All business logic classes (Models, Agents, Services, and Utilities) must have a
 *   **AI Study Plan Constraints:** Implemented strict AI-driven scheduling rules (9-5 limits, daily breaks, class priority, collision resolution) via high-context Gemini reasoning.
 *   **Debug Logging:** Integrated platform-aware logging.
 *   **Automatic Schema Migrations:** Updated database factory to automatically detect and create missing tables.
+*   **Recursive Task Decomposition (Core Orchestration & AI Delegation):** Built `DecompositionOrchestrator` using FIFO queues and `WorkUnit` interfaces, wrapping `AIService` via delegation to handle recursive breakdown up to depth 3 with mathematical date projection and robust Kotest test specs.
 
 ### Next Steps
 
 The following tasks are planned for the next phase of development:
 
 #### Recursive Task Decomposition (Next Phase)
-*   **Decoupled Orchestrator:** Implement `DecompositionOrchestrator` using a FIFO queue and sealed `WorkUnit` interfaces to support recursive assignment breakdown.
-*   **TDD Methodology:** Develop the orchestrator in parallel, strictly using Kotest unit tests before integration with the `EventAgent`.
-*   **Modular Integration:** Wrap the existing `AIService` via interface delegation to ensure the new logic can be plugged into the current pipeline without requiring risky modifications to the core network/AIService implementations.
-*   **Recursion Safeguards:** Implement a `MAX_DEPTH` guard (current target = 3) to prevent infinite loops and token exhaustion.
 *   **Automatic Source Categorization:** (Google Notebook style) Automatically tag sources as "Syllabus", "Reading Material", "Lab Manual", or "Lecture Notes" during ingestion to optimize AI retrieval.
 *   **Multi-Source Chat Context:** Refactor `ContextAgent` to allow the Chat panel to reason across *all* stored sources simultaneously (e.g., "What are all my grading policies across all classes?").
 *   **Syllabus-to-Study Schedule (Fine-tuning):** We have the core constraints working in the LLM. Next step is iterating over the scheduling parameters via user surveys (e.g., custom study hours, custom break lengths).

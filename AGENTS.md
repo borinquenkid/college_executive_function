@@ -70,14 +70,18 @@ All business logic classes (Models, Agents, Services, and Utilities) must have a
 *   **Agentic Separation:** Refactored the UI to use a decoupled logic layer for headless testing and cleaner state management.
 *   **Debug Logging:** Integrated platform-aware logging.
 *   **Automatic Schema Migrations:** Updated database factory to automatically detect and create missing tables.
+*   **Multi-Format Extraction:** Robust text extraction for DOCX and PDF files using native libraries for Android, iOS, and JVM.
+*   **Native Mobile Auth:** Implemented native Google Sign-In using `GoogleSignInClient` (Android) and `ASWebAuthenticationSession` (iOS).
+*   **Recursive Task Decomposition (Core Orchestration & AI Delegation):** Built `DecompositionOrchestrator` using FIFO queues and `WorkUnit` interfaces, wrapping `AIService` via delegation to handle recursive breakdown up to depth 3 with mathematical date projection and robust Kotest test specs.
 
 ### Next Steps
 
 The following tasks are planned for the next phase of development:
 
 #### Core Functionality & AI
-*   **Multi-Format Support:** Robust text extraction for **DOCX** and **PDF** files using native libraries for Android/iOS.
-*   **AI Task Decomposition:** Full UI flow for the "Break It Down" feature to split assignments into 1-2 hour sub-tasks.
+*   **Automatic Source Categorization:** (Google Notebook style) Automatically tag sources as "Syllabus", "Reading Material", "Lab Manual", or "Lecture Notes" during ingestion to optimize AI retrieval.
+*   **Multi-Source Chat Context:** Refactor `ContextAgent` to allow the Chat panel to reason across *all* stored sources simultaneously.
+*   **AI Task Decomposition UI:** Implement the full UI flow for the "Break It Down" feature to split assignments into sub-tasks using the new orchestrator.
 *   **Syllabus-to-Study Schedule:** Further refine the logic that suggests study periods based on weighted deliverables.
 
 #### Calendar & Sync

@@ -38,7 +38,7 @@ class AiSchedulingIntegrationTest : FunSpec({
         val settings = MapSettings()
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
         val logger = Logger(settings)
-        val aiService = AIService(settings, logger, database)
+        val aiService: AIService = RealAIService(settings, logger, database)
         val mockRepo = mockk<CalendarAgent>(relaxed = true)
         
         val eventAgent = EventAgent(aiService, mockRepo, database, logger = logger)

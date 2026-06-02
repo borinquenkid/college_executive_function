@@ -36,7 +36,7 @@ class MultiFormatAiIntegrationTest : FunSpec({
 
         val settings = MapSettings()
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
-        val aiService = AIService(settings, Logger(settings), null)
+        val aiService: AIService = RealAIService(settings, Logger(settings), null)
 
         // Synthetic fixture with fully-specified 2026 dates — no AI inference required
         val fixtureFile = listOf(

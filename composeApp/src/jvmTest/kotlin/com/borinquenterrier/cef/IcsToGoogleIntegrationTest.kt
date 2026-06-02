@@ -57,7 +57,7 @@ class IcsToGoogleIntegrationTest : FunSpec({
         // In a real integration test, we might use the real AIService if a model is present
         // For now, we'll use the existing icsSource.extractChunks() and an AI to map them
         val logger = Logger(settings)
-        val aiService = AIService(settings, logger, null) 
+        val aiService: AIService = RealAIService(settings, logger, null) 
 
         // 4. Clear existing events (USE CAUTION IF RUNNING AGAINST REAL CALENDAR)
         println("WARNING: RUNNING AGAINST REAL GOOGLE CALENDAR. CLEARING EVENTS...")

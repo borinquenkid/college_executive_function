@@ -8,13 +8,13 @@ import com.borinquenterrier.cef.db.AppDatabase
 /**
  * Android Implementation of AIService using Gemini.
  */
-actual class AIService actual constructor(
+actual class RealAIService actual constructor(
     private val settings: Settings,
     private val logger: Logger,
     private val database: AppDatabase?
-) {
+) : AIService {
     
-    actual fun isConfigured(): Boolean {
+    actual override fun isConfigured(): Boolean {
         val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
         return apiKey.isNotBlank()
     }
@@ -28,23 +28,23 @@ actual class AIService actual constructor(
         )
     }
 
-    actual suspend fun generateChatResponse(prompt: String): String {
+    actual override suspend fun generateChatResponse(prompt: String): String {
         return getGeminiService().generateChatResponse(prompt)
     }
 
-    actual suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
+    actual override suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         return getGeminiService().generateCalendarEvents(fragments)
     }
 
-    actual suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String): List<Event> {
+    actual override suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String): List<Event> {
         return getGeminiService().generateStudyPlan(syllabusText, existingSchedule)
     }
 
-    actual suspend fun analyzeDocument(text: String): String? {
+    actual override suspend fun analyzeDocument(text: String): String? {
         return getGeminiService().analyzeDocument(text)
     }
 
-    actual suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
+    actual override suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
         return getGeminiService().decomposeTask(taskTitle, dueDate)
     }
 }
@@ -57,6 +57,6 @@ actual fun rememberAIService(): AIService {
     val database = remember(driverFactory) { AppDatabase(driverFactory.createDriver()) }
 
     return remember(settings, logger, database) { 
-        AIService(settings, logger, database) 
+        RecursiveDecompositionAIService(RealAIService(settings, logger, database))
     }
 }

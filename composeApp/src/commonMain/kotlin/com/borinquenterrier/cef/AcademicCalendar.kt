@@ -352,7 +352,45 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
             .border(2.dp, borderColor, CardDefaults.shape)
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
-            Text(categoryLabel, style = MaterialTheme.typography.labelSmall, color = borderColor)
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
+            ) {
+                Text(categoryLabel, style = MaterialTheme.typography.labelSmall, color = borderColor)
+                if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
+                    val daysUntil = Clock.System.todayIn(TimeZone.currentSystemDefault()).daysUntil(event.date)
+                    val chipText = when {
+                        daysUntil < 0 -> "Overdue by ${-daysUntil} day${if (-daysUntil != 1) "s" else ""}"
+                        daysUntil == 0 -> "Due Today"
+                        else -> "Due in $daysUntil day${if (daysUntil != 1) "s" else ""}"
+                    }
+                    val chipColor = when {
+                        daysUntil < 0 -> MaterialTheme.colorScheme.errorContainer
+                        daysUntil == 0 -> MaterialTheme.colorScheme.tertiaryContainer
+                        else -> MaterialTheme.colorScheme.secondaryContainer
+                    }
+                    val chipTextColor = when {
+                        daysUntil < 0 -> MaterialTheme.colorScheme.onErrorContainer
+                        daysUntil == 0 -> MaterialTheme.colorScheme.onTertiaryContainer
+                        else -> MaterialTheme.colorScheme.onSecondaryContainer
+                    }
+                    
+                    Surface(
+                        color = chipColor,
+                        shape = MaterialTheme.shapes.small,
+                        modifier = Modifier.padding(start = 8.dp)
+                    ) {
+                        Text(
+                            text = chipText,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = chipTextColor,
+                            modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
+                    }
+                }
+            }
+            Spacer(Modifier.height(4.dp))
             when (event) {
                 is TimeEvent -> {
                     Text(event.title, style = MaterialTheme.typography.titleMedium)
@@ -361,6 +399,34 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                 is DayEvent -> {
                     Text(event.title, style = MaterialTheme.typography.titleMedium)
                     Text("All day")
+                }
+            }
+            if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
+                val progress = event.studyProgress()
+                Spacer(Modifier.height(8.dp))
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween
+                    ) {
+                        Text(
+                            text = "Study Progress",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "${(progress * 100).toInt()}%",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                    Spacer(Modifier.height(4.dp))
+                    LinearProgressIndicator(
+                        progress = progress,
+                        modifier = Modifier.fillMaxWidth(),
+                        color = MaterialTheme.colorScheme.primary,
+                        trackColor = MaterialTheme.colorScheme.surfaceVariant
+                    )
                 }
             }
             if (onBreakItDown != null) {

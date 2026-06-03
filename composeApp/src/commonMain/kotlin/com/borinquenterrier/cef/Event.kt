@@ -1,9 +1,17 @@
 package com.borinquenterrier.cef
 
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
+import kotlinx.datetime.minus
+import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
+import kotlin.time.Duration
+import kotlin.time.Duration.Companion.days
 
 enum class EventSource {
     ROUTINE, AI_GENERATED, MANUAL, STUDENT, SCHOOL, CLASS
@@ -46,6 +54,7 @@ sealed interface Event {
     val date: LocalDate
     val updatedAt: Long
     val warning: String? // Added for "Strict but Warn" capability
+    val studyPlanStart: String?
 
     val priority: Int
         get() = category.priority
@@ -65,6 +74,7 @@ data class TimeEvent(
     override val syncStatus: SyncStatus = SyncStatus.SYNCED,
     override val updatedAt: Long = 0,
     override val warning: String? = null,
+    override val studyPlanStart: String? = null,
     @Serializable(with = LocalTimeSerializer::class)
     val startTime: LocalTime,
     @Serializable(with = LocalTimeSerializer::class)
@@ -93,6 +103,7 @@ data class DayEvent(
     override val syncStatus: SyncStatus = SyncStatus.SYNCED,
     override val updatedAt: Long = 0,
     override val warning: String? = null,
+    override val studyPlanStart: String? = null,
     @Serializable(with = LocalDateSerializer::class)
     override val date: LocalDate,
     val recurrence: Recurrence? = null
@@ -104,4 +115,30 @@ data class DayEvent(
         }
         return this.date == otherDate
     }
+}
+
+fun Event.timeUntilDue(
+    currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
+): Duration {
+    return currentDate.daysUntil(this.date).days
+}
+
+fun Event.studyProgress(
+    currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
+): Float {
+    if (category != AcademicCategory.DEADLINE && category != AcademicCategory.FINALS) {
+        return 0f
+    }
+    val start = studyPlanStart?.let {
+        try { LocalDate.parse(it) } catch (e: Exception) { null }
+    } ?: date.minus(7, DateTimeUnit.DAY)
+
+    val totalDays = start.daysUntil(date)
+    if (totalDays <= 0) return 1f
+
+    val elapsedDays = start.daysUntil(currentDate)
+    if (elapsedDays <= 0) return 0f
+    if (elapsedDays >= totalDays) return 1f
+
+    return elapsedDays.toFloat() / totalDays.toFloat()
 }

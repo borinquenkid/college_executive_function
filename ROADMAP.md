@@ -39,6 +39,7 @@ All items below have been verified against the actual codebase — not just the 
 | **Multi-Source Chat Context** | ContextAgent queryAllSources() aggregates fragments, conversation history threaded through prompt |
 | **.ics Export** | Refactored `ICalGenerator` + expect/actual `writeIcsFile` with iOS Share Sheet & Android MediaStore actuals |
 | **Sync Hardening** | Token refresh retry internally in GoogleCalendarSyncService, pageToken pagination, conflict resolution warnings |
+| **Visual Progress Tracking** | `timeUntilDue` and `studyProgress` helpers on `Event`, linear progress and countdown chips in calendar list, and Semester Health summary card in StudioPanel |
 
 ---
 
@@ -128,7 +129,7 @@ modes that will surface in production use.
 These items add significant UX polish and address real student needs, but depend on Phase 1 being
 stable first.
 
-### 2.1 — Visual Progress Tracking
+### ~~2.1 — Visual Progress Tracking~~ ✅ **COMPLETED**
 
 **Why:** A visual "Time Remaining" indicator directly supports executive function challenges — the
 primary mission of the app.

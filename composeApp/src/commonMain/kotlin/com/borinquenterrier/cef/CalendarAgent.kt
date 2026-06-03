@@ -46,6 +46,26 @@ class CalendarAgent(
     }
 
     /**
+     * Updates an existing event. Saves to Remote first (unless in test profile).
+     * If successful, saves/updates locally as SYNCED.
+     */
+    suspend fun updateEvent(event: Event, calendarId: String = "default") {
+        val runProfile = localRepo.getSettings()?.getString("run_profile", "local") ?: "local"
+        if (runProfile != "test") {
+            remoteRepo.saveEvent(event, calendarId)
+            localRepo.updateEvent(
+                when (event) {
+                    is TimeEvent -> event.copy(syncStatus = SyncStatus.SYNCED)
+                    is DayEvent -> event.copy(syncStatus = SyncStatus.SYNCED)
+                },
+                calendarId
+            )
+        } else {
+            localRepo.updateEvent(event, calendarId)
+        }
+    }
+
+    /**
      * Explicitly saves an event to the local database only. 
      * Used for offline support or when the user hasn't linked Workspace.
      */

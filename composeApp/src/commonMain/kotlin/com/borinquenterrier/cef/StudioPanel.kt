@@ -15,6 +15,11 @@ import androidx.compose.ui.unit.dp
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.launch
 import com.borinquenterrier.cef.db.AppDatabase
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import kotlinx.datetime.plus
+import kotlinx.datetime.DateTimeUnit
 
 @Composable
 fun StudioPanel(
@@ -33,6 +38,25 @@ fun StudioPanel(
 
     val isConnected by container.tokenRepository.isLinked.collectAsState()
 
+    var eventsList by remember { mutableStateOf(emptyList<Event>()) }
+    LaunchedEffect(selectedSource, lastGeneratedEvents) {
+        eventsList = calendarAgent.getEvents("default")
+    }
+
+    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+    val next7DaysRange = today..today.plus(7, DateTimeUnit.DAY)
+    val next30DaysRange = today..today.plus(30, DateTimeUnit.DAY)
+    
+    val dueIn7Days = eventsList.filter { 
+        (it.category == AcademicCategory.DEADLINE || it.category == AcademicCategory.FINALS) && 
+        it.date in next7DaysRange
+    }
+    
+    val dueIn30Days = eventsList.filter { 
+        (it.category == AcademicCategory.DEADLINE || it.category == AcademicCategory.FINALS) && 
+        it.date in next30DaysRange
+    }
+
     // Push events back to parent when they are generated in the flow
     LaunchedEffect(lastGeneratedEvents) {
         if (lastGeneratedEvents.isNotEmpty()) {
@@ -48,6 +72,53 @@ fun StudioPanel(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text("Studio", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 4.dp))
+
+        Card(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(4.dp),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.primaryContainer
+            )
+        ) {
+            Column(modifier = Modifier.padding(12.dp)) {
+                Text(
+                    text = "Semester Health",
+                    style = MaterialTheme.typography.titleSmall,
+                    color = MaterialTheme.colorScheme.onPrimaryContainer
+                )
+                Spacer(Modifier.height(4.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    Column {
+                        Text(
+                            text = "Next 7 Days",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                        Text(
+                            text = "${dueIn7Days.size} deliverables",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                    Column {
+                        Text(
+                            text = "Next 30 Days",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
+                        )
+                        Text(
+                            text = "${dueIn30Days.size} deliverables",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
+                }
+            }
+        }
 
         if (selectedSource != null) {
             LazyColumn(

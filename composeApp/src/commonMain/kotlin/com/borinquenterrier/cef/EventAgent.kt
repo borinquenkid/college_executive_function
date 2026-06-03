@@ -200,6 +200,18 @@ class EventAgent(
 
         var count = 0
         try {
+            // Find earliest task date
+            val earliestTaskDate = tasks.minOfOrNull {
+                target.date.minus(it.daysBeforeDue, DateTimeUnit.DAY)
+            }
+
+            // Update target event's studyPlanStart and save it back
+            val updatedTarget = when (target) {
+                is TimeEvent -> target.copy(studyPlanStart = earliestTaskDate?.toString())
+                is DayEvent -> target.copy(studyPlanStart = earliestTaskDate?.toString())
+            }
+            repository.updateEvent(updatedTarget, calendarId)
+
             for (task in tasks) {
                 val taskDate = target.date.minus(task.daysBeforeDue, DateTimeUnit.DAY)
                 val event = DayEvent(

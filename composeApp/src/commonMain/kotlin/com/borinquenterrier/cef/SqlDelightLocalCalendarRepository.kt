@@ -43,7 +43,7 @@ class SqlDelightLocalCalendarRepository(
             is DayEvent -> event.recurrence?.let { r -> json.encodeToString(r) }
         }
 
-        database.appDatabaseQueries.insertEvent(
+                database.appDatabaseQueries.insertEvent(
             id = event.id ?: "${kotlinx.datetime.Clock.System.now().toEpochMilliseconds()}-${(1000..9999).random()}",
             title = event.title,
             source = event.source.name,
@@ -56,7 +56,8 @@ class SqlDelightLocalCalendarRepository(
             endTime = (event as? TimeEvent)?.endTime?.toString(),
             recurrence = recurrenceStr,
             syncStatus = event.syncStatus.name,
-            updatedAt = event.updatedAt
+            updatedAt = event.updatedAt,
+            studyPlanStart = event.studyPlanStart
         )
     }
 
@@ -98,6 +99,7 @@ class SqlDelightLocalCalendarRepository(
                 category = category,
                 syncStatus = syncStatus,
                 updatedAt = entity.updatedAt,
+                studyPlanStart = entity.studyPlanStart,
                 date = date,
                 startTime = LocalTime.parse(entity.startTime),
                 endTime = LocalTime.parse(entity.endTime),
@@ -111,6 +113,7 @@ class SqlDelightLocalCalendarRepository(
                 category = category,
                 syncStatus = syncStatus,
                 updatedAt = entity.updatedAt,
+                studyPlanStart = entity.studyPlanStart,
                 date = date,
                 recurrence = recurrence
             )

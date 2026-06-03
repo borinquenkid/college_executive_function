@@ -55,6 +55,7 @@ sealed interface Event {
     val updatedAt: Long
     val warning: String? // Added for "Strict but Warn" capability
     val studyPlanStart: String?
+    val gradeWeight: Float?
 
     val priority: Int
         get() = category.priority
@@ -75,6 +76,7 @@ data class TimeEvent(
     override val updatedAt: Long = 0,
     override val warning: String? = null,
     override val studyPlanStart: String? = null,
+    override val gradeWeight: Float? = null,
     @Serializable(with = LocalTimeSerializer::class)
     val startTime: LocalTime,
     @Serializable(with = LocalTimeSerializer::class)
@@ -104,6 +106,7 @@ data class DayEvent(
     override val updatedAt: Long = 0,
     override val warning: String? = null,
     override val studyPlanStart: String? = null,
+    override val gradeWeight: Float? = null,
     @Serializable(with = LocalDateSerializer::class)
     override val date: LocalDate,
     val recurrence: Recurrence? = null

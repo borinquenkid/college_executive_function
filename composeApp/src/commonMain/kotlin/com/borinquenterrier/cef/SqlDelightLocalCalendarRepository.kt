@@ -57,7 +57,8 @@ class SqlDelightLocalCalendarRepository(
             recurrence = recurrenceStr,
             syncStatus = event.syncStatus.name,
             updatedAt = event.updatedAt,
-            studyPlanStart = event.studyPlanStart
+            studyPlanStart = event.studyPlanStart,
+            gradeWeight = event.gradeWeight?.toDouble()
         )
     }
 
@@ -100,6 +101,7 @@ class SqlDelightLocalCalendarRepository(
                 syncStatus = syncStatus,
                 updatedAt = entity.updatedAt,
                 studyPlanStart = entity.studyPlanStart,
+                gradeWeight = entity.gradeWeight?.toFloat(),
                 date = date,
                 startTime = LocalTime.parse(entity.startTime),
                 endTime = LocalTime.parse(entity.endTime),
@@ -114,6 +116,7 @@ class SqlDelightLocalCalendarRepository(
                 syncStatus = syncStatus,
                 updatedAt = entity.updatedAt,
                 studyPlanStart = entity.studyPlanStart,
+                gradeWeight = entity.gradeWeight?.toFloat(),
                 date = date,
                 recurrence = recurrence
             )

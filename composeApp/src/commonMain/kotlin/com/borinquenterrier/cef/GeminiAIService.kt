@@ -33,12 +33,12 @@ class GeminiAIService(
         }
     }
 
-    private val json = Json { 
-        ignoreUnknownKeys = true 
-        isLenient = true
-    }
-
     companion object {
+        private val json = Json { 
+            ignoreUnknownKeys = true 
+            isLenient = true
+        }
+
         // Global blacklist to persist across service recreations during a session
         private val blacklistedModels = mutableMapOf<String, Long>()
         private const val BLACKLIST_DURATION_MS = 60 * 60 * 1000L // 1 hour
@@ -57,6 +57,68 @@ class GeminiAIService(
                     is DayEvent -> event.date.year
                 }
                 year in sourceYears
+            }
+        }
+
+        fun parseEventsJson(responseText: String): List<Event> {
+            val cleanJson = responseText.trim()
+                .removePrefix("```json")
+                .removeSuffix("```")
+                .trim()
+
+            val root = json.parseToJsonElement(cleanJson)
+            val jsonArray = if (root is JsonArray) {
+                root
+            } else if (root is JsonObject && root.containsKey("events")) {
+                root["events"]!!.jsonArray
+            } else {
+                throw Exception("Unexpected JSON structure: $cleanJson")
+            }
+
+            return jsonArray.map { element ->
+                val obj = element.jsonObject
+                val title = obj["title"]?.jsonPrimitive?.content ?: "Untitled Event"
+                val type = obj["type"]?.jsonPrimitive?.content ?: "DAY"
+                val dateStr = obj["date"]?.jsonPrimitive?.content ?: "2024-01-01"
+                val categoryStr = obj["category"]?.jsonPrimitive?.content ?: "REGULAR"
+                val warning = obj["warning"]?.jsonPrimitive?.content
+                val gradeWeight = obj["gradeWeight"]?.jsonPrimitive?.let { prim ->
+                    prim.doubleOrNull?.toFloat() ?: prim.content.toFloatOrNull()
+                }
+                val category = try {
+                    AcademicCategory.valueOf(categoryStr)
+                } catch (e: Exception) {
+                    AcademicCategory.REGULAR
+                }
+
+                val date = try { LocalDate.parse(dateStr) } catch (e: Exception) { LocalDate(2024,1,1) }
+
+                if (type == "TIME") {
+                    val startTimeStr = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
+                    val endTimeStr = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
+                    val start = try { LocalTime.parse(startTimeStr) } catch (e: Exception) { LocalTime(9,0) }
+                    val end = try { LocalTime.parse(endTimeStr) } catch (e: Exception) { LocalTime(10,0) }
+                    
+                    TimeEvent(
+                        title = title,
+                        source = EventSource.AI_GENERATED,
+                        category = category,
+                        date = date,
+                        startTime = start,
+                        endTime = end,
+                        warning = warning,
+                        gradeWeight = gradeWeight
+                    )
+                } else {
+                    DayEvent(
+                        title = title,
+                        source = EventSource.AI_GENERATED,
+                        category = category,
+                        date = date,
+                        warning = warning,
+                        gradeWeight = gradeWeight
+                    )
+                }
             }
         }
     }
@@ -255,62 +317,7 @@ class GeminiAIService(
                 val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
                     ?: throw Exception("Empty response from AI")
 
-                // With responseMimeType: "application/json", responseText is already raw JSON.
-                // However, some versions still wrap it in markdown. Let's be safe.
-                val cleanJson = responseText.trim()
-                    .removePrefix("```json")
-                    .removeSuffix("```")
-                    .trim()
-
-                val root = json.parseToJsonElement(cleanJson)
-                val jsonArray = if (root is JsonArray) {
-                    root
-                } else if (root is JsonObject && root.containsKey("events")) {
-                    root["events"]!!.jsonArray
-                } else {
-                    throw Exception("Unexpected JSON structure: $cleanJson")
-                }
-
-                return jsonArray.map { element ->
-                    val obj = element.jsonObject
-                    val title = obj["title"]?.jsonPrimitive?.content ?: "Untitled Event"
-                    val type = obj["type"]?.jsonPrimitive?.content ?: "DAY"
-                    val dateStr = obj["date"]?.jsonPrimitive?.content ?: "2024-01-01"
-                    val categoryStr = obj["category"]?.jsonPrimitive?.content ?: "REGULAR"
-                    val warning = obj["warning"]?.jsonPrimitive?.content
-                    val category = try {
-                        AcademicCategory.valueOf(categoryStr)
-                    } catch (e: Exception) {
-                        AcademicCategory.REGULAR
-                    }
-
-                    val date = try { LocalDate.parse(dateStr) } catch (e: Exception) { LocalDate(2024,1,1) }
-
-                    if (type == "TIME") {
-                        val startTimeStr = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
-                        val endTimeStr = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
-                        val start = try { LocalTime.parse(startTimeStr) } catch (e: Exception) { LocalTime(9,0) }
-                        val end = try { LocalTime.parse(endTimeStr) } catch (e: Exception) { LocalTime(10,0) }
-                        
-                        TimeEvent(
-                            title = title,
-                            source = EventSource.AI_GENERATED,
-                            category = category,
-                            date = date,
-                            startTime = start,
-                            endTime = end,
-                            warning = warning
-                        )
-                    } else {
-                        DayEvent(
-                            title = title,
-                            source = EventSource.AI_GENERATED,
-                            category = category,
-                            date = date,
-                            warning = warning
-                        )
-                    }
-                }
+                return parseEventsJson(responseText)
             } catch (e: Exception) {
                 lastError = e
                 logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")

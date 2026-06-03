@@ -9,12 +9,13 @@ CREATE TABLE IF NOT EXISTS EventEntity (
     recurrence TEXT,
     syncStatus TEXT NOT NULL DEFAULT 'SYNCED',
     updatedAt INTEGER NOT NULL DEFAULT 0,
-    studyPlanStart TEXT
+    studyPlanStart TEXT,
+    gradeWeight REAL
 );
 
 insertEvent:
-INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence, syncStatus, updatedAt, studyPlanStart)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence, syncStatus, updatedAt, studyPlanStart, gradeWeight)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectAllEvents:
 SELECT * FROM EventEntity;

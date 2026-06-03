@@ -41,6 +41,7 @@ All items below have been verified against the actual codebase — not just the 
 | **Sync Hardening** | Token refresh retry internally in GoogleCalendarSyncService, pageToken pagination, conflict resolution warnings |
 | **Visual Progress Tracking** | `timeUntilDue` and `studyProgress` helpers on `Event`, linear progress and countdown chips in calendar list, and Semester Health summary card in StudioPanel |
 | **Scheduling Fine-Tuning** | User-configurable study hours, break lengths, and limits in Settings; injected into AI study plan generation and collision resolver |
+| **Weighted Deliverables** | Syllabus grade weights extracted by AI, stored in Event models, and used to allocate study block durations proportionally |
 
 ---
 
@@ -172,7 +173,7 @@ study window strings injected into the Gemini prompt.
 
 ---
 
-### 2.3 — Syllabus-to-Study Schedule Fine-Tuning (Weighted Deliverables)
+### ~~2.3 — Syllabus-to-Study Schedule Fine-Tuning (Weighted Deliverables)~~ ✅ **COMPLETED**
 
 **Why:** Currently all deliverables get the same study block allocation. A 40%-weight final exam
 should command more preparation time than a 5%-weight quiz.

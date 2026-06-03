@@ -49,6 +49,7 @@ object AiPrompts {
                 "date": "YYYY-MM-DD",
                 "startTime": "HH:mm" (optional),
                 "endTime": "HH:mm" (optional),
+                "gradeWeight": 0.15 (Optional. Float value representing the grade percentage, e.g., 0.15 for 15%. Search for grade weight in text nearby, like 'Midterm Exam - 15%'),
                 "warning": "String" (Optional. Use this if the source text is contradictory, e.g., 'Document says Monday Jan 1st, but Jan 1st is a Thursday'. Be STRICT about the literal date provided.)
               }
             ]
@@ -95,7 +96,8 @@ object AiPrompts {
               "category": "DEADLINE", "FINALS", "CLASS", "HOLIDAY", or "STUDY_BLOCK",
               "date": "YYYY-MM-DD",
               "startTime": "HH:mm" (optional),
-              "endTime": "HH:mm" (optional)
+              "endTime": "HH:mm" (optional),
+              "gradeWeight": 0.15 (Optional. Float value representing the grade percentage, e.g., 0.15 for 15%. Determine from the syllabus context if available.)
             }
             
             Strict Scheduling Constraints:
@@ -107,6 +109,7 @@ object AiPrompts {
             - WORKING HOURS: Do not schedule ANY work or study before ${formatHour(preferences.studyStartHour)} or after ${formatHour(preferences.studyEndHour)}.
             - DAILY BREAKS: You must leave a continuous block open for lunch every day from ${formatHour(preferences.lunchStartHour)} to ${formatHour(preferences.lunchEndHour)}, and a separate continuous block open in the late afternoon/evening for exercise and dinner from ${formatHour(preferences.dinnerStartHour)} to ${formatHour(preferences.dinnerEndHour)}. Do not schedule study during these times.
             - STUDY BLOCKS: The maximum duration of a single STUDY_BLOCK should be ${preferences.maxStudyBlockHours} hours, with a preferred break of at least ${preferences.preferredBreakMinutes} minutes between study blocks.
+            - PROACTIVE STUDY TIME ALLOCATION: Allocate STUDY_BLOCKs based on the deliverable's weight (extracted in "gradeWeight"). Allocate more preparation hours for higher-weighted deliverables (e.g., suggest 3-4 study blocks for a 30% final exam, but only 1 block or none for a 2% quiz).
             
             General Guidelines:
             - Focus on creating a balanced schedule that avoids "crunching" before deadlines.

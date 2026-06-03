@@ -77,4 +77,48 @@ class ConfabulationGuardTest : FunSpec({
         val filtered = GeminiAIService.filterToSourceYears(events, setOf(2025, 2026))
         filtered shouldHaveSize 2
     }
+
+    test("parseEventsJson should successfully extract gradeWeight from JSON response") {
+        val jsonPayload = """
+            [
+              {
+                "title": "Midterm Exam",
+                "type": "DAY",
+                "category": "FINALS",
+                "date": "2026-10-14",
+                "gradeWeight": 0.15
+              },
+              {
+                "title": "Final Project",
+                "type": "TIME",
+                "category": "DEADLINE",
+                "date": "2026-11-20",
+                "startTime": "09:00",
+                "endTime": "11:00",
+                "gradeWeight": "0.25"
+              },
+              {
+                "title": "Reading Assignment",
+                "type": "DAY",
+                "category": "REGULAR",
+                "date": "2026-10-15"
+              }
+            ]
+        """.trimIndent()
+
+        val events = GeminiAIService.parseEventsJson(jsonPayload)
+        events shouldHaveSize 3
+
+        val midterm = events[0] as DayEvent
+        midterm.title shouldBe "Midterm Exam"
+        midterm.gradeWeight shouldBe 0.15f
+
+        val project = events[1] as TimeEvent
+        project.title shouldBe "Final Project"
+        project.gradeWeight shouldBe 0.25f
+
+        val reading = events[2] as DayEvent
+        reading.title shouldBe "Reading Assignment"
+        reading.gradeWeight shouldBe null
+    }
 })

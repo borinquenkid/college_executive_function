@@ -112,6 +112,8 @@ All business logic classes (Models, Agents, Services, and Utilities) must have a
 *   **Automatic Source Categorization:** `IngestionAgent` calls `GeminiAIService.categorizeSource()` on all non-ICS content; category label displayed in `SourceItemView`.
 *   **"Break It Down" UI:** `TaskDecompositionDialog` in `AcademicCalendar.kt` — fully wired end-to-end for DEADLINE/FINALS events via `EventAgent.decomposeTask()` and `acceptDecomposition()`.
 *   **Two-Way Sync — Remote Deletions & Offline Mutation Queue:** `synchronize()` handles all four scenarios (offline add, offline delete, remote deletion, remote gold-standard supersedes local); verified by `CalendarSyncIntegrationTest` with Ktor MockEngine.
+*   **Multi-Source Chat Context:** Refactored `ContextAgent` to query all stored sources, thread conversation history, and implemented "All Sources" toggle scope in `ChatPanel`.
+*   **Contrarian (Critic-Actor) Loop:** Built `CriticActorAIService` decorator implementing a self-critique/revision pass across event extraction, study plans, chat answers, and task decomposition.
 
 ### Next Steps
 
@@ -119,8 +121,7 @@ All business logic classes (Models, Agents, Services, and Utilities) must have a
 
 High-level summary of remaining work (ordered by priority):
 
-1.  **Multi-Source Chat Context** — Refactor `ContextAgent` to aggregate all stored sources + thread conversation history into chat prompts.
-2.  **.ics Export** — Wire the existing `ICalGenerator` (JVM) to a UI button with platform-specific file write/share actuals.
-3.  **Sync Hardening** — Token refresh on 401 mid-sync, `getEvents()` pagination, conflict logging.
-4.  **Visual Progress Tracking** — Deadline countdown chips and `LinearProgressIndicator` for DEADLINE/FINALS events.
-5.  **Scheduling Fine-Tuning** — User-configurable study hours, break lengths, and weighted deliverable allocation.
+1.  **.ics Export** — Wire the existing `ICalGenerator` (JVM) to a UI button with platform-specific file write/share actuals.
+2.  **Sync Hardening** — Token refresh on 401 mid-sync, `getEvents()` pagination, conflict logging.
+3.  **Visual Progress Tracking** — Deadline countdown chips and `LinearProgressIndicator` for DEADLINE/FINALS events.
+4.  **Scheduling Fine-Tuning** — User-configurable study hours, break lengths, and weighted deliverable allocation.

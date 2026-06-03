@@ -36,8 +36,12 @@ actual class RealAIService actual constructor(
         return getGeminiService().generateCalendarEvents(fragments)
     }
 
-    actual override suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String): List<Event> {
-        return getGeminiService().generateStudyPlan(syllabusText, existingSchedule)
+    actual override suspend fun generateStudyPlan(
+        syllabusText: String,
+        existingSchedule: String,
+        preferences: StudyPreferences
+    ): List<Event> {
+        return getGeminiService().generateStudyPlan(syllabusText, existingSchedule, preferences)
     }
 
     actual override suspend fun analyzeDocument(text: String): String? {

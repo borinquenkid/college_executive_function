@@ -194,4 +194,43 @@ class CollisionResolverTest : FunSpec({
         val result = tightResolver.resolve(finalExam, existing)
         result.shouldBeInstanceOf<ResolutionResult.Conflict>()
     }
+
+    test("resolve should respect custom working hours and breaks from preferences") {
+        val customPrefs = StudyPreferences(
+            studyStartHour = 10,
+            studyEndHour = 18,
+            lunchStartHour = 13,
+            lunchEndHour = 14,
+            dinnerStartHour = 16,
+            dinnerEndHour = 17,
+            maxStudyBlockHours = 2,
+            preferredBreakMinutes = 30
+        )
+        val customResolver = CollisionResolver(preferences = customPrefs)
+
+        val existing = listOf(
+            TimeEvent(
+                title = "Meeting",
+                source = EventSource.MANUAL,
+                category = AcademicCategory.REGULAR,
+                date = date,
+                startTime = LocalTime(10, 0),
+                endTime = LocalTime(13, 0)
+            )
+        )
+        val studyBlock = TimeEvent(
+            title = "Study",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = date,
+            startTime = LocalTime(10, 0),
+            endTime = LocalTime(12, 0)
+        )
+
+        val result = customResolver.resolve(studyBlock, existing)
+        result.shouldBeInstanceOf<ResolutionResult.Success>()
+        val success = result as ResolutionResult.Success
+        val resolved = success.resolvedEvents.first() as TimeEvent
+        resolved.startTime shouldBe LocalTime(14, 0)
+    }
 })

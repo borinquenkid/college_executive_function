@@ -16,6 +16,7 @@ class EventAgent(
     private val repository: CalendarAgent,
     private val database: AppDatabase? = null,
     private val normalizationService: NormalizationService = NormalizationService(),
+    private val preferencesRepository: PreferencesRepository? = null,
     private val logger: Logger? = null
 ) {
     private val tag = "EventAgent"
@@ -84,7 +85,8 @@ class EventAgent(
                 }
             }
             
-            val planEvents = aiService.generateStudyPlan(syllabusText, existingScheduleText)
+            val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
+            val planEvents = aiService.generateStudyPlan(syllabusText, existingScheduleText, preferences)
             
             val processed = normalizationService.extract(planEvents).distinctBy { 
                 "${it.title}-${it.date}-${if (it is TimeEvent) it.startTime else ""}"
@@ -119,7 +121,8 @@ class EventAgent(
             val currentCalendarState = existing.toMutableList()
             
             val resolvedList = mutableListOf<Event>()
-            val resolver = CollisionResolver()
+            val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
+            val resolver = CollisionResolver(preferences = preferences)
             
             for (event in events) {
                 val result = resolver.resolve(event, currentCalendarState)

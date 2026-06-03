@@ -321,8 +321,14 @@ class GeminiAIService(
         throw lastError ?: Exception("Failed to generate events after $maxAttempts attempts")
     }
 
-    suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String = ""): List<Event> {
-        return generateCalendarEventsFromPrompt(AiPrompts.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule))
+    suspend fun generateStudyPlan(
+        syllabusText: String,
+        existingSchedule: String = "",
+        preferences: StudyPreferences = StudyPreferences()
+    ): List<Event> {
+        return generateCalendarEventsFromPrompt(
+            AiPrompts.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule, preferences)
+        )
     }
 
     suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {

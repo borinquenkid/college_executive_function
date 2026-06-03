@@ -59,6 +59,33 @@ fun SettingsScreen(
     var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }
     var showAdvanced by remember { mutableStateOf(false) }
 
+    val preferencesRepository = remember { container.preferencesRepository }
+    var preferences by remember { mutableStateOf(preferencesRepository.getPreferences()) }
+
+    var studyStartStr by remember { mutableStateOf(preferences.studyStartHour.toString()) }
+    var studyEndStr by remember { mutableStateOf(preferences.studyEndHour.toString()) }
+    var lunchStartStr by remember { mutableStateOf(preferences.lunchStartHour.toString()) }
+    var lunchEndStr by remember { mutableStateOf(preferences.lunchEndHour.toString()) }
+    var dinnerStartStr by remember { mutableStateOf(preferences.dinnerStartHour.toString()) }
+    var dinnerEndStr by remember { mutableStateOf(preferences.dinnerEndHour.toString()) }
+    var maxStudyBlockStr by remember { mutableStateOf(preferences.maxStudyBlockHours.toString()) }
+    var preferredBreakStr by remember { mutableStateOf(preferences.preferredBreakMinutes.toString()) }
+
+    fun parseAndSave() {
+        val newPrefs = StudyPreferences(
+            studyStartHour = studyStartStr.toIntOrNull() ?: preferences.studyStartHour,
+            studyEndHour = studyEndStr.toIntOrNull() ?: preferences.studyEndHour,
+            lunchStartHour = lunchStartStr.toIntOrNull() ?: preferences.lunchStartHour,
+            lunchEndHour = lunchEndStr.toIntOrNull() ?: preferences.lunchEndHour,
+            dinnerStartHour = dinnerStartStr.toIntOrNull() ?: preferences.dinnerStartHour,
+            dinnerEndHour = dinnerEndStr.toIntOrNull() ?: preferences.dinnerEndHour,
+            maxStudyBlockHours = maxStudyBlockStr.toIntOrNull() ?: preferences.maxStudyBlockHours,
+            preferredBreakMinutes = preferredBreakStr.toIntOrNull() ?: preferences.preferredBreakMinutes
+        )
+        preferences = newPrefs
+        preferencesRepository.savePreferences(newPrefs)
+    }
+
     val isGoogleLinked = connectionState is GoogleConnectionState.Linked
     val isBusy = connectionState is GoogleConnectionState.Connecting
     val loginError = (connectionState as? GoogleConnectionState.Error)?.message
@@ -209,6 +236,135 @@ fun SettingsScreen(
 
                 if (loginError != null) {
                     Text(loginError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                }
+            }
+        }
+
+        // Step 3: Study & Scheduling Preferences
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
+            )
+        ) {
+            Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        imageVector = Icons.Default.Settings,
+                        contentDescription = null,
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(Modifier.width(8.dp))
+                    Text("Study & Scheduling Preferences", style = MaterialTheme.typography.titleMedium)
+                }
+
+                Text(
+                    "Customize your daily study window, break times, and study blocks. The AI will respect these constraints when generating your schedule.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+
+                HorizontalDivider()
+
+                // Working Hours Window
+                Text("Daily Study Window", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = studyStartStr,
+                        onValueChange = { 
+                            studyStartStr = it.filter { c -> c.isDigit() }
+                            parseAndSave()
+                        },
+                        label = { Text("Start Hour (0-23)") },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
+                    OutlinedTextField(
+                        value = studyEndStr,
+                        onValueChange = { 
+                            studyEndStr = it.filter { c -> c.isDigit() }
+                            parseAndSave()
+                        },
+                        label = { Text("End Hour (0-23)") },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // Lunch Break
+                Text("Lunch Break Window", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = lunchStartStr,
+                        onValueChange = { 
+                            lunchStartStr = it.filter { c -> c.isDigit() }
+                            parseAndSave()
+                        },
+                        label = { Text("Start Hour (0-23)") },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
+                    OutlinedTextField(
+                        value = lunchEndStr,
+                        onValueChange = { 
+                            lunchEndStr = it.filter { c -> c.isDigit() }
+                            parseAndSave()
+                        },
+                        label = { Text("End Hour (0-23)") },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // Dinner Break
+                Text("Dinner & Exercise Break Window", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = dinnerStartStr,
+                        onValueChange = { 
+                            dinnerStartStr = it.filter { c -> c.isDigit() }
+                            parseAndSave()
+                        },
+                        label = { Text("Start Hour (0-23)") },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
+                    OutlinedTextField(
+                        value = dinnerEndStr,
+                        onValueChange = { 
+                            dinnerEndStr = it.filter { c -> c.isDigit() }
+                            parseAndSave()
+                        },
+                        label = { Text("End Hour (0-23)") },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
+                }
+
+                // Study Block Settings
+                Text("Study Block Limits", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+                    OutlinedTextField(
+                        value = maxStudyBlockStr,
+                        onValueChange = { 
+                            maxStudyBlockStr = it.filter { c -> c.isDigit() }
+                            parseAndSave()
+                        },
+                        label = { Text("Max block duration (hours)") },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
+                    OutlinedTextField(
+                        value = preferredBreakStr,
+                        onValueChange = { 
+                            preferredBreakStr = it.filter { c -> c.isDigit() }
+                            parseAndSave()
+                        },
+                        label = { Text("Preferred break (minutes)") },
+                        modifier = Modifier.weight(1f),
+                        textStyle = MaterialTheme.typography.bodyMedium
+                    )
                 }
             }
         }

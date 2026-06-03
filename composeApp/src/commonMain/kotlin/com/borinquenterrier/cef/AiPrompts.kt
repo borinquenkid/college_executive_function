@@ -62,10 +62,24 @@ object AiPrompts {
     }
 
 
+    private fun formatHour(hour: Int): String {
+        val amPm = if (hour >= 12) "PM" else "AM"
+        val displayHour = when {
+            hour == 0 -> 12
+            hour > 12 -> hour - 12
+            else -> hour
+        }
+        return "${hour.toString().padStart(2, '0')}:00 ($displayHour $amPm)"
+    }
+
     /**
      * Specialized prompt for syllabus analysis that also generates proactive study periods.
      */
-    fun getSyllabusStudyPlanPrompt(syllabusText: String, existingSchedule: String = ""): String {
+    fun getSyllabusStudyPlanPrompt(
+        syllabusText: String,
+        existingSchedule: String = "",
+        preferences: StudyPreferences = StudyPreferences()
+    ): String {
         return """
             You are an Academic Success Assistant. Analyze the provided syllabus and:
             1. Extract all deliverables (Assignments, Quizzes, Exams, Projects) and Scheduled Class Times.
@@ -90,8 +104,9 @@ object AiPrompts {
             - EXAMS: Exam Times do NOT coincide with Class Times (extended time accommodations take students out of standard class periods).
             - COLLISIONS: Study/Work Times cannot collide with Exam Times, Class Times, or ANY existing events on the schedule. If a study/work task collides, move it to the latest available time BEFORE the deadline.
             - HOLIDAYS: Classes do not meet on holidays; these periods are completely available for study, work, and breaks.
-            - WORKING HOURS: Do not schedule ANY work or study before 09:00 (9 AM) or after 21:00 (9 PM).
-            - DAILY BREAKS: You must leave a 1-hour continuous block open for lunch every day, and a separate 2-hour continuous block open in the late afternoon/evening for exercise and dinner. Do not schedule study during these times.
+            - WORKING HOURS: Do not schedule ANY work or study before ${formatHour(preferences.studyStartHour)} or after ${formatHour(preferences.studyEndHour)}.
+            - DAILY BREAKS: You must leave a continuous block open for lunch every day from ${formatHour(preferences.lunchStartHour)} to ${formatHour(preferences.lunchEndHour)}, and a separate continuous block open in the late afternoon/evening for exercise and dinner from ${formatHour(preferences.dinnerStartHour)} to ${formatHour(preferences.dinnerEndHour)}. Do not schedule study during these times.
+            - STUDY BLOCKS: The maximum duration of a single STUDY_BLOCK should be ${preferences.maxStudyBlockHours} hours, with a preferred break of at least ${preferences.preferredBreakMinutes} minutes between study blocks.
             
             General Guidelines:
             - Focus on creating a balanced schedule that avoids "crunching" before deadlines.

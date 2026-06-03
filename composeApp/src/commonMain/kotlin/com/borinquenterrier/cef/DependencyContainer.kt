@@ -39,6 +39,7 @@ class DependencyContainer(
     val tokenRepository by lazy { GoogleTokenRepository(settings) }
     val authService by lazy { GoogleAuthService(settings) }
     val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }
+    val preferencesRepository by lazy { PreferencesRepository(settings) }
     val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenRepository, authService) }
     val remoteRepository by lazy { GoogleRemoteCalendarRepository(syncService) }
     val calendarAgent by lazy { CalendarAgent(localRepository, remoteRepository, logger) }
@@ -62,7 +63,7 @@ class DependencyContainer(
     }
     val ingestionAgent by lazy { IngestionAgent(fileReader, docxReader, pdfReader, webReader, driveService, aiService, database) }
     val contextAgent by lazy { ContextAgent(aiService, database, logger) }
-    val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), logger) }
+    val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), preferencesRepository, logger) }
 
     val appController by lazy { AppController(this) }
 }

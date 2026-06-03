@@ -33,8 +33,12 @@ class CriticActorAIService(
         }
     }
 
-    override suspend fun generateStudyPlan(syllabusText: String, existingSchedule: String): List<Event> {
-        val firstPass = delegate.generateStudyPlan(syllabusText, existingSchedule)
+    override suspend fun generateStudyPlan(
+        syllabusText: String,
+        existingSchedule: String,
+        preferences: StudyPreferences
+    ): List<Event> {
+        val firstPass = delegate.generateStudyPlan(syllabusText, existingSchedule, preferences)
         if (firstPass.isEmpty()) return firstPass
 
         logger?.d("CriticActor", "First-pass study plan count: ${firstPass.size}. Launching critique pass...")

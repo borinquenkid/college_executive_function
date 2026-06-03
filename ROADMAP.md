@@ -40,6 +40,7 @@ All items below have been verified against the actual codebase — not just the 
 | **.ics Export** | Refactored `ICalGenerator` + expect/actual `writeIcsFile` with iOS Share Sheet & Android MediaStore actuals |
 | **Sync Hardening** | Token refresh retry internally in GoogleCalendarSyncService, pageToken pagination, conflict resolution warnings |
 | **Visual Progress Tracking** | `timeUntilDue` and `studyProgress` helpers on `Event`, linear progress and countdown chips in calendar list, and Semester Health summary card in StudioPanel |
+| **Scheduling Fine-Tuning** | User-configurable study hours, break lengths, and limits in Settings; injected into AI study plan generation and collision resolver |
 
 ---
 
@@ -150,7 +151,7 @@ access to the full event set from all sources.
 
 ---
 
-### 2.2 — Scheduling Fine-Tuning (User-Configurable Study Parameters)
+### ~~2.2 — Scheduling Fine-Tuning (User-Configurable Study Parameters)~~ ✅ **COMPLETED**
 
 **Why:** The AI constraint system works well with fixed defaults (9–21 hr window, 12–13 lunch,
 17–19 dinner). Making these configurable per student multiplies the app's effectiveness for

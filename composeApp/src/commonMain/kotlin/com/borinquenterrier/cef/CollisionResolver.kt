@@ -13,13 +13,14 @@ sealed interface ResolutionResult {
 
 class CollisionResolver(
     private val maxDepth: Int = 3,
-    private val workingHourStart: LocalTime = LocalTime(9, 0),
-    private val workingHourEnd: LocalTime = LocalTime(21, 0),
-    private val lunchStart: LocalTime = LocalTime(12, 0),
-    private val lunchEnd: LocalTime = LocalTime(13, 0),
-    private val dinnerStart: LocalTime = LocalTime(17, 0),
-    private val dinnerEnd: LocalTime = LocalTime(19, 0)
+    val preferences: StudyPreferences = StudyPreferences()
 ) {
+    private val workingHourStart: LocalTime = LocalTime(preferences.studyStartHour, 0)
+    private val workingHourEnd: LocalTime = LocalTime(preferences.studyEndHour, 0)
+    private val lunchStart: LocalTime = LocalTime(preferences.lunchStartHour, 0)
+    private val lunchEnd: LocalTime = LocalTime(preferences.lunchEndHour, 0)
+    private val dinnerStart: LocalTime = LocalTime(preferences.dinnerStartHour, 0)
+    private val dinnerEnd: LocalTime = LocalTime(preferences.dinnerEndHour, 0)
 
     /**
      * Resolves collisions for a single event against a list of already scheduled/existing events.

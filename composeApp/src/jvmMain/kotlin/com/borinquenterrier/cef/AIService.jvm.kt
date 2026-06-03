@@ -47,6 +47,10 @@ actual class RealAIService actual constructor(
     actual override suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
         return getGeminiService().decomposeTask(taskTitle, dueDate)
     }
+
+    actual override suspend fun categorizeSource(text: String): SourceCategory {
+        return getGeminiService().categorizeSource(text)
+    }
 }
 
 @Composable
@@ -57,6 +61,9 @@ actual fun rememberAIService(): AIService {
     val database = remember(driverFactory) { AppDatabase(driverFactory.createDriver()) }
 
     return remember(settings, logger, database) { 
-        RecursiveDecompositionAIService(RealAIService(settings, logger, database))
+        CriticActorAIService(
+            RecursiveDecompositionAIService(RealAIService(settings, logger, database)),
+            logger
+        )
     }
 }

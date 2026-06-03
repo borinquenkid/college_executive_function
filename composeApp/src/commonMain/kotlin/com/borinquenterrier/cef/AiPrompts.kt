@@ -251,6 +251,94 @@ object AiPrompts {
         """.trimIndent()
     }
 
+    fun getEventCritiquePrompt(sourceText: String, eventsJson: String): String {
+        return """
+            You are a strict data auditor and quality control agent.
+            
+            Below is a raw source document followed by a list of events/deadlines that were extracted from it.
+            
+            # Source Document:
+            $sourceText
+            
+            # Extracted Events (JSON):
+            $eventsJson
+            
+            # Task:
+            Critique the extracted events. Check each event against the source document.
+            Identify any:
+            1. Hallucinated/invented events that are not explicitly stated in the source document.
+            2. Incorrect dates, times, titles, or categories.
+            
+            Return a refined JSON array of objects following the EXACT same schema as the input:
+            [
+              {
+                "title": "Title",
+                "type": "TIME" or "DAY",
+                "category": "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", "SEMESTER_BOUND", or "STUDY_BLOCK",
+                "date": "YYYY-MM-DD",
+                "startTime": "HH:mm" (optional),
+                "endTime": "HH:mm" (optional),
+                "warning": "Optional string describing what was corrected or why it is flagged"
+              }
+            ]
+            
+            Ensure you ONLY output the corrected JSON array. If all events are valid, return the original JSON array unchanged. Do not include any explanation or markdown formatting.
+        """.trimIndent()
+    }
+
+    fun getChatCritiquePrompt(originalPrompt: String, response: String): String {
+        return """
+            You are a factual critique and quality control agent.
+            
+            Below is the original user prompt / chat history and the generated response.
+            
+            # Original Prompt / Context:
+            $originalPrompt
+            
+            # Generated Response:
+            $response
+            
+            # Task:
+            Critique the generated response. Check if:
+            1. The response contains any assertions or facts that are NOT supported by the source materials in the original prompt context.
+            2. The response contains hallucinations, fabrications, or outside assumptions.
+            
+            If the response is fully factual and supported by the sources, return the original response completely unchanged.
+            If the response contains unsupported information or makes assumptions, revise it to ONLY use facts explicitly stated in the source materials. If a fact cannot be verified, clearly state "I do not have enough information to answer that based on the provided materials."
+            
+            Return ONLY the final revised response text. Do not add any intros, explanations, or meta-commentary.
+        """.trimIndent()
+    }
+
+    fun getDecompositionCritiquePrompt(taskTitle: String, dueDate: String, tasksJson: String): String {
+        return """
+            You are an executive function coach and quality auditor.
+            
+            A student has a task "$taskTitle" due on $dueDate. The following sub-tasks were generated to break it down:
+            
+            # Sub-tasks (JSON):
+            $tasksJson
+            
+            # Task:
+            Critique this decomposition plan. Ensure:
+            1. Each sub-task is realistic, concrete, and highly actionable.
+            2. None of the steps are too large or overwhelming (each should take 1-2 hours max).
+            3. The steps flow logically backwards or forwards.
+            4. There are no redundant steps.
+            
+            Return a refined JSON array of objects following the EXACT same schema as the input:
+            [
+              {
+                "title": "Specific, small action",
+                "daysBeforeDue": Integer,
+                "description": "Brief tip on how to start this small step."
+              }
+            ]
+            
+            Ensure you ONLY output the corrected JSON array. If the tasks are already perfect, return the original JSON array. Do not include any explanation or markdown formatting.
+        """.trimIndent()
+    }
+
     private const val MAX_CHARS_PER_SOURCE = 6_000
     private const val MAX_HISTORY_TURNS = 10
 }

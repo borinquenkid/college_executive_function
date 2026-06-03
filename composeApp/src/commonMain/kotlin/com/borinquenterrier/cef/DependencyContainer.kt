@@ -55,7 +55,10 @@ class DependencyContainer(
         googleAccountFlow.driveService = driveService
     }
     val aiService: AIService by lazy { 
-        RecursiveDecompositionAIService(RealAIService(settings, logger, database)) 
+        CriticActorAIService(
+            RecursiveDecompositionAIService(RealAIService(settings, logger, database)),
+            logger
+        )
     }
     val ingestionAgent by lazy { IngestionAgent(fileReader, docxReader, pdfReader, webReader, driveService, aiService, database) }
     val contextAgent by lazy { ContextAgent(aiService, database, logger) }

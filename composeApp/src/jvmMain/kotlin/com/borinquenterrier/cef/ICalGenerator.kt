@@ -22,41 +22,119 @@ object ICalGenerator {
     /**
      * Builds a Calendar object programmatically using ICal4j 4.x syntax.
      */
-    fun buildAcademicCalendar(): Calendar {
+    fun buildAcademicCalendar(events: List<Event>): Calendar {
         val calendar = Calendar()
         
-        // Calendar Level Properties (Commented out temporarily to unblock build)
+        // Calendar Level Properties (Commented out temporarily to unblock build or let's try to add them if they work)
         // calendar.add<PropertyContainer>(ProdId("-//BorinquenTerrier//CEF//EN"))
         // calendar.add<PropertyContainer>(Version.V2_0)
         // calendar.add<PropertyContainer>(Method.PUBLISH)
 
-        // 1. Create a VEvent (e.g., a Class Lecture)
-        val startDateTime = ZonedDateTime.now(ZoneId.of("America/New_York"))
-        val endDateTime = startDateTime.plusHours(1)
+        for (event in events) {
+            when (event) {
+                is TimeEvent -> {
+                    // Start and end date times in system default zone
+                    val date = event.date
+                    val startTime = event.startTime
+                    val endTime = event.endTime
+                    
+                    val startDateTime = ZonedDateTime.of(
+                        date.year, date.monthNumber, date.dayOfMonth,
+                        startTime.hour, startTime.minute, startTime.second, 0,
+                        ZoneId.systemDefault()
+                    )
+                    val endDateTime = ZonedDateTime.of(
+                        date.year, date.monthNumber, date.dayOfMonth,
+                        endTime.hour, endTime.minute, endTime.second, 0,
+                        ZoneId.systemDefault()
+                    )
+                    
+                    val vEvent = VEvent(startDateTime, endDateTime, event.title)
+                    val uid = event.id ?: UUID.randomUUID().toString()
+                    vEvent.add<PropertyContainer>(Uid(uid))
+                    
+                    val descriptionParts = mutableListOf<String>()
+                    descriptionParts.add("Source: ${event.source}")
+                    descriptionParts.add("Category: ${event.category}")
+                    if (event.warning != null) {
+                        descriptionParts.add("Warning: ${event.warning}")
+                    }
+                    vEvent.add<PropertyContainer>(Description(descriptionParts.joinToString("\n")))
+                    
+                    if (event.recurrence != null) {
+                        val daysStr = event.recurrence.daysOfWeek.mapNotNull {
+                            when (it) {
+                                kotlinx.datetime.DayOfWeek.MONDAY -> "MO"
+                                kotlinx.datetime.DayOfWeek.TUESDAY -> "TU"
+                                kotlinx.datetime.DayOfWeek.WEDNESDAY -> "WE"
+                                kotlinx.datetime.DayOfWeek.THURSDAY -> "TH"
+                                kotlinx.datetime.DayOfWeek.FRIDAY -> "FR"
+                                kotlinx.datetime.DayOfWeek.SATURDAY -> "SA"
+                                kotlinx.datetime.DayOfWeek.SUNDAY -> "SU"
+                                else -> null
+                            }
+                        }.joinToString(",")
+                        
+                        val untilStr = "${event.recurrence.endDate.year.toString().padStart(4, '0')}${event.recurrence.endDate.monthNumber.toString().padStart(2, '0')}${event.recurrence.endDate.dayOfMonth.toString().padStart(2, '0')}"
+                        val ruleBuilder = StringBuilder("FREQ=WEEKLY")
+                        if (daysStr.isNotEmpty()) {
+                            ruleBuilder.append(";BYDAY=").append(daysStr)
+                        }
+                        ruleBuilder.append(";UNTIL=").append(untilStr)
+                        
+                        val recur = net.fortuna.ical4j.model.Recur<Temporal>(ruleBuilder.toString())
+                        vEvent.add<PropertyContainer>(RRule<Temporal>(recur))
+                    }
+                    
+                    calendar.add<ComponentContainer<CalendarComponent>>(vEvent)
+                }
+                is DayEvent -> {
+                    val date = event.date
+                    val javaDate = java.time.LocalDate.of(date.year, date.monthNumber, date.dayOfMonth)
+                    val javaNextDate = javaDate.plusDays(1)
+                    
+                    val vEvent = VEvent(javaDate, javaNextDate, event.title)
+                    val uid = event.id ?: UUID.randomUUID().toString()
+                    vEvent.add<PropertyContainer>(Uid(uid))
+                    
+                    val descriptionParts = mutableListOf<String>()
+                    descriptionParts.add("Source: ${event.source}")
+                    descriptionParts.add("Category: ${event.category}")
+                    if (event.warning != null) {
+                        descriptionParts.add("Warning: ${event.warning}")
+                    }
+                    vEvent.add<PropertyContainer>(Description(descriptionParts.joinToString("\n")))
+                    
+                    if (event.recurrence != null) {
+                        val daysStr = event.recurrence.daysOfWeek.mapNotNull {
+                            when (it) {
+                                kotlinx.datetime.DayOfWeek.MONDAY -> "MO"
+                                kotlinx.datetime.DayOfWeek.TUESDAY -> "TU"
+                                kotlinx.datetime.DayOfWeek.WEDNESDAY -> "WE"
+                                kotlinx.datetime.DayOfWeek.THURSDAY -> "TH"
+                                kotlinx.datetime.DayOfWeek.FRIDAY -> "FR"
+                                kotlinx.datetime.DayOfWeek.SATURDAY -> "SA"
+                                kotlinx.datetime.DayOfWeek.SUNDAY -> "SU"
+                                else -> null
+                            }
+                        }.joinToString(",")
+                        
+                        val untilStr = "${event.recurrence.endDate.year.toString().padStart(4, '0')}${event.recurrence.endDate.monthNumber.toString().padStart(2, '0')}${event.recurrence.endDate.dayOfMonth.toString().padStart(2, '0')}"
+                        val ruleBuilder = StringBuilder("FREQ=WEEKLY")
+                        if (daysStr.isNotEmpty()) {
+                            ruleBuilder.append(";BYDAY=").append(daysStr)
+                        }
+                        ruleBuilder.append(";UNTIL=").append(untilStr)
+                        
+                        val recur = net.fortuna.ical4j.model.Recur<Temporal>(ruleBuilder.toString())
+                        vEvent.add<PropertyContainer>(RRule<Temporal>(recur))
+                    }
+                    
+                    calendar.add<ComponentContainer<CalendarComponent>>(vEvent)
+                }
+            }
+        }
         
-        val event = VEvent(startDateTime, endDateTime, "CS 101 Lecture")
-        event.add<PropertyContainer>(Uid(UUID.randomUUID().toString()))
-        event.add<PropertyContainer>(Description("Introduction to Computer Science"))
-        
-        // Recurrence: Weekly on Mondays for 5 weeks
-        val recur = net.fortuna.ical4j.model.Recur<Temporal>("FREQ=WEEKLY;BYDAY=MO;COUNT=5")
-        event.add<PropertyContainer>(RRule<Temporal>(recur))
-
-        // Attendee with CN and Role
-        val attendee = Attendee("mailto:professor@university.edu")
-        attendee.add<Property>(Cn("Dr. Smith"))
-        attendee.add<Property>(Role.CHAIR)
-        event.add<PropertyContainer>(attendee)
-
-        calendar.add<ComponentContainer<CalendarComponent>>(event)
-
-        // 2. Create a VToDo (e.g., an Assignment)
-        val todo = VToDo(startDateTime, "Finish Lab 1")
-        todo.add<PropertyContainer>(Uid(UUID.randomUUID().toString()))
-        todo.add<PropertyContainer>(Description("Complete the first lab assignment on recursion"))
-        
-        calendar.add<ComponentContainer<CalendarComponent>>(todo)
-
         // Validate
         calendar.validate()
         

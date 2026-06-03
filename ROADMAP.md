@@ -36,6 +36,7 @@ All items below have been verified against the actual codebase — not just the 
 | **Two-Way Sync — Remote Deletions** | `synchronize()` Step 4: hard-deletes local SYNCED events absent from remote fetch |
 | **Two-Way Sync — Offline Mutation Queue** | `DELETED_LOCALLY` + `LOCAL_ONLY` states; flushed on next `synchronize()` call |
 | **Contrarian (Critic-Actor) Loop** | Critique pass for event extraction, study plans, chat responses, and task decomposition |
+| **.ics Export** | Refactored `ICalGenerator` + expect/actual `writeIcsFile` with iOS Share Sheet & Android MediaStore actuals |
 
 ---
 
@@ -66,7 +67,7 @@ single-source prompt — defeating the purpose of ingesting multiple syllabi and
 
 ---
 
-### 1.2 — .ics Export ⚡ **HIGH PRIORITY**
+### ~~1.2 — .ics Export~~ ✅ **COMPLETED**
 
 **Why second:** `ICalGenerator` on JVM is fully implemented but dead code — never called from any UI
 or agent. Wiring it to a UI button is low-effort and unlocks a highly requested student workflow

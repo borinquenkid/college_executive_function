@@ -35,6 +35,10 @@ class EventAgent(
     private val _decompositionTarget = MutableStateFlow<Event?>(null)
     val decompositionTarget: StateFlow<Event?> = _decompositionTarget.asStateFlow()
 
+    fun updateStatus(message: String) {
+        _statusMessage.value = message
+    }
+
     /**
      * Extracts standard deliverables from a source using AI, processing the full context at once.
      */

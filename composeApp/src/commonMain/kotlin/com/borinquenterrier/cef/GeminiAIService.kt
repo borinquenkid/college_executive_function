@@ -502,6 +502,101 @@ class GeminiAIService(
             null
         }
     }
+
+    suspend fun categorizeSource(text: String): SourceCategory {
+        val textSample = if (text.length > 50000) text.substring(0, 50000) else text
+        val prompt = AiPrompts.getSourceCategorizationPrompt(textSample)
+        val available = getAvailableModels()
+        var attempts = 0
+        val maxAttempts = 3
+        var lastError: Exception? = null
+
+        while (attempts < maxAttempts) {
+            val modelName = negotiateBestModel(available)
+            val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
+            val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
+
+            try {
+                val httpResponse: HttpResponse = client.post(authUrl) {
+                    contentType(ContentType.Application.Json)
+                    if (apiKey == null && accessToken != null) {
+                        header("Authorization", "Bearer $accessToken")
+                    }
+                    setBody(buildJsonObject {
+                        putJsonArray("contents") {
+                            addJsonObject {
+                                putJsonArray("parts") {
+                                    addJsonObject { put("text", prompt) }
+                                }
+                            }
+                        }
+                        putJsonObject("generationConfig") {
+                            put("responseMimeType", "application/json")
+                            put("temperature", 0.0)
+                        }
+                    })
+                }
+
+                val responseBody = httpResponse.bodyAsText()
+
+                if (httpResponse.status == HttpStatusCode.Unauthorized) throw Exception("Unauthorized")
+                if (httpResponse.status == HttpStatusCode.Forbidden) throw Exception("Forbidden")
+
+                if (httpResponse.status == HttpStatusCode.TooManyRequests ||
+                    httpResponse.status == HttpStatusCode.NotFound ||
+                    httpResponse.status == HttpStatusCode.ServiceUnavailable) {
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    val delayMs = if (httpResponse.status == HttpStatusCode.TooManyRequests) 10000L else 2000L
+                    logger?.d(tag, "Model $modelName exhausted. Retrying (${attempts + 1}/$maxAttempts)...")
+                    attempts++
+                    kotlinx.coroutines.delay(delayMs * attempts)
+                    continue
+                }
+
+                if (httpResponse.status == HttpStatusCode.BadRequest && responseBody.contains("response modalities")) {
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    attempts++
+                    kotlinx.coroutines.delay(1000)
+                    continue
+                }
+
+                if (!httpResponse.status.isSuccess()) {
+                    throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
+                }
+
+                val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
+                val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                    ?: throw Exception("Empty response from AI")
+
+                val cleanJson = responseText.trim()
+                    .removePrefix("```json")
+                    .removeSuffix("```")
+                    .trim()
+
+                val root = json.parseToJsonElement(cleanJson)
+                val categoryName = root.jsonObject["category"]?.jsonPrimitive?.content?.uppercase() ?: "OTHER"
+                
+                return when (categoryName) {
+                    "SYLLABUS" -> SourceCategory.SYLLABUS
+                    "READING MATERIAL", "READING_MATERIAL" -> SourceCategory.READING_MATERIAL
+                    "LAB MANUAL", "LAB_MANUAL" -> SourceCategory.LAB_MANUAL
+                    "LECTURE NOTES", "LECTURE_NOTES" -> SourceCategory.LECTURE_NOTES
+                    else -> SourceCategory.OTHER
+                }
+            } catch (e: Exception) {
+                lastError = e
+                logger?.e(tag, "Categorization attempt ${attempts + 1} failed: ${e.message}")
+                attempts++
+                kotlinx.coroutines.delay(1000)
+            }
+        }
+        logger?.e(tag, "Failed to categorize source after $maxAttempts attempts, defaulting to OTHER. Error: ${lastError?.message}")
+        return SourceCategory.OTHER
+    }
 }
 
 @Serializable

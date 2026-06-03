@@ -128,6 +128,29 @@ fun StudioPanel(
                         }
                     }
 
+                    item {
+                        Button(
+                            onClick = {
+                                coroutineScope.launch {
+                                    try {
+                                        val icsContent = generateIcsString(lastGeneratedEvents)
+                                        val filePath = writeIcsFile(icsContent)
+                                        eventAgent.updateStatus("Exported study plan: $filePath")
+                                    } catch (e: Exception) {
+                                        eventAgent.updateStatus("Export failed: ${e.message}")
+                                    }
+                                }
+                            },
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = MaterialTheme.colorScheme.secondary
+                            ),
+                            enabled = !isLoading
+                        ) {
+                            Text("Export Study Plan to .ics")
+                        }
+                    }
+
                     if (hasConflicts) {
                         item {
                             Text(

@@ -23,7 +23,20 @@ fun SourceItemView(item: SourceItem, isSelected: Boolean, onClick: () -> Unit) {
             .padding(8.dp)
     ) {
         Text(item.title, style = MaterialTheme.typography.titleMedium)
-        val summary = if (item.fragments.isNotEmpty()) "${item.fragments.size} parts" else "No content"
+        val categoryText = when (item.category) {
+            SourceCategory.SYLLABUS -> "Syllabus"
+            SourceCategory.READING_MATERIAL -> "Reading Material"
+            SourceCategory.LAB_MANUAL -> "Lab Manual"
+            SourceCategory.LECTURE_NOTES -> "Lecture Notes"
+            SourceCategory.OTHER -> "Other"
+        }
+        val partsText = if (item.fragments.isNotEmpty()) {
+            val count = item.fragments.size
+            if (count == 1) "1 part" else "$count parts"
+        } else {
+            "No content"
+        }
+        val summary = "$categoryText • $partsText"
         Text(summary, style = MaterialTheme.typography.bodySmall)
     }
 }

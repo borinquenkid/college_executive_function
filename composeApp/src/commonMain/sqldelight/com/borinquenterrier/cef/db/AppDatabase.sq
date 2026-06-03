@@ -56,6 +56,7 @@ CREATE TABLE IF NOT EXISTS SourceEntity (
     title TEXT NOT NULL,
     originUri TEXT,
     type TEXT NOT NULL, -- TEXT, CALENDAR
+    category TEXT NOT NULL DEFAULT 'OTHER', -- SYLLABUS, READING_MATERIAL, LAB_MANUAL, LECTURE_NOTES, OTHER
     metadata TEXT, -- JSON map containing AI-extracted policies, grading scales, etc.
     updatedAt INTEGER NOT NULL
 );
@@ -72,8 +73,8 @@ CREATE TABLE IF NOT EXISTS FragmentEntity (
 );
 
 insertSource:
-INSERT OR REPLACE INTO SourceEntity(id, title, originUri, type, metadata, updatedAt)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SourceEntity(id, title, originUri, type, category, metadata, updatedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 insertFragment:
 INSERT OR REPLACE INTO FragmentEntity(id, sourceId, text, pageNumber, sectionTitle, type, metadata)

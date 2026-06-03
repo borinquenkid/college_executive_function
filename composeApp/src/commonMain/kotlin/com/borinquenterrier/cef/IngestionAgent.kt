@@ -41,7 +41,13 @@ class IngestionAgent(
                 }
                 else -> SourceProcessor.process(fileReader.readText(path))
             }
-            val sourceItem = SourceItem(fileName, fragments)
+            val category = if (fileName.lowercase().endsWith(".ics")) {
+                SourceCategory.OTHER
+            } else {
+                val fullText = fragments.joinToString("\n\n") { it.text }
+                aiService.categorizeSource(fullText)
+            }
+            val sourceItem = SourceItem(fileName, fragments, category)
             persistSource(sourceItem, path)
             sourceItem
         } finally {
@@ -58,7 +64,13 @@ class IngestionAgent(
             } else {
                 SourceProcessor.process(rawContent)
             }
-            val sourceItem = SourceItem(url, fragments)
+            val category = if (url.lowercase().endsWith(".ics")) {
+                SourceCategory.OTHER
+            } else {
+                val fullText = fragments.joinToString("\n\n") { it.text }
+                aiService.categorizeSource(fullText)
+            }
+            val sourceItem = SourceItem(url, fragments, category)
             persistSource(sourceItem, url)
             sourceItem
         } finally {
@@ -74,7 +86,13 @@ class IngestionAgent(
                 file.name.lowercase().endsWith(".ics") -> IcsCalendarSource(rawContent).readSource()
                 else -> SourceProcessor.process(rawContent)
             }
-            val sourceItem = SourceItem(file.name, fragments)
+            val category = if (file.name.lowercase().endsWith(".ics")) {
+                SourceCategory.OTHER
+            } else {
+                val fullText = fragments.joinToString("\n\n") { it.text }
+                aiService.categorizeSource(fullText)
+            }
+            val sourceItem = SourceItem(file.name, fragments, category)
             persistSource(sourceItem, "google_drive://${file.id}")
             sourceItem
         } finally {
@@ -91,6 +109,7 @@ class IngestionAgent(
             title = item.title,
             originUri = originUri,
             type = if (item.fragments.any { it.type == SourceType.CALENDAR }) "CALENDAR" else "TEXT",
+            category = item.category.name,
             metadata = null, // Will be filled by AI Analysis later
             updatedAt = Clock.System.now().toEpochMilliseconds()
         )

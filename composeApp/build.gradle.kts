@@ -145,7 +145,7 @@ dependencies {
 
 compose.desktop {
     application {
-        mainClass = "com.borinquenterrier.college_executive_function.MainKt"
+        mainClass = "com.borinquenterrier.cef.MainKt"
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)

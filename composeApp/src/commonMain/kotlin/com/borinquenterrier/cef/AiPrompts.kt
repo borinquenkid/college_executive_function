@@ -161,4 +161,106 @@ object AiPrompts {
             $text
         """.trimIndent()
     }
+
+    /**
+     * Prompt for automatically categorizing academic sources.
+     */
+    fun getSourceCategorizationPrompt(text: String): String {
+        return """
+            Analyze the provided document text and categorize it into exactly one of the following categories:
+            - "Syllabus" (contains course details, schedule, grading scales, assignment due dates, policies)
+            - "Reading Material" (textbook chapters, papers, articles, research papers, stories)
+            - "Lab Manual" (instructions/procedures for laboratory experiments or hands-on activities)
+            - "Lecture Notes" (summaries of lectures, presentation slides, class notes)
+            - "Other" (any other document that does not fit the above categories)
+
+            Analyze the tone, structure, and content of the document.
+            Return ONLY a raw JSON object with a single key "category" whose value is one of the exact strings above.
+            Example output format:
+            {
+              "category": "Syllabus"
+            }
+
+            Document Text (truncated/sample):
+            $text
+        """.trimIndent()
     }
+
+    /**
+     * Prompt for multi-source chat. Aggregates context from ALL available course materials
+     * and threads conversation history so the model can handle follow-up questions coherently.
+     *
+     * @param sourceBlocks Distilled context for each source, sorted by category priority
+     *                     (SYLLABUS first) before being passed here.
+     * @param conversationHistory Prior chat turns as (author, content) pairs. At most
+     *                            [MAX_HISTORY_TURNS] recent turns are injected.
+     * @param question The student's current question.
+     */
+    fun getMultiSourceChatPrompt(
+        sourceBlocks: List<SourceContextBlock>,
+        conversationHistory: List<Pair<String, String>>,
+        question: String
+    ): String {
+        val sourcesSection = if (sourceBlocks.isEmpty()) {
+            "No course materials are loaded yet. Ask the student to add a source first."
+        } else {
+            sourceBlocks.joinToString("\n\n---\n\n") { block ->
+                buildString {
+                    appendLine("### ${block.title} [${block.category}]")
+                    if (!block.metadata.isNullOrBlank()) {
+                        appendLine("**Policies & Rules:**")
+                        appendLine(block.metadata)
+                        appendLine()
+                    }
+                    val content = if (block.fragmentText.length > MAX_CHARS_PER_SOURCE)
+                        block.fragmentText.take(MAX_CHARS_PER_SOURCE) + "\n… [content truncated]"
+                    else block.fragmentText
+                    appendLine("**Content:**")
+                    append(content)
+                }
+            }
+        }
+
+        val historySection = if (conversationHistory.isEmpty()) {
+            "(No prior messages)"
+        } else {
+            conversationHistory.takeLast(MAX_HISTORY_TURNS).joinToString("\n") { (author, content) ->
+                "${if (author == "User") "Student" else "Assistant"}: $content"
+            }
+        }
+
+        return """
+            You are an Academic Success Assistant with full access to a student's course materials.
+            Answer questions by reasoning across ALL provided sources and synthesizing information.
+
+            # Course Materials (${sourceBlocks.size} source(s))
+
+            $sourcesSection
+
+            # Prior Conversation
+            $historySection
+
+            # Student's Question
+            $question
+
+            # Instructions
+            - Base your answer ONLY on the provided materials. Do not use outside knowledge.
+            - If relevant information spans multiple sources, synthesize it and cite the source title.
+            - If the answer is not found in any provided source, say so clearly rather than guessing.
+            - Keep answers concise and actionable for a student managing their academics.
+        """.trimIndent()
+    }
+
+    private const val MAX_CHARS_PER_SOURCE = 6_000
+    private const val MAX_HISTORY_TURNS = 10
+}
+
+/**
+ * Holds the distilled context for one source, used by [AiPrompts.getMultiSourceChatPrompt].
+ */
+data class SourceContextBlock(
+    val title: String,
+    val category: String,
+    val metadata: String?,
+    val fragmentText: String
+)

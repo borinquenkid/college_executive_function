@@ -15,8 +15,10 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
+import androidx.compose.foundation.layout.height
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Send
+import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -38,14 +40,18 @@ data class ChatMessage(val author: String, val content: String)
 
 @Composable
 fun ChatPanel(
-    modifier: Modifier = Modifier, 
+    modifier: Modifier = Modifier,
     appController: AppController
 ) {
     val selectedSource by appController.selectedSource.collectAsState()
     val messages by appController.chatMessages.collectAsState()
+    val sourceItems by appController.sourceItems.collectAsState()
     val contextAgent = appController.container.contextAgent
-    
+
     var newMessage by remember { mutableStateOf("") }
+    // true  = reason across every loaded source (multi-source mode)
+    // false = scope to the currently selected source only
+    var useAllSources by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
 
     Column(
@@ -54,23 +60,66 @@ fun ChatPanel(
             .padding(8.dp)
             .border(1.dp, MaterialTheme.colorScheme.outline)
     ) {
+        // ── Scope selector ────────────────────────────────────────────────
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 8.dp, vertical = 4.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            FilterChip(
+                selected = useAllSources,
+                onClick = { useAllSources = true },
+                label = {
+                    Text(
+                        "All Sources (${sourceItems.size})",
+                        style = MaterialTheme.typography.labelSmall
+                    )
+                },
+                modifier = Modifier.height(32.dp)
+            )
+            if (selectedSource != null) {
+                val chipLabel = selectedSource!!.title.let {
+                    if (it.length > 22) it.take(22) + "\u2026" else it
+                }
+                FilterChip(
+                    selected = !useAllSources,
+                    onClick = { useAllSources = false },
+                    label = {
+                        Text(chipLabel, style = MaterialTheme.typography.labelSmall)
+                    },
+                    modifier = Modifier.height(32.dp)
+                )
+            }
+        }
+
+        // ── Message list ──────────────────────────────────────────────────
         LazyColumn(modifier = Modifier.weight(1f)) {
             items(messages) { message ->
                 MessageView(message)
             }
         }
 
+        // ── Input row ─────────────────────────────────────────────────────
         Row(
-            modifier = Modifier.fillMaxWidth()
+            modifier = Modifier
+                .fillMaxWidth()
                 .padding(8.dp)
                 .background(MaterialTheme.colorScheme.surfaceVariant, RoundedCornerShape(32.dp))
                 .padding(horizontal = 4.dp, vertical = 4.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
+                val placeholder = when {
+                    useAllSources && sourceItems.isEmpty() -> "Add sources to get started\u2026"
+                    useAllSources -> "Ask anything across all ${sourceItems.size} source(s)\u2026"
+                    selectedSource != null -> "Ask about ${selectedSource!!.title.take(20)}\u2026"
+                    else -> "Select a source, or switch to All Sources mode\u2026"
+                }
                 if (newMessage.isEmpty()) {
                     Text(
-                        "Ask about syllabus...", 
+                        placeholder,
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant,
                         maxLines = 1
@@ -89,14 +138,22 @@ fun ChatPanel(
                     coroutineScope.launch {
                         if (newMessage.isNotBlank()) {
                             val userText = newMessage
+                            // Snapshot history BEFORE appending the new user message
+                            val history = messages
                             appController.addChatMessage(ChatMessage("User", userText))
                             newMessage = ""
 
-                            val aiResponse = if (selectedSource != null) {
-                                contextAgent.querySource(selectedSource!!, userText)
-                            } else {
-                                // Fallback for general chat
-                                "Please select a source (like a syllabus) so I can answer your questions accurately."
+                            val aiResponse = when {
+                                useAllSources -> contextAgent.queryAllSources(
+                                    sources = sourceItems,
+                                    conversationHistory = history,
+                                    question = userText
+                                )
+                                selectedSource != null -> contextAgent.querySource(
+                                    selectedSource!!,
+                                    userText
+                                )
+                                else -> "Please select a source from the Sources panel, or switch to All Sources mode."
                             }
                             appController.addChatMessage(ChatMessage("AI", aiResponse))
                         }

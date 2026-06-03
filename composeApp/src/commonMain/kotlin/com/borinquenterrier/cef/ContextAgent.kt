@@ -35,6 +35,7 @@ class ContextAgent(
                     title = source.title,
                     originUri = null, // Should be passed in or looked up
                     type = if (source.fragments.any { it.type == SourceType.CALENDAR }) "CALENDAR" else "TEXT",
+                    category = source.category.name,
                     metadata = metadataJson,
                     updatedAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
                 )
@@ -77,6 +78,58 @@ class ContextAgent(
             If the answer is not in the text, say you don't know.
         """.trimIndent()
 
+        return aiService.generateChatResponse(prompt)
+    }
+
+    /**
+     * Answers a question by reasoning across ALL loaded sources simultaneously.
+     *
+     * Sources are sorted by academic relevance before being injected into the context window:
+     * SYLLABUS (0) → LECTURE_NOTES (1) → LAB_MANUAL (2) → READING_MATERIAL (3) → OTHER (4).
+     * Each source's fragment text is truncated at [AiPrompts.MAX_CHARS_PER_SOURCE] characters
+     * to keep the total prompt within model limits.
+     *
+     * @param sources All available [SourceItem]s, typically from [AppController.sourceItems].
+     * @param conversationHistory Prior chat turns for follow-up question coherence.
+     * @param question The student's current question.
+     */
+    suspend fun queryAllSources(
+        sources: List<SourceItem>,
+        conversationHistory: List<ChatMessage>,
+        question: String
+    ): String {
+        if (sources.isEmpty()) {
+            return "No sources are loaded yet. Please add a syllabus or document from the Sources panel first."
+        }
+
+        val categoryPriority = mapOf(
+            SourceCategory.SYLLABUS to 0,
+            SourceCategory.LECTURE_NOTES to 1,
+            SourceCategory.LAB_MANUAL to 2,
+            SourceCategory.READING_MATERIAL to 3,
+            SourceCategory.OTHER to 4
+        )
+
+        val sortedSources = sources.sortedBy { categoryPriority[it.category] ?: 5 }
+
+        val sourceBlocks = sortedSources.map { source ->
+            val metadata = getSourceMetadata(source.title)
+            val fragmentText = source.fragments.joinToString("\n\n") { fragment ->
+                if (fragment.pageNumber != null) "Page ${fragment.pageNumber}: ${fragment.text}"
+                else fragment.text
+            }
+            SourceContextBlock(
+                title = source.title,
+                category = source.category.name,
+                metadata = metadata,
+                fragmentText = fragmentText
+            )
+        }
+
+        val historyPairs = conversationHistory.map { it.author to it.content }
+        val prompt = AiPrompts.getMultiSourceChatPrompt(sourceBlocks, historyPairs, question)
+
+        logger?.d(tag, "queryAllSources: ${sources.size} source(s), ${conversationHistory.size} history turns")
         return aiService.generateChatResponse(prompt)
     }
 }

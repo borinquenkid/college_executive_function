@@ -36,7 +36,9 @@ All items below have been verified against the actual codebase — not just the 
 | **Two-Way Sync — Remote Deletions** | `synchronize()` Step 4: hard-deletes local SYNCED events absent from remote fetch |
 | **Two-Way Sync — Offline Mutation Queue** | `DELETED_LOCALLY` + `LOCAL_ONLY` states; flushed on next `synchronize()` call |
 | **Contrarian (Critic-Actor) Loop** | Critique pass for event extraction, study plans, chat responses, and task decomposition |
+| **Multi-Source Chat Context** | ContextAgent queryAllSources() aggregates fragments, conversation history threaded through prompt |
 | **.ics Export** | Refactored `ICalGenerator` + expect/actual `writeIcsFile` with iOS Share Sheet & Android MediaStore actuals |
+| **Sync Hardening** | Token refresh retry internally in GoogleCalendarSyncService, pageToken pagination, conflict resolution warnings |
 
 ---
 
@@ -44,7 +46,7 @@ All items below have been verified against the actual codebase — not just the 
 
 These items have clear scope, high user value, and sufficient existing infrastructure to build on.
 
-### 1.1 — Multi-Source Chat Context ⚡ **HIGHEST PRIORITY**
+### ~~1.1 — Multi-Source Chat Context~~ ✅ **COMPLETED**
 
 **Why first:** Chat is the app's primary interaction layer. Currently every chat message is a fresh,
 single-source prompt — defeating the purpose of ingesting multiple syllabi and documents.
@@ -91,7 +93,7 @@ or agent. Wiring it to a UI button is low-effort and unlocks a highly requested 
 
 ---
 
-### 1.3 — Sync Hardening
+### ~~1.3 — Sync Hardening~~ ✅ **COMPLETED**
 
 **Why now:** The core sync algorithm is solid and tested. These three gaps are the remaining failure
 modes that will surface in production use.

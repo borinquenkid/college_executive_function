@@ -13,6 +13,7 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import com.russhwolf.settings.MapSettings
 
 class GoogleCalendarSyncServiceTest : FunSpec({
 
@@ -31,7 +32,10 @@ class GoogleCalendarSyncServiceTest : FunSpec({
             }
         }
         
-        val service = GoogleCalendarSyncService(httpClient)
+        val tokenRepo = GoogleTokenRepository(MapSettings())
+        tokenRepo.saveTokens("mock-token", "mock-refresh")
+        val authService = GoogleAuthService(MapSettings())
+        val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
         
         val event = TimeEvent(
             title = "Test Event",
@@ -41,7 +45,7 @@ class GoogleCalendarSyncServiceTest : FunSpec({
             date = LocalDate(2025, 1, 1)
         )
 
-        val response = service.syncEvent(event, "mock-token", "school-cal")
+        val response = service.syncEvent(event, "school-cal")
 
         response shouldContain "123"
         val request = mockEngine.requestHistory.first()
@@ -74,8 +78,11 @@ class GoogleCalendarSyncServiceTest : FunSpec({
             }
         }
         
-        val service = GoogleCalendarSyncService(httpClient)
-        val events = service.getEvents("mock-token", "school-cal")
+        val tokenRepo = GoogleTokenRepository(MapSettings())
+        tokenRepo.saveTokens("mock-token", "mock-refresh")
+        val authService = GoogleAuthService(MapSettings())
+        val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+        val events = service.getEvents("school-cal")
 
         events.size shouldBe 1
         events.first().title shouldBe "Existing Event"
@@ -107,8 +114,11 @@ class GoogleCalendarSyncServiceTest : FunSpec({
             }
         }
         
-        val service = GoogleCalendarSyncService(httpClient)
-        val calendars = service.listCalendars("mock-token")
+        val tokenRepo = GoogleTokenRepository(MapSettings())
+        tokenRepo.saveTokens("mock-token", "mock-refresh")
+        val authService = GoogleAuthService(MapSettings())
+        val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+        val calendars = service.listCalendars()
 
         calendars.size shouldBe 2
         calendars[0].id shouldBe "cal-1"
@@ -116,5 +126,65 @@ class GoogleCalendarSyncServiceTest : FunSpec({
         
         val request = mockEngine.requestHistory.first()
         request.url.toString() shouldBe "https://www.googleapis.com/calendar/v3/users/me/calendarList"
+    }
+
+    test("getEvents handles pagination correctly when nextPageToken is returned") {
+        var callCount = 0
+        val mockEngine = MockEngine { request ->
+            callCount++
+            val content = if (callCount == 1) {
+                """
+                {
+                    "nextPageToken": "page-2",
+                    "items": [
+                        {
+                            "id": "event-1",
+                            "summary": "Page 1 Event",
+                            "start": { "dateTime": "2025-01-01T10:00:00Z" },
+                            "end": { "dateTime": "2025-01-01T11:00:00Z" }
+                        }
+                    ]
+                }
+                """.trimIndent()
+            } else {
+                """
+                {
+                    "items": [
+                        {
+                            "id": "event-2",
+                            "summary": "Page 2 Event",
+                            "start": { "dateTime": "2025-01-02T10:00:00Z" },
+                            "end": { "dateTime": "2025-01-02T11:00:00Z" }
+                        }
+                    ]
+                }
+                """.trimIndent()
+            }
+            respond(
+                content = content,
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
+
+        val httpClient = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+        
+        val tokenRepo = GoogleTokenRepository(MapSettings())
+        tokenRepo.saveTokens("mock-token", "mock-refresh")
+        val authService = GoogleAuthService(MapSettings())
+        val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+        val events = service.getEvents("school-cal")
+
+        events.size shouldBe 2
+        events[0].title shouldBe "Page 1 Event"
+        events[1].title shouldBe "Page 2 Event"
+        
+        mockEngine.requestHistory.size shouldBe 2
+        mockEngine.requestHistory[0].url.parameters["pageToken"] shouldBe null
+        mockEngine.requestHistory[1].url.parameters["pageToken"] shouldBe "page-2"
     }
 })

@@ -7,7 +7,8 @@ import kotlinx.datetime.LocalDate
  */
 class CalendarAgent(
     private val localRepo: StudentCalendarRepository,
-    private val remoteRepo: RemoteCalendarRepository
+    private val remoteRepo: RemoteCalendarRepository,
+    private val logger: Logger? = null
 ) {
 
     /**
@@ -113,7 +114,18 @@ class CalendarAgent(
             }
 
             // 5. Remote is Gold Standard: Upsert ALL remote events to Local
+            // Note on Update Conflict Resolution Strategy (Phase 1.3c):
+            // If the same event has been edited both locally and remotely since the last sync,
+            // the remote event always wins. We log a warning when we detect a conflict, i.e.,
+            // a local event already exists with SYNCED status but has a different updatedAt timestamp.
             remoteEvents.forEach { remote ->
+                val local = localEvents.find { it.id == remote.id }
+                if (local != null && local.syncStatus == SyncStatus.SYNCED && local.updatedAt != remote.updatedAt) {
+                    logger?.i(
+                        "SyncConflict",
+                        "WARNING: Event '${remote.title}' (ID: ${remote.id}) has conflicting updates. Remote (updatedAt: ${remote.updatedAt}) overrides Local (updatedAt: ${local.updatedAt})."
+                    )
+                }
                 localRepo.updateEvent(
                     when (remote) {
                         is TimeEvent -> remote.copy(syncStatus = SyncStatus.SYNCED)

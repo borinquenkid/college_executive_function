@@ -109,20 +109,18 @@ All business logic classes (Models, Agents, Services, and Utilities) must have a
 *   **Debug Logging:** Integrated platform-aware logging.
 *   **Automatic Schema Migrations:** Updated database factory to automatically detect and create missing tables.
 *   **Recursive Task Decomposition (Core Orchestration & AI Delegation):** Built `DecompositionOrchestrator` using FIFO queues and `WorkUnit` interfaces, wrapping `AIService` via delegation to handle recursive breakdown up to depth 3 with mathematical date projection and robust Kotest test specs.
+*   **Automatic Source Categorization:** `IngestionAgent` calls `GeminiAIService.categorizeSource()` on all non-ICS content; category label displayed in `SourceItemView`.
+*   **"Break It Down" UI:** `TaskDecompositionDialog` in `AcademicCalendar.kt` — fully wired end-to-end for DEADLINE/FINALS events via `EventAgent.decomposeTask()` and `acceptDecomposition()`.
+*   **Two-Way Sync — Remote Deletions & Offline Mutation Queue:** `synchronize()` handles all four scenarios (offline add, offline delete, remote deletion, remote gold-standard supersedes local); verified by `CalendarSyncIntegrationTest` with Ktor MockEngine.
 
 ### Next Steps
 
-The following tasks are planned for the next phase of development:
+> **See [ROADMAP.md](ROADMAP.md) for the full prioritized plan**, including dependency graph, implementation details, and phase ordering.
 
-#### Recursive Task Decomposition (Next Phase)
-*   **Automatic Source Categorization:** (Google Notebook style) Automatically tag sources as "Syllabus", "Reading Material", "Lab Manual", or "Lecture Notes" during ingestion to optimize AI retrieval.
-*   **Multi-Source Chat Context:** Refactor `ContextAgent` to allow the Chat panel to reason across *all* stored sources simultaneously (e.g., "What are all my grading policies across all classes?").
-*   **Syllabus-to-Study Schedule (Fine-tuning):** We have the core constraints working in the LLM. Next step is iterating over the scheduling parameters via user surveys (e.g., custom study hours, custom break lengths).
+High-level summary of remaining work (ordered by priority):
 
-#### Calendar & Sync
-*   **Client Secrets Management:** Secure injection mechanism for `client_secret.json`.
-*   **Two-Way Synchronization (Edge Cases):** The core sync is implemented. Need to handle edge cases like remote deletions reflecting locally, and offline mutation queues.
-
-#### UI & UX
-*   **Visual Progress Tracking:** Progress bars and "Time Remaining" visuals for long-term projects.
-*   **Export Support:** Implement `.ics` file export for the entire generated study plan.
+1.  **Multi-Source Chat Context** — Refactor `ContextAgent` to aggregate all stored sources + thread conversation history into chat prompts.
+2.  **.ics Export** — Wire the existing `ICalGenerator` (JVM) to a UI button with platform-specific file write/share actuals.
+3.  **Sync Hardening** — Token refresh on 401 mid-sync, `getEvents()` pagination, conflict logging.
+4.  **Visual Progress Tracking** — Deadline countdown chips and `LinearProgressIndicator` for DEADLINE/FINALS events.
+5.  **Scheduling Fine-Tuning** — User-configurable study hours, break lengths, and weighted deliverable allocation.

@@ -231,6 +231,27 @@ Implemented relevance ranking (TF-IDF) in `ContextAgent.rankFragments` to select
 
 ---
 
+## Phase 5 — Iterative Refinement & Agent Harness (IN_PROGRESS)
+
+Refining the Critic-Actor loop into a graph-based state tracker and implementing a lifecycle-driven background polling harness.
+
+### 5.1 — Graph-Based Cycle Detection (IN_PROGRESS)
+Implement visited-state graph tracking in `CriticActorAIService` to handle natural convergence and multi-step oscillation cycles. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+
+### 5.2 — Active Lifecycle Agent Harness (IN_PROGRESS)
+Implement `AgentHarness` to orchestrate startup and once-daily polling of local watched directories and Google Drive, sequentially processing new files and synchronizing calendar mutations. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+
+### 5.3 — Startup Check-In Interview Loop (PLANNED)
+Query incomplete past-due study blocks and tasks at startup/daily check-in, presenting an interactive interview dialog for completion confirmation or automated rescheduling. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+
+### 5.4 — Stateful User Preference Memory (PLANNED)
+Store user calendar edits and deletions to derive implicit scheduling constraints, injecting them into future AI prompt generations. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+
+### 5.5 — Sync Re-negotiation UI (PLANNED)
+Replace silent conflict resolution during two-way sync with interactive user proposal diffs. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+
+---
+
 ## Dependency Graph
 
 ```

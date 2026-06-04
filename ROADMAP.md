@@ -43,8 +43,10 @@ All items below have been verified against the actual codebase — not just the 
 | **Scheduling Fine-Tuning** | User-configurable study hours, break lengths, and limits in Settings; injected into AI study plan generation and collision resolver |
 | **Weighted Deliverables** | Syllabus grade weights extracted by AI, stored in Event models, and used to allocate study block durations proportionally |
 | **Lenient Title Matching** | Refactored `SyllabusEvaluationSuite` matching logic with normalized containment check to eliminate false negatives |
-| **Syllabus Auditor** | Pre-extraction audit pass in `EventAgent` analyzing syllabi for external dependencies, tentative schedules, and grade drops |
 | **Observability & Telemetry** | Multiplatform `TelemetryManager` logging rate limits, JSON parsing exceptions, and Critic-Actor decorator outcomes |
+| **Client Secrets Management** | Automated build-time Google API client secrets injection via custom Gradle task |
+| **Compose UI Tests** | Added Composable flow verification tests for key screens and dialogs |
+| **Source Fragment Indexing** | Relevance ranking (TF-IDF) in `ContextAgent` before prompt injection |
 
 ---
 
@@ -196,28 +198,18 @@ metadata. `AcademicCategory` has `priority: Int` but it's not derived from grade
 
 ---
 
-## Phase 3 — Infrastructure & Polish (Do Last)
+## Phase 3 — Infrastructure & Polish (COMPLETED)
 
 Low user-facing impact but important for production readiness and maintainability.
 
-### 3.1 — Client Secrets Management
+### 3.1 — Client Secrets Management (COMPLETED)
+Secure build-time injection mechanism for Google client ID and secret using a custom Gradle task to prevent secrets from being committed or manually configured.
 
-Secure injection mechanism for `client_secret.json` rather than shipping it in the repo or
-requiring manual placement. Options: environment variable injection at build time, encrypted
-local keystore, or a server-side token proxy.
+### 3.2 — Compose UI Tests for Key Flows (COMPLETED)
+Added Composable flow tests for `TaskDecompositionDialog`, `ChatPanel`, and `SettingsScreen` verifying state progressions, API key handling, and message submissions.
 
-### 3.2 — Compose UI Tests for Key Flows
-
-Add `@Composable` tests for:
-- `TaskDecompositionDialog` state progression (idle → loading → results → accepted)
-- `ChatPanel` message submission and response rendering
-- `SettingsScreen` API key save/clear round-trip
-
-### 3.3 — Performance: Source Fragment Indexing
-
-For large syllabi, `ContextAgent.queryAllSources()` (Phase 1.1) will concatenate many fragments
-into a single prompt. Add a simple relevance ranking (TF-IDF or embedding cosine similarity)
-to select only the top-K fragments before sending to Gemini.
+### 3.3 — Performance: Source Fragment Indexing (COMPLETED)
+Implemented relevance ranking (TF-IDF) in `ContextAgent.rankFragments` to select and inject only the top-K most relevant source fragments for prompt optimization.
 
 ---
 

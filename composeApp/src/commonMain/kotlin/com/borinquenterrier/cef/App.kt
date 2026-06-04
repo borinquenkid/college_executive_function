@@ -57,6 +57,28 @@ fun App() {
                 CircularProgressIndicator()
             }
         } else {
+            LaunchedEffect(container) {
+                // Startup check
+                launch {
+                    try {
+                        container.agentHarness.runHarness(force = false)
+                    } catch (e: Exception) {
+                        println("[App] Harness startup run failed: ${e.message}")
+                    }
+                }
+                // Periodic daily check (polling hourly)
+                launch {
+                    while (true) {
+                        kotlinx.coroutines.delay(3600_000L) // 1 hour
+                        try {
+                            container.agentHarness.runHarness(force = false)
+                        } catch (e: Exception) {
+                            println("[App] Periodic harness run failed: ${e.message}")
+                        }
+                    }
+                }
+            }
+
             val appController = container.appController
             val currentScreen by appController.currentScreen.collectAsState()
             val aiGeneratedEvents by appController.aiGeneratedEvents.collectAsState()

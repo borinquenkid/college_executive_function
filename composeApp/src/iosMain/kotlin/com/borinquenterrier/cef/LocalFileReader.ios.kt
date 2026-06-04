@@ -10,6 +10,8 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSString
 import platform.Foundation.create
 import platform.Foundation.dataWithContentsOfURL
+import platform.Foundation.NSFileManager
+import kotlinx.cinterop.ExperimentalForeignApi
 
 actual class LocalFileReader {
     actual suspend fun readText(path: String): String = withContext(Dispatchers.Default) {
@@ -27,6 +29,17 @@ actual class LocalFileReader {
             }
         } catch (e: Exception) {
             "Error reading file: ${e.message}"
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
+    actual suspend fun listFiles(dirPath: String): List<String> = withContext(Dispatchers.Default) {
+        try {
+            val fileManager = NSFileManager.defaultManager
+            val contents = fileManager.contentsOfDirectoryAtPath(dirPath, error = null)
+            contents?.map { "$dirPath/$it" } ?: emptyList()
+        } catch (e: Exception) {
+            emptyList()
         }
     }
 }

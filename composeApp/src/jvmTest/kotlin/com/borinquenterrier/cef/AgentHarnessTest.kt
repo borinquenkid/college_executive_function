@@ -1,0 +1,112 @@
+package com.borinquenterrier.cef
+
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.mockk.*
+import com.borinquenterrier.cef.db.AppDatabase
+import com.borinquenterrier.cef.db.SourceEntity
+import com.russhwolf.settings.MapSettings
+import kotlinx.datetime.Clock
+
+class AgentHarnessTest : FunSpec({
+
+    lateinit var ingestionAgent: IngestionAgent
+    lateinit var eventAgent: EventAgent
+    lateinit var contextAgent: ContextAgent
+    lateinit var calendarAgent: CalendarAgent
+    lateinit var driveService: GoogleDriveService
+    lateinit var tokenRepository: GoogleTokenRepository
+    lateinit var fileReader: LocalFileReader
+    lateinit var database: AppDatabase
+    lateinit var settings: MapSettings
+    lateinit var logger: Logger
+    lateinit var harness: AgentHarness
+
+    beforeEach {
+        ingestionAgent = mockk(relaxed = true)
+        eventAgent = mockk(relaxed = true)
+        contextAgent = mockk(relaxed = true)
+        calendarAgent = mockk(relaxed = true)
+        driveService = mockk(relaxed = true)
+        tokenRepository = mockk(relaxed = true)
+        fileReader = mockk(relaxed = true)
+        database = mockk(relaxed = true)
+        settings = MapSettings()
+        logger = mockk(relaxed = true)
+        
+        harness = AgentHarness(
+            ingestionAgent,
+            eventAgent,
+            contextAgent,
+            calendarAgent,
+            driveService,
+            tokenRepository,
+            fileReader,
+            database,
+            settings,
+            logger
+        )
+    }
+
+    test("skips run if 24 hours have not passed and force is false") {
+        val now = Clock.System.now().toEpochMilliseconds()
+        harness.setLastPollTime(now - 10000) // 10 seconds ago
+
+        harness.runHarness(force = false)
+
+        coVerify(exactly = 0) { database.appDatabaseQueries.selectAllSources() }
+    }
+
+    test("runs if 24 hours have passed or force is true") {
+        coEvery { database.appDatabaseQueries.selectAllSources().executeAsList() } returns emptyList()
+        coEvery { tokenRepository.hasTokens() } returns false
+
+        harness.runHarness(force = true)
+
+        coVerify(exactly = 1) { database.appDatabaseQueries.selectAllSources() }
+        (harness.getLastPollTime() > 0L) shouldBe true
+    }
+
+    test("processes new local files sequentially through the pipeline") {
+        harness.setWatchedLocalDirectories(listOf("/watched/dir"))
+        coEvery { fileReader.listFiles("/watched/dir") } returns listOf("/watched/dir/syllabus.pdf")
+        coEvery { database.appDatabaseQueries.selectAllSources().executeAsList() } returns emptyList()
+
+        val mockSourceItem = SourceItem("syllabus.pdf", listOf(SourceFragment("text")), SourceCategory.SYLLABUS)
+        coEvery { ingestionAgent.addLocalFile("/watched/dir/syllabus.pdf") } returns mockSourceItem
+        coEvery { tokenRepository.hasTokens() } returns false
+
+        harness.runHarness(force = true)
+
+        coVerifySequence {
+            // Check files and ingest
+            fileReader.listFiles("/watched/dir")
+            ingestionAgent.addLocalFile("/watched/dir/syllabus.pdf")
+            
+            // Process sequentially
+            contextAgent.analyzeSource(mockSourceItem)
+            eventAgent.extractDeliverables(mockSourceItem)
+            eventAgent.pushToCalendar()
+            eventAgent.generateStudyPlan(mockSourceItem)
+            eventAgent.pushToCalendar()
+            
+            // Calendar sync at the end
+            calendarAgent.synchronize("default")
+        }
+    }
+
+    test("skips already ingested local files") {
+        harness.setWatchedLocalDirectories(listOf("/watched/dir"))
+        coEvery { fileReader.listFiles("/watched/dir") } returns listOf("/watched/dir/syllabus.pdf")
+        
+        val mockSource = mockk<SourceEntity>(relaxed = true)
+        every { mockSource.originUri } returns "/watched/dir/syllabus.pdf"
+        coEvery { database.appDatabaseQueries.selectAllSources().executeAsList() } returns listOf(mockSource)
+        coEvery { tokenRepository.hasTokens() } returns false
+
+        harness.runHarness(force = true)
+
+        coVerify(exactly = 0) { ingestionAgent.addLocalFile(any()) }
+        coVerify(exactly = 1) { calendarAgent.synchronize("default") }
+    }
+})

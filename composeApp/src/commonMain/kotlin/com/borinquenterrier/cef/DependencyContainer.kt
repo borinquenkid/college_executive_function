@@ -68,5 +68,20 @@ class DependencyContainer(
     val contextAgent by lazy { ContextAgent(aiService, database, logger) }
     val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), preferencesRepository, logger) }
 
+    val agentHarness by lazy {
+        AgentHarness(
+            ingestionAgent,
+            eventAgent,
+            contextAgent,
+            calendarAgent,
+            driveService,
+            tokenRepository,
+            fileReader,
+            database,
+            settings,
+            logger
+        )
+    }
+
     val appController by lazy { AppController(this) }
 }

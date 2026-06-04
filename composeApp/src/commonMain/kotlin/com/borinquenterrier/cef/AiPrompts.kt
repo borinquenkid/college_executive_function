@@ -357,6 +357,34 @@ object AiPrompts {
         """.trimIndent()
     }
 
+    fun getSyllabusAuditPrompt(syllabusText: String): String {
+        return """
+            You are a strict syllabus auditor. Analyze the following syllabus text and identify structural ambiguities, inconsistencies, or assumptions that could make calendar extraction unreliable.
+            
+            Specifically, scan for and identify:
+            1. External Calendar/LMS dependencies: Mentions of Blackboard, Canvas, Moodle, or other external websites/platforms where the weekly schedule, quizzes, or assignments are actually hosted/due (e.g., "All quizzes are on Blackboard", "Assignments are posted weekly on Canvas").
+            2. Tentative Schedule declarations: Clarifications that the schedule is tentative, subject to change, or approximate (e.g., "schedule is tentative and subject to change", "dates may be adjusted").
+            3. Grading policies that affect deadlines or scheduling: Dropped grade rules, optional exams, or alternate submission policies (e.g., "lowest quiz grade dropped", "final exam is optional if you pass all midterms").
+            4. Date/Day Contradictions: Discrepancies between days of the week and dates listed in the syllabus (e.g., "Monday, Oct 12" when Oct 12 is a Tuesday).
+            
+            Return ONLY a raw JSON object with the following schema:
+            {
+              "hasAmbiguities": true/false,
+              "findings": [
+                {
+                  "type": "EXTERNAL_LMS" | "TENTATIVE" | "GRADING_POLICY" | "DATE_CONTRADICTION",
+                  "description": "Brief description of the ambiguity (e.g., 'Weekly quizzes are hosted on Blackboard instead of listed here')",
+                  "severity": "HIGH" | "MEDIUM" | "LOW"
+                }
+              ]
+            }
+            Do not include any markdown formatting (like ```json) or conversational filler.
+            
+            Syllabus Text:
+            ${'$'}syllabusText
+        """.trimIndent()
+    }
+
     private const val MAX_CHARS_PER_SOURCE = 6_000
     private const val MAX_HISTORY_TURNS = 10
 }

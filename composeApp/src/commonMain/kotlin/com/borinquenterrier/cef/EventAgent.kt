@@ -6,6 +6,7 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.minus
 import com.borinquenterrier.cef.db.AppDatabase
+import kotlinx.serialization.json.*
 
 /**
  * Encapsulates the business logic for the Studio panel, 
@@ -48,11 +49,35 @@ class EventAgent(
         _statusMessage.value = "Analyzing ${source.title}..."
         
         try {
+            val syllabusText = source.fragments.joinToString("\n\n") { it.text }
+            val auditWarnings = if (source.category == SourceCategory.SYLLABUS) {
+                auditSyllabus(syllabusText)
+            } else {
+                emptyList()
+            }
+
             val allEvents = aiService.generateCalendarEvents(source.fragments)
             
             // De-duplicate events by properties (title, date, time)
-            val processed = normalizationService.extract(allEvents).distinctBy { 
+            val normalized = normalizationService.extract(allEvents).distinctBy { 
                 "${it.title}-${it.date}-${if (it is TimeEvent) it.startTime else ""}"
+            }
+
+            val processed = if (auditWarnings.isNotEmpty()) {
+                val combinedWarning = auditWarnings.joinToString("; ")
+                normalized.map { event ->
+                    val newWarning = if (event.warning != null) {
+                        "${event.warning}; $combinedWarning"
+                    } else {
+                        combinedWarning
+                    }
+                    when (event) {
+                        is TimeEvent -> event.copy(warning = newWarning)
+                        is DayEvent -> event.copy(warning = newWarning)
+                    }
+                }
+            } else {
+                normalized
             }
             
             _lastGeneratedEvents.value = processed
@@ -62,6 +87,32 @@ class EventAgent(
             _statusMessage.value = "Error: ${e.message}"
         } finally {
             _isLoading.value = false
+        }
+    }
+
+    private suspend fun auditSyllabus(text: String): List<String> {
+        val prompt = AiPrompts.getSyllabusAuditPrompt(text)
+        val response = aiService.generateChatResponse(prompt)
+        return try {
+            val cleanJson = response.trim()
+                .removePrefix("```json")
+                .removeSuffix("```")
+                .trim()
+            val root = Json.parseToJsonElement(cleanJson).jsonObject
+            val hasAmbiguities = root["hasAmbiguities"]?.jsonPrimitive?.booleanOrNull ?: false
+            if (hasAmbiguities) {
+                root["findings"]?.jsonArray?.map { element ->
+                    val obj = element.jsonObject
+                    val desc = obj["description"]?.jsonPrimitive?.content ?: "Syllabus ambiguity detected"
+                    val type = obj["type"]?.jsonPrimitive?.content ?: "GENERAL"
+                    "[$type] $desc"
+                } ?: emptyList()
+            } else {
+                emptyList()
+            }
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to parse syllabus audit response: $response", e)
+            emptyList()
         }
     }
 

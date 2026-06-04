@@ -25,7 +25,8 @@ actual class RealAIService actual constructor(
         return GeminiAIService(
             apiKey = apiKey,
             logger = logger,
-            database = database
+            database = database,
+            settings = settings
         )
     }
 

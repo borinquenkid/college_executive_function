@@ -4,7 +4,8 @@ import kotlinx.serialization.json.*
 
 class CriticActorAIService(
     private val delegate: AIService,
-    private val logger: Logger? = null
+    private val logger: Logger? = null,
+    private val telemetryManager: TelemetryManager? = null
 ) : AIService by delegate {
     
     private val json = Json {
@@ -25,10 +26,15 @@ class CriticActorAIService(
             val critiquePrompt = AiPrompts.getEventCritiquePrompt(sourceText, firstPassJson)
             val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
             val correctedEvents = parseEvents(critiqueResponse)
-            logger?.d("CriticActor", "Critique complete. Event count: ${firstPass.size} -> ${correctedEvents.size}")
+            
+            val modified = areEventListsDifferent(firstPass, correctedEvents)
+            telemetryManager?.logCriticPass(modified)
+            
+            logger?.d("CriticActor", "Critique complete. Event count: ${firstPass.size} -> ${correctedEvents.size} (modified=$modified)")
             return correctedEvents
         } catch (e: Exception) {
             logger?.e("CriticActor", "Critique failed, falling back to first pass events", e)
+            telemetryManager?.logCriticPass(false)
             return firstPass
         }
     }
@@ -48,10 +54,15 @@ class CriticActorAIService(
             val critiquePrompt = AiPrompts.getEventCritiquePrompt(syllabusText, firstPassJson)
             val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
             val correctedEvents = parseEvents(critiqueResponse)
-            logger?.d("CriticActor", "Study plan critique complete. Event count: ${firstPass.size} -> ${correctedEvents.size}")
+            
+            val modified = areEventListsDifferent(firstPass, correctedEvents)
+            telemetryManager?.logCriticPass(modified)
+            
+            logger?.d("CriticActor", "Study plan critique complete. Event count: ${firstPass.size} -> ${correctedEvents.size} (modified=$modified)")
             return correctedEvents
         } catch (e: Exception) {
             logger?.e("CriticActor", "Study plan critique failed, falling back to first pass", e)
+            telemetryManager?.logCriticPass(false)
             return firstPass
         }
     }
@@ -208,5 +219,20 @@ class CriticActorAIService(
                 description = obj["description"]?.jsonPrimitive?.content ?: ""
             )
         }
+    }
+
+    private fun areEventListsDifferent(list1: List<Event>, list2: List<Event>): Boolean {
+        if (list1.size != list2.size) return true
+        for (i in list1.indices) {
+            val e1 = list1[i]
+            val e2 = list2[i]
+            if (e1.title != e2.title || e1.date != e2.date || e1.category != e2.category) return true
+            if (e1 is TimeEvent && e2 is TimeEvent) {
+                if (e1.startTime != e2.startTime || e1.endTime != e2.endTime) return true
+            } else if (e1 is TimeEvent || e2 is TimeEvent) {
+                return true
+            }
+        }
+        return false
     }
 }

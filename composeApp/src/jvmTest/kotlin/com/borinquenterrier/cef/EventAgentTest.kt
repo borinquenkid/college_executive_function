@@ -174,4 +174,54 @@ class HeadlessLogicTest : FunSpec({
         eventAgent.decomposedTasks.value shouldHaveSize 0
         eventAgent.decompositionTarget.value shouldBe null
     }
+
+    test("EventAgent.extractDeliverables should run auditSyllabus on SYLLABUS category sources and inject warnings") {
+        val mockAiService = mockk<AIService>()
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val logger = Logger(MapSettings())
+
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+
+        val mockAuditResponse = """
+            {
+              "hasAmbiguities": true,
+              "findings": [
+                {
+                  "type": "EXTERNAL_LMS",
+                  "description": "Weekly assignments are hosted on Blackboard",
+                  "severity": "HIGH"
+                }
+              ]
+            }
+        """.trimIndent()
+
+        val mockEvents = listOf(
+            DayEvent(
+                title = "Midterm Exam",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 11, 10),
+                warning = "Original Warning"
+            )
+        )
+
+        coEvery { mockAiService.generateChatResponse(any()) } returns mockAuditResponse
+        coEvery { mockAiService.generateCalendarEvents(any()) } returns mockEvents
+
+        val source = SourceItem(
+            title = "CS 101 Syllabus",
+            fragments = listOf(SourceFragment("Midterm Exam 11/10", type = SourceType.TEXT)),
+            category = SourceCategory.SYLLABUS
+        )
+
+        eventAgent.extractDeliverables(source)
+
+        eventAgent.lastGeneratedEvents.value shouldHaveSize 1
+        val extracted = eventAgent.lastGeneratedEvents.value[0]
+        extracted.title shouldBe "Midterm Exam"
+        extracted.warning shouldBe "Original Warning; [EXTERNAL_LMS] Weekly assignments are hosted on Blackboard"
+
+        coVerify(exactly = 1) { mockAiService.generateChatResponse(any()) }
+        coVerify(exactly = 1) { mockAiService.generateCalendarEvents(any()) }
+    }
 })

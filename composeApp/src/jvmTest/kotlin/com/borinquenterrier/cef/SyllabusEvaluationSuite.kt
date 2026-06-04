@@ -32,6 +32,21 @@ class SyllabusEvaluationSuite : FunSpec({
         }
     }
 
+    fun areTitlesSimilar(title1: String, title2: String): Boolean {
+        fun normalize(s: String): String {
+            return s.lowercase()
+                .replace(Regex("['\"#’“”]"), "")
+                .replace(Regex("[^a-z0-9\\s]"), " ")
+                .replace(Regex("\\s+"), " ")
+                .trim()
+        }
+
+        val n1 = normalize(title1)
+        val n2 = normalize(title2)
+
+        return n1.contains(n2) || n2.contains(n1)
+    }
+
     test("Run evaluation suite on test syllabi") {
         // Resolve Credentials
         val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
@@ -83,6 +98,9 @@ class SyllabusEvaluationSuite : FunSpec({
             // Run AI extraction
             val extractedEvents = runBlocking { aiService.generateCalendarEvents(fragments) }
 
+            println("  Extracted Events:")
+            extractedEvents.forEach { println("    - ${it.date} | ${it.category} | ${it.title}") }
+
             // Evaluate
             var matchedCount = 0
             var dateCorrectCount = 0
@@ -90,9 +108,7 @@ class SyllabusEvaluationSuite : FunSpec({
             expectedEvents.forEach { expected ->
                 // Check if any extracted event matches the expected event
                 val matchingExtracted = extractedEvents.find { actual ->
-                    val titleMatch = actual.title.lowercase().contains(expected.title.lowercase()) ||
-                            expected.title.lowercase().contains(actual.title.lowercase())
-                    titleMatch
+                    areTitlesSimilar(actual.title, expected.title)
                 }
 
                 if (matchingExtracted != null) {

@@ -21,9 +21,11 @@ class GeminiAIService(
     private val apiKey: String? = null,
     private val accessToken: String? = null,
     private val logger: Logger? = null,
-    private val database: AppDatabase? = null
+    private val database: AppDatabase? = null,
+    private val settings: com.russhwolf.settings.Settings? = null
 ) {
     private val tag = "GeminiAI"
+    private val telemetryManager = settings?.let { TelemetryManager(it) }
     private val client = HttpClient {
         install(ContentNegotiation) {
             json(Json { 
@@ -286,6 +288,10 @@ class GeminiAIService(
                     httpResponse.status == HttpStatusCode.NotFound ||
                     httpResponse.status == HttpStatusCode.ServiceUnavailable) {
 
+                    if (httpResponse.status == HttpStatusCode.TooManyRequests || httpResponse.status == HttpStatusCode.ServiceUnavailable) {
+                        telemetryManager?.logRateLimitError()
+                    }
+
                     val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
                     blacklistedModels[modelName] = expiry
                     database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
@@ -317,7 +323,13 @@ class GeminiAIService(
                 val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
                     ?: throw Exception("Empty response from AI")
 
-                return parseEventsJson(responseText)
+                val parsed = try {
+                    parseEventsJson(responseText)
+                } catch (e: Exception) {
+                    telemetryManager?.logJsonError()
+                    throw e
+                }
+                return parsed
             } catch (e: Exception) {
                 lastError = e
                 logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")

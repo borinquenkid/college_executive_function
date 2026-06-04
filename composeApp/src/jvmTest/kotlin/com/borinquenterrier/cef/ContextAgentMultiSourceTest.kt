@@ -218,4 +218,91 @@ class ContextAgentMultiSourceTest : FunSpec({
         val prompt = promptSlot.captured
         prompt shouldContain "Final 40%"
     }
+
+    test("rankFragments prioritizes matching keyword frequency (TF-IDF)") {
+        val mathSyllabus = SourceItem(
+            title = "Math Syllabus",
+            category = SourceCategory.SYLLABUS,
+            fragments = listOf(
+                SourceFragment(text = "This fragment does not mention the keyword."),
+                SourceFragment(text = "This fragment mentions calculus once in passing."),
+                SourceFragment(text = "Calculus is the study of change. Calculus is divided into differential and integral calculus.")
+            )
+        )
+
+        val ranked = sut.rankFragments(
+            sources = listOf(mathSyllabus),
+            question = "tell me about calculus",
+            topK = 5
+        )
+
+        ranked.size shouldBe 3
+        // The fragment with the highest frequency of "calculus" should be first
+        ranked[0].second.text shouldContain "Calculus is the study of change"
+        // The one with "calculus" once in passing should be second
+        ranked[1].second.text shouldContain "mentions calculus once"
+        // The one with no "calculus" should be third
+        ranked[2].second.text shouldContain "does not mention"
+    }
+
+    test("rankFragments ignores stop words and queries matching keywords") {
+        val physicsSyllabus = SourceItem(
+            title = "Physics Syllabus",
+            category = SourceCategory.SYLLABUS,
+            fragments = listOf(
+                SourceFragment(text = "the a of in to with"), // Only stop words
+                SourceFragment(text = "Thermodynamics is the study of heat and temperature.") // Significant keyword
+            )
+        )
+
+        val rankedForHeat = sut.rankFragments(
+            sources = listOf(physicsSyllabus),
+            question = "the a of heat",
+            topK = 5
+        )
+
+        rankedForHeat.first().second.text shouldContain "Thermodynamics is the study of heat"
+    }
+
+    test("rankFragments respects topK constraint") {
+        val fragments = (1..20).map { i ->
+            SourceFragment(text = "calculus article number $i")
+        }
+        val source = SourceItem(
+            title = "Calculus Book",
+            category = SourceCategory.READING_MATERIAL,
+            fragments = fragments
+        )
+
+        val ranked = sut.rankFragments(
+            sources = listOf(source),
+            question = "calculus",
+            topK = 5
+        )
+
+        ranked.size shouldBe 5
+    }
+
+    test("rankFragments falls back to topK when query terms are empty") {
+        val fragments = (1..10).map { i ->
+            SourceFragment(text = "Text fragment number $i")
+        }
+        val source = SourceItem(
+            title = "Generic Doc",
+            category = SourceCategory.OTHER,
+            fragments = fragments
+        )
+
+        val ranked = sut.rankFragments(
+            sources = listOf(source),
+            question = "the a of",
+            topK = 3
+        )
+
+        ranked.size shouldBe 3
+        ranked[0].second.text shouldBe "Text fragment number 1"
+        ranked[1].second.text shouldBe "Text fragment number 2"
+        ranked[2].second.text shouldBe "Text fragment number 3"
+    }
 })
+

@@ -53,7 +53,7 @@ class CriticActorAIServiceTest : FunSpec({
         result[0].date shouldBe LocalDate(2026, 6, 2)
         
         coVerify(exactly = 1) { delegate.generateCalendarEvents(any()) }
-        coVerify(exactly = 1) { delegate.generateChatResponse(any()) }
+        coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
 
     test("passes through when delegate returns empty study plan list") {
@@ -92,7 +92,7 @@ class CriticActorAIServiceTest : FunSpec({
         result[0].date shouldBe LocalDate(2026, 6, 2)
         
         coVerify(exactly = 1) { delegate.generateStudyPlan(any(), any()) }
-        coVerify(exactly = 1) { delegate.generateChatResponse(any()) }
+        coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
 
     test("revises chat response when critique finds outside knowledge or hallucination") {
@@ -155,7 +155,74 @@ class CriticActorAIServiceTest : FunSpec({
         result[2].title shouldBe "Implement detail logic"
         
         coVerify(exactly = 1) { delegate.decomposeTask(any(), any()) }
-        coVerify(exactly = 1) { delegate.generateChatResponse(any()) }
+        coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
+    }
+
+    test("stops critique loop at maxIterations when output does not converge") {
+        val firstPassEvents = listOf(
+            DayEvent(title = "Task", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 2))
+        )
+        coEvery { delegate.generateCalendarEvents(any()) } returns firstPassEvents
+        
+        var counter = 1
+        coEvery { delegate.generateChatResponse(any()) } answers {
+            """
+                [
+                  {
+                    "title": "Task Variant ${counter++}",
+                    "type": "DAY",
+                    "category": "DEADLINE",
+                    "date": "2026-06-02"
+                  }
+                ]
+            """.trimIndent()
+        }
+
+        val result = criticActorService.generateCalendarEvents(listOf(SourceFragment("dummy text")))
+
+        result.size shouldBe 1
+        counter shouldBe 4 // 1 initial + 3 increments in loop
+        coVerify(exactly = 3) { delegate.generateChatResponse(any()) }
+    }
+
+    test("detects and breaks on multi-turn oscillation cycles") {
+        val firstPassEvents = listOf(
+            DayEvent(title = "Task", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 2))
+        )
+        coEvery { delegate.generateCalendarEvents(any()) } returns firstPassEvents
+        
+        val stateBJson = """
+            [
+              {
+                "title": "Task State B",
+                "type": "DAY",
+                "category": "DEADLINE",
+                "date": "2026-06-02"
+              }
+            ]
+        """.trimIndent()
+
+        val stateAJson = """
+            [
+              {
+                "title": "Task",
+                "type": "DAY",
+                "category": "DEADLINE",
+                "date": "2026-06-02"
+              }
+            ]
+        """.trimIndent()
+        
+        var callCount = 0
+        coEvery { delegate.generateChatResponse(any()) } answers {
+            callCount++
+            if (callCount == 1) stateBJson else stateAJson
+        }
+
+        val result = criticActorService.generateCalendarEvents(listOf(SourceFragment("dummy text")))
+
+        result.size shouldBe 1
+        coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
 
     test("passes through other methods directly without changes") {

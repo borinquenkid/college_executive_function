@@ -18,25 +18,48 @@ class CriticActorAIService(
         val firstPass = delegate.generateCalendarEvents(fragments)
         if (firstPass.isEmpty()) return firstPass
 
-        logger?.d("CriticActor", "First-pass calendar event count: ${firstPass.size}. Launching critique pass...")
+        logger?.d("CriticActor", "First-pass calendar event count: ${firstPass.size}. Entering critique loop...")
         
-        try {
-            val sourceText = fragments.joinToString("\n\n") { it.text }
-            val firstPassJson = serializeEvents(firstPass)
-            val critiquePrompt = AiPrompts.getEventCritiquePrompt(sourceText, firstPassJson)
-            val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
-            val correctedEvents = parseEvents(critiqueResponse)
-            
-            val modified = areEventListsDifferent(firstPass, correctedEvents)
-            telemetryManager?.logCriticPass(modified)
-            
-            logger?.d("CriticActor", "Critique complete. Event count: ${firstPass.size} -> ${correctedEvents.size} (modified=$modified)")
-            return correctedEvents
-        } catch (e: Exception) {
-            logger?.e("CriticActor", "Critique failed, falling back to first pass events", e)
-            telemetryManager?.logCriticPass(false)
-            return firstPass
+        val sourceText = fragments.joinToString("\n\n") { it.text }
+        var currentEvents = firstPass
+        val visitedStates = mutableSetOf<String>()
+        visitedStates.add(serializeEvents(firstPass))
+        
+        var iteration = 1
+        val maxIterations = 3
+        
+        while (iteration <= maxIterations) {
+            try {
+                val currentJson = serializeEvents(currentEvents)
+                val critiquePrompt = AiPrompts.getEventCritiquePrompt(sourceText, currentJson)
+                val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
+                val correctedEvents = parseEvents(critiqueResponse)
+                
+                val correctedJson = serializeEvents(correctedEvents)
+                if (visitedStates.contains(correctedJson)) {
+                    val isConvergence = (correctedJson == currentJson)
+                    if (isConvergence) {
+                        logger?.d("CriticActor", "Iteration $iteration: State converged. Exiting critique loop.")
+                    } else {
+                        logger?.i("CriticActor", "Iteration $iteration: Cycle detected in refinement graph! Exiting critique loop.")
+                    }
+                    break
+                }
+                
+                logger?.d("CriticActor", "Iteration $iteration: Event list refined (size ${currentEvents.size} -> ${correctedEvents.size}).")
+                currentEvents = correctedEvents
+                visitedStates.add(correctedJson)
+            } catch (e: Exception) {
+                logger?.e("CriticActor", "Iteration $iteration critique failed, exiting loop with last successful state", e)
+                break
+            }
+            iteration++
         }
+        
+        val modified = areEventListsDifferent(firstPass, currentEvents)
+        telemetryManager?.logCriticPass(modified)
+        logger?.d("CriticActor", "Critique loop finished. Event count: ${firstPass.size} -> ${currentEvents.size} (modified=$modified)")
+        return currentEvents
     }
 
     override suspend fun generateStudyPlan(
@@ -47,24 +70,47 @@ class CriticActorAIService(
         val firstPass = delegate.generateStudyPlan(syllabusText, existingSchedule, preferences)
         if (firstPass.isEmpty()) return firstPass
 
-        logger?.d("CriticActor", "First-pass study plan count: ${firstPass.size}. Launching critique pass...")
+        logger?.d("CriticActor", "First-pass study plan count: ${firstPass.size}. Entering critique loop...")
         
-        try {
-            val firstPassJson = serializeEvents(firstPass)
-            val critiquePrompt = AiPrompts.getEventCritiquePrompt(syllabusText, firstPassJson)
-            val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
-            val correctedEvents = parseEvents(critiqueResponse)
-            
-            val modified = areEventListsDifferent(firstPass, correctedEvents)
-            telemetryManager?.logCriticPass(modified)
-            
-            logger?.d("CriticActor", "Study plan critique complete. Event count: ${firstPass.size} -> ${correctedEvents.size} (modified=$modified)")
-            return correctedEvents
-        } catch (e: Exception) {
-            logger?.e("CriticActor", "Study plan critique failed, falling back to first pass", e)
-            telemetryManager?.logCriticPass(false)
-            return firstPass
+        var currentPlan = firstPass
+        val visitedStates = mutableSetOf<String>()
+        visitedStates.add(serializeEvents(firstPass))
+        
+        var iteration = 1
+        val maxIterations = 3
+        
+        while (iteration <= maxIterations) {
+            try {
+                val currentJson = serializeEvents(currentPlan)
+                val critiquePrompt = AiPrompts.getEventCritiquePrompt(syllabusText, currentJson)
+                val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
+                val correctedPlan = parseEvents(critiqueResponse)
+                
+                val correctedJson = serializeEvents(correctedPlan)
+                if (visitedStates.contains(correctedJson)) {
+                    val isConvergence = (correctedJson == currentJson)
+                    if (isConvergence) {
+                        logger?.d("CriticActor", "Iteration $iteration: State converged. Exiting critique loop.")
+                    } else {
+                        logger?.i("CriticActor", "Iteration $iteration: Cycle detected in refinement graph! Exiting critique loop.")
+                    }
+                    break
+                }
+                
+                logger?.d("CriticActor", "Iteration $iteration: Study plan refined (size ${currentPlan.size} -> ${correctedPlan.size}).")
+                currentPlan = correctedPlan
+                visitedStates.add(correctedJson)
+            } catch (e: Exception) {
+                logger?.e("CriticActor", "Iteration $iteration critique failed, exiting loop with last successful state", e)
+                break
+            }
+            iteration++
         }
+        
+        val modified = areEventListsDifferent(firstPass, currentPlan)
+        telemetryManager?.logCriticPass(modified)
+        logger?.d("CriticActor", "Study plan critique loop finished. Event count: ${firstPass.size} -> ${currentPlan.size} (modified=$modified)")
+        return currentPlan
     }
 
     override suspend fun generateChatResponse(prompt: String): String {
@@ -95,19 +141,45 @@ class CriticActorAIService(
         val firstPass = delegate.decomposeTask(taskTitle, dueDate)
         if (firstPass.isEmpty()) return firstPass
 
-        logger?.d("CriticActor", "First-pass decomposition count: ${firstPass.size}. Launching critique pass...")
+        logger?.d("CriticActor", "First-pass decomposition count: ${firstPass.size}. Entering critique loop...")
         
-        try {
-            val firstPassJson = serializeTasks(firstPass)
-            val critiquePrompt = AiPrompts.getDecompositionCritiquePrompt(taskTitle, dueDate, firstPassJson)
-            val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
-            val correctedTasks = parseTasks(critiqueResponse)
-            logger?.d("CriticActor", "Decomposition critique complete. Task count: ${firstPass.size} -> ${correctedTasks.size}")
-            return correctedTasks
-        } catch (e: Exception) {
-            logger?.e("CriticActor", "Decomposition critique failed, falling back to first pass", e)
-            return firstPass
+        var currentTasks = firstPass
+        val visitedStates = mutableSetOf<String>()
+        visitedStates.add(serializeTasks(firstPass))
+        
+        var iteration = 1
+        val maxIterations = 3
+        
+        while (iteration <= maxIterations) {
+            try {
+                val currentJson = serializeTasks(currentTasks)
+                val critiquePrompt = AiPrompts.getDecompositionCritiquePrompt(taskTitle, dueDate, currentJson)
+                val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
+                val correctedTasks = parseTasks(critiqueResponse)
+                
+                val correctedJson = serializeTasks(correctedTasks)
+                if (visitedStates.contains(correctedJson)) {
+                    val isConvergence = (correctedJson == currentJson)
+                    if (isConvergence) {
+                        logger?.d("CriticActor", "Iteration $iteration: State converged. Exiting critique loop.")
+                    } else {
+                        logger?.i("CriticActor", "Iteration $iteration: Cycle detected in refinement graph! Exiting critique loop.")
+                    }
+                    break
+                }
+                
+                logger?.d("CriticActor", "Iteration $iteration: Decomposition refined (size ${currentTasks.size} -> ${correctedTasks.size}).")
+                currentTasks = correctedTasks
+                visitedStates.add(correctedJson)
+            } catch (e: Exception) {
+                logger?.e("CriticActor", "Iteration $iteration critique failed, exiting loop with last successful state", e)
+                break
+            }
+            iteration++
         }
+        
+        logger?.d("CriticActor", "Decomposition critique loop finished. Task count: ${firstPass.size} -> ${currentTasks.size}")
+        return currentTasks
     }
 
     private fun serializeEvents(events: List<Event>): String {
@@ -232,6 +304,16 @@ class CriticActorAIService(
             } else if (e1 is TimeEvent || e2 is TimeEvent) {
                 return true
             }
+        }
+        return false
+    }
+
+    private fun areTaskListsDifferent(list1: List<DecomposedTask>, list2: List<DecomposedTask>): Boolean {
+        if (list1.size != list2.size) return true
+        for (i in list1.indices) {
+            val t1 = list1[i]
+            val t2 = list2[i]
+            if (t1.title != t2.title || t1.daysBeforeDue != t2.daysBeforeDue || t1.description != t2.description) return true
         }
         return false
     }

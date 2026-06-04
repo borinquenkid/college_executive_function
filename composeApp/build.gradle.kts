@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import java.util.Properties
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -9,6 +10,53 @@ plugins {
     alias(libs.plugins.composeHotReload)
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
+}
+
+val generateBuildSecrets = tasks.register("generateBuildSecrets") {
+    val localPropertiesFile = project.rootProject.file("local.properties")
+    val envFile = project.rootProject.file(".env")
+    
+    inputs.file(localPropertiesFile).optional()
+    inputs.file(envFile).optional()
+    
+    val outputDir = layout.buildDirectory.dir("generated/cef/commonMain/kotlin")
+    outputs.dir(outputDir)
+    
+    doLast {
+        // Read local.properties
+        val localProps = Properties()
+        if (localPropertiesFile.exists()) {
+            localPropertiesFile.inputStream().use { localProps.load(it) }
+        }
+        
+        // Read .env file in root
+        val envProps = Properties()
+        if (envFile.exists()) {
+            envFile.inputStream().use { envProps.load(it) }
+        }
+        
+        val clientId = System.getenv("GOOGLE_CLIENT_ID")
+            ?: localProps.getProperty("GOOGLE_CLIENT_ID")
+            ?: envProps.getProperty("GOOGLE_CLIENT_ID")
+            ?: ""
+            
+        val clientSecret = System.getenv("GOOGLE_CLIENT_SECRET")
+            ?: localProps.getProperty("GOOGLE_CLIENT_SECRET")
+            ?: envProps.getProperty("GOOGLE_CLIENT_SECRET")
+            ?: ""
+            
+        val secretsFile = outputDir.get().file("com/borinquenterrier/cef/BuildSecrets.kt").asFile
+        secretsFile.parentFile.mkdirs()
+        
+        secretsFile.writeText("""
+            package com.borinquenterrier.cef
+            
+            object BuildSecrets {
+                val GOOGLE_CLIENT_ID: String? = ${if (clientId.isBlank()) "null" else "\"$clientId\""}
+                val GOOGLE_CLIENT_SECRET: String? = ${if (clientSecret.isBlank()) "null" else "\"$clientSecret\""}
+            }
+        """.trimIndent() + "\n")
+    }
 }
 
 kotlin {
@@ -32,6 +80,9 @@ kotlin {
     jvm()
     
     sourceSets {
+        commonMain {
+            kotlin.srcDir(generateBuildSecrets)
+        }
         androidMain.dependencies {
             implementation(compose.preview)
             implementation(libs.androidx.activity.compose)

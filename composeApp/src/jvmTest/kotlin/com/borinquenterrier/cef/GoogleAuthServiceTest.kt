@@ -17,6 +17,7 @@ class GoogleAuthServiceTest : FunSpec({
         System.clearProperty("GOOGLE_CLIENT_ID")
         System.clearProperty("GOOGLE_CLIENT_SECRET")
         System.clearProperty("CEF_GOOGLE_CLIENT_SECRET_PATH")
+        System.setProperty("CEF_BYPASS_BUILD_SECRETS", "true")
         
         // Setup isolated temp credentials dir
         tempCredentialsDir = Files.createTempDirectory("cef-test-credentials").toFile()
@@ -29,7 +30,35 @@ class GoogleAuthServiceTest : FunSpec({
         System.clearProperty("GOOGLE_CLIENT_SECRET")
         System.clearProperty("CEF_GOOGLE_CLIENT_SECRET_PATH")
         System.clearProperty("CEF_CREDENTIALS_DIR")
+        System.clearProperty("CEF_BYPASS_BUILD_SECRETS")
         tempCredentialsDir.deleteRecursively()
+    }
+
+    test("should use build-in BuildSecrets if available and not bypassed") {
+        if (BuildSecrets.GOOGLE_CLIENT_ID != null && BuildSecrets.GOOGLE_CLIENT_SECRET != null) {
+            System.clearProperty("GOOGLE_CLIENT_ID")
+            System.clearProperty("GOOGLE_CLIENT_SECRET")
+            System.setProperty("CEF_BYPASS_BUILD_SECRETS", "false")
+            
+            // Backup the real .env if it exists so loadEnvFile() doesn't find it
+            val envFile = File(".env")
+            val backupFile = File(".env.bak")
+            var backedUp = false
+            if (envFile.exists()) {
+                envFile.renameTo(backupFile)
+                backedUp = true
+            }
+            try {
+                val authService = GoogleAuthService(MapSettings())
+                val flow = authService.buildFlow()
+                flow shouldNotBe null
+                flow.clientId shouldBe BuildSecrets.GOOGLE_CLIENT_ID
+            } finally {
+                if (backedUp) {
+                    backupFile.renameTo(envFile)
+                }
+            }
+        }
     }
 
     test("should fail if no environment variables, .env file, or client_secret.json exist") {

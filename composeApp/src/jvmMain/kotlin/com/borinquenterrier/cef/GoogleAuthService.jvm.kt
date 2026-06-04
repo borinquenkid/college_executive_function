@@ -115,7 +115,17 @@ private fun loadEnvFile(): Map<String, String> {
         var clientId = System.getProperty("GOOGLE_CLIENT_ID") ?: System.getenv("GOOGLE_CLIENT_ID")
         var clientSecret = System.getProperty("GOOGLE_CLIENT_SECRET") ?: System.getenv("GOOGLE_CLIENT_SECRET")
 
-        // 2. Fallback to parsing the local .env file
+        // 2. Try build-time injected secrets (unless bypassed in tests)
+        if (System.getProperty("CEF_BYPASS_BUILD_SECRETS") != "true") {
+            if (clientId.isNullOrBlank()) {
+                clientId = BuildSecrets.GOOGLE_CLIENT_ID
+            }
+            if (clientSecret.isNullOrBlank()) {
+                clientSecret = BuildSecrets.GOOGLE_CLIENT_SECRET
+            }
+        }
+
+        // 3. Fallback to parsing the local .env file
         if (clientId.isNullOrBlank() || clientSecret.isNullOrBlank()) {
             val envMap = loadEnvFile()
             if (clientId.isNullOrBlank()) {

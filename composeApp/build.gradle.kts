@@ -72,6 +72,8 @@ kotlin {
             implementation(libs.ktor.client.mock)
             implementation(libs.multiplatform.settings.test)
             implementation(libs.kotlinx.datetime)
+            @OptIn(org.jetbrains.compose.ExperimentalComposeLibrary::class)
+            implementation(compose.uiTest)
         }
         val jvmTest by getting {
             dependencies {

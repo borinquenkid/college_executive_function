@@ -32,6 +32,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -128,7 +129,7 @@ fun ChatPanel(
                 BasicTextField(
                     value = newMessage,
                     onValueChange = { newMessage = it },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("chat_input_field"),
                     textStyle = MaterialTheme.typography.bodyMedium.copy(color = MaterialTheme.colorScheme.onSurface),
                     singleLine = true
                 )
@@ -159,7 +160,7 @@ fun ChatPanel(
                         }
                     }
                 },
-                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primary)
+                modifier = Modifier.clip(CircleShape).background(MaterialTheme.colorScheme.primary).testTag("chat_send_button")
             ) {
                 Icon(Icons.Default.Send, contentDescription = "Send", tint = MaterialTheme.colorScheme.onPrimary)
             }

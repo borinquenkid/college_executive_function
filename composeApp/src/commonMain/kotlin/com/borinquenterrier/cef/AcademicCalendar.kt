@@ -13,6 +13,7 @@ import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -249,12 +250,12 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
                             horizontalArrangement = Arrangement.Center,
                             modifier = Modifier.fillMaxWidth()
                         ) {
-                            CircularProgressIndicator()
+                            CircularProgressIndicator(modifier = Modifier.testTag("loading_indicator"))
                         }
                     } else {
                         Button(
                             onClick = { scope.launch { eventAgent.decomposeTask(event) } },
-                            modifier = Modifier.fillMaxWidth()
+                            modifier = Modifier.fillMaxWidth().testTag("break_it_down_button")
                         ) {
                             Text("Break It Down (AI)")
                         }
@@ -290,7 +291,7 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
                     Spacer(Modifier.height(2.dp))
                     Button(
                         onClick = { scope.launch { eventAgent.acceptDecomposition(); onDismiss() } },
-                        modifier = Modifier.fillMaxWidth(),
+                        modifier = Modifier.fillMaxWidth().testTag("add_steps_button"),
                         enabled = !isLoading
                     ) {
                         Text("Add Steps to Calendar")

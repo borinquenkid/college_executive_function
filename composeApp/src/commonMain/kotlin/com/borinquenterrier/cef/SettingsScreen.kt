@@ -12,6 +12,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import io.ktor.client.HttpClient
@@ -153,16 +154,19 @@ fun SettingsScreen(
                         apiKey = it
                         settings.putString("CEF_GEMINI_API_KEY", it)
                     },
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier.fillMaxWidth().testTag("settings_api_key_input"),
                     label = { Text("Gemini API Key") },
                     textStyle = MaterialTheme.typography.bodySmall,
                     placeholder = { Text("Paste your key here...") },
                     trailingIcon = {
                         if (apiKey.isNotBlank()) {
-                            IconButton(onClick = { 
-                                apiKey = ""
-                                settings.putString("CEF_GEMINI_API_KEY", "")
-                            }) {
+                            IconButton(
+                                onClick = { 
+                                    apiKey = ""
+                                    settings.putString("CEF_GEMINI_API_KEY", "")
+                                },
+                                modifier = Modifier.testTag("settings_api_key_clear_button")
+                            ) {
                                 Icon(
                                     imageVector = Icons.Default.Clear, 
                                     contentDescription = "Clear", 

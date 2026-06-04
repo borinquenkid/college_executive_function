@@ -16,7 +16,7 @@ class EventSyncTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
         
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger)
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
         
         val safeEvent = DayEvent(
             title = "Safe Event",
@@ -62,7 +62,7 @@ class EventSyncTest : FunSpec({
 
     test("EventAgent.pushToCalendar should clear state on full success") {
         val mockCalendarAgent = mockk<CalendarAgent>()
-        val eventAgent = EventAgent(mockk(), mockCalendarAgent, null, NormalizationService(), Logger(MapSettings()))
+        val eventAgent = EventAgent(mockk(), mockCalendarAgent, null, NormalizationService(), logger = Logger(MapSettings()))
         
         val event = DayEvent(
             title = "Test", 

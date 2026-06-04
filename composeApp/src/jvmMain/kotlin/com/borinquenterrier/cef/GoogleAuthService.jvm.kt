@@ -9,6 +9,7 @@ import com.google.api.client.json.gson.GsonFactory
 import com.google.api.client.util.store.FileDataStoreFactory
 import com.russhwolf.settings.Settings
 import java.io.InputStreamReader
+import java.io.StringReader
 import java.io.File
 import java.io.FileInputStream
 import java.nio.file.Paths
@@ -29,7 +30,12 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         "https://www.googleapis.com/auth/calendar",
         "https://www.googleapis.com/auth/drive.readonly"
     )
-    private val credentialsDir = File(System.getProperty("user.home"), ".cef_credentials")
+    private val credentialsDir = File(
+        System.getProperty("CEF_CREDENTIALS_DIR") 
+            ?: System.getenv("CEF_CREDENTIALS_DIR") 
+            ?: System.getProperty("user.home"), 
+        ".cef_credentials"
+    )
 
     actual suspend fun login(): Pair<String, String?> = withContext(Dispatchers.IO) {
         try {
@@ -83,19 +89,70 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         }
     }
 
-    private fun buildFlow(): GoogleAuthorizationCodeFlow {
-        val envPath = System.getenv("CEF_GOOGLE_CLIENT_SECRET_PATH")
-        val defaultPath = Paths.get(System.getProperty("user.home"), ".cef", "client_secret.json").toString()
-        val secretPath = envPath ?: defaultPath
-        
-        val secretFile = File(secretPath)
-        if (!secretFile.exists()) {
-            throw IllegalStateException(
-                "Google Client Secret not found at $defaultPath. Please ensure the file exists."
-            )
+private fun loadEnvFile(): Map<String, String> {
+        val envMap = mutableMapOf<String, String>()
+        try {
+            val envFile = File(".env")
+            if (envFile.exists()) {
+                envFile.forEachLine { line ->
+                    val trimmed = line.trim()
+                    if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
+                        val parts = trimmed.split("=", limit = 2)
+                        if (parts.size == 2) {
+                            envMap[parts[0].trim()] = parts[1].trim()
+                        }
+                    }
+                }
+            }
+        } catch (e: Exception) {
+            println("[$tag] Failed to load .env file: ${e.message}")
+        }
+        return envMap
+    }
+
+    internal fun buildFlow(): GoogleAuthorizationCodeFlow {
+        // 1. Try environment variables (JVM properties or system env)
+        var clientId = System.getProperty("GOOGLE_CLIENT_ID") ?: System.getenv("GOOGLE_CLIENT_ID")
+        var clientSecret = System.getProperty("GOOGLE_CLIENT_SECRET") ?: System.getenv("GOOGLE_CLIENT_SECRET")
+
+        // 2. Fallback to parsing the local .env file
+        if (clientId.isNullOrBlank() || clientSecret.isNullOrBlank()) {
+            val envMap = loadEnvFile()
+            if (clientId.isNullOrBlank()) {
+                clientId = envMap["GOOGLE_CLIENT_ID"]
+            }
+            if (clientSecret.isNullOrBlank()) {
+                clientSecret = envMap["GOOGLE_CLIENT_SECRET"]
+            }
         }
 
-        val clientSecrets = GoogleClientSecrets.load(jsonFactory, InputStreamReader(FileInputStream(secretFile)))
+        val clientSecrets = if (!clientId.isNullOrBlank() && !clientSecret.isNullOrBlank()) {
+            val jsonString = """
+                {
+                  "installed": {
+                    "client_id": "$clientId",
+                    "client_secret": "$clientSecret",
+                    "auth_uri": "https://accounts.google.com/o/oauth2/auth",
+                    "token_uri": "https://oauth2.googleapis.com/token"
+                  }
+                }
+            """.trimIndent()
+            GoogleClientSecrets.load(jsonFactory, StringReader(jsonString))
+        } else {
+            // 3. Fallback to client_secret.json file
+            val envPath = System.getProperty("CEF_GOOGLE_CLIENT_SECRET_PATH") ?: System.getenv("CEF_GOOGLE_CLIENT_SECRET_PATH")
+            val defaultPath = Paths.get(System.getProperty("user.home"), ".cef", "client_secret.json").toString()
+            val secretPath = envPath ?: defaultPath
+            
+            val secretFile = File(secretPath)
+            if (!secretFile.exists()) {
+                throw IllegalStateException(
+                    "Google Client ID/Secret not found in environment variables or .env file, " +
+                    "and client_secret.json not found at $secretPath. Please configure it."
+                )
+            }
+            GoogleClientSecrets.load(jsonFactory, InputStreamReader(FileInputStream(secretFile)))
+        }
 
         return GoogleAuthorizationCodeFlow.Builder(
             transport, jsonFactory, clientSecrets, scopes

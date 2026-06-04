@@ -58,7 +58,7 @@ class HeadlessLogicTest : FunSpec({
         val database = null // Not needed for this pure logic test
         val logger = Logger(MapSettings())
         
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, database, NormalizationService(), logger)
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, database, NormalizationService(), logger = logger)
         
         // 1. Mock existing events in the calendar (e.g., a scheduled class)
         val existingClass = TimeEvent(
@@ -109,7 +109,7 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger)
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
 
         val deadline = DayEvent(
             title = "Research Paper",
@@ -138,7 +138,7 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger)
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
 
         val deadline = DayEvent(
             title = "Final Essay",

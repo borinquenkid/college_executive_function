@@ -25,7 +25,8 @@ class CollisionResolutionIntegrationTest : FunSpec({
         // Mock token repo & auth service for remote repository
         val tokenRepo = GoogleTokenRepository(MapSettings())
         val authService = GoogleAuthService(MapSettings())
-        val remoteRepo = GoogleRemoteCalendarRepository(mockk(relaxed = true), tokenRepo, authService)
+        val syncService = GoogleCalendarSyncService(mockk(relaxed = true), tokenRepo, authService)
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService)
         
         // Settings with run_profile = test to bypass remote calls in testing
         val settings = MapSettings()

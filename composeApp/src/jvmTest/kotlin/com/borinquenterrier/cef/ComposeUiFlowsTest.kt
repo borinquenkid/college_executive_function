@@ -1,0 +1,155 @@
+package com.borinquenterrier.cef
+
+import androidx.compose.ui.test.*
+import com.russhwolf.settings.MapSettings
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.mockk.every
+import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.coVerify
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.datetime.LocalDate
+import kotlin.test.Test
+
+@OptIn(ExperimentalTestApi::class)
+class ComposeUiFlowsTest {
+
+    @Test
+    fun testSettingsScreenApiKeyRoundTrip() = runComposeUiTest {
+        val settings = MapSettings()
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        every { mockContainer.settings } returns settings
+        every { mockContainer.preferencesRepository } returns PreferencesRepository(settings)
+        val mockGoogleFlow = mockk<GoogleAccountFlow>(relaxed = true)
+        every { mockGoogleFlow.state } returns MutableStateFlow(GoogleConnectionState.Unlinked)
+        every { mockContainer.googleAccountFlow } returns mockGoogleFlow
+
+        setContent {
+            SettingsScreen(container = mockContainer)
+        }
+
+        // Verify elements exist
+        val inputNode = onNodeWithTag("settings_api_key_input")
+        inputNode.assertExists()
+
+        // 1. Save (TextInput)
+        inputNode.performTextInput("AIzaSyTestKey123")
+        settings.getString("CEF_GEMINI_API_KEY", "") shouldBe "AIzaSyTestKey123"
+
+        // 2. Clear
+        val clearButton = onNodeWithTag("settings_api_key_clear_button")
+        clearButton.assertExists()
+        clearButton.performClick()
+
+        // Verify it was cleared
+        settings.getString("CEF_GEMINI_API_KEY", "") shouldBe ""
+    }
+
+    @Test
+    fun testChatPanelMessageSubmissionAndResponse() = runComposeUiTest {
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockContextAgent = mockk<ContextAgent>(relaxed = true)
+        every { mockContainer.contextAgent } returns mockContextAgent
+
+        val appController = AppController(mockContainer)
+        
+        // Mock queryAllSources to return a specific reply
+        coEvery { 
+            mockContextAgent.queryAllSources(any(), any(), "Hello AI") 
+        } returns "This is the mocked response"
+
+        setContent {
+            ChatPanel(appController = appController)
+        }
+
+        // Verify elements exist
+        val inputField = onNodeWithTag("chat_input_field")
+        val sendButton = onNodeWithTag("chat_send_button")
+        
+        inputField.assertExists()
+        sendButton.assertExists()
+
+        // Type query
+        inputField.performTextInput("Hello AI")
+
+        // Click send
+        sendButton.performClick()
+
+        // Wait for AI response to be added to chat messages
+        waitUntil(timeoutMillis = 5000L) {
+            appController.chatMessages.value.any { it.author == "AI" && it.content == "This is the mocked response" }
+        }
+
+        // Verify the response is visible/added
+        appController.chatMessages.value.size shouldBe 3 // Initial, User message, AI message
+        appController.chatMessages.value[1].content shouldBe "Hello AI"
+        appController.chatMessages.value[2].content shouldBe "This is the mocked response"
+    }
+
+    @Test
+    fun testTaskDecompositionDialogStateProgression() = runComposeUiTest {
+        val mockEventAgent = mockk<EventAgent>(relaxed = true)
+        
+        val decomposedTasksFlow = MutableStateFlow<List<DecomposedTask>>(emptyList())
+        val isLoadingFlow = MutableStateFlow(false)
+        val statusMessageFlow = MutableStateFlow("")
+
+        every { mockEventAgent.decomposedTasks } returns decomposedTasksFlow
+        every { mockEventAgent.isLoading } returns isLoadingFlow
+        every { mockEventAgent.statusMessage } returns statusMessageFlow
+
+        val event = DayEvent(
+            id = "test-deadline",
+            title = "Final Research Paper",
+            source = EventSource.MANUAL,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2026, 12, 1)
+        )
+
+        var dismissed = false
+        val onDismiss = { dismissed = true }
+
+        setContent {
+            TaskDecompositionDialog(
+                event = event,
+                eventAgent = mockEventAgent,
+                onDismiss = onDismiss
+            )
+        }
+
+        // 1. Idle state: "Break It Down (AI)" button should exist, and loading indicator/add steps should not
+        val breakButton = onNodeWithTag("break_it_down_button")
+        breakButton.assertExists()
+        onNodeWithTag("loading_indicator").assertDoesNotExist()
+        onNodeWithTag("add_steps_button").assertDoesNotExist()
+
+        // 2. Click "Break It Down" -> simulates triggering task decomposition
+        breakButton.performClick()
+        coVerify { mockEventAgent.decomposeTask(event) }
+
+        // 3. Loading state: set isLoading to true
+        isLoadingFlow.value = true
+        onNodeWithTag("loading_indicator").assertExists()
+        onNodeWithTag("break_it_down_button").assertDoesNotExist()
+
+        // 4. Results state: set isLoading to false and add decomposed tasks
+        val mockTasks = listOf(
+            DecomposedTask("Task 1", 7, "Choose research topic"),
+            DecomposedTask("Task 2", 3, "Draft introduction")
+        )
+        isLoadingFlow.value = false
+        decomposedTasksFlow.value = mockTasks
+
+        // Now "Add Steps to Calendar" button should be visible, and "Break It Down" should not
+        onNodeWithTag("loading_indicator").assertDoesNotExist()
+        onNodeWithTag("break_it_down_button").assertDoesNotExist()
+        val addStepsButton = onNodeWithTag("add_steps_button")
+        addStepsButton.assertExists()
+
+        // 5. Accepted state: click "Add Steps"
+        addStepsButton.performClick()
+        coVerify { mockEventAgent.acceptDecomposition() }
+        dismissed shouldBe true
+    }
+}

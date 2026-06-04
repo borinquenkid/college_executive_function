@@ -48,7 +48,7 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             container.webReader, container.driveService, mockAi, container.database
         )
         val calendar = container.calendarAgent
-        val events = EventAgent(mockAi, calendar, container.database, NormalizationService(), logger)
+        val events = EventAgent(mockAi, calendar, container.database, NormalizationService(), logger = logger)
         val context = ContextAgent(mockAi, container.database, logger)
 
         // Clear existing state for a clean test run

@@ -4,7 +4,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.Clock
-import com.borinquenterrier.cef.db.AppDatabase
 
 /**
  * Handles the logic for adding and processing different types of sources.
@@ -17,7 +16,7 @@ class IngestionAgent(
     private val webReader: WebSourceReader,
     private val driveService: GoogleDriveService,
     private val aiService: AIService,
-    private val database: AppDatabase? = null
+    private val sourceRepository: SourceRepository? = null
 ) {
     private val _isBusy = MutableStateFlow(false)
     val isBusy: StateFlow<Boolean> = _isBusy.asStateFlow()
@@ -101,29 +100,6 @@ class IngestionAgent(
     }
 
     private suspend fun persistSource(item: SourceItem, originUri: String?) {
-        val db = database ?: return
-        val sourceId = item.title // Using title as ID for now, should be UUID
-        
-        db.appDatabaseQueries.insertSource(
-            id = sourceId,
-            title = item.title,
-            originUri = originUri,
-            type = if (item.fragments.any { it.type == SourceType.CALENDAR }) "CALENDAR" else "TEXT",
-            category = item.category.name,
-            metadata = null, // Will be filled by AI Analysis later
-            updatedAt = Clock.System.now().toEpochMilliseconds()
-        )
-
-        item.fragments.forEachIndexed { index, fragment ->
-            db.appDatabaseQueries.insertFragment(
-                id = "${sourceId}_$index",
-                sourceId = sourceId,
-                text = fragment.text,
-                pageNumber = fragment.pageNumber?.toLong(),
-                sectionTitle = fragment.sectionTitle,
-                type = fragment.type.name,
-                metadata = null // JSON map
-            )
-        }
+        sourceRepository?.saveSource(item, originUri)
     }
 }

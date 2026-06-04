@@ -3,7 +3,6 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.*
-import com.borinquenterrier.cef.db.AppDatabase
 import com.borinquenterrier.cef.db.SourceEntity
 import com.russhwolf.settings.MapSettings
 import kotlinx.datetime.Clock
@@ -17,7 +16,7 @@ class AgentHarnessTest : FunSpec({
     lateinit var driveService: GoogleDriveService
     lateinit var tokenRepository: GoogleTokenRepository
     lateinit var fileReader: LocalFileReader
-    lateinit var database: AppDatabase
+    lateinit var sourceRepository: SourceRepository
     lateinit var settings: MapSettings
     lateinit var logger: Logger
     lateinit var harness: AgentHarness
@@ -30,7 +29,7 @@ class AgentHarnessTest : FunSpec({
         driveService = mockk(relaxed = true)
         tokenRepository = mockk(relaxed = true)
         fileReader = mockk(relaxed = true)
-        database = mockk(relaxed = true)
+        sourceRepository = mockk(relaxed = true)
         settings = MapSettings()
         logger = mockk(relaxed = true)
         
@@ -42,7 +41,7 @@ class AgentHarnessTest : FunSpec({
             driveService,
             tokenRepository,
             fileReader,
-            database,
+            sourceRepository,
             settings,
             logger
         )
@@ -54,23 +53,23 @@ class AgentHarnessTest : FunSpec({
 
         harness.runHarness(force = false)
 
-        coVerify(exactly = 0) { database.appDatabaseQueries.selectAllSources() }
+        coVerify(exactly = 0) { sourceRepository.getAllSources() }
     }
 
     test("runs if 24 hours have passed or force is true") {
-        coEvery { database.appDatabaseQueries.selectAllSources().executeAsList() } returns emptyList()
+        coEvery { sourceRepository.getAllSources() } returns emptyList()
         coEvery { tokenRepository.hasTokens() } returns false
 
         harness.runHarness(force = true)
 
-        coVerify(exactly = 1) { database.appDatabaseQueries.selectAllSources() }
+        coVerify(exactly = 1) { sourceRepository.getAllSources() }
         (harness.getLastPollTime() > 0L) shouldBe true
     }
 
     test("processes new local files sequentially through the pipeline") {
         harness.setWatchedLocalDirectories(listOf("/watched/dir"))
         coEvery { fileReader.listFiles("/watched/dir") } returns listOf("/watched/dir/syllabus.pdf")
-        coEvery { database.appDatabaseQueries.selectAllSources().executeAsList() } returns emptyList()
+        coEvery { sourceRepository.getAllSources() } returns emptyList()
 
         val mockSourceItem = SourceItem("syllabus.pdf", listOf(SourceFragment("text")), SourceCategory.SYLLABUS)
         coEvery { ingestionAgent.addLocalFile("/watched/dir/syllabus.pdf") } returns mockSourceItem
@@ -101,7 +100,7 @@ class AgentHarnessTest : FunSpec({
         
         val mockSource = mockk<SourceEntity>(relaxed = true)
         every { mockSource.originUri } returns "/watched/dir/syllabus.pdf"
-        coEvery { database.appDatabaseQueries.selectAllSources().executeAsList() } returns listOf(mockSource)
+        coEvery { sourceRepository.getAllSources() } returns listOf(mockSource)
         coEvery { tokenRepository.hasTokens() } returns false
 
         harness.runHarness(force = true)

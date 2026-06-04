@@ -64,8 +64,9 @@ class DependencyContainer(
             telemetryManager
         )
     }
-    val ingestionAgent by lazy { IngestionAgent(fileReader, docxReader, pdfReader, webReader, driveService, aiService, database) }
-    val contextAgent by lazy { ContextAgent(aiService, database, logger) }
+    val sourceRepository by lazy { SqlDelightSourceRepository(database) }
+    val ingestionAgent by lazy { IngestionAgent(fileReader, docxReader, pdfReader, webReader, driveService, aiService, sourceRepository) }
+    val contextAgent by lazy { ContextAgent(aiService, sourceRepository, logger) }
     val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), preferencesRepository, logger) }
 
     val agentHarness by lazy {
@@ -77,7 +78,7 @@ class DependencyContainer(
             driveService,
             tokenRepository,
             fileReader,
-            database,
+            sourceRepository,
             settings,
             logger
         )

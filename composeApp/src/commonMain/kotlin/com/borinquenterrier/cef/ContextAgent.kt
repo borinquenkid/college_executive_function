@@ -3,7 +3,6 @@ package com.borinquenterrier.cef
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import com.borinquenterrier.cef.db.AppDatabase
 
 /**
  * The ContextAgent is responsible for "Document Intelligence".
@@ -11,7 +10,7 @@ import com.borinquenterrier.cef.db.AppDatabase
  */
 class ContextAgent(
     private val aiService: AIService,
-    private val database: AppDatabase,
+    private val sourceRepository: SourceRepository,
     private val logger: Logger? = null
 ) {
     private val tag = "ContextAgent"
@@ -30,15 +29,7 @@ class ContextAgent(
             val metadataJson = aiService.analyzeDocument(fullText)
             
             if (metadataJson != null) {
-                database.appDatabaseQueries.insertSource(
-                    id = source.title,
-                    title = source.title,
-                    originUri = null, // Should be passed in or looked up
-                    type = if (source.fragments.any { it.type == SourceType.CALENDAR }) "CALENDAR" else "TEXT",
-                    category = source.category.name,
-                    metadata = metadataJson,
-                    updatedAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
-                )
+                sourceRepository.updateSourceMetadata(source.title, metadataJson)
                 logger?.d(tag, "Successfully analyzed and persisted metadata for ${source.title}")
             }
         } catch (e: Exception) {
@@ -51,8 +42,8 @@ class ContextAgent(
     /**
      * Retrieves the semantic metadata for a specific source.
      */
-    fun getSourceMetadata(sourceId: String): String? {
-        return database.appDatabaseQueries.selectSourceById(sourceId).executeAsOneOrNull()?.metadata
+    suspend fun getSourceMetadata(sourceId: String): String? {
+        return sourceRepository.getSourceMetadata(sourceId)
     }
 
     /**

@@ -40,7 +40,7 @@ class IngestionAgentTest : FunSpec({
             webReader = webReader,
             driveService = driveService,
             aiService = aiService,
-            database = database
+            sourceRepository = SqlDelightSourceRepository(database)
         )
     }
 

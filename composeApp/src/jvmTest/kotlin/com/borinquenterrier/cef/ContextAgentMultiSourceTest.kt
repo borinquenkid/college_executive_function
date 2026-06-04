@@ -31,7 +31,7 @@ class ContextAgentMultiSourceTest : FunSpec({
         AppDatabase.Schema.create(driver)
         database = AppDatabase(driver)
         mockAiService = mockk<AIService>()
-        sut = ContextAgent(aiService = mockAiService, database = database, logger = null)
+        sut = ContextAgent(aiService = mockAiService, sourceRepository = SqlDelightSourceRepository(database), logger = null)
     }
 
     afterEach {

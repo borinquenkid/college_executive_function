@@ -42,14 +42,14 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             pdfReader = mockk(relaxed = true)
         )
         
-        // Inject our mock AI into the agents
+        val sourceRepository = SqlDelightSourceRepository(container.database)
         val ingestion = IngestionAgent(
             container.fileReader, container.docxReader, container.pdfReader, 
-            container.webReader, container.driveService, mockAi, container.database
+            container.webReader, container.driveService, mockAi, sourceRepository
         )
         val calendar = container.calendarAgent
         val events = EventAgent(mockAi, calendar, container.database, NormalizationService(), logger = logger)
-        val context = ContextAgent(mockAi, container.database, logger)
+        val context = ContextAgent(mockAi, sourceRepository, logger)
 
         // Clear existing state for a clean test run
         container.database.appDatabaseQueries.deleteAllEvents()

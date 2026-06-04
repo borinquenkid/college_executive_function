@@ -1,7 +1,6 @@
 package com.borinquenterrier.cef
 
 import com.russhwolf.settings.Settings
-import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -17,7 +16,7 @@ class AgentHarness(
     private val driveService: GoogleDriveService,
     private val tokenRepository: GoogleTokenRepository,
     private val fileReader: LocalFileReader,
-    private val database: AppDatabase,
+    private val sourceRepository: SourceRepository,
     private val settings: Settings,
     private val logger: Logger
 ) {
@@ -88,7 +87,7 @@ class AgentHarness(
 
         try {
             // Get existing sources' origin URIs to avoid duplicates
-            val existingSources = database.appDatabaseQueries.selectAllSources().executeAsList()
+            val existingSources = sourceRepository.getAllSources()
             val existingUris = existingSources.mapNotNull { it.originUri }.toSet()
 
             // 1. Scan Local watched directories

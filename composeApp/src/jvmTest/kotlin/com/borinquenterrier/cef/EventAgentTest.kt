@@ -153,6 +153,7 @@ class HeadlessLogicTest : FunSpec({
         )
         coEvery { mockAiService.decomposeTask(any(), any()) } returns mockTasks
         coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
+        coEvery { mockCalendarAgent.updateEvent(any(), any()) } returns Unit
 
         eventAgent.decomposeTask(deadline)
         eventAgent.acceptDecomposition()

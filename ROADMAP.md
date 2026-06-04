@@ -218,6 +218,24 @@ to select only the top-K fragments before sending to Gemini.
 
 ---
 
+## Phase 4 — Model Evaluations & Failure Monitoring
+
+### 4.1 — Diversify Test Syllabi
+- Ingest and commit 5–10 real college syllabi from different fields (STEM, humanities, design), lengths, and calendar structures (semesters vs. quarters).
+- Verify native format readers (PDF, DOCX, text) parse their content accurately.
+
+### 4.2 — Offline Evaluation Framework
+- Create a test runner script/class (`SyllabusEvaluationSuite`) that parses the test syllabi.
+- Save companion "ground truth" JSON files containing manually verified academic events (dates, weights, categories) for each syllabus.
+- Compute performance metrics: **Precision** (avoiding spurious events), **Recall** (finding all deadlines), and **Date Accuracy** (verifying correct date computation).
+
+### 4.3 — Production Telemetry & Observability
+- Instrument `AIService` with error monitoring (e.g., Sentry) to report rate limits (429), API timeouts, and JSON parsing exceptions in the wild.
+- Track metrics for the **Critic-Actor Loop**: record how often the Critic rejects Actor output to assess prompts and model stability over time.
+- Implement user feedback signals (thumbs-up/down) for AI-generated events to capture silent failures.
+
+---
+
 ## Dependency Graph
 
 ```
@@ -234,4 +252,9 @@ Phase 2.2 (Study Preferences)
     └── Phase 3.3 (Fragment Indexing) [builds on query infra]
 
 Phase 3.1, 3.2 are standalone.
+
+Phase 4.1 (Test Syllabi)
+    └── Phase 4.2 (Offline Evals) [requires test syllabi]
+    └── Phase 4.3 (Production Telemetry) [builds on test observations]
 ```
+

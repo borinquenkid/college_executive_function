@@ -27,4 +27,47 @@ class PdfReaderTest : FunSpec({
             part.type shouldBe SourceType.TEXT
         }
     }
+
+    test("extractText should read content from syllabus_bdan250.pdf") {
+        val fixtureFile = listOf(
+            File("src/commonTest/resources/syllabus_bdan250.pdf"),
+            File("composeApp/src/commonTest/resources/syllabus_bdan250.pdf"),
+            File("../composeApp/src/commonTest/resources/syllabus_bdan250.pdf")
+        ).find { it.exists() } ?: throw Exception("Fixture not found for syllabus_bdan250.pdf")
+        
+        val reader = PdfReader()
+        val parts = reader.readSource(fixtureFile.absolutePath)
+        println("Extracted ${parts.size} pages from BDAN 250")
+        
+        val fullText = parts.joinToString(" ") { it.text }
+        fullText.lowercase() shouldContain "bdan"
+        fullText.lowercase() shouldContain "analytics"
+        
+        parts.forEach { part ->
+            part.pageNumber shouldBe part.pageNumber
+            part.type shouldBe SourceType.TEXT
+        }
+    }
+
+    test("extractText should read content from syllabus_hist152.pdf") {
+        val fixtureFile = listOf(
+            File("src/commonTest/resources/syllabus_hist152.pdf"),
+            File("composeApp/src/commonTest/resources/syllabus_hist152.pdf"),
+            File("../composeApp/src/commonTest/resources/syllabus_hist152.pdf")
+        ).find { it.exists() } ?: throw Exception("Fixture not found for syllabus_hist152.pdf")
+        
+        val reader = PdfReader()
+        val parts = reader.readSource(fixtureFile.absolutePath)
+        println("Extracted ${parts.size} pages from HIST 152")
+        
+        val fullText = parts.joinToString(" ") { it.text }
+        fullText.lowercase() shouldContain "hist"
+        fullText.lowercase() shouldContain "history"
+        
+        parts.forEach { part ->
+            part.pageNumber shouldBe part.pageNumber
+            part.type shouldBe SourceType.TEXT
+        }
+    }
 })
+

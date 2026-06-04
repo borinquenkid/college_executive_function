@@ -42,6 +42,9 @@ All items below have been verified against the actual codebase — not just the 
 | **Visual Progress Tracking** | `timeUntilDue` and `studyProgress` helpers on `Event`, linear progress and countdown chips in calendar list, and Semester Health summary card in StudioPanel |
 | **Scheduling Fine-Tuning** | User-configurable study hours, break lengths, and limits in Settings; injected into AI study plan generation and collision resolver |
 | **Weighted Deliverables** | Syllabus grade weights extracted by AI, stored in Event models, and used to allocate study block durations proportionally |
+| **Lenient Title Matching** | Refactored `SyllabusEvaluationSuite` matching logic with normalized containment check to eliminate false negatives |
+| **Syllabus Auditor** | Pre-extraction audit pass in `EventAgent` analyzing syllabi for external dependencies, tentative schedules, and grade drops |
+| **Observability & Telemetry** | Multiplatform `TelemetryManager` logging rate limits, JSON parsing exceptions, and Critic-Actor decorator outcomes |
 
 ---
 
@@ -218,18 +221,18 @@ to select only the top-K fragments before sending to Gemini.
 
 ---
 
-## Phase 4 — Model Evaluations & Failure Monitoring
+## Phase 4 — Model Evaluations & Failure Monitoring (COMPLETED)
 
-### 4.1 — Diversify Test Syllabi
+### 4.1 — Diversify Test Syllabi (COMPLETED)
 - Ingest and commit 5–10 real college syllabi from different fields (STEM, humanities, design), lengths, and calendar structures (semesters vs. quarters).
 - Verify native format readers (PDF, DOCX, text) parse their content accurately.
 
-### 4.2 — Offline Evaluation Framework
+### 4.2 — Offline Evaluation Framework (COMPLETED)
 - Create a test runner script/class (`SyllabusEvaluationSuite`) that parses the test syllabi.
 - Save companion "ground truth" JSON files containing manually verified academic events (dates, weights, categories) for each syllabus.
 - Compute performance metrics: **Precision** (avoiding spurious events), **Recall** (finding all deadlines), and **Date Accuracy** (verifying correct date computation).
 
-### 4.3 — Production Telemetry & Observability
+### 4.3 — Production Telemetry & Observability (COMPLETED)
 - Instrument `AIService` with error monitoring (e.g., Sentry) to report rate limits (429), API timeouts, and JSON parsing exceptions in the wild.
 - Track metrics for the **Critic-Actor Loop**: record how often the Critic rejects Actor output to assess prompts and model stability over time.
 - Implement user feedback signals (thumbs-up/down) for AI-generated events to capture silent failures.

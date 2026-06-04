@@ -4,38 +4,48 @@ The application uses a multi-agent pipeline to transform unstructured academic d
 
 ## Architectural Overview
 
-```mermaid
-graph TD
-    %% Input Stage
-    A[User selects Source] --> B([IngestionAgent])
-    
-    %% Extraction Stage
-    B --> D[/SourceFragment List/]
-    D --> E([EventAgent])
-
-    %% Logic Stage
-    E --> I[/Raw Event List/]
-
-    %% Post-Processing
-    I --> J([NormalizationService])
-    
-    %% Functional Outputs
-    J --> K1[/Deliverables/]
-    J --> K2[/Study Plan/]
-    
-    %% Storage
-    K1 & K2 --> L([CalendarAgent])
-    L --> M1[(SQLite - Local Cache)]
-    L --> M2[External Calendar - Sync]
-
-    %% Styles
-    classDef agent fill:#e1f5fe,stroke:#01579b,stroke-width:2px;
-    classDef item fill:#fff,stroke:#333,stroke-dasharray: 5 5;
-    classDef storage fill:#f5f5f5,stroke:#616161,stroke-width:2px;
-
-    class B,E,J,L agent;
-    class D,I,K1,K2 item;
-    class M1,M2 storage;
+```text
+                      +─────────────────────+
+                      | User selects Source |
+                      +──────────┬──────────+
+                                 |
+                                 v
+                      +─────────────────────+
+                      |   IngestionAgent    |
+                      +──────────┬──────────+
+                                 |
+                                 v
+                      [ SourceFragment List ]
+                                 |
+                                 v
+                      +─────────────────────+
+                      |     EventAgent      |
+                      +──────────┬──────────+
+                                 |
+                                 v
+                      [   Raw Event List    ]
+                                 |
+                                 v
+                      +─────────────────────+
+                      | NormalizationService|
+                      +──────────┬──────────+
+                                 |
+                   +─────────────┴─────────────+
+                   |                           |
+                   v                           v
+            [ Deliverables ]            [  Study Plan  ]
+                   |                           |
+                   +─────────────┬─────────────+
+                                 |
+                                 v
+                      +─────────────────────+
+                      |    CalendarAgent    |
+                      +──────────┬──────────+
+                                 |
+                   +─────────────┴─────────────+
+                   |                           |
+                   v                           v
+         [( SQLite - Local )]        [ Ext. Calendar Sync ]
 ```
 
 ## Phase Descriptions

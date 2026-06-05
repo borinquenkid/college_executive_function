@@ -205,9 +205,13 @@ fun UniversalHomeLayout(container: DependencyContainer) {
                             appController.addSource(source)
                             coroutineScope.launch {
                                 if (container.aiService.isConfigured()) {
-                                    val allEvents = container.aiService.generateCalendarEvents(source.fragments)
-                                    appController.addEvents(allEvents)
-                                    container.contextAgent.analyzeSource(source)
+                                    try {
+                                        val allEvents = container.aiService.generateCalendarEvents(source.fragments)
+                                        appController.addEvents(allEvents)
+                                        container.contextAgent.analyzeSource(source)
+                                    } catch (e: Exception) {
+                                        container.logger.e("App", "Failed to process added source: ${source.title}", e)
+                                    }
                                 }
                             }
                         },

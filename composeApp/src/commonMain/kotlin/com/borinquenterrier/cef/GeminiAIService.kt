@@ -22,11 +22,14 @@ class GeminiAIService(
     private val accessToken: String? = null,
     private val logger: Logger? = null,
     private val database: AppDatabase? = null,
-    private val settings: com.russhwolf.settings.Settings? = null
+    private val settings: com.russhwolf.settings.Settings? = null,
+    private val customClient: HttpClient? = null,
+    /** Injectable delay — override in tests to skip real sleeps. */
+    private val delayFn: suspend (Long) -> Unit = { ms -> kotlinx.coroutines.delay(ms) }
 ) {
     private val tag = "GeminiAI"
     private val telemetryManager = settings?.let { TelemetryManager(it) }
-    private val client = HttpClient {
+    private val client = customClient ?: HttpClient {
         install(ContentNegotiation) {
             json(Json { 
                 ignoreUnknownKeys = true 
@@ -45,6 +48,9 @@ class GeminiAIService(
         private val blacklistedModels = mutableMapOf<String, Long>()
         private const val BLACKLIST_DURATION_MS = 60 * 60 * 1000L // 1 hour
         private const val PREFERRED_MODEL_KEY = "preferred_gemini_model"
+
+        /** Clears the in-memory blacklist. Call in test teardown to prevent cross-test contamination. */
+        internal fun clearBlacklistForTesting() = blacklistedModels.clear()
 
         internal val YEAR_PATTERN = Regex("""\b(20\d{2})\b""")
 
@@ -98,16 +104,21 @@ class GeminiAIService(
                 if (type == "TIME") {
                     val startTimeStr = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
                     val endTimeStr = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
-                    val start = try { LocalTime.parse(startTimeStr) } catch (e: Exception) { LocalTime(9,0) }
-                    val end = try { LocalTime.parse(endTimeStr) } catch (e: Exception) { LocalTime(10,0) }
-                    
+                    val startTime = try {
+                        val parts = startTimeStr.split(":")
+                        LocalTime(parts[0].toInt(), parts[1].toInt())
+                    } catch (e: Exception) { LocalTime(9, 0) }
+                    val endTime = try {
+                        val parts = endTimeStr.split(":")
+                        LocalTime(parts[0].toInt(), parts[1].toInt())
+                    } catch (e: Exception) { LocalTime(10, 0) }
                     TimeEvent(
                         title = title,
                         source = EventSource.AI_GENERATED,
-                        category = category,
                         date = date,
-                        startTime = start,
-                        endTime = end,
+                        startTime = startTime,
+                        endTime = endTime,
+                        category = category,
                         warning = warning,
                         gradeWeight = gradeWeight
                     )
@@ -124,6 +135,154 @@ class GeminiAIService(
             }
         }
     }
+
+    // -------------------------------------------------------------------------
+    // Core retry / backoff infrastructure
+    // -------------------------------------------------------------------------
+
+    /**
+     * Builds a Gemini generateContent request body with the standard structure.
+     * When [responseMimeType] is "application/json", native JSON output mode is enabled.
+     * Pass null (or any non-json value) to omit the field and receive unstructured text.
+     */
+    private fun buildGeminiBody(
+        prompt: String,
+        temperature: Double = 0.0,
+        responseMimeType: String? = "application/json"
+    ): JsonObject = buildJsonObject {
+        putJsonArray("contents") {
+            addJsonObject {
+                putJsonArray("parts") {
+                    addJsonObject { put("text", prompt) }
+                }
+            }
+        }
+        putJsonObject("generationConfig") {
+            if (responseMimeType == "application/json") {
+                put("responseMimeType", responseMimeType)
+            }
+            put("temperature", temperature)
+        }
+    }
+
+    /**
+     * Posts to the Gemini generateContent endpoint for [modelName] with [body] and
+     * returns the raw [HttpResponse]. Auth headers are applied automatically.
+     */
+    private suspend fun postToModel(modelName: String, body: JsonObject): HttpResponse {
+        val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
+        val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
+        return client.post(authUrl) {
+            contentType(ContentType.Application.Json)
+            if (apiKey == null && accessToken != null) {
+                header("Authorization", "Bearer $accessToken")
+            }
+            setBody(body)
+        }
+    }
+
+    /**
+     * Single-source-of-truth retry engine.
+     *
+     * Behaviour:
+     *  - **Transient** (429, 503, any 5xx): exponential back-off; does NOT blacklist.
+     *  - **Structural** (404, 400 modality): blacklists model locally, tries next best.
+     *  - **Fatal** (401, 403, other 4xx): throws immediately.
+     *
+     * @param maxAttempts   Total allowed attempts (default 5).
+     * @param body          Lambda that returns the [JsonObject] to POST for a given [modelName].
+     * @param parseResponse Lambda that turns the raw response text into [T].
+     */
+    private suspend fun <T> executeWithRetry(
+        maxAttempts: Int = 5,
+        body: (modelName: String) -> JsonObject,
+        parseResponse: (responseText: String) -> T
+    ): T {
+        val available = getAvailableModels()
+        var attempts = 0
+        var lastError: Exception? = null
+
+        while (attempts < maxAttempts) {
+            val modelName = negotiateBestModel(available)
+            try {
+                val httpResponse = postToModel(modelName, body(modelName))
+                val responseBody = httpResponse.bodyAsText()
+
+                // --- Fatal errors — throw immediately ---
+                if (httpResponse.status == HttpStatusCode.Unauthorized) {
+                    logger?.e(tag, "401 Unauthorized: Your API Key or Access Token is invalid/expired.")
+                    throw Exception("Unauthorized")
+                }
+                if (httpResponse.status == HttpStatusCode.Forbidden) {
+                    logger?.e(tag, "403 Forbidden: Ensure the Gemini API is enabled in your Google Cloud Project.")
+                    throw Exception("Forbidden")
+                }
+
+                // --- Structural errors — blacklist model, try next ---
+                if (httpResponse.status == HttpStatusCode.NotFound) {
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    logger?.d(tag, "⚠️ Model $modelName returned 404 (Not Found). Blacklisted. Trying next model...")
+                    attempts++
+                    continue
+                }
+                if (httpResponse.status == HttpStatusCode.BadRequest && responseBody.contains("response modalities")) {
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    logger?.d(tag, "⚠️ Model $modelName does not support text responses. Blacklisted. Trying next model...")
+                    attempts++
+                    continue
+                }
+
+                // --- Transient errors — exponential back-off, same model ---
+                if (httpResponse.status == HttpStatusCode.TooManyRequests ||
+                    httpResponse.status == HttpStatusCode.ServiceUnavailable ||
+                    httpResponse.status.value >= 500
+                ) {
+                    if (httpResponse.status == HttpStatusCode.TooManyRequests ||
+                        httpResponse.status == HttpStatusCode.ServiceUnavailable
+                    ) {
+                        telemetryManager?.logRateLimitError()
+                    }
+                    attempts++
+                    val baseDelay = if (httpResponse.status == HttpStatusCode.TooManyRequests) 2000L else 1000L
+                    val delayMs = baseDelay * (1 shl (attempts - 1))
+                    logger?.d(tag, "⚠️ Model $modelName transient error (${httpResponse.status}). Retrying ($attempts/$maxAttempts) after ${delayMs}ms...")
+                    delayFn(delayMs)
+                    continue
+                }
+
+                // --- Other non-success errors ---
+                if (!httpResponse.status.isSuccess()) {
+                    throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
+                }
+
+                // --- Success ---
+                val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
+                val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                    ?: throw Exception("Empty response from AI")
+
+                return parseResponse(responseText)
+
+            } catch (e: Exception) {
+                // Propagate fatal errors immediately
+                if (e.message == "Unauthorized" || e.message == "Forbidden") throw e
+
+                lastError = e
+                logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
+                attempts++
+                val delayMs = 1000L * (1 shl (attempts - 1))
+                delayFn(delayMs)
+            }
+        }
+        throw lastError ?: Exception("Failed after $maxAttempts attempts")
+    }
+
+    // -------------------------------------------------------------------------
+    // Model discovery & negotiation
+    // -------------------------------------------------------------------------
 
     private suspend fun getAvailableModels(): List<ModelInfo> {
         val url = "https://generativelanguage.googleapis.com/v1beta/models"
@@ -222,6 +381,10 @@ class GeminiAIService(
         return selected
     }
 
+    // -------------------------------------------------------------------------
+    // Public API methods — all backed by executeWithRetry
+    // -------------------------------------------------------------------------
+
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         val sourceText = fragments.joinToString(" ") { it.text }
         val sourceYears = extractSourceYears(sourceText)
@@ -239,105 +402,18 @@ class GeminiAIService(
     }
 
     suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
-        val available = getAvailableModels()
-        var attempts = 0
-        val maxAttempts = 5
-        var lastError: Exception? = null
-
-        while (attempts < maxAttempts) {
-            val modelName = negotiateBestModel(available)
-            
-            val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
-            val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
-
-            try {
-                val httpResponse: HttpResponse = client.post(authUrl) {
-                    contentType(ContentType.Application.Json)
-                    if (apiKey == null && accessToken != null) {
-                        header("Authorization", "Bearer $accessToken")
-                    }
-                    setBody(buildJsonObject {
-                        putJsonArray("contents") {
-                            addJsonObject {
-                                putJsonArray("parts") {
-                                    addJsonObject { put("text", prompt) }
-                                }
-                            }
-                        }
-                        // Enable native JSON output mode for Gemini 1.5+
-                        putJsonObject("generationConfig") {
-                            put("responseMimeType", "application/json")
-                            put("temperature", 0.0)
-                        }
-                    })
-                }
-
-                val responseBody = httpResponse.bodyAsText()
-                
-                if (httpResponse.status == HttpStatusCode.Unauthorized) {
-                    logger?.e(tag, "401 Unauthorized: Your API Key or Access Token is invalid/expired.")
-                    throw Exception("Unauthorized")
-                }
-
-                if (httpResponse.status == HttpStatusCode.Forbidden) {
-                    logger?.e(tag, "403 Forbidden: Ensure the Gemini API is enabled in your Google Cloud Project.")
-                    throw Exception("Forbidden")
-                }
-
-                if (httpResponse.status == HttpStatusCode.TooManyRequests ||
-                    httpResponse.status == HttpStatusCode.NotFound ||
-                    httpResponse.status == HttpStatusCode.ServiceUnavailable) {
-
-                    if (httpResponse.status == HttpStatusCode.TooManyRequests || httpResponse.status == HttpStatusCode.ServiceUnavailable) {
-                        telemetryManager?.logRateLimitError()
-                    }
-
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-
-                    val delayMs = if (httpResponse.status == HttpStatusCode.TooManyRequests) 10000L else 2000L
-                    logger?.d(tag, "⚠️ Model $modelName exhausted (${httpResponse.status}). Blacklisted. Retrying (${attempts + 1}/$maxAttempts) after ${delayMs/1000}s...")
-                    attempts++
-                    kotlinx.coroutines.delay(delayMs * attempts)
-                    continue
-                }
-
-                // 400 with a modality error means this model doesn't support text/JSON output (e.g. TTS-only models).
-                // Blacklist it and try the next best model rather than failing hard.
-                if (httpResponse.status == HttpStatusCode.BadRequest && responseBody.contains("response modalities")) {
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-                    logger?.d(tag, "⚠️ Model $modelName does not support text responses. Blacklisted. Retrying (${attempts + 1}/$maxAttempts)...")
-                    attempts++
-                    kotlinx.coroutines.delay(1000)
-                    continue
-                }
-
-                if (!httpResponse.status.isSuccess()) {
-                    throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
-                }
-
-                val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
-                val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                    ?: throw Exception("Empty response from AI")
-
-                val parsed = try {
+        return executeWithRetry(
+            maxAttempts = 5,
+            body = { _ -> buildGeminiBody(prompt) },
+            parseResponse = { responseText ->
+                try {
                     parseEventsJson(responseText)
                 } catch (e: Exception) {
                     telemetryManager?.logJsonError()
                     throw e
                 }
-                return parsed
-            } catch (e: Exception) {
-                lastError = e
-                logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
-                attempts++
-                kotlinx.coroutines.delay(1000)
             }
-        }
-        throw lastError ?: Exception("Failed to generate events after $maxAttempts attempts")
+        )
     }
 
     suspend fun generateStudyPlan(
@@ -351,74 +427,11 @@ class GeminiAIService(
     }
 
     suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
-        val available = getAvailableModels()
-        var attempts = 0
-        val maxAttempts = 5
-        var lastError: Exception? = null
         val prompt = AiPrompts.getTaskDecompositionPrompt(taskTitle, dueDate)
-
-        while (attempts < maxAttempts) {
-            val modelName = negotiateBestModel(available)
-            val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
-            val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
-
-            try {
-                val httpResponse: HttpResponse = client.post(authUrl) {
-                    contentType(ContentType.Application.Json)
-                    if (apiKey == null && accessToken != null) {
-                        header("Authorization", "Bearer $accessToken")
-                    }
-                    setBody(buildJsonObject {
-                        putJsonArray("contents") {
-                            addJsonObject {
-                                putJsonArray("parts") {
-                                    addJsonObject { put("text", prompt) }
-                                }
-                            }
-                        }
-                        putJsonObject("generationConfig") {
-                            put("responseMimeType", "application/json")
-                            put("temperature", 0.0)
-                        }
-                    })
-                }
-
-                val responseBody = httpResponse.bodyAsText()
-
-                if (httpResponse.status == HttpStatusCode.Unauthorized) throw Exception("Unauthorized")
-                if (httpResponse.status == HttpStatusCode.Forbidden) throw Exception("Forbidden")
-
-                if (httpResponse.status == HttpStatusCode.TooManyRequests ||
-                    httpResponse.status == HttpStatusCode.NotFound ||
-                    httpResponse.status == HttpStatusCode.ServiceUnavailable) {
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-                    val delayMs = if (httpResponse.status == HttpStatusCode.TooManyRequests) 10000L else 2000L
-                    logger?.d(tag, "Model $modelName exhausted. Retrying (${attempts + 1}/$maxAttempts)...")
-                    attempts++
-                    kotlinx.coroutines.delay(delayMs * attempts)
-                    continue
-                }
-
-                if (httpResponse.status == HttpStatusCode.BadRequest && responseBody.contains("response modalities")) {
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-                    logger?.d(tag, "⚠️ Model $modelName does not support text responses. Blacklisted. Retrying (${attempts + 1}/$maxAttempts)...")
-                    attempts++
-                    kotlinx.coroutines.delay(1000)
-                    continue
-                }
-
-                if (!httpResponse.status.isSuccess()) {
-                    throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
-                }
-
-                val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
-                val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                    ?: throw Exception("Empty response from AI")
-
+        return executeWithRetry(
+            maxAttempts = 5,
+            body = { _ -> buildGeminiBody(prompt) },
+            parseResponse = { responseText ->
                 val cleanJson = responseText.trim()
                     .removePrefix("```json")
                     .removeSuffix("```")
@@ -431,7 +444,7 @@ class GeminiAIService(
                     else -> throw Exception("Unexpected JSON structure: $cleanJson")
                 }
 
-                return jsonArray.map { element ->
+                jsonArray.map { element ->
                     val obj = element.jsonObject
                     val daysBeforeDue = obj["daysBeforeDue"]?.jsonPrimitive?.let {
                         it.intOrNull ?: it.content.toDoubleOrNull()?.toInt() ?: 1
@@ -442,47 +455,17 @@ class GeminiAIService(
                         description = obj["description"]?.jsonPrimitive?.content ?: ""
                     )
                 }
-            } catch (e: Exception) {
-                lastError = e
-                logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
-                attempts++
-                kotlinx.coroutines.delay(1000)
             }
-        }
-        throw lastError ?: Exception("Failed to decompose task after $maxAttempts attempts")
+        )
     }
 
     suspend fun generateChatResponse(prompt: String): String {
-        val available = getAvailableModels()
-        val modelName = negotiateBestModel(available)
-        
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
-        val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
-
         return try {
-            val httpResponse: HttpResponse = client.post(authUrl) {
-                contentType(ContentType.Application.Json)
-                if (apiKey == null && accessToken != null) {
-                    header("Authorization", "Bearer $accessToken")
-                }
-                setBody(buildJsonObject {
-                    putJsonArray("contents") {
-                        addJsonObject {
-                            putJsonArray("parts") {
-                                addJsonObject { put("text", prompt) }
-                            }
-                        }
-                    }
-                })
-            }
-
-            if (!httpResponse.status.isSuccess()) {
-                throw Exception("Gemini API Error: ${httpResponse.status}")
-            }
-
-            val geminiResponse = json.decodeFromString<GeminiResponse>(httpResponse.bodyAsText())
-            geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                ?: "No response from AI."
+            executeWithRetry(
+                maxAttempts = 3,
+                body = { _ -> buildGeminiBody(prompt, responseMimeType = null) },
+                parseResponse = { responseText -> responseText }
+            )
         } catch (e: Exception) {
             logger?.e(tag, "Failed to generate chat response: ${e.message}")
             "Error: ${e.message}"
@@ -490,38 +473,12 @@ class GeminiAIService(
     }
 
     suspend fun analyzeDocument(text: String): String? {
-        val available = getAvailableModels()
-        val modelName = negotiateBestModel(available)
-        
-        val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
-        val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
-
         return try {
-            val httpResponse: HttpResponse = client.post(authUrl) {
-                contentType(ContentType.Application.Json)
-                if (apiKey == null && accessToken != null) {
-                    header("Authorization", "Bearer $accessToken")
-                }
-                setBody(buildJsonObject {
-                    putJsonArray("contents") {
-                        addJsonObject {
-                            putJsonArray("parts") {
-                                addJsonObject { put("text", AiPrompts.getDocumentIntelligencePrompt(text)) }
-                            }
-                        }
-                    }
-                    putJsonObject("generationConfig") {
-                        put("responseMimeType", "application/json")
-                    }
-                })
-            }
-
-            if (!httpResponse.status.isSuccess()) {
-                throw Exception("Gemini API Error: ${httpResponse.status}")
-            }
-
-            val geminiResponse = json.decodeFromString<GeminiResponse>(httpResponse.bodyAsText())
-            geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+            executeWithRetry(
+                maxAttempts = 3,
+                body = { _ -> buildGeminiBody(AiPrompts.getDocumentIntelligencePrompt(text), responseMimeType = null) },
+                parseResponse = { responseText -> responseText }
+            )
         } catch (e: Exception) {
             logger?.e(tag, "Failed to analyze document: ${e.message}")
             null
@@ -531,96 +488,33 @@ class GeminiAIService(
     suspend fun categorizeSource(text: String): SourceCategory {
         val textSample = if (text.length > 50000) text.substring(0, 50000) else text
         val prompt = AiPrompts.getSourceCategorizationPrompt(textSample)
-        val available = getAvailableModels()
-        var attempts = 0
-        val maxAttempts = 3
-        var lastError: Exception? = null
 
-        while (attempts < maxAttempts) {
-            val modelName = negotiateBestModel(available)
-            val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
-            val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
+        return try {
+            executeWithRetry(
+                maxAttempts = 3,
+                body = { _ -> buildGeminiBody(prompt) },
+                parseResponse = { responseText ->
+                    val cleanJson = responseText.trim()
+                        .removePrefix("```json")
+                        .removeSuffix("```")
+                        .trim()
 
-            try {
-                val httpResponse: HttpResponse = client.post(authUrl) {
-                    contentType(ContentType.Application.Json)
-                    if (apiKey == null && accessToken != null) {
-                        header("Authorization", "Bearer $accessToken")
+                    val root = json.parseToJsonElement(cleanJson)
+                    val categoryName = root.jsonObject["category"]?.jsonPrimitive?.content?.uppercase() ?: "OTHER"
+
+                    when (categoryName) {
+                        "SYLLABUS" -> SourceCategory.SYLLABUS
+                        "READING MATERIAL", "READING_MATERIAL" -> SourceCategory.READING_MATERIAL
+                        "LAB MANUAL", "LAB_MANUAL" -> SourceCategory.LAB_MANUAL
+                        "LECTURE NOTES", "LECTURE_NOTES" -> SourceCategory.LECTURE_NOTES
+                        else -> SourceCategory.OTHER
                     }
-                    setBody(buildJsonObject {
-                        putJsonArray("contents") {
-                            addJsonObject {
-                                putJsonArray("parts") {
-                                    addJsonObject { put("text", prompt) }
-                                }
-                            }
-                        }
-                        putJsonObject("generationConfig") {
-                            put("responseMimeType", "application/json")
-                            put("temperature", 0.0)
-                        }
-                    })
                 }
-
-                val responseBody = httpResponse.bodyAsText()
-
-                if (httpResponse.status == HttpStatusCode.Unauthorized) throw Exception("Unauthorized")
-                if (httpResponse.status == HttpStatusCode.Forbidden) throw Exception("Forbidden")
-
-                if (httpResponse.status == HttpStatusCode.TooManyRequests ||
-                    httpResponse.status == HttpStatusCode.NotFound ||
-                    httpResponse.status == HttpStatusCode.ServiceUnavailable) {
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-                    val delayMs = if (httpResponse.status == HttpStatusCode.TooManyRequests) 10000L else 2000L
-                    logger?.d(tag, "Model $modelName exhausted. Retrying (${attempts + 1}/$maxAttempts)...")
-                    attempts++
-                    kotlinx.coroutines.delay(delayMs * attempts)
-                    continue
-                }
-
-                if (httpResponse.status == HttpStatusCode.BadRequest && responseBody.contains("response modalities")) {
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-                    attempts++
-                    kotlinx.coroutines.delay(1000)
-                    continue
-                }
-
-                if (!httpResponse.status.isSuccess()) {
-                    throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
-                }
-
-                val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
-                val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                    ?: throw Exception("Empty response from AI")
-
-                val cleanJson = responseText.trim()
-                    .removePrefix("```json")
-                    .removeSuffix("```")
-                    .trim()
-
-                val root = json.parseToJsonElement(cleanJson)
-                val categoryName = root.jsonObject["category"]?.jsonPrimitive?.content?.uppercase() ?: "OTHER"
-                
-                return when (categoryName) {
-                    "SYLLABUS" -> SourceCategory.SYLLABUS
-                    "READING MATERIAL", "READING_MATERIAL" -> SourceCategory.READING_MATERIAL
-                    "LAB MANUAL", "LAB_MANUAL" -> SourceCategory.LAB_MANUAL
-                    "LECTURE NOTES", "LECTURE_NOTES" -> SourceCategory.LECTURE_NOTES
-                    else -> SourceCategory.OTHER
-                }
-            } catch (e: Exception) {
-                lastError = e
-                logger?.e(tag, "Categorization attempt ${attempts + 1} failed: ${e.message}")
-                attempts++
-                kotlinx.coroutines.delay(1000)
-            }
+            )
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}")
+            SourceCategory.OTHER
         }
-        logger?.e(tag, "Failed to categorize source after $maxAttempts attempts, defaulting to OTHER. Error: ${lastError?.message}")
-        return SourceCategory.OTHER
     }
 }
 

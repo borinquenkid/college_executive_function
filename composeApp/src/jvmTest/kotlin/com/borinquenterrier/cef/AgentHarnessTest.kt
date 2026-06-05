@@ -80,6 +80,7 @@ class AgentHarnessTest : FunSpec({
         coVerifySequence {
             // Check files and ingest
             fileReader.listFiles("/watched/dir")
+            eventAgent.loadIncompleteEvents()
             ingestionAgent.addLocalFile("/watched/dir/syllabus.pdf")
             
             // Process sequentially

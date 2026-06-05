@@ -11,5 +11,6 @@ data class StudyPreferences(
     val dinnerStartHour: Int = 17,
     val dinnerEndHour: Int = 19,
     val maxStudyBlockHours: Int = 2,
-    val preferredBreakMinutes: Int = 30
+    val preferredBreakMinutes: Int = 30,
+    val shareAnonymousBugReports: Boolean = false
 )

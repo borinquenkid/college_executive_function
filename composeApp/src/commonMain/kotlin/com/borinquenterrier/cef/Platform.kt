@@ -5,6 +5,7 @@ import com.borinquenterrier.cef.db.DriverFactory
 
 expect val isDesktop: Boolean
 expect val isDebug: Boolean
+expect val platformName: String
 
 @Composable
 expect fun rememberModelDirectoryPath(): String

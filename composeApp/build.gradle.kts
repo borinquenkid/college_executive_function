@@ -44,6 +44,11 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
             ?: localProps.getProperty("GOOGLE_CLIENT_SECRET")
             ?: envProps.getProperty("GOOGLE_CLIENT_SECRET")
             ?: ""
+
+        val web3FormsAccessKey = System.getenv("WEB3FORMS_ACCESS_KEY")
+            ?: localProps.getProperty("WEB3FORMS_ACCESS_KEY")
+            ?: envProps.getProperty("WEB3FORMS_ACCESS_KEY")
+            ?: "cef-academic-anonymous-bugs-key-placeholder"
             
         val secretsFile = outputDir.get().file("com/borinquenterrier/cef/BuildSecrets.kt").asFile
         secretsFile.parentFile.mkdirs()
@@ -54,6 +59,7 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
             object BuildSecrets {
                 val GOOGLE_CLIENT_ID: String? = ${if (clientId.isBlank()) "null" else "\"$clientId\""}
                 val GOOGLE_CLIENT_SECRET: String? = ${if (clientSecret.isBlank()) "null" else "\"$clientSecret\""}
+                val WEB3FORMS_ACCESS_KEY: String = "$web3FormsAccessKey"
             }
         """.trimIndent() + "\n")
     }

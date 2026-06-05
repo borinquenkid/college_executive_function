@@ -6,6 +6,7 @@ import com.borinquenterrier.cef.db.DriverFactory
 
 actual val isDesktop: Boolean = true
 actual val isDebug: Boolean = System.getProperty("debug") != "false" && System.getenv("DEBUG") != "false"
+actual val platformName: String = "JVM/Desktop"
 
 @Composable
 actual fun rememberModelDirectoryPath(): String {

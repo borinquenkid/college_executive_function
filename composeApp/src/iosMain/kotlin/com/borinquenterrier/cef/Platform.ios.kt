@@ -15,6 +15,8 @@ actual val isDesktop: Boolean = false
 @OptIn(ExperimentalNativeApi::class)
 actual val isDebug: Boolean = Platform.isDebugBinary
 
+actual val platformName: String = "iOS"
+
 @Composable
 actual fun rememberModelDirectoryPath(): String {
     return remember {

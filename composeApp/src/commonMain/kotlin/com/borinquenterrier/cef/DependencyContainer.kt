@@ -56,6 +56,7 @@ class DependencyContainer(
         googleAccountFlow.driveService = driveService
     }
     val telemetryManager by lazy { TelemetryManager(settings) }
+    val bugReporter by lazy { BugReporter(httpClient, preferencesRepository, telemetryManager, logger) }
 
     val aiService: AIService by lazy { 
         CriticActorAIService(
@@ -80,7 +81,8 @@ class DependencyContainer(
             fileReader,
             sourceRepository,
             settings,
-            logger
+            logger,
+            bugReporter
         )
     }
 

@@ -16,6 +16,7 @@ object AndroidAppContext {
 
 actual val isDesktop: Boolean = false
 actual val isDebug: Boolean = BuildConfig.DEBUG
+actual val platformName: String = "Android"
 
 @Composable
 actual fun rememberModelDirectoryPath(): String {

@@ -20,7 +20,8 @@ class AgentHarness(
     private val fileReader: LocalFileReader,
     private val sourceRepository: SourceRepository,
     private val settings: Settings,
-    private val logger: Logger
+    private val logger: Logger,
+    private val bugReporter: BugReporter? = null
 ) {
     private val tag = "AgentHarness"
     private val lastPollTimeKey = "cef_harness_last_poll_time"
@@ -168,6 +169,7 @@ class AgentHarness(
                     processSourceSequentially(source)
                 } catch (e: Exception) {
                     logger.e(tag, "Error processing local file: $localFile", e)
+                    bugReporter?.reportError(e, "AgentHarness processing local file: $localFile")
                 }
             }
 
@@ -179,6 +181,7 @@ class AgentHarness(
                     processSourceSequentially(source)
                 } catch (e: Exception) {
                     logger.e(tag, "Error processing GDrive file: ${driveFile.name}", e)
+                    bugReporter?.reportError(e, "AgentHarness processing GDrive file: ${driveFile.name}")
                 }
             }
 
@@ -194,6 +197,7 @@ class AgentHarness(
         } catch (e: Exception) {
             logger.e(tag, "Harness execution failed", e)
             _status.value = "Failed: ${e.message}"
+            bugReporter?.reportError(e, "AgentHarness.runHarness main loop")
         } finally {
             _isBusy.value = false
         }

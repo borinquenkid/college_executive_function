@@ -89,4 +89,8 @@ class GoogleRemoteCalendarRepository(
     override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String): List<Event> {
         return if (status == SyncStatus.SYNCED) getAllEvents(calendarId) else emptyList()
     }
+
+    override suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String): List<Event> {
+        return getAllEvents(calendarId).filter { it.completionStatus == CompletionStatus.INCOMPLETE && it.date < date }
+    }
 }

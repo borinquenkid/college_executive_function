@@ -43,20 +43,20 @@ This document outlines the phased execution plan to transition the College Execu
     4. Register and inject `SqlDelightSourceRepository` in `DependencyContainer`.
     5. Write unit tests for `SqlDelightSourceRepository` in `SourceRepositoryTest.kt`.
 
-### 🛑 [P0 - High Priority] Phase 5.4: Structural Refactoring — Off-Thread Settings Serialization
+### 🛑 [P0 - High Priority] Phase 5.4: Structural Refactoring — Off-Thread Settings Serialization ✅ **COMPLETED**
 *   **Goal:** Prevent synchronous, thread-blocking serialization of settings data.
 *   **Execution Steps:**
     1. Update `PreferencesRepository` and `RoutineRepository` retrieve/save methods to `suspend` functions.
     2. Shift settings reading/writing inside those repositories to `withContext(Dispatchers.Default)`.
     3. Update calling locations (UI, dialogs, controllers) to launch these requests inside coroutine scopes.
 
-### 🛑 [P0 - High Priority] Phase 5.5: Structural Refactoring — Concurrent Directory Scans
+### 🛑 [P0 - High Priority] Phase 5.5: Structural Refactoring — Concurrent Directory Scans ✅ **COMPLETED**
 *   **Goal:** Improve harness initialization performance by scanning multiple sources in parallel.
 *   **Execution Steps:**
     1. Refactor `AgentHarness.runHarness` to list watched local files and GDrive files concurrently using coroutines `async`/`await`.
     2. Keep sequential (one by one) execution of the downstream AI pipeline to preserve model rate-limits.
 
-### ⚠️ [P1 - Medium Priority] Phase 5.6: Startup Check-In Interview Loop
+### ⚠️ [P1 - Medium Priority] Phase 5.6: Startup Check-In Interview Loop ✅ **COMPLETED**
 *   **Goal:** Prompt the student at startup/daily trigger to resolve missed/incomplete study blocks and sub-tasks.
 *   **Execution Steps:**
     1. Implement a database query in `EventAgent` to fetch incomplete events/tasks with a due date prior to today.

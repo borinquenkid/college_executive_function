@@ -5,6 +5,10 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.minus
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import kotlinx.datetime.LocalDate
 import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.serialization.json.*
 
@@ -294,5 +298,94 @@ class EventAgent(
     fun clearDecomposition() {
         _decomposedTasks.value = emptyList()
         _decompositionTarget.value = null
+    }
+
+    private val _incompleteEvents = MutableStateFlow<List<Event>>(emptyList())
+    val incompleteEvents: StateFlow<List<Event>> = _incompleteEvents.asStateFlow()
+
+    suspend fun loadIncompleteEvents() {
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        try {
+            val list = repository.getIncompleteEventsBefore(today, "default")
+            _incompleteEvents.value = list
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to load incomplete events", e)
+        }
+    }
+
+    suspend fun markEventCompleted(event: Event) {
+        _isLoading.value = true
+        try {
+            val updated = when (event) {
+                is TimeEvent -> event.copy(completionStatus = CompletionStatus.COMPLETED)
+                is DayEvent -> event.copy(completionStatus = CompletionStatus.COMPLETED)
+            }
+            repository.updateEvent(updated, "default")
+            _statusMessage.value = "Marked '${event.title}' as completed."
+            loadIncompleteEvents()
+            try {
+                repository.synchronize("default")
+            } catch (e: Exception) {
+                // Ignore sync errors
+            }
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to mark event completed", e)
+            _statusMessage.value = "Error: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    suspend fun skipEvent(event: Event) {
+        _isLoading.value = true
+        try {
+            val updated = when (event) {
+                is TimeEvent -> event.copy(completionStatus = CompletionStatus.SKIPPED)
+                is DayEvent -> event.copy(completionStatus = CompletionStatus.SKIPPED)
+            }
+            repository.updateEvent(updated, "default")
+            _statusMessage.value = "Skipped '${event.title}'."
+            loadIncompleteEvents()
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to skip event", e)
+            _statusMessage.value = "Error: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
+    }
+
+    suspend fun rescheduleEvent(event: Event) {
+        _isLoading.value = true
+        try {
+            val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            val updated = when (event) {
+                is TimeEvent -> event.copy(date = today)
+                is DayEvent -> event.copy(date = today)
+            }
+            val existing = repository.getEvents("default").toMutableList()
+            existing.removeAll { it.id == event.id }
+
+            val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
+            val resolver = CollisionResolver(preferences = preferences)
+            val result = resolver.resolve(updated, existing)
+
+            when (result) {
+                is ResolutionResult.Success -> {
+                    for (resolved in result.resolvedEvents) {
+                        repository.updateEvent(resolved, "default")
+                    }
+                    _statusMessage.value = "Rescheduled '${event.title}' successfully."
+                }
+                is ResolutionResult.Conflict -> {
+                    _statusMessage.value = "Cannot reschedule: conflict detected."
+                }
+            }
+            loadIncompleteEvents()
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to reschedule event", e)
+            _statusMessage.value = "Error: ${e.message}"
+        } finally {
+            _isLoading.value = false
+        }
     }
 }

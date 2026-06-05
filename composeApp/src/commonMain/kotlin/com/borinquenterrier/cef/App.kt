@@ -82,6 +82,17 @@ fun App() {
             val appController = container.appController
             val currentScreen by appController.currentScreen.collectAsState()
             val aiGeneratedEvents by appController.aiGeneratedEvents.collectAsState()
+
+            val incompleteEvents by container.eventAgent.incompleteEvents.collectAsState()
+            var showCheckIn by remember { mutableStateOf(true) }
+
+            if (showCheckIn && incompleteEvents.isNotEmpty()) {
+                CheckInDialog(
+                    incompleteEvents = incompleteEvents,
+                    eventAgent = container.eventAgent,
+                    onDismiss = { showCheckIn = false }
+                )
+            }
             
             Scaffold(
                 topBar = {

@@ -73,6 +73,11 @@ interface StudentCalendarRepository {
      * Retrieves events by their synchronization status.
      */
     suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String = "default"): List<Event>
+
+    /**
+     * Retrieves incomplete events before the specified date.
+     */
+    suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String = "default"): List<Event>
 }
 
 /**

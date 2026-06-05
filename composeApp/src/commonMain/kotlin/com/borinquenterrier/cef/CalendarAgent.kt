@@ -160,4 +160,11 @@ class CalendarAgent(
             throw e
         }
     }
+
+    /**
+     * Retrieves incomplete events before a given date.
+     */
+    suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String = "default"): List<Event> {
+        return localRepo.getIncompleteEventsBefore(date, calendarId)
+    }
 }

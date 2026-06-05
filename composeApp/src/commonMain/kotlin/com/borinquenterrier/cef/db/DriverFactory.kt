@@ -23,5 +23,10 @@ fun createDatabase(driverFactory: DriverFactory): AppDatabase {
     } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }
+    try {
+        driver.execute(null, "ALTER TABLE EventEntity ADD COLUMN completionStatus TEXT NOT NULL DEFAULT 'INCOMPLETE'", 0)
+    } catch (e: Exception) {
+        // Column may already exist, or table might not have been created yet, ignore.
+    }
     return AppDatabase(driver)
 }

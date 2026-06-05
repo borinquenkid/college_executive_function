@@ -1,6 +1,8 @@
 package com.borinquenterrier.cef
 
 import com.russhwolf.settings.Settings
+import kotlinx.coroutines.async
+import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -90,45 +92,72 @@ class AgentHarness(
             val existingSources = sourceRepository.getAllSources()
             val existingUris = existingSources.mapNotNull { it.originUri }.toSet()
 
-            // 1. Scan Local watched directories
-            val localDirs = getWatchedLocalDirectories()
             val newLocalFiles = mutableListOf<String>()
-            for (dir in localDirs) {
-                val files = fileReader.listFiles(dir)
-                for (file in files) {
-                    if (!existingUris.contains(file)) {
-                        newLocalFiles.add(file)
+            val newDriveFiles = mutableListOf<DriveFile>()
+
+            coroutineScope {
+                // 1. Scan Local watched directories concurrently
+                val localDirs = getWatchedLocalDirectories()
+                val localDeferreds = localDirs.map { dir ->
+                    async {
+                        try {
+                            fileReader.listFiles(dir)
+                        } catch (e: Exception) {
+                            logger.e(tag, "Failed to list local files in directory: $dir", e)
+                            emptyList<String>()
+                        }
                     }
                 }
-            }
 
-            // 2. Scan GDrive watched folders (if authenticated)
-            val newDriveFiles = mutableListOf<DriveFile>()
-            if (tokenRepository.hasTokens()) {
-                val driveFolders = getWatchedGDriveFolders()
-                for (folderId in driveFolders) {
-                    try {
-                        val query = "'$folderId' in parents and (mimeType = 'application/vnd.google-apps.document' " +
-                                "or mimeType = 'application/pdf' " +
-                                "or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' " +
-                                "or mimeType = 'text/plain' " +
-                                "or name contains '.ics')"
-                        val files = driveService.listFiles(query)
-                        for (file in files) {
-                            val uri = "google_drive://${file.id}"
-                            if (!existingUris.contains(uri)) {
-                                newDriveFiles.add(file)
+                // 2. Scan GDrive watched folders concurrently (if authenticated)
+                val driveDeferreds = if (tokenRepository.hasTokens()) {
+                    val driveFolders = getWatchedGDriveFolders()
+                    driveFolders.map { folderId ->
+                        async {
+                            try {
+                                val query = "'$folderId' in parents and (mimeType = 'application/vnd.google-apps.document' " +
+                                        "or mimeType = 'application/pdf' " +
+                                        "or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' " +
+                                        "or mimeType = 'text/plain' " +
+                                        "or name contains '.ics')"
+                                driveService.listFiles(query)
+                            } catch (e: Exception) {
+                                logger.e(tag, "Failed to list files for drive folder: $folderId", e)
+                                emptyList<DriveFile>()
                             }
                         }
-                    } catch (e: Exception) {
-                        logger.e(tag, "Failed to list files for drive folder: $folderId", e)
+                    }
+                } else {
+                    logger.d(tag, "Skipping GDrive scanning as auth is not available/configured.")
+                    emptyList()
+                }
+
+                // Await all local directories results
+                val localResults = localDeferreds.map { it.await() }
+                for (files in localResults) {
+                    for (file in files) {
+                        if (!existingUris.contains(file) && !newLocalFiles.contains(file)) {
+                            newLocalFiles.add(file)
+                        }
                     }
                 }
-            } else {
-                logger.d(tag, "Skipping GDrive scanning as auth is not available/configured.")
+
+                // Await all GDrive folders results
+                val driveResults = driveDeferreds.map { it.await() }
+                for (files in driveResults) {
+                    for (file in files) {
+                        val uri = "google_drive://${file.id}"
+                        if (!existingUris.contains(uri) && newDriveFiles.none { it.id == file.id }) {
+                            newDriveFiles.add(file)
+                        }
+                    }
+                }
             }
 
             logger.d(tag, "Found ${newLocalFiles.size} new local files and ${newDriveFiles.size} new GDrive files.")
+
+            // Immediately after the files have been polled: load incomplete events for check-in
+            eventAgent.loadIncompleteEvents()
 
             // 3. Process new files sequentially one by one: Ingestion -> Deliverables -> Context analysis -> Study Plan
             for (localFile in newLocalFiles) {

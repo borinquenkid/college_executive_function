@@ -224,4 +224,51 @@ class HeadlessLogicTest : FunSpec({
         coVerify(exactly = 1) { mockAiService.generateChatResponse(any()) }
         coVerify(exactly = 1) { mockAiService.generateCalendarEvents(any()) }
     }
+
+    test("EventAgent check-in operations (load, complete, skip, reschedule) should perform correct updates and state flows") {
+        val mockAiService = mockk<AIService>()
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val logger = Logger(MapSettings())
+
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+
+        val missedEvent = DayEvent(
+            id = "event1",
+            title = "Missed Study Block",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = LocalDate(2026, 6, 1),
+            completionStatus = CompletionStatus.INCOMPLETE
+        )
+
+        coEvery { mockCalendarAgent.getIncompleteEventsBefore(any(), "default") } returns listOf(missedEvent)
+        coEvery { mockCalendarAgent.updateEvent(any(), any()) } returns Unit
+        coEvery { mockCalendarAgent.synchronize(any()) } returns Unit
+        coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
+
+        eventAgent.loadIncompleteEvents()
+        eventAgent.incompleteEvents.value shouldHaveSize 1
+        eventAgent.incompleteEvents.value[0].title shouldBe "Missed Study Block"
+
+        eventAgent.markEventCompleted(missedEvent)
+        coVerify(exactly = 1) { 
+            mockCalendarAgent.updateEvent(match { 
+                it.id == "event1" && it.completionStatus == CompletionStatus.COMPLETED 
+            }, "default") 
+        }
+
+        eventAgent.skipEvent(missedEvent)
+        coVerify(exactly = 1) { 
+            mockCalendarAgent.updateEvent(match { 
+                it.id == "event1" && it.completionStatus == CompletionStatus.SKIPPED 
+            }, "default") 
+        }
+
+        eventAgent.rescheduleEvent(missedEvent)
+        coVerify(exactly = 1) {
+            mockCalendarAgent.updateEvent(match {
+                it.id == "event1" && it.completionStatus == CompletionStatus.INCOMPLETE && it.date != LocalDate(2026, 6, 1)
+            }, "default")
+        }
+    }
 })

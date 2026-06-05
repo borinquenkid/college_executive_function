@@ -36,6 +36,10 @@ enum class SyncStatus {
     SYNCED, LOCAL_ONLY, DELETED_LOCALLY
 }
 
+enum class CompletionStatus {
+    INCOMPLETE, COMPLETED, SKIPPED
+}
+
 @Serializable
 data class Recurrence(
     val daysOfWeek: List<DayOfWeek>,
@@ -56,6 +60,7 @@ sealed interface Event {
     val warning: String? // Added for "Strict but Warn" capability
     val studyPlanStart: String?
     val gradeWeight: Float?
+    val completionStatus: CompletionStatus
 
     val priority: Int
         get() = category.priority
@@ -77,6 +82,7 @@ data class TimeEvent(
     override val warning: String? = null,
     override val studyPlanStart: String? = null,
     override val gradeWeight: Float? = null,
+    override val completionStatus: CompletionStatus = CompletionStatus.INCOMPLETE,
     @Serializable(with = LocalTimeSerializer::class)
     val startTime: LocalTime,
     @Serializable(with = LocalTimeSerializer::class)
@@ -107,6 +113,7 @@ data class DayEvent(
     override val warning: String? = null,
     override val studyPlanStart: String? = null,
     override val gradeWeight: Float? = null,
+    override val completionStatus: CompletionStatus = CompletionStatus.INCOMPLETE,
     @Serializable(with = LocalDateSerializer::class)
     override val date: LocalDate,
     val recurrence: Recurrence? = null

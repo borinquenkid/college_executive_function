@@ -108,4 +108,42 @@ class AgentHarnessTest : FunSpec({
         coVerify(exactly = 0) { ingestionAgent.addLocalFile(any()) }
         coVerify(exactly = 1) { calendarAgent.synchronize("default") }
     }
+
+    test("scans multiple local directories and drive folders concurrently and aggregates results") {
+        harness.setWatchedLocalDirectories(listOf("/dir1", "/dir2"))
+        harness.setWatchedGDriveFolders(listOf("folder1", "folder2"))
+        
+        coEvery { fileReader.listFiles("/dir1") } coAnswers {
+            kotlinx.coroutines.delay(50)
+            listOf("/dir1/file1.pdf")
+        }
+        coEvery { fileReader.listFiles("/dir2") } coAnswers {
+            kotlinx.coroutines.delay(50)
+            listOf("/dir2/file2.docx")
+        }
+        coEvery { tokenRepository.hasTokens() } returns true
+        coEvery { driveService.listFiles(any()) } coAnswers {
+            kotlinx.coroutines.delay(50)
+            listOf(DriveFile("drive1", "notes.txt", "text/plain"))
+        }
+        coEvery { sourceRepository.getAllSources() } returns emptyList()
+
+        val mockSource1 = SourceItem("file1.pdf", emptyList(), SourceCategory.READING_MATERIAL)
+        val mockSource2 = SourceItem("file2.docx", emptyList(), SourceCategory.READING_MATERIAL)
+        val mockSource3 = SourceItem("notes.txt", emptyList(), SourceCategory.READING_MATERIAL)
+
+        coEvery { ingestionAgent.addLocalFile("/dir1/file1.pdf") } returns mockSource1
+        coEvery { ingestionAgent.addLocalFile("/dir2/file2.docx") } returns mockSource2
+        coEvery { ingestionAgent.addDriveFile(any()) } returns mockSource3
+
+        harness.runHarness(force = true)
+
+        coVerify(exactly = 1) { fileReader.listFiles("/dir1") }
+        coVerify(exactly = 1) { fileReader.listFiles("/dir2") }
+        coVerify(exactly = 2) { driveService.listFiles(any()) }
+
+        coVerify(exactly = 1) { ingestionAgent.addLocalFile("/dir1/file1.pdf") }
+        coVerify(exactly = 1) { ingestionAgent.addLocalFile("/dir2/file2.docx") }
+        coVerify(exactly = 1) { ingestionAgent.addDriveFile(match { it.id == "drive1" }) }
+    }
 })

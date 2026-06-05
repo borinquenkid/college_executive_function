@@ -10,12 +10,13 @@ CREATE TABLE IF NOT EXISTS EventEntity (
     syncStatus TEXT NOT NULL DEFAULT 'SYNCED',
     updatedAt INTEGER NOT NULL DEFAULT 0,
     studyPlanStart TEXT,
-    gradeWeight REAL
+    gradeWeight REAL,
+    completionStatus TEXT NOT NULL DEFAULT 'INCOMPLETE'
 );
 
 insertEvent:
-INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence, syncStatus, updatedAt, studyPlanStart, gradeWeight)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence, syncStatus, updatedAt, studyPlanStart, gradeWeight, completionStatus)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectAllEvents:
 SELECT * FROM EventEntity;
@@ -26,6 +27,10 @@ WHERE date BETWEEN ? AND ? AND syncStatus != 'DELETED_LOCALLY';
 
 selectBySyncStatus:
 SELECT * FROM EventEntity WHERE syncStatus = ?;
+
+selectIncompleteBeforeDate:
+SELECT * FROM EventEntity
+WHERE completionStatus = 'INCOMPLETE' AND date < ? AND syncStatus != 'DELETED_LOCALLY';
 
 deleteEvent:
 DELETE FROM EventEntity WHERE id = ?;

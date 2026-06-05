@@ -43,7 +43,7 @@ class SqlDelightLocalCalendarRepository(
             is DayEvent -> event.recurrence?.let { r -> json.encodeToString(r) }
         }
 
-                database.appDatabaseQueries.insertEvent(
+        database.appDatabaseQueries.insertEvent(
             id = event.id ?: "${kotlinx.datetime.Clock.System.now().toEpochMilliseconds()}-${(1000..9999).random()}",
             title = event.title,
             source = event.source.name,
@@ -58,7 +58,8 @@ class SqlDelightLocalCalendarRepository(
             syncStatus = event.syncStatus.name,
             updatedAt = event.updatedAt,
             studyPlanStart = event.studyPlanStart,
-            gradeWeight = event.gradeWeight?.toDouble()
+            gradeWeight = event.gradeWeight?.toDouble(),
+            completionStatus = event.completionStatus.name
         )
     }
 
@@ -85,12 +86,23 @@ class SqlDelightLocalCalendarRepository(
             .map { mapEntityToEvent(it) }
     }
 
+    override suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String): List<Event> {
+        return database.appDatabaseQueries.selectIncompleteBeforeDate(date.toString())
+            .executeAsList()
+            .map { mapEntityToEvent(it) }
+    }
+
     private fun mapEntityToEvent(entity: com.borinquenterrier.cef.db.EventEntity): Event {
         val source = EventSource.valueOf(entity.source)
         val category = AcademicCategory.valueOf(entity.category)
         val syncStatus = SyncStatus.valueOf(entity.syncStatus)
         val date = LocalDate.parse(entity.date)
         val recurrence = entity.recurrence?.let { json.decodeFromString<Recurrence>(it) }
+        val completionStatus = try {
+            CompletionStatus.valueOf(entity.completionStatus)
+        } catch (e: Exception) {
+            CompletionStatus.INCOMPLETE
+        }
 
         return if (entity.startTime != null && entity.endTime != null) {
             TimeEvent(
@@ -102,6 +114,7 @@ class SqlDelightLocalCalendarRepository(
                 updatedAt = entity.updatedAt,
                 studyPlanStart = entity.studyPlanStart,
                 gradeWeight = entity.gradeWeight?.toFloat(),
+                completionStatus = completionStatus,
                 date = date,
                 startTime = LocalTime.parse(entity.startTime),
                 endTime = LocalTime.parse(entity.endTime),
@@ -117,6 +130,7 @@ class SqlDelightLocalCalendarRepository(
                 updatedAt = entity.updatedAt,
                 studyPlanStart = entity.studyPlanStart,
                 gradeWeight = entity.gradeWeight?.toFloat(),
+                completionStatus = completionStatus,
                 date = date,
                 recurrence = recurrence
             )

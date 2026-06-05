@@ -39,6 +39,7 @@ fun AcademicCalendar(
     var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
     var isSyncing by remember { mutableStateOf(false) }
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
+    var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
 
     // Load the routine items
     LaunchedEffect(routineRepository) {
@@ -52,8 +53,13 @@ fun AcademicCalendar(
             scope.launch {
                 isSyncing = true
                 try {
-                    calendarAgent.synchronize("default")
-                    displayedEvents = calendarAgent.getEvents("default")
+                    val negotiation = calendarAgent.checkSyncProposals("default")
+                    if (negotiation.proposals.isNotEmpty()) {
+                        activeSyncNegotiation = negotiation
+                    } else {
+                        calendarAgent.applySyncNegotiation(negotiation, "default")
+                        displayedEvents = calendarAgent.getEvents("default")
+                    }
                 } catch (e: Exception) {
                     // Sync failed, using cached local data
                 } finally {
@@ -120,6 +126,22 @@ fun AcademicCalendar(
         )
     }
 
+    activeSyncNegotiation?.let { negotiation ->
+        SyncNegotiationDialog(
+            negotiation = negotiation,
+            calendarAgent = calendarAgent,
+            onApplied = {
+                activeSyncNegotiation = null
+                scope.launch {
+                    displayedEvents = calendarAgent.getEvents("default")
+                }
+            },
+            onDismiss = {
+                activeSyncNegotiation = null
+            }
+        )
+    }
+
     Column(modifier = modifier) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
             if (!isGoogleLinked) {
@@ -180,8 +202,13 @@ fun AcademicCalendar(
                                 scope.launch {
                                     isSyncing = true
                                     try {
-                                        calendarAgent.synchronize("default")
-                                        displayedEvents = calendarAgent.getEvents("default")
+                                        val negotiation = calendarAgent.checkSyncProposals("default")
+                                        if (negotiation.proposals.isNotEmpty()) {
+                                            activeSyncNegotiation = negotiation
+                                        } else {
+                                            calendarAgent.applySyncNegotiation(negotiation, "default")
+                                            displayedEvents = calendarAgent.getEvents("default")
+                                        }
                                     } catch (e: Exception) {
                                     } finally {
                                         isSyncing = false

@@ -152,4 +152,74 @@ class ComposeUiFlowsTest {
         coVerify { mockEventAgent.acceptDecomposition() }
         dismissed shouldBe true
     }
+
+    @Test
+    fun testSyncNegotiationDialogProposalsAndAcceptance() = runComposeUiTest {
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+
+        val originalEvent = DayEvent(
+            id = "study-1",
+            title = "Study Block",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = LocalDate(2026, 10, 1)
+        )
+        val proposedEvent = DayEvent(
+            id = "study-1",
+            title = "Study Block",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = LocalDate(2026, 10, 2)
+        )
+        val collidingEvent = DayEvent(
+            id = "exam-1",
+            title = "PHYS 401 Midterm",
+            source = EventSource.CLASS,
+            category = AcademicCategory.CLASS,
+            date = LocalDate(2026, 10, 1)
+        )
+
+        val proposal = SyncProposal.StudyBlockShift(
+            originalEvent = originalEvent,
+            proposedEvent = proposedEvent,
+            collidingEvent = collidingEvent
+        )
+
+        val negotiation = SyncNegotiation(
+            proposals = listOf(proposal),
+            remoteEventsToSync = emptyList(),
+            deletedLocalIds = emptyList()
+        )
+
+        var applied = false
+        var dismissed = false
+
+        setContent {
+            SyncNegotiationDialog(
+                negotiation = negotiation,
+                calendarAgent = mockCalendarAgent,
+                onApplied = { applied = true },
+                onDismiss = { dismissed = true }
+            )
+        }
+
+        // Verify elements exist and display texts
+        onNodeWithText("Google Calendar Sync Proposals").assertExists()
+        onNodeWithText("Shift Study Block").assertExists()
+        onNodeWithText(proposal.description).assertExists()
+
+        // 1. Test Acceptance
+        val acceptButton = onNodeWithText("Accept Proposal")
+        acceptButton.assertExists()
+        acceptButton.performClick()
+
+        coVerify { mockCalendarAgent.applySyncNegotiation(negotiation) }
+        applied shouldBe true
+
+        // 2. Test Dismissal (reset flag and click cancel)
+        val cancelButton = onNodeWithText("Cancel")
+        cancelButton.assertExists()
+        cancelButton.performClick()
+        dismissed shouldBe true
+    }
 }

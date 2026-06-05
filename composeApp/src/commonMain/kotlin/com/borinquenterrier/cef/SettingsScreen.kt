@@ -61,7 +61,11 @@ fun SettingsScreen(
     var showAdvanced by remember { mutableStateOf(false) }
 
     val preferencesRepository = remember { container.preferencesRepository }
-    var preferences by remember { mutableStateOf(preferencesRepository.getPreferences()) }
+    var preferences by remember { mutableStateOf(StudyPreferences()) }
+    
+    LaunchedEffect(preferencesRepository) {
+        preferences = preferencesRepository.getPreferences()
+    }
 
     var studyStartStr by remember { mutableStateOf(preferences.studyStartHour.toString()) }
     var studyEndStr by remember { mutableStateOf(preferences.studyEndHour.toString()) }
@@ -71,6 +75,17 @@ fun SettingsScreen(
     var dinnerEndStr by remember { mutableStateOf(preferences.dinnerEndHour.toString()) }
     var maxStudyBlockStr by remember { mutableStateOf(preferences.maxStudyBlockHours.toString()) }
     var preferredBreakStr by remember { mutableStateOf(preferences.preferredBreakMinutes.toString()) }
+
+    LaunchedEffect(preferences) {
+        studyStartStr = preferences.studyStartHour.toString()
+        studyEndStr = preferences.studyEndHour.toString()
+        lunchStartStr = preferences.lunchStartHour.toString()
+        lunchEndStr = preferences.lunchEndHour.toString()
+        dinnerStartStr = preferences.dinnerStartHour.toString()
+        dinnerEndStr = preferences.dinnerEndHour.toString()
+        maxStudyBlockStr = preferences.maxStudyBlockHours.toString()
+        preferredBreakStr = preferences.preferredBreakMinutes.toString()
+    }
 
     fun parseAndSave() {
         val newPrefs = StudyPreferences(
@@ -84,7 +99,9 @@ fun SettingsScreen(
             preferredBreakMinutes = preferredBreakStr.toIntOrNull() ?: preferences.preferredBreakMinutes
         )
         preferences = newPrefs
-        preferencesRepository.savePreferences(newPrefs)
+        scope.launch {
+            preferencesRepository.savePreferences(newPrefs)
+        }
     }
 
     val isGoogleLinked = connectionState is GoogleConnectionState.Linked

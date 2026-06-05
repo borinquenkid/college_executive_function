@@ -1,6 +1,8 @@
 package com.borinquenterrier.cef
 
 import com.russhwolf.settings.Settings
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -8,19 +10,19 @@ class PreferencesRepository(private val settings: Settings) {
 
     private val preferencesKey = "STUDY_PREFERENCES"
 
-    fun getPreferences(): StudyPreferences {
+    suspend fun getPreferences(): StudyPreferences = withContext(Dispatchers.Default) {
         val jsonString = settings.getString(preferencesKey, "")
         if (jsonString.isBlank()) {
-            return StudyPreferences()
+            return@withContext StudyPreferences()
         }
-        return try {
+        try {
             Json.decodeFromString(jsonString)
         } catch (e: Exception) {
             StudyPreferences()
         }
     }
 
-    fun savePreferences(preferences: StudyPreferences) {
+    suspend fun savePreferences(preferences: StudyPreferences) = withContext(Dispatchers.Default) {
         val jsonString = Json.encodeToString(preferences)
         settings.putString(preferencesKey, jsonString)
     }

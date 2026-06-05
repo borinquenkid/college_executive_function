@@ -15,14 +15,17 @@ import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import kotlinx.coroutines.launch
 
 @Composable
 fun RoutineScreen(modifier: Modifier = Modifier) {
     val settings = rememberSettings()
     val repository = remember { RoutineRepository(settings) }
+    val scope = rememberCoroutineScope()
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
     var showAddDialog by remember { mutableStateOf(false) }
 
@@ -57,7 +60,9 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
             onDismiss = { showAddDialog = false },
             onSave = { newEvent ->
                 val updatedList = routineEvents + newEvent
-                repository.saveRoutineEvents(updatedList)
+                scope.launch {
+                    repository.saveRoutineEvents(updatedList)
+                }
                 routineEvents = updatedList
                 showAddDialog = false
             }

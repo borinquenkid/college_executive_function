@@ -101,3 +101,25 @@ DELETE FROM SourceEntity WHERE id = ?;
 
 deleteAllSources:
 DELETE FROM SourceEntity;
+
+CREATE TABLE IF NOT EXISTS UserOverrideLogEntity (
+    id TEXT PRIMARY KEY NOT NULL,
+    actionType TEXT NOT NULL, -- 'DELETE', 'MOVE'
+    dayOfWeek TEXT NOT NULL, -- 'MONDAY', 'TUESDAY', etc.
+    startHour INTEGER NOT NULL,
+    endHour INTEGER NOT NULL,
+    timestamp INTEGER NOT NULL
+);
+
+insertOverrideLog:
+INSERT OR REPLACE INTO UserOverrideLogEntity(id, actionType, dayOfWeek, startHour, endHour, timestamp)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectAllOverrideLogs:
+SELECT * FROM UserOverrideLogEntity;
+
+deleteOverrideLogsOlderThan:
+DELETE FROM UserOverrideLogEntity WHERE timestamp < ?;
+
+deleteAllOverrideLogs:
+DELETE FROM UserOverrideLogEntity;

@@ -233,4 +233,38 @@ class CollisionResolverTest : FunSpec({
         val resolved = success.resolvedEvents.first() as TimeEvent
         resolved.startTime shouldBe LocalTime(14, 0)
     }
+
+    test("resolve should respect user preference constraints") {
+        // Date is 2026-10-01 which is a Thursday
+        val thursday = LocalDate(2026, 10, 1)
+        val constraints = listOf(
+            UserPreferenceConstraint(
+                dayOfWeek = kotlinx.datetime.DayOfWeek.THURSDAY,
+                startHour = 14,
+                endHour = 16
+            )
+        )
+        val customResolver = CollisionResolver(
+            preferences = StudyPreferences(studyStartHour = 9, studyEndHour = 17),
+            userConstraints = constraints
+        )
+
+        // Try to schedule a study block from 14:00 to 15:00 (inside constraint)
+        val studyBlock = TimeEvent(
+            title = "Study",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = thursday,
+            startTime = LocalTime(14, 0),
+            endTime = LocalTime(15, 0)
+        )
+
+        val result = customResolver.resolve(studyBlock, emptyList())
+        result.shouldBeInstanceOf<ResolutionResult.Success>()
+        val success = result as ResolutionResult.Success
+        val resolved = success.resolvedEvents.first() as TimeEvent
+        // Should have shifted outside of 14:00-16:00 range
+        // Since study Start is 9:00, 9:00-10:00 is available!
+        resolved.startTime shouldBe LocalTime(9, 0)
+    }
 })

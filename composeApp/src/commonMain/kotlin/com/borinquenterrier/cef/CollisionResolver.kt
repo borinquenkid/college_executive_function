@@ -13,7 +13,8 @@ sealed interface ResolutionResult {
 
 class CollisionResolver(
     private val maxDepth: Int = 3,
-    val preferences: StudyPreferences = StudyPreferences()
+    val preferences: StudyPreferences = StudyPreferences(),
+    val userConstraints: List<UserPreferenceConstraint> = emptyList()
 ) {
     private val workingHourStart: LocalTime = LocalTime(preferences.studyStartHour, 0)
     private val workingHourEnd: LocalTime = LocalTime(preferences.studyEndHour, 0)
@@ -36,8 +37,17 @@ class CollisionResolver(
         }
 
         val colliding = existingEvents.filter { it.overlaps(event) }
-        if (colliding.isEmpty()) {
+        val isValid = when (event) {
+            is DayEvent -> true
+            is TimeEvent -> isValidTimeSlot(event.date, event.startTime, event.endTime, event.priority, existingEvents)
+        }
+
+        if (colliding.isEmpty() && isValid) {
             return ResolutionResult.Success(listOf(event))
+        }
+
+        if (!isValid) {
+            return shiftEvent(event, existingEvents, depth)
         }
 
         // Determine if we can bump all colliding events
@@ -208,6 +218,18 @@ class CollisionResolver(
         priority: Int,
         existingEvents: List<Event>
     ): Boolean {
+        // Must not overlap with user preference constraints
+        val day = date.dayOfWeek
+        userConstraints.forEach { constraint ->
+            if (constraint.dayOfWeek == day) {
+                val constraintStart = LocalTime(constraint.startHour, 0)
+                val constraintEnd = LocalTime(constraint.endHour, 0)
+                if (start < constraintEnd && end > constraintStart) {
+                    return false
+                }
+            }
+        }
+
         // Must be within working hours
         if (start < workingHourStart || end > workingHourEnd) return false
 

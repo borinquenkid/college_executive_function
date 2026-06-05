@@ -22,7 +22,8 @@ class EventAgent(
     private val database: AppDatabase? = null,
     private val normalizationService: NormalizationService = NormalizationService(),
     private val preferencesRepository: PreferencesRepository? = null,
-    private val logger: Logger? = null
+    private val logger: Logger? = null,
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null
 ) {
     private val tag = "EventAgent"
 
@@ -133,11 +134,20 @@ class EventAgent(
             
             // Get existing events to prevent collisions
             val existingEvents = repository.getEvents("default")
-            val existingScheduleText = existingEvents.joinToString("\n") { event ->
+            var existingScheduleText = existingEvents.joinToString("\n") { event ->
                 when (event) {
                     is TimeEvent -> "- ${event.title} on ${event.date} from ${event.startTime} to ${event.endTime}"
                     is DayEvent -> "- ${event.title} on ${event.date} (All Day)"
                 }
+            }
+            
+            val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
+            if (userConstraints.isNotEmpty()) {
+                val formatHour = { hour: Int -> "${hour.toString().padStart(2, '0')}:00" }
+                val constraintsStr = userConstraints.joinToString("\n") {
+                    "- Restricted: DO NOT schedule any STUDY_BLOCK on ${it.dayOfWeek} from ${formatHour(it.startHour)} to ${formatHour(it.endHour)}"
+                }
+                existingScheduleText += "\n\nUser Preference Constraints (strictly avoid scheduling study blocks here):\n$constraintsStr"
             }
             
             val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
@@ -177,7 +187,11 @@ class EventAgent(
             
             val resolvedList = mutableListOf<Event>()
             val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
-            val resolver = CollisionResolver(preferences = preferences)
+            val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
+            val resolver = CollisionResolver(
+                preferences = preferences,
+                userConstraints = userConstraints
+            )
             
             for (event in events) {
                 val result = resolver.resolve(event, currentCalendarState)
@@ -366,7 +380,11 @@ class EventAgent(
             existing.removeAll { it.id == event.id }
 
             val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
-            val resolver = CollisionResolver(preferences = preferences)
+            val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
+            val resolver = CollisionResolver(
+                preferences = preferences,
+                userConstraints = userConstraints
+            )
             val result = resolver.resolve(updated, existing)
 
             when (result) {

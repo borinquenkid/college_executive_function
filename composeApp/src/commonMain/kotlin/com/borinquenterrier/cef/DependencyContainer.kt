@@ -40,9 +40,10 @@ class DependencyContainer(
     val authService by lazy { GoogleAuthService(settings) }
     val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }
     val preferencesRepository by lazy { PreferencesRepository(settings) }
+    val userPreferenceMemoryRepository by lazy { SqlDelightUserPreferenceMemoryRepository(database) }
     val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenRepository, authService) }
     val remoteRepository by lazy { GoogleRemoteCalendarRepository(syncService) }
-    val calendarAgent by lazy { CalendarAgent(localRepository, remoteRepository, logger) }
+    val calendarAgent by lazy { CalendarAgent(localRepository, remoteRepository, logger, userPreferenceMemoryRepository) }
 
     val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository) }
 
@@ -68,7 +69,7 @@ class DependencyContainer(
     val sourceRepository by lazy { SqlDelightSourceRepository(database) }
     val ingestionAgent by lazy { IngestionAgent(fileReader, docxReader, pdfReader, webReader, driveService, aiService, sourceRepository) }
     val contextAgent by lazy { ContextAgent(aiService, sourceRepository, logger) }
-    val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), preferencesRepository, logger) }
+    val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), preferencesRepository, logger, userPreferenceMemoryRepository) }
 
     val agentHarness by lazy {
         AgentHarness(

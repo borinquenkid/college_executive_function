@@ -35,6 +35,7 @@ fun StudioPanel(
     val isLoading by eventAgent.isLoading.collectAsState()
     val statusMessage by eventAgent.statusMessage.collectAsState()
     val lastGeneratedEvents by eventAgent.lastGeneratedEvents.collectAsState()
+    val errorState by eventAgent.errorState.collectAsState()
 
     val isConnected by container.tokenRepository.isLinked.collectAsState()
 
@@ -72,6 +73,12 @@ fun StudioPanel(
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text("Studio", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 4.dp))
+
+        AnimatedErrorBanner(
+            error = errorState,
+            onDismiss = { eventAgent.clearError() }
+        )
+
 
         Card(
             modifier = Modifier

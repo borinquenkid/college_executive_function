@@ -13,6 +13,17 @@ import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.serialization.json.*
 
 /**
+ * Typed error states surfaced from [EventAgent] to the UI.
+ *
+ * - [QuotaExhausted]: Free-tier daily limit reached. Retrying will not help until quota resets.
+ * - [GenericError]: Any other transient or structural failure.
+ */
+sealed class AgentError {
+    data object QuotaExhausted : AgentError()
+    data class GenericError(val message: String) : AgentError()
+}
+
+/**
  * Encapsulates the business logic for the Studio panel, 
  * separating AI processing and event management from the UI.
  */
@@ -42,9 +53,19 @@ class EventAgent(
     private val _decompositionTarget = MutableStateFlow<Event?>(null)
     val decompositionTarget: StateFlow<Event?> = _decompositionTarget.asStateFlow()
 
+    private val _errorState = MutableStateFlow<AgentError?>(null)
+    /** Non-null when an error requiring user attention has occurred. Call [clearError] to dismiss. */
+    val errorState: StateFlow<AgentError?> = _errorState.asStateFlow()
+
+    fun clearError() { _errorState.value = null }
+
     fun updateStatus(message: String) {
         _statusMessage.value = message
     }
+
+    /** Returns true if the exception message signals a daily quota exhaustion. */
+    private fun Exception.isQuotaError() =
+        message?.startsWith("QuotaExhausted") == true
 
     /**
      * Extracts standard deliverables from a source using AI, processing the full context at once.
@@ -89,7 +110,12 @@ class EventAgent(
             _statusMessage.value = "${processed.size} deadlines and exams found from entire source."
         } catch (e: Exception) {
             logger?.e(tag, "Error extracting deliverables", e)
-            _statusMessage.value = "Error: ${e.message}"
+            if (e.isQuotaError()) {
+                _errorState.value = AgentError.QuotaExhausted
+                _statusMessage.value = "Daily AI quota reached."
+            } else {
+                _statusMessage.value = "Error: ${e.message}"
+            }
         } finally {
             _isLoading.value = false
         }
@@ -161,7 +187,12 @@ class EventAgent(
             _statusMessage.value = "${processed.size} events planned for study time."
         } catch (e: Exception) {
             logger?.e(tag, "Error generating study plan", e)
-            _statusMessage.value = "Error: ${e.message}"
+            if (e.isQuotaError()) {
+                _errorState.value = AgentError.QuotaExhausted
+                _statusMessage.value = "Daily AI quota reached."
+            } else {
+                _statusMessage.value = "Error: ${e.message}"
+            }
         } finally {
             _isLoading.value = false
         }
@@ -256,7 +287,12 @@ class EventAgent(
             _statusMessage.value = "${tasks.size} steps created."
         } catch (e: Exception) {
             logger?.e(tag, "Error decomposing task", e)
-            _statusMessage.value = "Error: ${e.message}"
+            if (e.isQuotaError()) {
+                _errorState.value = AgentError.QuotaExhausted
+                _statusMessage.value = "Daily AI quota reached."
+            } else {
+                _statusMessage.value = "Error: ${e.message}"
+            }
         } finally {
             _isLoading.value = false
         }

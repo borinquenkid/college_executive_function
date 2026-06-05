@@ -40,6 +40,7 @@ fun AcademicCalendar(
     var isSyncing by remember { mutableStateOf(false) }
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
     var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
+    val errorState by eventAgent.errorState.collectAsState()
 
     // Load the routine items
     LaunchedEffect(routineRepository) {
@@ -144,6 +145,14 @@ fun AcademicCalendar(
 
     Column(modifier = modifier) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
+        // Sticky error banner — shown at the top when a quota/AI error occurs
+            stickyHeader {
+                AnimatedErrorBanner(
+                    error = errorState,
+                    onDismiss = { eventAgent.clearError() },
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                )
+            }
             if (!isGoogleLinked) {
                 item {
                     Card(

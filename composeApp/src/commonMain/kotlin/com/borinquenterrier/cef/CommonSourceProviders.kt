@@ -10,6 +10,7 @@ import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
@@ -28,16 +29,41 @@ class LocalFileSourceProvider(
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
         var hasTriggered by remember { mutableStateOf(false) }
-        
+        var isIngesting by remember { mutableStateOf(false) }
+
+        if (isIngesting) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text("Reading Document") },
+                text = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator()
+                        Text("Extracting text and analyzing structure...")
+                    }
+                },
+                confirmButton = {}
+            )
+        }
+
         if (!hasTriggered) {
             FilePicker(show = true) { path ->
                 hasTriggered = true
                 if (path == null) {
                     onDismiss()
                 } else {
+                    isIngesting = true
                     scope.launch {
-                        val source = ingestionAgent.addLocalFile(path)
-                        onSourceAdded(source)
+                        try {
+                            val source = ingestionAgent.addLocalFile(path)
+                            onSourceAdded(source)
+                        } catch (e: Exception) {
+                            onDismiss()
+                        } finally {
+                            isIngesting = false
+                        }
                     }
                 }
             }
@@ -59,36 +85,61 @@ class UrlSourceProvider(
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
         var url by remember { mutableStateOf("") }
-        
-        AlertDialog(
-            onDismissRequest = onDismiss,
-            title = { Text("Add Source from URL") },
-            text = {
-                TextField(
-                    value = url,
-                    onValueChange = { url = it },
-                    label = { Text("https://...") },
-                    modifier = Modifier.fillMaxWidth()
-                )
-            },
-            confirmButton = {
-                TextButton(onClick = {
-                    if (url.isNotBlank()) {
-                        scope.launch {
-                            val source = ingestionAgent.addUrl(url)
-                            onSourceAdded(source)
-                        }
+        var isIngesting by remember { mutableStateOf(false) }
+
+        if (isIngesting) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text("Reading URL") },
+                text = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator()
+                        Text("Fetching content and analyzing structure...")
                     }
-                }) {
-                    Text("Add")
+                },
+                confirmButton = {}
+            )
+        } else {
+            AlertDialog(
+                onDismissRequest = onDismiss,
+                title = { Text("Add Source from URL") },
+                text = {
+                    TextField(
+                        value = url,
+                        onValueChange = { url = it },
+                        label = { Text("https://...") },
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                },
+                confirmButton = {
+                    TextButton(onClick = {
+                        if (url.isNotBlank()) {
+                            isIngesting = true
+                            scope.launch {
+                                try {
+                                    val source = ingestionAgent.addUrl(url)
+                                    onSourceAdded(source)
+                                } catch (e: Exception) {
+                                    onDismiss()
+                                } finally {
+                                    isIngesting = false
+                                }
+                            }
+                        }
+                    }) {
+                        Text("Add")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = onDismiss) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = onDismiss) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 }
 
@@ -107,8 +158,24 @@ class GoogleDriveSourceProvider(
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val accessToken = tokenRepository.getAccessToken()
         val scope = rememberCoroutineScope()
-        
-        if (accessToken == null) {
+        var isIngesting by remember { mutableStateOf(false) }
+
+        if (isIngesting) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text("Reading Drive File") },
+                text = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        CircularProgressIndicator()
+                        Text("Downloading and analyzing file...")
+                    }
+                },
+                confirmButton = {}
+            )
+        } else if (accessToken == null) {
             AlertDialog(
                 onDismissRequest = onDismiss,
                 title = { Text("Google Account Required") },
@@ -124,9 +191,16 @@ class GoogleDriveSourceProvider(
                 driveService = driveService,
                 onDismiss = onDismiss,
                 onFileSelected = { file ->
+                    isIngesting = true
                     scope.launch {
-                        val source = ingestionAgent.addDriveFile(file)
-                        onSourceAdded(source)
+                        try {
+                            val source = ingestionAgent.addDriveFile(file)
+                            onSourceAdded(source)
+                        } catch (e: Exception) {
+                            onDismiss()
+                        } finally {
+                            isIngesting = false
+                        }
                     }
                 }
             )

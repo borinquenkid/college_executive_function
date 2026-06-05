@@ -236,7 +236,7 @@ class GeminiAIService(
                     continue
                 }
 
-                // --- Transient errors — exponential back-off, same model ---
+                // --- Transient errors — extract server-supplied wait time, else exponential back-off ---
                 if (httpResponse.status == HttpStatusCode.TooManyRequests ||
                     httpResponse.status == HttpStatusCode.ServiceUnavailable ||
                     httpResponse.status.value >= 500
@@ -247,9 +247,15 @@ class GeminiAIService(
                         telemetryManager?.logRateLimitError()
                     }
                     attempts++
-                    val baseDelay = if (httpResponse.status == HttpStatusCode.TooManyRequests) 2000L else 1000L
-                    val delayMs = baseDelay * (1 shl (attempts - 1))
-                    logger?.d(tag, "⚠️ Model $modelName transient error (${httpResponse.status}). Retrying ($attempts/$maxAttempts) after ${delayMs}ms...")
+
+                    val delayMs: Long = resolveRetryDelay(
+                        status = httpResponse.status,
+                        headers = httpResponse.headers,
+                        body = responseBody,
+                        attempts = attempts,
+                        tag = tag
+                    )
+
                     delayFn(delayMs)
                     continue
                 }
@@ -283,6 +289,65 @@ class GeminiAIService(
     // -------------------------------------------------------------------------
     // Model discovery & negotiation
     // -------------------------------------------------------------------------
+
+    /**
+     * Determines how long to wait before the next retry after a transient error.
+     *
+     * Priority order (Gemini-specific):
+     *  1. Response body contains "retry in X.Xs" — Gemini's most common signal
+     *  2. `x-ratelimit-reset` epoch header — absolute reset timestamp (seconds)
+     *  3. `Retry-After` header — standard RFC 7231 integer seconds
+     *  4. Exponential back-off — fallback when no server hint is available
+     */
+    internal fun resolveRetryDelay(
+        status: HttpStatusCode,
+        headers: io.ktor.http.Headers,
+        body: String,
+        attempts: Int,
+        tag: String
+    ): Long {
+        // 1. Body hint: "Please retry in 17.6s" or "retry in 30s"
+        val bodyRetryMatch = Regex("""retry in (\d+(?:\.\d+)?)\s*s""", RegexOption.IGNORE_CASE)
+            .find(body)
+        if (bodyRetryMatch != null) {
+            val seconds = bodyRetryMatch.groupValues[1].toDoubleOrNull()
+            if (seconds != null) {
+                val ms = (seconds * 1000).toLong() + 500L // +500ms buffer
+                logger?.d(tag, "⏱️ Rate-limited — server body says retry in ${seconds}s. Waiting ${ms}ms.")
+                return ms
+            }
+        }
+
+        // 2. x-ratelimit-reset: absolute epoch seconds (compute delta from now)
+        val resetHeader = headers["x-ratelimit-reset"] ?: headers["X-RateLimit-Reset"]
+        if (resetHeader != null) {
+            val resetEpoch = resetHeader.toLongOrNull()
+            if (resetEpoch != null) {
+                val nowSeconds = Clock.System.now().toEpochMilliseconds() / 1000L
+                val waitSeconds = (resetEpoch - nowSeconds).coerceAtLeast(1L)
+                val ms = waitSeconds * 1000L + 500L
+                logger?.d(tag, "⏱️ Rate-limited — x-ratelimit-reset in ${waitSeconds}s. Waiting ${ms}ms.")
+                return ms
+            }
+        }
+
+        // 3. Standard Retry-After header (integer seconds)
+        val retryAfter = headers["Retry-After"] ?: headers["retry-after"]
+        if (retryAfter != null) {
+            val seconds = retryAfter.toLongOrNull()
+            if (seconds != null) {
+                val ms = seconds * 1000L
+                logger?.d(tag, "⏱️ Rate-limited — Retry-After: ${seconds}s. Waiting ${ms}ms.")
+                return ms
+            }
+        }
+
+        // 4. Exponential back-off fallback
+        val baseDelay = if (status == HttpStatusCode.TooManyRequests) 2000L else 1000L
+        val ms = baseDelay * (1 shl (attempts - 1))
+        logger?.d(tag, "⚠️ Transient error ($status). No server hint — exponential backoff ${ms}ms (attempt $attempts).")
+        return ms
+    }
 
     private suspend fun getAvailableModels(): List<ModelInfo> {
         val url = "https://generativelanguage.googleapis.com/v1beta/models"
@@ -347,19 +412,23 @@ class GeminiAIService(
 
         logger?.d(tag, "Negotiating best model. Available: ${names.size}, Text-capable & non-blacklisted: ${textCapableNames.size}")
 
+        // Ordered for free-tier Google AI Studio keys:
+        // Flash variants first (generous free quota) → Pro variants last (quickly exhausted).
         val preferences = listOf(
+            // --- Tier 1: Flash (free-tier friendly, 1M+ context) ---
             "gemini-2.5-flash",
             "gemini-2.5-flash-lite",
-            "gemini-2.5-pro",
             "gemini-2.0-flash",
             "gemini-2.0-flash-001",
             "gemini-2.0-flash-lite",
             "gemini-2.0-flash-lite-001",
             "gemini-1.5-flash",
             "gemini-1.5-flash-latest",
-            "gemini-1.5-pro",
             "gemini-flash-latest",
             "gemini-flash-lite-latest",
+            // --- Tier 2: Pro (limited free quota — last resort) ---
+            "gemini-2.5-pro",
+            "gemini-1.5-pro",
             "gemini-pro-latest",
             "gemini-pro"
         )

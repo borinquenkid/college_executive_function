@@ -33,6 +33,13 @@ class CriticActorAIService(
                 val currentJson = serializeEvents(currentEvents)
                 val critiquePrompt = AiPrompts.getEventCritiquePrompt(sourceText, currentJson)
                 val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
+
+                // If the critique call itself failed (rate-limit etc.), bail gracefully
+                if (critiqueResponse.isBlank() || critiqueResponse.startsWith("Error:")) {
+                    logger?.e("CriticActor", "Iteration $iteration critique returned an error, exiting loop with last successful state")
+                    break
+                }
+
                 val correctedEvents = parseEvents(critiqueResponse)
                 
                 val correctedJson = serializeEvents(correctedEvents)
@@ -84,6 +91,12 @@ class CriticActorAIService(
                 val currentJson = serializeEvents(currentPlan)
                 val critiquePrompt = AiPrompts.getEventCritiquePrompt(syllabusText, currentJson)
                 val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
+
+                if (critiqueResponse.isBlank() || critiqueResponse.startsWith("Error:")) {
+                    logger?.e("CriticActor", "Iteration $iteration study plan critique returned an error, exiting loop with last successful state")
+                    break
+                }
+
                 val correctedPlan = parseEvents(critiqueResponse)
                 
                 val correctedJson = serializeEvents(correctedPlan)
@@ -155,6 +168,12 @@ class CriticActorAIService(
                 val currentJson = serializeTasks(currentTasks)
                 val critiquePrompt = AiPrompts.getDecompositionCritiquePrompt(taskTitle, dueDate, currentJson)
                 val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
+
+                if (critiqueResponse.isBlank() || critiqueResponse.startsWith("Error:")) {
+                    logger?.e("CriticActor", "Iteration $iteration decomposition critique returned an error, exiting loop with last successful state")
+                    break
+                }
+
                 val correctedTasks = parseTasks(critiqueResponse)
                 
                 val correctedJson = serializeTasks(correctedTasks)

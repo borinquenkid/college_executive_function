@@ -67,14 +67,14 @@ This document outlines the phased execution plan to transition the College Execu
         - **Skip:** Mark task as skipped to clear it from the check-in list.
     4. Integrate this check-in flow directly into the `AgentHarness` trigger sequence immediately after the files have been polled.
 
-### 📉 [P2 - Low Priority] Phase 5.7: Stateful User Preference Memory
+### 📉 [P2 - Low Priority] Phase 5.7: Stateful User Preference Memory ✅ **COMPLETED**
 *   **Goal:** Learn implicit user scheduling constraints by tracking manual modifications and injecting them into future AI prompts.
 *   **Execution Steps:**
     1. Create a `UserPreferenceMemoryRepository` to store user calendar edits (e.g., if a user consistently deletes study blocks on Friday evenings, log this pattern).
     2. Derive implicit constraints from these edit logs (e.g., "Friday evening is a negative constraint").
     3. Inject these derived constraints as explicit rules in the system prompt in `AiPrompts.getStudyPlanPrompt()`.
 
-### 📉 [P2 - Low Priority] Phase 5.8: Sync Re-negotiation UI
+### 📉 [P2 - Low Priority] Phase 5.8: Sync Re-negotiation UI ✅ **COMPLETED**
 *   **Goal:** Replace silent collision resolution during two-way sync with interactive user proposals.
 *   **Execution Steps:**
     1. Update the synchronization loop to detect when a remote update creates conflicts or shifts local study blocks.

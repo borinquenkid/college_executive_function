@@ -47,6 +47,8 @@ All items below have been verified against the actual codebase — not just the 
 | **Client Secrets Management** | Automated build-time Google API client secrets injection via custom Gradle task |
 | **Compose UI Tests** | Added Composable flow verification tests for key screens and dialogs |
 | **Source Fragment Indexing** | Relevance ranking (TF-IDF) in `ContextAgent` before prompt injection |
+| **Stateful User Preference Memory** | Track manual study block moves/deletions, derive implicit constraints, and inject as prompt rules and resolver filters |
+| **Sync Re-negotiation UI** | Replace silent collision resolution on remote sync with interactive user proposal diff dialog |
 
 ---
 
@@ -231,23 +233,23 @@ Implemented relevance ranking (TF-IDF) in `ContextAgent.rankFragments` to select
 
 ---
 
-## Phase 5 — Iterative Refinement & Agent Harness (IN_PROGRESS)
+## Phase 5 — Iterative Refinement & Agent Harness (COMPLETED)
 
 Refining the Critic-Actor loop into a graph-based state tracker and implementing a lifecycle-driven background polling harness.
 
-### 5.1 — Graph-Based Cycle Detection (IN_PROGRESS)
+### 5.1 — Graph-Based Cycle Detection (COMPLETED)
 Implement visited-state graph tracking in `CriticActorAIService` to handle natural convergence and multi-step oscillation cycles. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
 
-### 5.2 — Active Lifecycle Agent Harness (IN_PROGRESS)
+### 5.2 — Active Lifecycle Agent Harness (COMPLETED)
 Implement `AgentHarness` to orchestrate startup and once-daily polling of local watched directories and Google Drive, sequentially processing new files and synchronizing calendar mutations. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
 
-### 5.3 — Startup Check-In Interview Loop (PLANNED)
+### 5.3 — Startup Check-In Interview Loop (COMPLETED)
 Query incomplete past-due study blocks and tasks at startup/daily check-in, presenting an interactive interview dialog for completion confirmation or automated rescheduling. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
 
-### 5.4 — Stateful User Preference Memory (PLANNED)
+### 5.4 — Stateful User Preference Memory (COMPLETED)
 Store user calendar edits and deletions to derive implicit scheduling constraints, injecting them into future AI prompt generations. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
 
-### 5.5 — Sync Re-negotiation UI (PLANNED)
+### 5.5 — Sync Re-negotiation UI (COMPLETED)
 Replace silent conflict resolution during two-way sync with interactive user proposal diffs. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
 
 ---

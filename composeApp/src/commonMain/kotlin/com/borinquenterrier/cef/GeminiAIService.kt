@@ -273,6 +273,27 @@ class GeminiAIService(
                     continue
                 }
 
+                // --- Quota exhaustion (RPD) — daily limit, unrecoverable until midnight ---
+                // Gemini signals daily quota exhaustion via specific body phrases.
+                // Retrying makes no sense; throw immediately so the caller can surface a clear message.
+                //
+                // Key distinction:
+                //  RPM (transient): body contains "retry in Xs" — retrying WILL work
+                //  RPD (fatal):     body contains "quota" + exhaustion word, NO retry hint
+                if (httpResponse.status == HttpStatusCode.TooManyRequests) {
+                    val hasRetryHint = responseBody.contains("retry in", ignoreCase = true)
+                    val hasQuotaWord = responseBody.contains("quota", ignoreCase = true)
+                    val hasExhaustionWord = responseBody.contains("exhausted", ignoreCase = true) ||
+                        responseBody.contains("exceeded", ignoreCase = true) ||
+                        responseBody.contains("limit", ignoreCase = true)
+                    val isQuotaExhausted = !hasRetryHint && hasQuotaWord && hasExhaustionWord
+                    if (isQuotaExhausted) {
+                        logger?.e(tag, "🚫 Daily quota exhausted for model $modelName. No point retrying until quota resets.")
+                        telemetryManager?.logRateLimitError()
+                        throw Exception("QuotaExhausted: Your free-tier daily request limit has been reached. Try again tomorrow or upgrade your Google AI Studio plan.")
+                    }
+                }
+
                 // --- Transient errors — extract server-supplied wait time, else exponential back-off ---
                 if (httpResponse.status == HttpStatusCode.TooManyRequests ||
                     httpResponse.status == HttpStatusCode.ServiceUnavailable ||

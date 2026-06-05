@@ -38,6 +38,16 @@ class GeminiAIService(
         }
     }
 
+    /**
+     * Describes how demanding a task is, which drives model selection.
+     *
+     * - [HEAVY]: Long-context reasoning (syllabus parsing, study plans, document analysis).
+     *   Prefers the most capable Flash model available.
+     * - [LIGHT]: Short, latency-sensitive calls (chat, categorisation, task decomposition).
+     *   Prefers the smallest Flash model to preserve daily quota.
+     */
+    enum class TaskTier { HEAVY, LIGHT }
+
     companion object {
         private val json = Json { 
             ignoreUnknownKeys = true 
@@ -48,6 +58,31 @@ class GeminiAIService(
         private val blacklistedModels = mutableMapOf<String, Long>()
         private const val BLACKLIST_DURATION_MS = 60 * 60 * 1000L // 1 hour
         private const val PREFERRED_MODEL_KEY = "preferred_gemini_model"
+
+        /**
+         * Ordered model preferences by task tier.
+         *
+         * Only three models per tier — chosen because they are the only ones that:
+         *  (a) exist on the free AI Studio tier,
+         *  (b) have a 1M-token context window, and
+         *  (c) are actively maintained by Google.
+         *
+         * Heavy tasks try the most capable Flash first (better reasoning for parsing).
+         * Light tasks start with the smallest Flash (fastest, cheapest, preserves daily quota).
+         */
+        internal val HEAVY_PREFERENCES = listOf(
+            "gemini-2.5-flash",       // best reasoning, 1M ctx, free tier
+            "gemini-2.0-flash",       // reliable workhorse fallback
+            "gemini-2.5-flash-lite",  // lite variant — less capable but still 1M ctx
+            "gemini-2.0-flash-lite"   // last resort if 2.5/2.0 are exhausted
+        )
+
+        internal val LIGHT_PREFERENCES = listOf(
+            "gemini-2.5-flash-lite",  // fastest & cheapest — confirmed free tier, 1M ctx
+            "gemini-2.0-flash-lite",  // fallback if 2.5-lite unavailable
+            "gemini-2.0-flash",       // step up if both lite variants unavailable
+            "gemini-2.5-flash"        // last resort (overkill for light tasks)
+        )
 
         /** Clears the in-memory blacklist. Call in test teardown to prevent cross-test contamination. */
         internal fun clearBlacklistForTesting() = blacklistedModels.clear()
@@ -190,11 +225,13 @@ class GeminiAIService(
      *  - **Fatal** (401, 403, other 4xx): throws immediately.
      *
      * @param maxAttempts   Total allowed attempts (default 5).
+     * @param tier          [TaskTier] hint — drives which model is preferred (default [TaskTier.HEAVY]).
      * @param body          Lambda that returns the [JsonObject] to POST for a given [modelName].
      * @param parseResponse Lambda that turns the raw response text into [T].
      */
     private suspend fun <T> executeWithRetry(
         maxAttempts: Int = 5,
+        tier: TaskTier = TaskTier.HEAVY,
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T {
@@ -203,7 +240,7 @@ class GeminiAIService(
         var lastError: Exception? = null
 
         while (attempts < maxAttempts) {
-            val modelName = negotiateBestModel(available)
+            val modelName = negotiateBestModel(available, tier)
             try {
                 val httpResponse = postToModel(modelName, body(modelName))
                 val responseBody = httpResponse.bodyAsText()
@@ -374,7 +411,10 @@ class GeminiAIService(
         }
     }
 
-    private suspend fun negotiateBestModel(available: List<ModelInfo>): String {
+    private suspend fun negotiateBestModel(
+        available: List<ModelInfo>,
+        tier: TaskTier = TaskTier.HEAVY
+    ): String {
         val currentTime = Clock.System.now().toEpochMilliseconds()
         
         // 1. Check SQLite Cache first
@@ -412,32 +452,18 @@ class GeminiAIService(
 
         logger?.d(tag, "Negotiating best model. Available: ${names.size}, Text-capable & non-blacklisted: ${textCapableNames.size}")
 
-        // Ordered for free-tier Google AI Studio keys:
-        // Flash variants first (generous free quota) → Pro variants last (quickly exhausted).
-        val preferences = listOf(
-            // --- Tier 1: Flash (free-tier friendly, 1M+ context) ---
-            "gemini-2.5-flash",
-            "gemini-2.5-flash-lite",
-            "gemini-2.0-flash",
-            "gemini-2.0-flash-001",
-            "gemini-2.0-flash-lite",
-            "gemini-2.0-flash-lite-001",
-            "gemini-1.5-flash",
-            "gemini-1.5-flash-latest",
-            "gemini-flash-latest",
-            "gemini-flash-lite-latest",
-            // --- Tier 2: Pro (limited free quota — last resort) ---
-            "gemini-2.5-pro",
-            "gemini-1.5-pro",
-            "gemini-pro-latest",
-            "gemini-pro"
-        )
+        // Select ordered preferences based on task tier.
+        // Heavy tasks (syllabus parsing, study plans) → most-capable Flash first.
+        // Light tasks (chat, categorise) → smallest Flash first to preserve daily quota.
+        val preferences = if (tier == TaskTier.HEAVY) HEAVY_PREFERENCES else LIGHT_PREFERENCES
 
-        // Find best match among text-capable models
+        logger?.d(tag, "Task tier: $tier — preference order: ${preferences.joinToString(", ")}")
+
+        // Find best match among text-capable models, with graceful fallbacks
         val selected = preferences.firstOrNull { pref -> textCapableNames.contains(pref) }
             ?: textCapableNames.firstOrNull { it.contains("flash") && !it.contains("tts") }
             ?: textCapableNames.firstOrNull()
-            ?: "gemini-2.5-flash"
+            ?: "gemini-2.0-flash" // last-resort default (always exists on free tier)
 
         // 3. Save to Cache
         try {
@@ -473,6 +499,7 @@ class GeminiAIService(
     suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
         return executeWithRetry(
             maxAttempts = 5,
+            tier = TaskTier.HEAVY,   // parsing a full syllabus — needs best reasoning
             body = { _ -> buildGeminiBody(prompt) },
             parseResponse = { responseText ->
                 try {
@@ -499,6 +526,7 @@ class GeminiAIService(
         val prompt = AiPrompts.getTaskDecompositionPrompt(taskTitle, dueDate)
         return executeWithRetry(
             maxAttempts = 5,
+            tier = TaskTier.LIGHT,   // short structured prompt — lite model is sufficient
             body = { _ -> buildGeminiBody(prompt) },
             parseResponse = { responseText ->
                 val cleanJson = responseText.trim()
@@ -532,6 +560,7 @@ class GeminiAIService(
         return try {
             executeWithRetry(
                 maxAttempts = 3,
+                tier = TaskTier.LIGHT,   // conversational — fast response matters most
                 body = { _ -> buildGeminiBody(prompt, responseMimeType = null) },
                 parseResponse = { responseText -> responseText }
             )
@@ -545,6 +574,7 @@ class GeminiAIService(
         return try {
             executeWithRetry(
                 maxAttempts = 3,
+                tier = TaskTier.HEAVY,   // document can be large; reasoning quality matters
                 body = { _ -> buildGeminiBody(AiPrompts.getDocumentIntelligencePrompt(text), responseMimeType = null) },
                 parseResponse = { responseText -> responseText }
             )
@@ -561,6 +591,7 @@ class GeminiAIService(
         return try {
             executeWithRetry(
                 maxAttempts = 3,
+                tier = TaskTier.LIGHT,   // simple classification — lite model is ideal
                 body = { _ -> buildGeminiBody(prompt) },
                 parseResponse = { responseText ->
                     val cleanJson = responseText.trim()

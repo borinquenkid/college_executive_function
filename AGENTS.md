@@ -2,16 +2,44 @@
 
 An application designed to assist students with executive function challenges by providing a structured environment to manage academic sources, generate study materials, and maintain a comprehensive academic calendar.
 
+---
+
+## Agent Mandates
+
+### Build Verification Protocol
+Whenever a task or feature is reported as "done," verify that all three primary build targets compile successfully:
+```bash
+./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble
+```
+Confirm these three builds pass before confirming completion.
+
+### UI Verification Protocol
+For UI-related changes, verify the visual state by running the relevant module (e.g., `:composeApp:jvmRun`) and performing a screen capture (e.g., using macOS `screencapture`). Layout optimizations and visual features must be physically verified on-screen before being reported as complete.
+
+### Native Dependency Management
+Manual modification of Xcode project files (`.pbxproj`) and adding external Swift packages is strictly prohibited due to their brittleness in KMP builds. All native features MUST be implemented using platform-native APIs already available in the system frameworks, accessible via pure Kotlin/Native interop, to ensure build stability.
+
+### Codebase Intelligence (MCP)
+This project uses `repowise` as an MCP server for codebase intelligence (docs, graph, git signals). Install it with:
+```bash
+uv tool install repowise
+```
+The MCP server is configured in `.gemini/settings.json` to start automatically.
+
+---
+
 ## Run Profiles
 
 The application supports two distinct run profiles to manage different execution environments:
 
-*   **`local` Profile (Runtime):** 
+*   **`local` Profile (Runtime):**
     *   Interacts with the **real** Google Calendar.
     *   Uses your local `.env` or stored OAuth tokens.
-*   **`test` Profile (Mock):** 
+*   **`test` Profile (Mock):**
     *   Uses a **Mock Calendar** to provide deterministic data for automated testing.
     *   Skips the network and real authentication.
+
+---
 
 ## Core Architecture
 
@@ -29,6 +57,8 @@ The application follows a strict data flow to consolidate academic data into a s
 *   **The Object (Event):** All inputs are parsed into a unified `Event` model.
 *   **The Destination:** All generated events are synchronized into the **Student's Master Calendar**.
 
+---
+
 ## Features
 
 *   **Sources Panel:** Manage inputs from Local Files, URLs (Public/Private), and Google Drive.
@@ -36,60 +66,61 @@ The application follows a strict data flow to consolidate academic data into a s
 *   **AI Integration:** Performs automated analysis of Syllabi and Documents to extract events and suggest proactive study blocks.
 *   **Synchronization:** Handles the push/pull logic between the app's internal state and external calendar providers.
 
-## AI Integration
+---
 
-The application leverages high-context analysis models to perform the following key tasks:
+## AI Strategy
 
-*   **Syllabus Analysis:** Automatically identifies all deliverables (Assignments, Exams, etc.) and suggests proactive study blocks.
-*   **Contextual Reasoning:** Processes entire syllabi (up to 1M tokens) in a single request for maximum accuracy.
-*   **Privacy-First Setup:** Students use their own API keys, keeping their data within their own Google ecosystem.
+*   **Primary Engine:** **Gemini 1.5 Flash** (via REST API) — default engine for syllabus parsing and event extraction due to its 1-million-token context window and stability.
+*   **Model Auto-Negotiation:** `ModelManager` caches the best available model in SQLite and retries on quota exhaustion with a fallback preference list.
+*   **Privacy-First Setup:** Students provide their own free Gemini API key via Google AI Studio, keeping data within their own Google ecosystem.
+
+---
 
 ## Testing Requirements
 
-All business logic classes (Models, Agents, Services, and Utilities) must have associated unit tests using the Kotest framework. 
+All business logic classes (Models, Agents, Services, and Utilities) MUST have associated unit tests using the Kotest framework. Any new business logic introduced must be accompanied by corresponding tests.
+
+*   **Mocking:** Use `MockK` for unit tests.
+*   **Network Testing:** Use Ktor `MockEngine` to verify API interactions (for Sync services).
 *   **Integration Tests:** Headless IT tests verify full analysis pipelines using real dev keys and in-memory databases.
+*   **UI Tests:** Compose tests for key screens and dialogs verifying state changes and user interactions.
+
+---
 
 ## Development Roadmap
 
-### Completed Tasks
+> See [ROADMAP.md](ROADMAP.md) for the full prioritized plan with dependency graph and implementation details.
 
-*   **UI Scaffolding:** Initial UI for all three panels is complete.
-*   **General Styling:** A consistent theme, including colors, typography, and borders, has been applied.
-*   **File Picker:** A functional file picker has been implemented for desktop and Android.
-*   **Settings Screen:** A functional settings screen for entering and saving an API key has been implemented.
-*   **Unified Event Model:** Refactored the entire application to use a unified `Event` data model.
-*   **Routine Management:** A complete flow for creating, viewing, and persisting a recurring weekly schedule. 
-*   **Calendar View:** The academic calendar now displays events from all sources.
-*   **Testing Framework:** Added Kotest and wrote unit tests for data models, repositories, and serializers.
-*   **iCalendar Support:** Added handling for `.ics` file generation and parsing.
-*   **Google Calendar REST Integration:** Fully KMP-compatible synchronization using Ktor.
-*   **OAuth2 Authentication:** Implemented support for local server flow (JVM) and persistent token storage.
-*   **Programmatic ICal Generation:** Implemented `ICalGenerator` using modern iCal4j 4.x syntax.
-*   **AI Integration (Robust):** Real intelligence implementation with auto-negotiation and persistent model caching.
-*   **Study Plan Generation:** Specialized prompts to suggest proactive "STUDY_BLOCK" events leading up to major deadlines.
-*   **Agentic Separation:** Refactored the UI to use a decoupled logic layer for headless testing and cleaner state management.
-*   **Debug Logging:** Integrated platform-aware logging.
-*   **Automatic Schema Migrations:** Updated database factory to automatically detect and create missing tables.
-*   **Multi-Format Extraction:** Robust text extraction for DOCX and PDF files using native libraries for Android, iOS, and JVM.
-*   **Native Mobile Auth:** Implemented native Google Sign-In using `GoogleSignInClient` (Android) and `ASWebAuthenticationSession` (iOS).
-*   **Recursive Task Decomposition (Core Orchestration & AI Delegation):** Built `DecompositionOrchestrator` using FIFO queues and `WorkUnit` interfaces, wrapping `AIService` via delegation to handle recursive breakdown up to depth 3 with mathematical date projection and robust Kotest test specs.
+### Completed
 
-### Next Steps
-
-The following tasks are planned for the next phase of development:
-
-#### Core Functionality & AI
-*   **Automatic Source Categorization:** (Google Notebook style) Automatically tag sources as "Syllabus", "Reading Material", "Lab Manual", or "Lecture Notes" during ingestion to optimize AI retrieval.
-*   **Multi-Source Chat Context:** Refactor `ContextAgent` to allow the Chat panel to reason across *all* stored sources simultaneously.
-*   **AI Task Decomposition UI:** Implement the full UI flow for the "Break It Down" feature to split assignments into sub-tasks using the new orchestrator.
-*   **Syllabus-to-Study Schedule:** Further refine the logic that suggests study periods based on weighted deliverables.
-
-#### Calendar & Sync
-*   **Client Secrets Management:** Secure injection mechanism for `client_secret.json`.
-*   **Native Mobile Auth:** Native Google Sign-In SDKs for Android and iOS.
-*   **Two-Way Synchronization:** Complete full bi-directional sync with Google Calendar.
-
-#### UI & UX
-*   **Vertical Layout Optimization:** [TODO] Shrink the vertical layout by approximately half to ensure buttons (like 'Accept') are reachable without tabbing.
-*   **Visual Progress Tracking:** Progress bars and "Time Remaining" visuals for long-term projects.
-*   **Export Support:** Implement `.ics` file export for the entire generated study plan.
+*   UI Scaffolding, General Styling, File Picker (Desktop, Android, iOS)
+*   Settings Screen (API key, Google auth, drive settings)
+*   Unified Event Model (`TimeEvent`, `DayEvent`, `SyncStatus`, `AcademicCategory`)
+*   Routine Management — full create/view/persist recurring schedule
+*   Calendar View — events from all sources, grouped by date
+*   Testing Framework — Kotest, MockK, ~33 test files (unit + integration)
+*   iCalendar Parsing — `.ics` → `SourceFragments` via `IcsCalendarSource`
+*   Google Calendar REST Integration — fully KMP-compatible sync via Ktor
+*   OAuth2 Authentication — JVM local-server flow + persistent token storage
+*   AI Integration — Gemini REST, model auto-negotiation, SQLite model cache
+*   Agentic Architecture — `IngestionAgent`, `EventAgent`, `CalendarAgent`, `NormalizationService`, `ContextAgent`
+*   Multi-Format Extraction — PDF/DOCX native on Android, iOS, JVM
+*   Native Mobile Auth — `GoogleSignInClient` (Android), `ASWebAuthenticationSession` (iOS)
+*   AI Study Plan Constraints — 9–21 hr limits, lunch/dinner breaks, collision resolution
+*   Debug Logging, Automatic Schema Migrations
+*   Recursive Task Decomposition — `DecompositionOrchestrator` (depth-3 FIFO), full Kotest specs
+*   Automatic Source Categorization — `IngestionAgent` calls `categorizeSource()` on all non-ICS content
+*   "Break It Down" UI — `TaskDecompositionDialog` wired end-to-end for DEADLINE/FINALS events
+*   Two-Way Sync — all four mutation scenarios verified by `CalendarSyncIntegrationTest`
+*   Multi-Source Chat Context — `ContextAgent.queryAllSources()`, conversation history, scope toggle
+*   Critic-Actor Loop — `CriticActorAIService` with graph-based cycle/oscillation detection
+*   .ics Export — `ICalGenerator` + expect/actual `writeIcsFile` (Downloads on JVM/Android, Share Sheet on iOS)
+*   Sync Hardening — token refresh on 401, `pageToken` pagination, conflict resolution warnings
+*   Visual Progress Tracking — `timeUntilDue`, `studyProgress`, countdown chips, Semester Health card
+*   Scheduling Fine-Tuning — user-configurable study hours/breaks in Settings, injected into AI and resolver
+*   Weighted Deliverables — grade weights extracted by AI, stored in `Event`, used for proportional study block allocation
+*   Observability & Telemetry — `TelemetryManager` logging rate limits, parse exceptions, Critic-Actor outcomes
+*   Client Secrets Management — automated build-time injection via custom Gradle task
+*   Stateful User Preference Memory — track manual edits, derive implicit constraints, inject as prompt rules
+*   Sync Re-negotiation UI — interactive proposal diff dialog replacing silent conflict resolution
+*   Active Lifecycle Agent Harness — `AgentHarness` polling at startup and once daily

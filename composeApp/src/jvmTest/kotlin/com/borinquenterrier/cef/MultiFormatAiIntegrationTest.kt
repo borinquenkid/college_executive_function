@@ -5,9 +5,9 @@ import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldNotBe
 import kotlinx.datetime.LocalDate
-import kotlinx.coroutines.runBlocking
 import java.io.File
 import com.russhwolf.settings.MapSettings
+import kotlin.time.Duration.Companion.milliseconds
 
 /**
  * Integration test for the AI text-to-events pipeline.
@@ -17,22 +17,20 @@ import com.russhwolf.settings.MapSettings
  *
  * Format extraction (DOCX/PDF/HTML → text) is tested separately in DocxReaderTest,
  * PdfReaderTest, and WebSourceReaderTest.
+ *
+ * ## Skip behaviour
+ * - Skipped when no API key is present in `.env`.
+ * - Skipped cleanly (not failed) when the daily Gemini quota is exhausted.
+ * - Fails hard after [AI_INTEGRATION_TIMEOUT_MS] to prevent 70-minute hangs
+ *   caused by repeated RPM-throttling retries.
  */
 class MultiFormatAiIntegrationTest : FunSpec({
 
-    test("AI should extract structured events from a real syllabus text") {
-        val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
-        val envMap = envFile?.readLines()?.associate {
-            val key = it.substringBefore("=").trim()
-            val value = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
-            key to value
-        } ?: emptyMap()
-
-        val apiKey = (envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"])?.takeIf { it.isNotBlank() }
-        if (apiKey == null) {
-            println("SKIPPING AI TEXT-TO-EVENTS TEST: No Gemini API Key found in .env")
-            return@test
-        }
+    test("AI should extract structured events from a real syllabus text").config(
+        timeout = AI_INTEGRATION_TIMEOUT_MS.milliseconds
+    ) {
+        val apiKey = resolveApiKey("AI TEXT-TO-EVENTS TEST")
+            ?: return@config
 
         val settings = MapSettings()
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
@@ -44,11 +42,13 @@ class MultiFormatAiIntegrationTest : FunSpec({
             File("composeApp/src/commonTest/resources/syllabus.txt"),
             File("../composeApp/src/commonTest/resources/syllabus.txt")
         ).find { it.exists() } ?: throw IllegalStateException("Could not find syllabus.txt fixture")
-        
+
         val fragments = SourceProcessor.process(fixtureFile.readText())
 
-        // Run AI extraction
-        val events = runBlocking { aiService.generateCalendarEvents(fragments) }
+        // Run AI extraction — skips cleanly if daily quota is exhausted
+        val events = skipIfQuotaExhausted("generateCalendarEvents") {
+            aiService.generateCalendarEvents(fragments)
+        }
 
         println("Extracted ${events.size} events from syllabus:")
         events.forEach { println("  - ${it.date} | ${it.category} | ${it.title}") }
@@ -87,3 +87,4 @@ class MultiFormatAiIntegrationTest : FunSpec({
         println("SUCCESS: AI correctly extracted exam dates and holidays from syllabus text.")
     }
 })
+

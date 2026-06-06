@@ -3,10 +3,10 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import java.io.File
-import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.*
 import com.russhwolf.settings.MapSettings
 import kotlinx.datetime.LocalDate
+import kotlin.time.Duration.Companion.milliseconds
 
 class SyllabusEvaluationSuite : FunSpec({
 
@@ -47,20 +47,11 @@ class SyllabusEvaluationSuite : FunSpec({
         return n1.contains(n2) || n2.contains(n1)
     }
 
-    test("Run evaluation suite on test syllabi") {
-        // Resolve Credentials
-        val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
-        val envMap = envFile?.readLines()?.associate {
-            val key = it.substringBefore("=").trim()
-            val value = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
-            key to value
-        } ?: emptyMap()
+    test("Run evaluation suite on test syllabi").config(
+        timeout = AI_INTEGRATION_TIMEOUT_MS.milliseconds
+    ) {
+        val apiKey = resolveApiKey("EVALUATION SUITE") ?: return@config
 
-        val apiKey = (envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"])?.takeIf { it.isNotBlank() }
-        if (apiKey == null) {
-            println("SKIPPING EVALUATION SUITE: No Gemini API Key found in .env")
-            return@test
-        }
 
         val settings = MapSettings()
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
@@ -95,8 +86,10 @@ class SyllabusEvaluationSuite : FunSpec({
             val fragments = SourceProcessor.process(fullText)
             val expectedEvents = loadExpectedEvents(expectedFile)
 
-            // Run AI extraction
-            val extractedEvents = runBlocking { aiService.generateCalendarEvents(fragments) }
+            // Run AI extraction — skip cleanly if daily quota is exhausted
+            val extractedEvents = skipIfQuotaExhausted("generateCalendarEvents[$pdfName]") {
+                aiService.generateCalendarEvents(fragments)
+            }
 
             println("  Extracted Events:")
             extractedEvents.forEach { println("    - ${it.date} | ${it.category} | ${it.title}") }

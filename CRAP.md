@@ -9,23 +9,23 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 75
+- **Total Files Analyzed**: 76
 - **High-Risk Files (CRAP > 30)**: 18
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| CommonSourceProviders.kt | 22 | 0.0% | 506.00 | 🔴 HIGH |
 | AcademicCalendar.kt | 29 | 24.4% | 392.17 | 🔴 HIGH |
 | StudioPanel.kt | 18 | 0.0% | 342.00 | 🔴 HIGH |
 | CalendarAgent.kt | 65 | 66.1% | 230.02 | 🔴 HIGH |
+| CommonSourceProviders.kt | 18 | 13.3% | 228.91 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 29 | 38.9% | 220.94 | 🔴 HIGH |
 | App.kt | 14 | 0.0% | 210.00 | 🔴 HIGH |
 | AddRoutineItemDialog.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
 | GeminiAIService.kt | 106 | 83.8% | 153.53 | 🔴 HIGH |
 | CriticActorAIService.kt | 67 | 78.7% | 110.11 | 🔴 HIGH |
-| EventAgent.kt | 70 | 86.0% | 83.57 | 🔴 HIGH |
+| EventAgent.kt | 70 | 84.3% | 89.12 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 91.4% | 42.06 | 🔴 HIGH |
 | CollisionResolver.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
@@ -35,21 +35,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 ---
 
 ## Detailed File Breakdown
-
-### CommonSourceProviders.kt (Score: 506.00 - 🔴 HIGH)
-- **Total Complexity**: 22
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `SelectorUI` | 5 |
-| `SelectorUI` | 4 |
-| `SelectorUI` | 4 |
-| `isAuthorized` | 1 |
-| `isAuthorized` | 1 |
-| `isAuthorized` | 1 |
-| `DrivePickerDialog` | 1 |
 
 ### AcademicCalendar.kt (Score: 392.17 - 🔴 HIGH)
 - **Total Complexity**: 29
@@ -88,6 +73,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `synchronize` | 2 |
 | `getEvents` | 1 |
 | `getIncompleteEventsBefore` | 1 |
+
+### CommonSourceProviders.kt (Score: 228.91 - 🔴 HIGH)
+- **Total Complexity**: 18
+- **Real Coverage**: 13.3%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `SelectorUI` | 4 |
+| `SelectorUI` | 3 |
+| `SelectorUI` | 2 |
+| `isAuthorized` | 1 |
+| `isAuthorized` | 1 |
+| `isAuthorized` | 1 |
+| `DrivePickerDialog` | 1 |
 
 ### GoogleRemoteCalendarRepository.kt (Score: 220.94 - 🔴 HIGH)
 - **Total Complexity**: 29
@@ -166,9 +166,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `serializeTasks` | 2 |
 | `generateStudyPlan` | 1 |
 
-### EventAgent.kt (Score: 83.57 - 🔴 HIGH)
+### EventAgent.kt (Score: 89.12 - 🔴 HIGH)
 - **Total Complexity**: 70
-- **Real Coverage**: 86.0%
+- **Real Coverage**: 84.3%
 
 #### Methods list:
 | Method | Complexity |
@@ -545,6 +545,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getCriticModified` | 1 |
 | `clear` | 1 |
 
+### SourceIngestionHandler.kt (Score: 9.59 - 🟢 LOW)
+- **Total Complexity**: 8
+- **Real Coverage**: 70.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `ingestLocalFile` | 1 |
+| `ingestUrl` | 1 |
+| `ingestDriveFile` | 1 |
+| `buildIngestibleFilesQuery` | 1 |
+
 ### SqlDelightSourceRepository.kt (Score: 9.01 - 🟢 LOW)
 - **Total Complexity**: 9
 - **Real Coverage**: 95.9%
@@ -675,15 +687,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readText` | 1 |
 | `rememberLocalFileReader` | 1 |
 
-### NormalizationService.kt (Score: 5.46 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 73.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `extract` | 5 |
-
 ### SyncProposal.kt (Score: 5.02 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 60.0%
@@ -698,6 +701,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `split` | 3 |
 | `process` | 2 |
+
+### NormalizationService.kt (Score: 5.00 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 94.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extract` | 5 |
 
 ### WebSourceReader.kt (Score: 4.11 - 🟢 LOW)
 - **Total Complexity**: 4

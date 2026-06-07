@@ -28,6 +28,7 @@ class LocalFileSourceProvider(
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
+        val handler = remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var hasTriggered by remember { mutableStateOf(false) }
         var isIngesting by remember { mutableStateOf(false) }
 
@@ -54,17 +55,13 @@ class LocalFileSourceProvider(
                 if (path == null) {
                     onDismiss()
                 } else {
-                    isIngesting = true
-                    scope.launch {
-                        try {
-                            val source = ingestionAgent.addLocalFile(path)
-                            onSourceAdded(source)
-                        } catch (e: Exception) {
-                            onDismiss()
-                        } finally {
-                            isIngesting = false
-                        }
-                    }
+                    handler.ingestLocalFile(
+                        path = path,
+                        onStart = { isIngesting = true },
+                        onSuccess = onSourceAdded,
+                        onFailure = onDismiss,
+                        onFinish = { isIngesting = false }
+                    )
                 }
             }
         }
@@ -84,6 +81,7 @@ class UrlSourceProvider(
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
+        val handler = remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var url by remember { mutableStateOf("") }
         var isIngesting by remember { mutableStateOf(false) }
 
@@ -116,19 +114,13 @@ class UrlSourceProvider(
                 },
                 confirmButton = {
                     TextButton(onClick = {
-                        if (url.isNotBlank()) {
-                            isIngesting = true
-                            scope.launch {
-                                try {
-                                    val source = ingestionAgent.addUrl(url)
-                                    onSourceAdded(source)
-                                } catch (e: Exception) {
-                                    onDismiss()
-                                } finally {
-                                    isIngesting = false
-                                }
-                            }
-                        }
+                        handler.ingestUrl(
+                            url = url,
+                            onStart = { isIngesting = true },
+                            onSuccess = onSourceAdded,
+                            onFailure = onDismiss,
+                            onFinish = { isIngesting = false }
+                        )
                     }) {
                         Text("Add")
                     }
@@ -158,6 +150,7 @@ class GoogleDriveSourceProvider(
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val accessToken = tokenRepository.getAccessToken()
         val scope = rememberCoroutineScope()
+        val handler = remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var isIngesting by remember { mutableStateOf(false) }
 
         if (isIngesting) {
@@ -191,17 +184,13 @@ class GoogleDriveSourceProvider(
                 driveService = driveService,
                 onDismiss = onDismiss,
                 onFileSelected = { file ->
-                    isIngesting = true
-                    scope.launch {
-                        try {
-                            val source = ingestionAgent.addDriveFile(file)
-                            onSourceAdded(source)
-                        } catch (e: Exception) {
-                            onDismiss()
-                        } finally {
-                            isIngesting = false
-                        }
-                    }
+                    handler.ingestDriveFile(
+                        file = file,
+                        onStart = { isIngesting = true },
+                        onSuccess = onSourceAdded,
+                        onFailure = onDismiss,
+                        onFinish = { isIngesting = false }
+                    )
                 }
             )
         }
@@ -220,11 +209,7 @@ fun DrivePickerDialog(
 
     LaunchedEffect(Unit) {
         try {
-            val query = "mimeType = 'application/vnd.google-apps.document' " +
-                    "or mimeType = 'application/pdf' " +
-                    "or mimeType = 'application/vnd.openxmlformats-officedocument.wordprocessingml.document' " +
-                    "or mimeType = 'text/plain' " +
-                    "or name contains '.ics'"
+            val query = GoogleDriveQueryBuilder.buildIngestibleFilesQuery()
             files = driveService.listFiles(query)
         } catch (e: Exception) {
             errorMessage = e.message ?: "Failed to list files from Google Drive."

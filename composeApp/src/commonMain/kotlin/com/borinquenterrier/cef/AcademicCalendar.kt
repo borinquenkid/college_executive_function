@@ -71,42 +71,19 @@ fun AcademicCalendar(
     }
 
     // Define the semester ranges
-    val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-    val currentYear = today.year
-    
-    val isFirstSemester = today.monthNumber in 8..12
-    val isSecondSemester = today.monthNumber in 1..5
-    
-    val (viewStartDate, viewEndDate) = when {
-        isFirstSemester -> {
-            LocalDate(currentYear, 8, 1) to LocalDate(currentYear, 12, 31)
-        }
-        isSecondSemester -> {
-            LocalDate(currentYear, 1, 1) to LocalDate(currentYear, 5, 31)
-        }
-        else -> {
-            today to today.plus(30, DateTimeUnit.DAY)
-        }
+    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+    val (viewStartDate, viewEndDate) = remember(today) {
+        AcademicCalendarLogic.getSemesterRange(today)
     }
 
     val allExpandedEvents = remember(aiGeneratedEvents, routineEvents, displayedEvents, viewStartDate, viewEndDate) {
-        val expandedRoutineEvents = EventGenerator.expandEvents(routineEvents, viewStartDate, viewEndDate)
-        val expandedAiEvents = EventGenerator.expandEvents(aiGeneratedEvents, viewStartDate, viewEndDate)
-        
-        (expandedRoutineEvents + expandedAiEvents + displayedEvents)
-            .filter { event ->
-                val date = when (event) {
-                    is TimeEvent -> event.date
-                    is DayEvent -> event.date
-                }
-                date in viewStartDate..viewEndDate
-            }
-            .sortedBy { event ->
-                when (event) {
-                    is TimeEvent -> event.date.atStartOfDayIn(TimeZone.currentSystemDefault())
-                    is DayEvent -> event.date.atStartOfDayIn(TimeZone.currentSystemDefault())
-                }
-            }
+        AcademicCalendarLogic.getExpandedAndFilteredEvents(
+            routineEvents = routineEvents,
+            aiGeneratedEvents = aiGeneratedEvents,
+            displayedEvents = displayedEvents,
+            startDate = viewStartDate,
+            endDate = viewEndDate
+        )
     }
 
     val groupedEvents = allExpandedEvents.groupBy { event ->

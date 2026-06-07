@@ -49,6 +49,7 @@ data class Recurrence(
     val endDate: LocalDate
 )
 
+@Serializable
 sealed interface Event {
     val id: String?
     val title: String

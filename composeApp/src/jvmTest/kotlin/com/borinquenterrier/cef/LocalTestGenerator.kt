@@ -423,11 +423,13 @@ object LocalTestGenerator {
         val originalText = testFile.readText().trim()
         val packageName = extractPackageName(sourceFile.readText())
 
-        // Strip the FunSpec class header if LLM accidentally wrapped it
+        // Strip any class wrapper if LLM accidentally wrapped it
         var cleanTestsCode = newTestsCode.trim()
-        if (cleanTestsCode.contains("class ") && cleanTestsCode.contains("FunSpec")) {
-            val funSpecIndex = cleanTestsCode.indexOf("FunSpec")
-            val firstBrace = cleanTestsCode.indexOf('{', funSpecIndex)
+        val classRegex = Regex("""\bclass\s+[A-Za-z0-9_]+""")
+        val match = classRegex.find(cleanTestsCode)
+        if (match != null) {
+            val classIndex = match.range.first
+            val firstBrace = cleanTestsCode.indexOf('{', classIndex)
             val lastBrace = cleanTestsCode.lastIndexOf('}')
             if (firstBrace != -1 && lastBrace != -1 && lastBrace > firstBrace) {
                 cleanTestsCode = cleanTestsCode.substring(firstBrace + 1, lastBrace).trim()

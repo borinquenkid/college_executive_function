@@ -152,6 +152,30 @@ class CalendarAgent(
         val remoteUpdates = mutableListOf<Event>()
         val directConflicts = mutableListOf<SyncProposal.DirectConflict>()
 
+        findRemoteUpdatesAndConflicts(localEvents, remoteEvents, remoteUpdates, directConflicts)
+
+        val deletedLocalIds = findDeletedLocalIds(localEvents, remoteEvents)
+
+        val proposedBaseCalendar = buildProposedBaseCalendar(localEvents, remoteUpdates, deletedLocalIds)
+
+        val proposals = mutableListOf<SyncProposal>()
+        proposals.addAll(directConflicts)
+
+        resolveStudyBlockCollisions(localEvents, proposedBaseCalendar, proposals)
+
+        return SyncNegotiation(
+            proposals = proposals,
+            remoteEventsToSync = remoteEvents,
+            deletedLocalIds = deletedLocalIds
+        )
+    }
+
+    private fun findRemoteUpdatesAndConflicts(
+        localEvents: List<Event>,
+        remoteEvents: List<Event>,
+        remoteUpdates: MutableList<Event>,
+        directConflicts: MutableList<SyncProposal.DirectConflict>
+    ) {
         remoteEvents.forEach { remote ->
             val local = localEvents.find { it.id == remote.id }
             if (local == null) {
@@ -165,12 +189,23 @@ class CalendarAgent(
                 }
             }
         }
+    }
 
-        val deletedLocalIds = localRepo.getAllEvents(calendarId)
+    private fun findDeletedLocalIds(
+        localEvents: List<Event>,
+        remoteEvents: List<Event>
+    ): List<String> {
+        return localEvents
             .filter { it.syncStatus == SyncStatus.SYNCED }
             .filter { local -> remoteEvents.none { it.id == local.id } }
             .mapNotNull { it.id }
+    }
 
+    private fun buildProposedBaseCalendar(
+        localEvents: List<Event>,
+        remoteUpdates: List<Event>,
+        deletedLocalIds: List<String>
+    ): List<Event> {
         val nonStudyBlocks = localEvents.filter { it.category != AcademicCategory.STUDY_BLOCK && it.id !in deletedLocalIds }
         val updatedNonStudyBlocks = nonStudyBlocks.map { local ->
             remoteUpdates.find { it.id == local.id } ?: local
@@ -178,12 +213,15 @@ class CalendarAgent(
         val newRemoteNonStudyBlocks = remoteUpdates.filter { remote ->
             remote.category != AcademicCategory.STUDY_BLOCK && localEvents.none { it.id == remote.id }
         }
+        return updatedNonStudyBlocks + newRemoteNonStudyBlocks
+    }
 
-        val proposedBaseCalendar = updatedNonStudyBlocks + newRemoteNonStudyBlocks
+    private suspend fun resolveStudyBlockCollisions(
+        localEvents: List<Event>,
+        proposedBaseCalendar: List<Event>,
+        proposals: MutableList<SyncProposal>
+    ) {
         val localStudyBlocks = localEvents.filter { it.category == AcademicCategory.STUDY_BLOCK }
-        val proposals = mutableListOf<SyncProposal>()
-        proposals.addAll(directConflicts)
-
         val resolvedStudyBlocks = mutableListOf<Event>()
 
         val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
@@ -224,12 +262,6 @@ class CalendarAgent(
                 resolvedStudyBlocks.add(studyBlock)
             }
         }
-
-        return SyncNegotiation(
-            proposals = proposals,
-            remoteEventsToSync = remoteEvents,
-            deletedLocalIds = deletedLocalIds
-        )
     }
 
     /**
@@ -239,16 +271,35 @@ class CalendarAgent(
         val localEvents = localRepo.getAllEvents(calendarId)
 
         // 3. Remote is Gold Standard: Any local SYNCED event missing from Remote is deleted.
-        negotiation.deletedLocalIds.forEach { id ->
+        applyDeletedLocalEvents(negotiation.deletedLocalIds, localEvents, calendarId)
+
+        // 4. Remote is Gold Standard: Upsert ALL remote events to Local
+        applyRemoteEventsToLocal(negotiation.remoteEventsToSync, localEvents, calendarId)
+
+        // 5. Save shifted study blocks (both locally and remote)
+        applyShiftedStudyBlocks(negotiation.proposals, calendarId)
+    }
+
+    private suspend fun applyDeletedLocalEvents(
+        deletedLocalIds: List<String>,
+        localEvents: List<Event>,
+        calendarId: String
+    ) {
+        deletedLocalIds.forEach { id ->
             val local = localEvents.find { it.id == id }
             if (local != null && local.category == AcademicCategory.STUDY_BLOCK) {
                 userPreferenceMemoryRepository?.logOverride(OverrideAction.DELETE, local)
             }
             localRepo.hardDeleteEvent(id, calendarId)
         }
+    }
 
-        // 4. Remote is Gold Standard: Upsert ALL remote events to Local
-        negotiation.remoteEventsToSync.forEach { remote ->
+    private suspend fun applyRemoteEventsToLocal(
+        remoteEvents: List<Event>,
+        localEvents: List<Event>,
+        calendarId: String
+    ) {
+        remoteEvents.forEach { remote ->
             val local = localEvents.find { it.id == remote.id }
             if (local != null && local.syncStatus == SyncStatus.SYNCED && local.updatedAt != remote.updatedAt) {
                 if (local.category == AcademicCategory.STUDY_BLOCK && (local.date != remote.date || (local is TimeEvent && remote is TimeEvent && (local.startTime != remote.startTime || local.endTime != remote.endTime)))) {
@@ -267,9 +318,13 @@ class CalendarAgent(
                 calendarId
             )
         }
+    }
 
-        // 5. Save shifted study blocks (both locally and remote)
-        negotiation.proposals.forEach { proposal ->
+    private suspend fun applyShiftedStudyBlocks(
+        proposals: List<SyncProposal>,
+        calendarId: String
+    ) {
+        proposals.forEach { proposal ->
             if (proposal is SyncProposal.StudyBlockShift && proposal.proposedEvent != proposal.originalEvent) {
                 val shifted = proposal.proposedEvent
                 val runProfile = localRepo.getSettings()?.getString("run_profile", "local") ?: "local"

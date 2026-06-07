@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **68.42%** (5974/8732 lines)
+- **Overall Line Coverage**: **69.22%** (6054/8746 lines)
 - **Total Source Files**: 76
 
 ## Coverage by File
@@ -21,7 +21,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineItem.kt | 0.0% (0/24) | 0.0% (0/4) | 0.0% | RoutineItem, RoutineItem$Companion |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% | RoutineSetupScreenKt |
-| 🔴 | UserPreferenceMemoryRepository.kt | 0.0% (0/2) | N/A | 0.0% | UserPreferenceMemoryRepository |
 | 🔴 | SourcesPanel.kt | 0.0% (0/68) | 0.0% (0/52) | 0.0% | SourcesPanelKt, SourcesPanelKt$SourcesPanel$1$2$1$1$1$1 |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -41,10 +40,8 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | GoogleDriveService.kt | 54.8% (68/124) | 19.6% (18/92) | 41.1% | DriveFile, DriveFile$Companion, DriveFileListResponse, DriveFileListResponse$Companion, GoogleDriveService, GoogleDriveService$getFileContent$2, GoogleDriveService$listFiles$2 |
 | 🟡 | EventGenerator.kt | 56.0% (28/50) | 42.3% (22/52) | 54.9% | EventGenerator |
 | 🟡 | EventPresenter.kt | 59.0% (46/78) | 57.9% (44/76) | 75.0% | EventPresenter, EventPresenter$DeadlineStatus |
-| 🟡 | SyncProposal.kt | 60.0% (24/40) | 25.0% (4/16) | 44.0% | SyncNegotiation, SyncProposal$DirectConflict, SyncProposal$StudyBlockShift |
 | 🟡 | GoogleConnectionState.kt | 61.5% (16/26) | 0.0% (0/20) | 79.4% | GoogleConnectionEvent, GoogleConnectionEvent$ConnectionFailed, GoogleConnectionEvent$ConnectionSuccess, GoogleConnectionEvent$Disconnect, GoogleConnectionEvent$StartConnection, GoogleConnectionState, GoogleConnectionState$Companion, GoogleConnectionState$Connecting, GoogleConnectionState$Error, GoogleConnectionState$Error$Companion, GoogleConnectionState$Linked, GoogleConnectionState$Unlinked |
 | 🟡 | AppController.kt | 64.9% (48/74) | 33.3% (4/12) | 71.9% | AppController, AppController$1, AppController$1$1, AppController$2, AppController$2$1, AppScreen, AppScreen$Calendar, AppScreen$Home, AppScreen$Routine, AppScreen$Settings |
-| 🟡 | CalendarAgent.kt | 66.1% (222/336) | 34.9% (120/344) | 58.0% | CalendarAgent |
 | 🟡 | IcsStringBuilder.kt | 66.2% (90/136) | 39.1% (18/46) | 69.6% | IcsStringBuilder |
 | 🟡 | OAuthExchange.kt | 67.9% (38/56) | 25.0% (8/32) | 59.3% | OAuthExchange, TokenResponse, TokenResponse$Companion |
 | 🟡 | Logger.kt | 70.0% (28/40) | 50.0% (6/12) | 53.2% | Logger, LoggerKt |
@@ -54,9 +51,11 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | SettingsScreen.kt | 73.8% (462/626) | 46.4% (52/112) | 73.1% | ComposableSingletons$SettingsScreenKt, SettingsScreenKt, SettingsScreenKt$SettingsScreen$1$1, SettingsScreenKt$SettingsScreen$2$1, SettingsScreenKt$SettingsScreen$3$2$1$2$1$1, SettingsScreenKt$SettingsScreen$parseAndSave$1 |
 | 🟡 | DependencyContainer.kt | 78.6% (88/112) | N/A | 95.2% | DependencyContainer |
 | 🟡 | CriticActorAIService.kt | 78.7% (326/414) | 37.7% (160/424) | 71.2% | CriticActorAIService |
+| 🟢 | SyncProposal.kt | 80.0% (32/40) | 25.0% (4/16) | 55.3% | SyncNegotiation, SyncProposal$DirectConflict, SyncProposal$StudyBlockShift |
 | 🟢 | DecompositionOrchestrator.kt | 80.3% (98/122) | 81.3% (26/32) | 90.5% | DecompositionOrchestrator, WorkUnit$SubTask, WorkUnit$Task |
 | 🟢 | AcademicCalendar.kt | 80.7% (492/610) | 56.4% (106/188) | 80.0% | AcademicCalendarKt, AcademicCalendarKt$AcademicCalendar$1$1, AcademicCalendarKt$AcademicCalendar$2$1, AcademicCalendarKt$AcademicCalendar$2$1$1, AcademicCalendarKt$AcademicCalendar$5$1$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$2$1$1$2$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$3$1$3$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$4$2$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$2$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$3$1$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$4$1$1, ComposableSingletons$AcademicCalendarKt |
 | 🟢 | WebSourceReader.kt | 81.0% (34/42) | N/A | 86.6% | WebSourceReader |
+| 🟢 | CalendarAgent.kt | 83.4% (292/350) | 51.7% (178/344) | 81.7% | CalendarAgent |
 | 🟢 | GeminiAIService.kt | 83.8% (622/742) | 52.2% (358/686) | 74.9% | Candidate, Candidate$Companion, Content, Content$Companion, GeminiAIService, GeminiAIService$1, GeminiAIService$Companion, GeminiAIService$TaskTier, GeminiResponse, GeminiResponse$Companion, ModelInfo, ModelInfo$Companion, ModelListResponse, ModelListResponse$Companion, Part, Part$Companion |
 | 🟢 | EventAgent.kt | 86.0% (404/470) | 47.8% (132/276) | 78.1% | AgentError, AgentError$GenericError, AgentError$QuotaExhausted, EventAgent |
 | 🟢 | ChatPanel.kt | 87.4% (208/238) | 44.4% (32/72) | 84.7% | ChatMessage, ChatPanelKt, ChatPanelKt$ChatPanel$1$3$2$1$1, ComposableSingletons$ChatPanelKt |
@@ -83,6 +82,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | KotlinxSerialization.kt | 100.0% (12/12) | N/A | 100.0% | LocalDateSerializer, LocalTimeSerializer |
 | 🟢 | SemesterResolver.kt | 100.0% (18/18) | 83.3% (20/24) | 95.9% | SemesterResolver |
 | 🟢 | GoogleAuthService.kt | 100.0% (34/34) | 70.0% (14/20) | 98.2% | GoogleTokenRepository |
+| 🟢 | UserPreferenceMemoryRepository.kt | 100.0% (2/2) | N/A | 100.0% | UserPreferenceMemoryRepository |
 | 🟢 | UserOverrideLog.kt | 100.0% (10/10) | N/A | 100.0% | OverrideAction, UserPreferenceConstraint |
 | 🟢 | PreferencesRepository.kt | 100.0% (22/22) | 100.0% (4/4) | 100.0% | PreferencesRepository, PreferencesRepository$getPreferences$2, PreferencesRepository$savePreferences$2 |
 | 🟢 | GoogleAccountFlow.kt | 100.0% (62/62) | 75.0% (12/16) | 98.3% | GoogleAccountFlow |

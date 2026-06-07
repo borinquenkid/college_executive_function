@@ -16,13 +16,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| CalendarAgent.kt | 65 | 66.1% | 230.02 | 🔴 HIGH |
 | CommonSourceProviders.kt | 18 | 13.3% | 228.91 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 29 | 38.9% | 220.94 | 🔴 HIGH |
 | App.kt | 14 | 0.0% | 210.00 | 🔴 HIGH |
 | AddRoutineItemDialog.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
 | GeminiAIService.kt | 106 | 83.8% | 153.53 | 🔴 HIGH |
 | CriticActorAIService.kt | 67 | 78.7% | 110.11 | 🔴 HIGH |
+| CalendarAgent.kt | 72 | 83.4% | 95.59 | 🔴 HIGH |
 | EventAgent.kt | 70 | 86.0% | 83.57 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 91.4% | 42.06 | 🔴 HIGH |
@@ -35,24 +35,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 ---
 
 ## Detailed File Breakdown
-
-### CalendarAgent.kt (Score: 230.02 - 🔴 HIGH)
-- **Total Complexity**: 65
-- **Real Coverage**: 66.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `checkSyncProposals` | 25 |
-| `applySyncNegotiation` | 14 |
-| `pushLocalChanges` | 7 |
-| `updateEvent` | 6 |
-| `saveEvent` | 4 |
-| `deleteEvent` | 3 |
-| `saveEventLocally` | 2 |
-| `synchronize` | 2 |
-| `getEvents` | 1 |
-| `getIncompleteEventsBefore` | 1 |
 
 ### CommonSourceProviders.kt (Score: 228.91 - 🔴 HIGH)
 - **Total Complexity**: 18
@@ -145,6 +127,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `areTaskListsDifferent` | 4 |
 | `serializeTasks` | 2 |
 | `generateStudyPlan` | 1 |
+
+### CalendarAgent.kt (Score: 95.59 - 🔴 HIGH)
+- **Total Complexity**: 72
+- **Real Coverage**: 83.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `pushLocalChanges` | 7 |
+| `updateEvent` | 6 |
+| `saveEvent` | 4 |
+| `deleteEvent` | 3 |
+| `saveEventLocally` | 2 |
+| `checkSyncProposals` | 2 |
+| `synchronize` | 2 |
+| `getEvents` | 1 |
+| `findRemoteUpdatesAndConflicts` | 1 |
+| `findDeletedLocalIds` | 1 |
+| *... and 7 more* | |
 
 ### EventAgent.kt (Score: 83.57 - 🔴 HIGH)
 - **Total Complexity**: 70
@@ -657,16 +658,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readSource` | 1 |
 | `rememberDocxReader` | 1 |
 
-### UserPreferenceMemoryRepository.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 2
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `logOverride` | 1 |
-| `getDerivedConstraints` | 1 |
-
 ### PdfReader.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2
 - **Real Coverage**: 0.0%
@@ -696,11 +687,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `extract` | 5 |
 
-### SyncProposal.kt (Score: 5.02 - 🟢 LOW)
-- **Total Complexity**: 4
-- **Real Coverage**: 60.0%
-
-
 ### SourceProcessor.kt (Score: 5.01 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 91.7%
@@ -710,6 +696,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `split` | 3 |
 | `process` | 2 |
+
+### SyncProposal.kt (Score: 4.13 - 🟢 LOW)
+- **Total Complexity**: 4
+- **Real Coverage**: 80.0%
+
 
 ### WebSourceReader.kt (Score: 4.11 - 🟢 LOW)
 - **Total Complexity**: 4
@@ -820,6 +811,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `RoutineSetupScreen` | 1 |
+
+### UserPreferenceMemoryRepository.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `logOverride` | 1 |
+| `getDerivedConstraints` | 1 |
 
 ### SettingsFactory.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1

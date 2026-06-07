@@ -1,4 +1,4 @@
-# Codebase CRAP Index Analysis
+# Code Base CRAP Index Analysis
 
 This document evaluates the codebase using the **CRAP (Change Risk Anti-Patterns) index**.
 A higher CRAP index indicates higher risk when changing that file. A score **above 30** is considered highly risky.
@@ -9,14 +9,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 72
-- **High-Risk Files (CRAP > 30)**: 18
+- **Total Files Analyzed**: 73
+- **High-Risk Files (CRAP > 30)**: 19
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| AcademicCalendar.kt | 46 | 21.9% | 1053.17 | 🔴 HIGH |
+| AcademicCalendar.kt | 42 | 21.9% | 881.63 | 🔴 HIGH |
 | CommonSourceProviders.kt | 22 | 0.0% | 506.00 | 🔴 HIGH |
 | StudioPanel.kt | 18 | 0.0% | 342.00 | 🔴 HIGH |
 | CalendarAgent.kt | 65 | 66.1% | 230.02 | 🔴 HIGH |
@@ -30,14 +30,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | EventAgent.kt | 70 | 86.0% | 83.57 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 91.4% | 42.06 | 🔴 HIGH |
-| CollisionResolver.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
+| AcademicCalendarLogic.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 
 ---
 
 ## Detailed File Breakdown
 
-### AcademicCalendar.kt (Score: 1053.17 - 🔴 HIGH)
-- **Total Complexity**: 46
+### AcademicCalendar.kt (Score: 881.63 - 🔴 HIGH)
+- **Total Complexity**: 42
 - **Real Coverage**: 21.9%
 
 #### Methods list:
@@ -238,6 +238,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getEventCritiquePrompt` | 1 |
 | *... and 1 more* | |
 
+### AcademicCalendarLogic.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getSemesterRange` | 2 |
+| `getExpandedAndFilteredEvents` | 1 |
+
 ### CollisionResolver.kt (Score: 41.30 - 🔴 HIGH)
 - **Total Complexity**: 41
 - **Real Coverage**: 94.4%
@@ -394,7 +404,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `addDriveFile` | 3 |
 | `persistSource` | 1 |
 
-### AIService.kt (Score: 19.12 - 🟡 MEDIUM)
+### AIService.kt (Score: 19.13 - 🟡 MEDIUM)
 - **Total Complexity**: 9
 - **Real Coverage**: 50.0%
 
@@ -806,7 +816,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `FilePicker` | 1 |
 
-### RecursiveDecompositionAIService.kt (Score: 1.12 - 🟢 LOW)
+### RecursiveDecompositionAIService.kt (Score: 1.13 - 🟢 LOW)
 - **Total Complexity**: 1
 - **Real Coverage**: 50.0%
 

@@ -12,10 +12,31 @@ import org.w3c.dom.Element
  */
 object CrapIndexReporter {
 
-    private val SRC_DIR = File("composeApp/src/commonMain/kotlin/com/borinquenterrier/cef")
-    private val XML_REPORT = File("composeApp/build/reports/kover/report.xml")
-    private val COVERAGE_MD = File("COVERAGE.md")
-    private val CRAP_MD = File("CRAP.md")
+    private val isModuleDir = !File("composeApp").exists() && File("src/commonMain").exists()
+
+    private val SRC_DIR = if (isModuleDir) {
+        File("src/commonMain/kotlin/com/borinquenterrier/cef")
+    } else {
+        File("composeApp/src/commonMain/kotlin/com/borinquenterrier/cef")
+    }
+
+    private val XML_REPORT = if (isModuleDir) {
+        File("build/reports/kover/report.xml")
+    } else {
+        File("composeApp/build/reports/kover/report.xml")
+    }
+
+    private val COVERAGE_MD = if (isModuleDir) {
+        File("../COVERAGE.md")
+    } else {
+        File("COVERAGE.md")
+    }
+
+    private val CRAP_MD = if (isModuleDir) {
+        File("../CRAP.md")
+    } else {
+        File("CRAP.md")
+    }
 
     private val COMPLEXITY_KEYWORDS = listOf(
         Regex("\\bif\\b"), Regex("\\bwhen\\b"), Regex("\\bfor\\b"), Regex("\\bwhile\\b"), Regex("\\bcatch\\b"),

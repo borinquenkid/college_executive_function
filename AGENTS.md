@@ -7,7 +7,7 @@ An application designed to assist students with executive function challenges by
 ## Agent Mandates
 
 ### Build Verification Protocol
-Whenever a task or feature is reported as "done," verify that all three primary build targets compile successfully:
+Whenever a task or feature is reported as "done" (except when specifically running unit tests or CRAP index checks), verify that all three primary build targets compile successfully:
 ```bash
 ./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble
 ```

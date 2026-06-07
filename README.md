@@ -45,6 +45,50 @@ in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and r
 
 ---
 
+## Environment Setup & API Provisioning
+
+To run the application (in both local development mode and web server modes), you must configure local environment credentials in a `.env` file in the project root.
+
+A template is provided in [.env_template](./.env_template). Copy it to create your active `.env`:
+```shell
+cp .env_template .env
+```
+
+Fill in the following values:
+
+### 1. Gemini AI API Key (`CEF_GEMINI_API_KEY`)
+Used to authenticate Critic-Actor reasoning loops, RAG searches, and task decomposition with Gemini 1.5 Flash.
+1. Go to **Google AI Studio** at [aistudio.google.com](https://aistudio.google.com).
+2. Sign in with a Google account.
+3. Click the **"Get API key"** button in the top-left menu.
+4. Click **"Create API key"** and choose/create a Google Cloud project.
+5. Copy the generated key (starts with `AIzaSy...`) and paste it as `CEF_GEMINI_API_KEY`.
+
+### 2. Google OAuth Credentials (`GOOGLE_CLIENT_ID` & `GOOGLE_CLIENT_SECRET`)
+Used to authorize Google Workspace connections for Google Calendar and Google Drive sync.
+1. Open the **Google Cloud Console Credentials Page**: [console.cloud.google.com/apis/credentials](https://console.cloud.google.com/apis/credentials).
+2. Select or create a project.
+3. Click **"+ Create Credentials"** and select **"OAuth client ID"**.
+4. Set the **Application type** to **Web application** (for web server deployment).
+5. Under **Authorized redirect URIs**, add:
+   - For local development: `http://localhost:8080/Callback`
+   - For testing authorization: `https://developers.google.com/oauthplayground`
+6. Click **Create** and copy the resulting **Client ID** and **Client Secret**.
+
+### 3. Google OAuth Tokens (`GOOGLE_ACCESS_TOKEN` & `GOOGLE_REFRESH_TOKEN`)
+Used for automated/live backend synchronization testing.
+1. Open the **Google OAuth 2.0 Playground**: [developers.google.com/oauthplayground](https://developers.google.com/oauthplayground).
+2. Click the **Settings Gear Icon** (top-right).
+3. Check **"Use your own OAuth credentials"** and enter the `GOOGLE_CLIENT_ID` and `GOOGLE_CLIENT_SECRET` generated in step 2. Close settings.
+4. In **Step 1 (Select & authorize APIs)**, input/select the following scopes:
+   - Calendar API v3: `https://www.googleapis.com/auth/calendar`
+   - Drive API v3: `https://www.googleapis.com/auth/drive`
+5. Click **"Authorize APIs"** and authorize access with your Google account. (If you get redirect errors, make sure `https://developers.google.com/oauthplayground` is added in Step 2.5 above).
+6. In **Step 2 (Exchange authorization code for tokens)**, click **"Exchange authorization code for tokens"**.
+7. Copy the generated **Refresh token** and **Access token** values into your `.env` file.
+
+---
+
 ## Google Cloud Console & API Setup
 
 To enable Calendar sync and file import capabilities:

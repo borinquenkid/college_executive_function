@@ -651,29 +651,29 @@ Pure Compose UI files (`App.kt`, `AddRoutineItemDialog.kt`, `AcademicCalendar.kt
 
 ---
 
-## Phase 6 — Web Client & Agent-User Interaction (AG-UI) Protocol Integration
+## Phase 6 — Web Client & Agent-User Interaction (AG-UI) Protocol Integration (COMPLETED)
 
 Bring CEF to the web using a React frontend that dynamically communicates with the Ktor server via a real-time agentic stream, eliminating duplicated data models.
 
-### 6.1 — Gradle & Dependency Realignment
+### 6.1 — Gradle & Dependency Realignment (COMPLETED)
 * Update `server/build.gradle.kts` to depend on `:composeApp` JVM compile target.
 * Align library catalog dependencies (`kotlinx-datetime`, `multiplatform-settings`, Ktor JSON serialization) for server scope.
 * Configure duplicatesStrategy for copy and zip archive tasks.
 
-### 6.2 — Ktor AG-UI SSE Stream Endpoint
+### 6.2 — Ktor AG-UI SSE Stream Endpoint (COMPLETED)
 * Implement manual Server-Sent Events (SSE) endpoint `/api/agent/stream` inside `Application.kt`.
 * Map Critic-Actor refinement loops, database queries, and token generation into standard AG-UI events (`RUN_STARTED`, `REASONING_DELTA`, `TOOL_CALL_START`, `TEXT_MESSAGE_DELTA`, etc.).
 
-### 6.3 — React Frontend & Proxy Scaffolding
+### 6.3 — React Frontend & Proxy Scaffolding (COMPLETED)
 * Bootstrap a Vite-React-TypeScript application inside `/web`.
 * Set up standard `/api` request redirection to Ktor backend in `vite.config.ts`.
 * Establish custom typography (Space Grotesk, Outfit) and layouts in `index.css`.
 
-### 6.4 — ClientuseAgentStream Connection Hook
+### 6.4 — Client useAgentStream Connection Hook (COMPLETED)
 * Develop custom `useAgentStream` hook to manage `EventSource` connections.
 * Process streaming AG-UI payloads and distribute updates to React state.
 
-### 6.5 — Dynamic Agentic UI Views
+### 6.5 — Dynamic Agentic UI Views (COMPLETED)
 * Render live "thought bubbles" and reasoning logs during Critic-Actor executions.
 * Stream response texts word-by-word with loading indicators.
 * Render calendar agenda views and source directories dynamically when state updates arrive.

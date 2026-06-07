@@ -57,6 +57,11 @@ For **Institutional Server Deployments**, we adopt a **Database-per-Student SQLi
   4. Automatically trigger a full synchronization query from Google Drive and Google Calendar.
 * This ensures that physical local hardware failures, sudden app kills, or filesystem corruption result in zero permanent data loss, operating seamlessly on both mobile devices and web servers.
 
+### 7. Tenant Token and Preference Isolation
+* **The Client Pattern:** On individual client devices (Android, iOS, JVM Desktop), settings and OAuth access/refresh tokens are stored in the platform's local settings repository (such as Android SharedPreferences or iOS NSUserDefaults) via a global `Settings` instance.
+* **The Server Pattern:** In a multi-tenant web server environment, the backend must keep tokens and API keys isolated for thousands of concurrent users.
+* **Decision:** To prevent token leaks or session collision, the Ktor server **must not** use a shared system settings store (like JVM's global Java Preferences API). Instead, the `Settings` interface and token storage repositories (`GoogleTokenRepository`) must be backed directly by the student's **individual, isolated SQLite database file** (e.g. stored inside dedicated tables in `student123.db`). This ensures credentials and settings are physically isolated and managed within the same tenant boundary as their calendar data.
+
 ## Consequences
 
 ### Positive
@@ -65,6 +70,7 @@ For **Institutional Server Deployments**, we adopt a **Database-per-Student SQLi
 * **Blast Radius Control:** If a database file is corrupted or requires restoration, the process is isolated to that specific student. The other 39,999 students experience zero downtime.
 * **Cloud-Agnostic Support:** The deployment easily accommodates AWS, Azure, GCP, or purely local, firewall-protected university networks.
 * **High Recoverability:** Because database instances are designed as recoverable caches, local storage corruption on any platform (Android, iOS, Web) results in zero data loss.
+* **Secured Credentials:** Storing tokens inside the tenant's individual SQLite file ensures that user credentials and API configurations are physically isolated and deleted automatically when their account database is deleted, adhering to strict data hygiene regulations.
 
 ### Negative
 * **Multi-DB Schema Migrations:** Database migrations must be run across all 40,000 files. This requires automated migration runner scripts on startup to iterate through all active database paths.

@@ -16,7 +16,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| AcademicCalendar.kt | 29 | 24.4% | 392.17 | 🔴 HIGH |
 | StudioPanel.kt | 18 | 0.0% | 342.00 | 🔴 HIGH |
 | CalendarAgent.kt | 65 | 66.1% | 230.02 | 🔴 HIGH |
 | CommonSourceProviders.kt | 18 | 13.3% | 228.91 | 🔴 HIGH |
@@ -25,27 +24,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | AddRoutineItemDialog.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
 | GeminiAIService.kt | 106 | 83.8% | 153.53 | 🔴 HIGH |
 | CriticActorAIService.kt | 67 | 78.7% | 110.11 | 🔴 HIGH |
-| EventAgent.kt | 70 | 84.3% | 89.12 | 🔴 HIGH |
+| EventAgent.kt | 70 | 86.0% | 83.57 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 91.4% | 42.06 | 🔴 HIGH |
 | CollisionResolver.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
 | ModelManager.kt | 9 | 26.5% | 41.20 | 🔴 HIGH |
 | EventPresenter.kt | 18 | 59.0% | 40.37 | 🔴 HIGH |
+| GoogleDriveService.kt | 16 | 54.8% | 39.58 | 🔴 HIGH |
 
 ---
 
 ## Detailed File Breakdown
-
-### AcademicCalendar.kt (Score: 392.17 - 🔴 HIGH)
-- **Total Complexity**: 29
-- **Real Coverage**: 24.4%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `EventItemView` | 7 |
-| `TaskDecompositionDialog` | 6 |
-| `AcademicCalendar` | 1 |
 
 ### StudioPanel.kt (Score: 342.00 - 🔴 HIGH)
 - **Total Complexity**: 18
@@ -166,9 +155,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `serializeTasks` | 2 |
 | `generateStudyPlan` | 1 |
 
-### EventAgent.kt (Score: 89.12 - 🔴 HIGH)
+### EventAgent.kt (Score: 83.57 - 🔴 HIGH)
 - **Total Complexity**: 70
-- **Real Coverage**: 84.3%
+- **Real Coverage**: 86.0%
 
 #### Methods list:
 | Method | Complexity |
@@ -282,6 +271,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `setWatchedLocalDirectories` | 1 |
 | `setWatchedGDriveFolders` | 1 |
 
+### AcademicCalendar.kt (Score: 35.09 - 🔴 HIGH)
+- **Total Complexity**: 29
+- **Real Coverage**: 80.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `EventItemView` | 7 |
+| `TaskDecompositionDialog` | 6 |
+| `AcademicCalendar` | 1 |
+
 ### ContextAgent.kt (Score: 31.03 - 🔴 HIGH)
 - **Total Complexity**: 31
 - **Real Coverage**: 96.8%
@@ -303,16 +303,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `SourceItemView` | 5 |
-
-### ErrorBanner.kt (Score: 30.00 - 🟡 MEDIUM)
-- **Total Complexity**: 5
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `QuotaErrorBanner` | 1 |
-| `AnimatedErrorBanner` | 1 |
 
 ### GoogleCalendarSyncService.kt (Score: 29.29 - 🟡 MEDIUM)
 - **Total Complexity**: 29
@@ -358,6 +348,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `expandTimeEvent` | 5 |
 | `expandDayEvent` | 5 |
 | `expandEvents` | 2 |
+
+### ErrorBanner.kt (Score: 20.49 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 14.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `QuotaErrorBanner` | 1 |
+| `AnimatedErrorBanner` | 1 |
 
 ### SqlDelightUserPreferenceMemoryRepository.kt (Score: 20.47 - 🟡 MEDIUM)
 - **Total Complexity**: 20
@@ -423,9 +423,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `categorizeSource` | 1 |
 | `rememberAIService` | 1 |
 
-### Event.kt (Score: 18.23 - 🟡 MEDIUM)
+### Event.kt (Score: 18.15 - 🟡 MEDIUM)
 - **Total Complexity**: 18
-- **Real Coverage**: 91.0%
+- **Real Coverage**: 92.3%
 
 #### Methods list:
 | Method | Complexity |
@@ -455,9 +455,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getEventsBySyncStatus` | 1 |
 | *... and 3 more* | |
 
-### AppController.kt (Score: 13.39 - 🟢 LOW)
+### DecompositionOrchestrator.kt (Score: 13.10 - 🟢 LOW)
+- **Total Complexity**: 12
+- **Real Coverage**: 80.3%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `decompose` | 7 |
+| `isComplex` | 3 |
+| `calculateSubDueDate` | 1 |
+| `calculateDaysBeforeDue` | 1 |
+
+### AppController.kt (Score: 12.51 - 🟢 LOW)
 - **Total Complexity**: 9
-- **Real Coverage**: 62.2%
+- **Real Coverage**: 64.9%
 
 #### Methods list:
 | Method | Complexity |
@@ -470,18 +482,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `addChatMessage` | 1 |
 | `setScreenListener` | 1 |
 | `setEventsListener` | 1 |
-
-### DecompositionOrchestrator.kt (Score: 13.10 - 🟢 LOW)
-- **Total Complexity**: 12
-- **Real Coverage**: 80.3%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `decompose` | 7 |
-| `isComplex` | 3 |
-| `calculateSubDueDate` | 1 |
-| `calculateDaysBeforeDue` | 1 |
 
 ### SourcesPanel.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -687,6 +687,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readText` | 1 |
 | `rememberLocalFileReader` | 1 |
 
+### NormalizationService.kt (Score: 5.46 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 73.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extract` | 5 |
+
 ### SyncProposal.kt (Score: 5.02 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 60.0%
@@ -702,15 +711,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `split` | 3 |
 | `process` | 2 |
 
-### NormalizationService.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 94.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `extract` | 5 |
-
 ### WebSourceReader.kt (Score: 4.11 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 81.0%
@@ -721,15 +721,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readTextFromUrl` | 2 |
 | `cleanHtml` | 2 |
 
-### EventDisplayPipeline.kt (Score: 4.01 - 🟢 LOW)
-- **Total Complexity**: 4
-- **Real Coverage**: 92.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getExpandedAndFilteredEvents` | 1 |
-
 ### SyncNegotiationDialog.kt (Score: 4.00 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 97.6%
@@ -738,6 +729,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `SyncNegotiationDialog` | 1 |
+
+### EventDisplayPipeline.kt (Score: 4.00 - 🟢 LOW)
+- **Total Complexity**: 4
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getExpandedAndFilteredEvents` | 1 |
 
 ### KotlinxSerialization.kt (Score: 4.00 - 🟢 LOW)
 - **Total Complexity**: 4

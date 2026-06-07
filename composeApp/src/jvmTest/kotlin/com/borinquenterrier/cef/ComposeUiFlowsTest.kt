@@ -222,4 +222,57 @@ class ComposeUiFlowsTest {
         cancelButton.performClick()
         dismissed shouldBe true
     }
+
+    @Test
+    fun testAcademicCalendarRendering() = runComposeUiTest {
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val mockEventAgent = mockk<EventAgent>(relaxed = true)
+        
+        val errorStateFlow = MutableStateFlow<AgentError?>(null)
+        every { mockEventAgent.errorState } returns errorStateFlow
+        
+        // Mock getEvents to return a list of events
+        val testEvents = listOf(
+            DayEvent(
+                id = "event-1",
+                title = "Calculus HW 3",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 6, 12)
+            ),
+            DayEvent(
+                id = "event-2",
+                title = "Physics Lecture",
+                source = EventSource.ROUTINE,
+                category = AcademicCategory.REGULAR,
+                date = LocalDate(2026, 6, 13)
+            )
+        )
+        coEvery { mockCalendarAgent.getEvents(any()) } returns testEvents
+        
+        var navigatedScreen: AppScreen? = null
+        val onNavigate: (AppScreen) -> Unit = { navigatedScreen = it }
+
+        setContent {
+            AcademicCalendar(
+                aiGeneratedEvents = emptyList(),
+                calendarAgent = mockCalendarAgent,
+                eventAgent = mockEventAgent,
+                onNavigate = onNavigate
+            )
+        }
+
+        // Verify that elements from the calendar are rendered
+        onNodeWithText("Calculus HW 3").assertExists()
+        onNodeWithText("Physics Lecture").assertExists()
+        onNodeWithText("Important Deadline").assertExists()
+        onNodeWithText("Weekly Routine").assertExists()
+        onNodeWithText("Add Source").assertExists()
+
+        // Click on "Weekly Routine" button and verify navigation to Routine screen
+        val routineButton = onNodeWithText("Weekly Routine")
+        routineButton.assertExists()
+        routineButton.performClick()
+        navigatedScreen shouldBe AppScreen.Routine
+    }
 }

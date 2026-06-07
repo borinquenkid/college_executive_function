@@ -11,6 +11,7 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import com.russhwolf.settings.Settings
 import kotlinx.coroutines.launch
@@ -69,7 +70,8 @@ fun StudioPanel(
         modifier = modifier
             .fillMaxSize()
             .padding(4.dp)
-            .border(1.dp, MaterialTheme.colorScheme.outlineVariant),
+            .border(1.dp, MaterialTheme.colorScheme.outlineVariant)
+            .testTag("studio_panel"),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         Text("Studio", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 4.dp))
@@ -83,7 +85,8 @@ fun StudioPanel(
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(4.dp),
+                .padding(4.dp)
+                .testTag("semester_health_card"),
             colors = CardDefaults.cardColors(
                 containerColor = MaterialTheme.colorScheme.primaryContainer
             )
@@ -108,7 +111,8 @@ fun StudioPanel(
                         Text(
                             text = "${dueIn7Days.size} deliverables",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.testTag("deliverables_7_days")
                         )
                     }
                     Column {
@@ -120,7 +124,8 @@ fun StudioPanel(
                         Text(
                             text = "${dueIn30Days.size} deliverables",
                             style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                            color = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.testTag("deliverables_30_days")
                         )
                     }
                 }
@@ -140,7 +145,7 @@ fun StudioPanel(
                                 eventAgent.generateStudyPlan(selectedSource)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(48.dp),
+                        modifier = Modifier.fillMaxWidth().height(48.dp).testTag("process_syllabus_button"),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(0.dp),
                         enabled = !isLoading
@@ -162,7 +167,7 @@ fun StudioPanel(
                         item {
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                                modifier = Modifier.fillMaxWidth()
+                                modifier = Modifier.fillMaxWidth().testTag("source_discrepancies_card")
                             ) {
                                 Column(modifier = Modifier.padding(8.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
@@ -192,7 +197,7 @@ fun StudioPanel(
                                     eventAgent.pushToCalendar()
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier.fillMaxWidth().testTag("push_calendar_button"),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = if (hasConflicts) MaterialTheme.colorScheme.error else if (isConnected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
                             ),
@@ -219,7 +224,7 @@ fun StudioPanel(
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("export_ics_button"),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary
                             ),
@@ -251,7 +256,7 @@ fun StudioPanel(
                 }
             }
         } else {
-            Text("Select a source to get started.")
+            Text("Select a source to get started.", modifier = Modifier.testTag("no_source_placeholder"))
         }
 
         Box(
@@ -259,9 +264,9 @@ fun StudioPanel(
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
-                CircularProgressIndicator()
+                CircularProgressIndicator(modifier = Modifier.testTag("studio_loading_indicator"))
             } else {
-                Text(statusMessage, style = MaterialTheme.typography.bodySmall)
+                Text(statusMessage, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("status_message_text"))
             }
         }
     }

@@ -33,7 +33,22 @@ object LocalTestGenerator {
     }
 
     private val SRC_DIR = File(BASE_DIR, "src/commonMain/kotlin/com/borinquenterrier/cef")
-    private val TEST_DIR = File(BASE_DIR, "src/commonTest/kotlin/com/borinquenterrier/cef")
+    private val TEST_DIRS = listOf(
+        File(BASE_DIR, "src/commonTest/kotlin/com/borinquenterrier/cef"),
+        File(BASE_DIR, "src/jvmTest/kotlin/com/borinquenterrier/cef"),
+        File(BASE_DIR, "src/androidUnitTest/kotlin/com/borinquenterrier/cef")
+    )
+
+    private fun findTestFile(relativeDir: String, testFileName: String): File? {
+        for (testBaseDir in TEST_DIRS) {
+            val testTargetDir = if (relativeDir.isEmpty()) testBaseDir else File(testBaseDir, relativeDir)
+            val file = File(testTargetDir, testFileName)
+            if (file.exists()) {
+                return file
+            }
+        }
+        return null
+    }
     
     private const val OLLAMA_URL = "http://localhost:11434/api/generate"
     private const val DEFAULT_MODEL = "llama3.2:3b" // Lightweight for 16GB RAM constraints
@@ -141,18 +156,17 @@ object LocalTestGenerator {
 
         for (dir in codeDirs) {
             val relativeDir = dir.relativeTo(SRC_DIR).path
-            val testTargetDir = if (relativeDir.isEmpty()) TEST_DIR else File(TEST_DIR, relativeDir)
             val files = dir.listFiles { file -> file.isFile && file.name.endsWith(".kt") } ?: emptyArray()
 
             for (file in files) {
                 val baseName = file.name.substringBeforeLast(".")
-                val testFile = File(testTargetDir, "${baseName}Test.kt")
-                val testExists = if (testFile.exists()) "Yes 🟢" else "No 🔴"
+                val testFile = findTestFile(relativeDir, "${baseName}Test.kt")
+                val testExists = if (testFile != null) "Yes 🟢" else "No 🔴"
                 
                 val codeText = file.readText()
                 val publicMethods = extractPublicMethods(codeText)
                 
-                val missingCount = if (testFile.exists()) {
+                val missingCount = if (testFile != null) {
                     val testText = testFile.readText()
                     val existingTests = extractExistingTests(testText)
                     val missing = findMissingMethods(publicMethods, existingTests)
@@ -170,10 +184,8 @@ object LocalTestGenerator {
     private fun processFile(sourceFile: File, modelName: String) {
         val baseName = sourceFile.name.substringBeforeLast(".")
         val relativeDir = sourceFile.parentFile.relativeTo(SRC_DIR).path
-        val testTargetDir = if (relativeDir.isEmpty()) TEST_DIR else File(TEST_DIR, relativeDir)
-        
-        // 3) Find a file and then attempt to find the corresponding test file name *Test.kt
-        val testFile = File(testTargetDir, "${baseName}Test.kt")
+        val testFile = findTestFile(relativeDir, "${baseName}Test.kt") 
+            ?: File(if (relativeDir.isEmpty()) TEST_DIRS[0] else File(TEST_DIRS[0], relativeDir), "${baseName}Test.kt")
         
         println("\nProcessing source file: ${sourceFile.relativeTo(SRC_DIR).path}")
         val codeText = sourceFile.readText()

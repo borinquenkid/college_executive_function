@@ -9,7 +9,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
 import io.mockk.*
+import io.kotest.assertions.nondeterministic.eventually
 import kotlinx.coroutines.delay
+import kotlin.time.Duration.Companion.seconds
 
 class BugReporterTest : FunSpec({
 
@@ -30,8 +32,9 @@ class BugReporterTest : FunSpec({
         val bugReporter = BugReporter(httpClient, mockPreferencesRepository, telemetryManager, logger)
         bugReporter.reportError(Exception("Test Exception"), "Test Context")
 
-        delay(150) // wait for coroutine scope launch
-
+        // Give the launched coroutine a chance to run, then confirm it stays at 0
+        // (there's no "success" signal to poll for in the disabled case).
+        delay(150)
         mockEngine.requestHistory.size shouldBe 0
     }
 
@@ -57,9 +60,11 @@ class BugReporterTest : FunSpec({
         val bugReporter = BugReporter(httpClient, mockPreferencesRepository, telemetryManager, logger)
         bugReporter.reportError(Exception("Test Exception"), "Test Context")
 
-        delay(150) // wait for coroutine scope launch
-
-        mockEngine.requestHistory.size shouldBe 1
+        // Poll instead of a fixed delay: the report is sent on a background coroutine,
+        // and a fixed sleep was flaky on slower CI runners.
+        eventually(10.seconds) {
+            mockEngine.requestHistory.size shouldBe 1
+        }
         val request = mockEngine.requestHistory.first()
         request.url.toString() shouldBe "https://api.web3forms.com/submit"
     }

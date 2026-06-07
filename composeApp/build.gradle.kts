@@ -66,6 +66,24 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
     }
 }
 
+tasks.register<JavaExec>("generateTest") {
+    group = "verification"
+    description = "Automatically generate Kotest unit tests using local LLM via Ollama."
+    mainClass.set("com.borinquenterrier.cef.LocalTestGenerator")
+    
+    // Wire classpath from jvmTest source set
+    val jvmTarget = kotlin.targets.getByName("jvm")
+    val jvmTestCompilation = jvmTarget.compilations.getByName("test")
+    classpath = files(
+        jvmTestCompilation.output.classesDirs,
+        jvmTestCompilation.compileDependencyFiles,
+        jvmTestCompilation.runtimeDependencyFiles
+    )
+    
+    // Enable interactive console input
+    standardInput = System.`in`
+}
+
 kotlin {
     jvmToolchain(17)
     androidTarget {

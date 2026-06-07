@@ -238,9 +238,11 @@ class GeminiAIService(
         val available = getAvailableModels()
         var attempts = 0
         var lastError: Exception? = null
+        var lastNegotiatedModel: String? = null
 
         while (attempts < maxAttempts) {
             val modelName = negotiateBestModel(available, tier)
+            lastNegotiatedModel = modelName
             try {
                 val httpResponse = postToModel(modelName, body(modelName))
                 val responseBody = httpResponse.bodyAsText()
@@ -294,16 +296,26 @@ class GeminiAIService(
                     }
                 }
 
-                // --- Transient errors — extract server-supplied wait time, else exponential back-off ---
-                if (httpResponse.status == HttpStatusCode.TooManyRequests ||
-                    httpResponse.status == HttpStatusCode.ServiceUnavailable ||
+                // --- Transient 5xx / 503 errors — blacklist failing model, try next model immediately ---
+                if (httpResponse.status == HttpStatusCode.ServiceUnavailable ||
                     httpResponse.status.value >= 500
                 ) {
-                    if (httpResponse.status == HttpStatusCode.TooManyRequests ||
-                        httpResponse.status == HttpStatusCode.ServiceUnavailable
-                    ) {
-                        telemetryManager?.logRateLimitError()
+                    telemetryManager?.logRateLimitError()
+                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+                    blacklistedModels[modelName] = expiry
+                    try {
+                        database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                        logger?.e(tag, "⚠️ Model $modelName returned ${httpResponse.status}. Evicted from cache and blacklisted. Trying next model...")
+                    } catch (e: Exception) {
+                        logger?.e(tag, "Failed to evict model $modelName from cache: ${e.message}")
                     }
+                    attempts++
+                    continue
+                }
+
+                // --- Transient 429 Too Many Requests — extract wait time, else back-off, retry same model ---
+                if (httpResponse.status == HttpStatusCode.TooManyRequests) {
+                    telemetryManager?.logRateLimitError()
                     attempts++
 
                     val delayMs: Long = resolveRetryDelay(
@@ -313,6 +325,12 @@ class GeminiAIService(
                         attempts = attempts,
                         tag = tag
                     )
+
+                    // If rate-limited with a large delay (>10s), treat it as a quota/exhaustion fail-fast
+                    // to prevent UI freezing and infinite test suite timeouts.
+                    if (delayMs > 10000L) {
+                        throw Exception("QuotaExhausted: Rate limit delay of ${delayMs}ms exceeds the maximum wait threshold of 10 seconds.")
+                    }
 
                     delayFn(delayMs)
                     continue
@@ -331,8 +349,11 @@ class GeminiAIService(
                 return parseResponse(responseText)
 
             } catch (e: Exception) {
-                // Propagate fatal errors immediately
-                if (e.message == "Unauthorized" || e.message == "Forbidden") throw e
+                // Propagate fatal/quota errors immediately
+                if (e.message == "Unauthorized" || 
+                    e.message == "Forbidden" || 
+                    e.message?.startsWith("QuotaExhausted") == true
+                ) throw e
 
                 lastError = e
                 logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
@@ -341,6 +362,20 @@ class GeminiAIService(
                 delayFn(delayMs)
             }
         }
+
+        // If we reach here, it means we exceeded maxAttempts.
+        // Evict the failing model from the database cache and blacklist it so it's not immediately re-negotiated.
+        if (lastNegotiatedModel != null) {
+            val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+            blacklistedModels[lastNegotiatedModel] = expiry
+            try {
+                database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts retry attempts. Evicted from cache and blacklisted.")
+            } catch (e: Exception) {
+                logger?.e(tag, "Failed to evict model $lastNegotiatedModel from cache: ${e.message}")
+            }
+        }
+
         throw lastError ?: Exception("Failed after $maxAttempts attempts")
     }
 

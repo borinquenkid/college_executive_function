@@ -56,7 +56,7 @@ fun resolveApiKey(testName: String): String? {
  * }
  * ```
  */
-class QuotaExhaustedException(msg: String) : Exception(msg)
+class QuotaExhaustedException(msg: String) : org.opentest4j.TestAbortedException(msg)
 
 suspend fun <T> TestScope.skipIfQuotaExhausted(operationName: String, block: suspend () -> T): T {
     return try {

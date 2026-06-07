@@ -32,8 +32,16 @@ class ModelNegotiationIntegrationTest : FunSpec({
 
         // 3. Trigger a call that requires negotiation
         // Since negotiateModelName is private, we call generateCalendarEvents with minimal text
-        val events = runBlocking { 
-            geminiService.generateCalendarEvents(listOf(SourceFragment("Test event on 2024-12-01"))) 
+        val events = try {
+            runBlocking { 
+                geminiService.generateCalendarEvents(listOf(SourceFragment("Test event on 2024-12-01"))) 
+            }
+        } catch (e: Exception) {
+            if (e.message?.contains("QuotaExhausted") == true) {
+                println("SKIPPING NEGOTIATION TEST: Gemini quota/rate-limit exhausted.")
+                return@test
+            }
+            throw e
         }
 
         // 4. Verify results

@@ -242,7 +242,7 @@ compose.desktop {
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.borinquenterrier.college_executive_function"
-            packageVersion = "1.0.0"
+            packageVersion = (findProperty("cef.versionName") as String?) ?: "1.0.0"
         }
     }
 }

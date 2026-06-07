@@ -260,7 +260,7 @@ object LocalTestGenerator {
             if (stripped.startsWith("//") || stripped.startsWith("*") || stripped.startsWith("/*") || stripped.startsWith("import ") || stripped.startsWith("package ")) {
                 continue
             }
-            if (stripped.contains("fun ") && !stripped.contains("private ") && !stripped.contains("internal ") && !stripped.contains("override ") && !stripped.contains("protected ")) {
+            if (stripped.contains("fun ") && !stripped.contains("private ") && !stripped.contains("internal ") && !stripped.contains("protected ")) {
                 val funIdx = stripped.indexOf("fun ")
                 if (funIdx != -1) {
                     val afterFun = stripped.substring(funIdx + 4).trim()

@@ -17,8 +17,11 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
     val localPropertiesFile = project.rootProject.file("local.properties")
     val envFile = project.rootProject.file(".env")
     
-    inputs.file(localPropertiesFile).optional()
-    inputs.file(envFile).optional()
+    // Use a lazy provider so Gradle only validates files that actually exist —
+    // both are gitignored secret sources and absent on CI runners.
+    inputs.files(project.provider {
+        listOf(localPropertiesFile, envFile).filter { it.exists() }
+    }).withPropertyName("secretSourceFiles").optional()
     
     val outputDir = layout.buildDirectory.dir("generated/cef/commonMain/kotlin")
     outputs.dir(outputDir)

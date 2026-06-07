@@ -20,10 +20,10 @@ object CrapIndexReporter {
         File("composeApp/src/commonMain/kotlin/com/borinquenterrier/cef")
     }
 
-    private val XML_REPORT = if (isModuleDir) {
-        File("build/reports/kover/report.xml")
-    } else {
-        File("composeApp/build/reports/kover/report.xml")
+    private val XML_REPORT = run {
+        val defaultFile = if (isModuleDir) File("build/reports/kover/report.xml") else File("composeApp/build/reports/kover/report.xml")
+        val jvmFile = if (isModuleDir) File("build/reports/kover/reportJvm.xml") else File("composeApp/build/reports/kover/reportJvm.xml")
+        if (jvmFile.exists()) jvmFile else defaultFile
     }
 
     private val COVERAGE_MD = if (isModuleDir) {

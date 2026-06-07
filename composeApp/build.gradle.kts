@@ -84,6 +84,20 @@ tasks.register<JavaExec>("generateTest") {
     standardInput = System.`in`
 }
 
+tasks.register<JavaExec>("generateCrapReport") {
+    group = "verification"
+    description = "Generate CRAP and Coverage reports from the Kover XML report."
+    mainClass.set("com.borinquenterrier.cef.CrapIndexReporter")
+    
+    val jvmTarget = kotlin.targets.getByName("jvm")
+    val jvmTestCompilation = jvmTarget.compilations.getByName("test")
+    classpath = files(
+        jvmTestCompilation.output.classesDirs,
+        jvmTestCompilation.compileDependencyFiles,
+        jvmTestCompilation.runtimeDependencyFiles
+    )
+}
+
 kotlin {
     jvmToolchain(17)
     androidTarget {

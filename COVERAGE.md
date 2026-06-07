@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **64.72%** (5644/8720 lines)
+- **Overall Line Coverage**: **68.42%** (5974/8732 lines)
 - **Total Source Files**: 76
 
 ## Coverage by File
@@ -21,7 +21,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineItem.kt | 0.0% (0/24) | 0.0% (0/4) | 0.0% | RoutineItem, RoutineItem$Companion |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% | RoutineSetupScreenKt |
-| 🔴 | StudioPanel.kt | 0.0% (0/340) | 0.0% (0/96) | 0.0% | ComposableSingletons$StudioPanelKt, StudioPanelKt, StudioPanelKt$StudioPanel$1$1, StudioPanelKt$StudioPanel$2$1, StudioPanelKt$StudioPanel$3$3$1$1$1$1$1, StudioPanelKt$StudioPanel$3$3$1$3$1$1$1, StudioPanelKt$StudioPanel$3$3$1$4$1$1$1, StudioPanelKt$StudioPanel$3$3$1$5$1 |
 | 🔴 | UserPreferenceMemoryRepository.kt | 0.0% (0/2) | N/A | 0.0% | UserPreferenceMemoryRepository |
 | 🔴 | SourcesPanel.kt | 0.0% (0/68) | 0.0% (0/52) | 0.0% | SourcesPanelKt, SourcesPanelKt$SourcesPanel$1$2$1$1$1$1 |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -48,7 +47,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | CalendarAgent.kt | 66.1% (222/336) | 34.9% (120/344) | 58.0% | CalendarAgent |
 | 🟡 | IcsStringBuilder.kt | 66.2% (90/136) | 39.1% (18/46) | 69.6% | IcsStringBuilder |
 | 🟡 | OAuthExchange.kt | 67.9% (38/56) | 25.0% (8/32) | 59.3% | OAuthExchange, TokenResponse, TokenResponse$Companion |
-| 🟡 | Logger.kt | 70.0% (28/40) | 66.7% (8/12) | 54.1% | Logger, LoggerKt |
+| 🟡 | Logger.kt | 70.0% (28/40) | 50.0% (6/12) | 53.2% | Logger, LoggerKt |
 | 🟡 | SourceIngestionHandler.kt | 70.8% (34/48) | 100.0% (4/4) | 67.4% | GoogleDriveQueryBuilder, SourceIngestionHandler, SourceIngestionHandler$ingestDriveFile$1, SourceIngestionHandler$ingestLocalFile$1, SourceIngestionHandler$ingestUrl$1 |
 | 🟡 | CalendarInterfaces.kt | 72.7% (16/22) | N/A | 68.2% | OverlapException, RemoteCalendarMetadata, StudentCalendarRepository |
 | 🟡 | NormalizationService.kt | 73.7% (28/38) | 46.2% (24/52) | 68.7% | NormalizationService |
@@ -58,7 +57,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | DecompositionOrchestrator.kt | 80.3% (98/122) | 81.3% (26/32) | 90.5% | DecompositionOrchestrator, WorkUnit$SubTask, WorkUnit$Task |
 | 🟢 | AcademicCalendar.kt | 80.7% (492/610) | 56.4% (106/188) | 80.0% | AcademicCalendarKt, AcademicCalendarKt$AcademicCalendar$1$1, AcademicCalendarKt$AcademicCalendar$2$1, AcademicCalendarKt$AcademicCalendar$2$1$1, AcademicCalendarKt$AcademicCalendar$5$1$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$2$1$1$2$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$3$1$3$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$4$2$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$2$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$3$1$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$4$1$1, ComposableSingletons$AcademicCalendarKt |
 | 🟢 | WebSourceReader.kt | 81.0% (34/42) | N/A | 86.6% | WebSourceReader |
-| 🟢 | GeminiAIService.kt | 83.8% (622/742) | 53.6% (368/686) | 75.2% | Candidate, Candidate$Companion, Content, Content$Companion, GeminiAIService, GeminiAIService$1, GeminiAIService$Companion, GeminiAIService$TaskTier, GeminiResponse, GeminiResponse$Companion, ModelInfo, ModelInfo$Companion, ModelListResponse, ModelListResponse$Companion, Part, Part$Companion |
+| 🟢 | GeminiAIService.kt | 83.8% (622/742) | 52.2% (358/686) | 74.9% | Candidate, Candidate$Companion, Content, Content$Companion, GeminiAIService, GeminiAIService$1, GeminiAIService$Companion, GeminiAIService$TaskTier, GeminiResponse, GeminiResponse$Companion, ModelInfo, ModelInfo$Companion, ModelListResponse, ModelListResponse$Companion, Part, Part$Companion |
 | 🟢 | EventAgent.kt | 86.0% (404/470) | 47.8% (132/276) | 78.1% | AgentError, AgentError$GenericError, AgentError$QuotaExhausted, EventAgent |
 | 🟢 | ChatPanel.kt | 87.4% (208/238) | 44.4% (32/72) | 84.7% | ChatMessage, ChatPanelKt, ChatPanelKt$ChatPanel$1$3$2$1$1, ComposableSingletons$ChatPanelKt |
 | 🟢 | SqlDelightUserPreferenceMemoryRepository.kt | 89.5% (102/114) | 75.0% (54/72) | 86.1% | SqlDelightUserPreferenceMemoryRepository, SqlDelightUserPreferenceMemoryRepository$clearAllLogs$2, SqlDelightUserPreferenceMemoryRepository$getDerivedConstraints$2, SqlDelightUserPreferenceMemoryRepository$logOverride$2, SqlDelightUserPreferenceMemoryRepository$pruneOldLogs$2 |
@@ -68,6 +67,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | SourceProcessor.kt | 91.7% (22/24) | 83.3% (10/12) | 86.6% | SourceProcessor |
 | 🟢 | Event.kt | 92.3% (144/156) | 35.8% (128/358) | 71.5% | AcademicCategory, CompletionStatus, DayEvent, DayEvent$Companion, Event, Event$DefaultImpls, EventKt, EventSource, Recurrence, Recurrence$Companion, SyncStatus, TimeEvent, TimeEvent$Companion |
 | 🟢 | GoogleCalendarSyncService.kt | 93.0% (240/258) | 45.1% (130/288) | 78.6% | GoogleApiException, GoogleCalendarDiscoveryItem, GoogleCalendarDiscoveryItem$Companion, GoogleCalendarEventsResponse, GoogleCalendarEventsResponse$Companion, GoogleCalendarItem, GoogleCalendarItem$Companion, GoogleCalendarListDiscoveryResponse, GoogleCalendarListDiscoveryResponse$Companion, GoogleCalendarSyncService, GoogleCalendarSyncService$createCalendar$2, GoogleCalendarSyncService$deleteEvent$2, GoogleCalendarSyncService$fetchEventsPage$2, GoogleCalendarSyncService$listCalendars$2, GoogleCalendarSyncService$syncEvent$2, GoogleEvent, GoogleEvent$Companion, GoogleEventDateTime, GoogleEventDateTime$Companion |
+| 🟢 | StudioPanel.kt | 93.8% (330/352) | 60.4% (58/96) | 94.8% | ComposableSingletons$StudioPanelKt, StudioPanelKt, StudioPanelKt$StudioPanel$1$1, StudioPanelKt$StudioPanel$2$1, StudioPanelKt$StudioPanel$3$3$1$1$1$1$1, StudioPanelKt$StudioPanel$3$3$1$3$1$1$1, StudioPanelKt$StudioPanel$3$3$1$4$1$1$1, StudioPanelKt$StudioPanel$3$3$1$5$1 |
 | 🟢 | CollisionResolver.kt | 94.4% (202/214) | 79.1% (136/172) | 95.3% | CollisionResolver, ResolutionResult$Conflict, ResolutionResult$Success |
 | 🟢 | BugReporter.kt | 95.3% (82/86) | 50.0% (8/16) | 84.1% | BugReporter, BugReporter$reportError$1, TelemetryStats, TelemetryStats$Companion |
 | 🟢 | SqlDelightSourceRepository.kt | 95.9% (94/98) | 100.0% (20/20) | 92.4% | SqlDelightSourceRepository, SqlDelightSourceRepository$getAllSources$2, SqlDelightSourceRepository$getFragmentsForSource$2, SqlDelightSourceRepository$getSourceById$2, SqlDelightSourceRepository$getSourceMetadata$2, SqlDelightSourceRepository$saveSource$2, SqlDelightSourceRepository$updateSourceMetadata$2 |

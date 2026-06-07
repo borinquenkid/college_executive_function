@@ -10,13 +10,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 76
-- **High-Risk Files (CRAP > 30)**: 18
+- **High-Risk Files (CRAP > 30)**: 17
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| StudioPanel.kt | 18 | 0.0% | 342.00 | 🔴 HIGH |
 | CalendarAgent.kt | 65 | 66.1% | 230.02 | 🔴 HIGH |
 | CommonSourceProviders.kt | 18 | 13.3% | 228.91 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 29 | 38.9% | 220.94 | 🔴 HIGH |
@@ -31,19 +30,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | ModelManager.kt | 9 | 26.5% | 41.20 | 🔴 HIGH |
 | EventPresenter.kt | 18 | 59.0% | 40.37 | 🔴 HIGH |
 | GoogleDriveService.kt | 16 | 54.8% | 39.58 | 🔴 HIGH |
+| AgentHarness.kt | 37 | 89.9% | 38.41 | 🔴 HIGH |
 
 ---
 
 ## Detailed File Breakdown
-
-### StudioPanel.kt (Score: 342.00 - 🔴 HIGH)
-- **Total Complexity**: 18
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `StudioPanel` | 1 |
 
 ### CalendarAgent.kt (Score: 230.02 - 🔴 HIGH)
 - **Total Complexity**: 65
@@ -435,6 +426,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `overlaps` | 1 |
 | `Event.timeUntilDue` | 1 |
 | `Event.studyProgress` | 1 |
+
+### StudioPanel.kt (Score: 18.08 - 🟡 MEDIUM)
+- **Total Complexity**: 18
+- **Real Coverage**: 93.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `StudioPanel` | 1 |
 
 ### CalendarInterfaces.kt (Score: 16.43 - 🟡 MEDIUM)
 - **Total Complexity**: 13

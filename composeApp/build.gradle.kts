@@ -247,6 +247,10 @@ compose.desktop {
             packageName = "com.borinquenterrier.college_executive_function"
             packageVersion = (findProperty("cef.versionName") as String?) ?: "1.0.0"
         }
+
+        buildTypes.release.proguard {
+            isEnabled.set(false)
+        }
     }
 }
 

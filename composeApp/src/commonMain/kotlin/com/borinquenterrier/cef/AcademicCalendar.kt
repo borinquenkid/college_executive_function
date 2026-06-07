@@ -73,11 +73,11 @@ fun AcademicCalendar(
     // Define the semester ranges
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     val (viewStartDate, viewEndDate) = remember(today) {
-        AcademicCalendarLogic.getSemesterRange(today)
+        SemesterResolver.getSemesterRange(today)
     }
 
     val allExpandedEvents = remember(aiGeneratedEvents, routineEvents, displayedEvents, viewStartDate, viewEndDate) {
-        AcademicCalendarLogic.getExpandedAndFilteredEvents(
+        EventDisplayPipeline.getExpandedAndFilteredEvents(
             routineEvents = routineEvents,
             aiGeneratedEvents = aiGeneratedEvents,
             displayedEvents = displayedEvents,
@@ -325,38 +325,12 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
 
 @Composable
 fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
-    val borderColor = when (event.category) {
-        AcademicCategory.HOLIDAY -> Color(0xFFFF5252) // Red-ish for Holidays
-        AcademicCategory.DEADLINE -> Color(0xFFFF9800) // Orange for Deadlines
-        AcademicCategory.FINALS -> Color(0xFF9C27B0) // Purple for Finals
-        AcademicCategory.SEMESTER_BOUND -> Color(0xFF607D8B) // Grey for Start/End
-        AcademicCategory.STUDY_BLOCK -> Color(0xFF8BC34A) // Light Green for Study
-        AcademicCategory.CLASS -> Color(0xFF3F51B5) // Indigo for Class
-        AcademicCategory.REGULAR -> when (event.source) {
-            EventSource.ROUTINE -> Color(0xFF4CAF50) // Green
-            EventSource.AI_GENERATED -> Color(0xFF2196F3) // Blue
-            EventSource.MANUAL -> Color(0xFFBDBDBD) // Light Grey
-            EventSource.STUDENT -> Color(0xFFE91E63) // Pink
-            EventSource.SCHOOL -> Color(0xFF9E9E9E) // Grey
-            EventSource.CLASS -> Color(0xFF3F51B5) // Indigo
-        }
+    val borderColor = remember(event.category, event.source) {
+        EventPresenter.getEventBorderColor(event.category, event.source)
     }
     
-    val categoryLabel = when (event.category) {
-        AcademicCategory.HOLIDAY -> "Holiday/Break"
-        AcademicCategory.DEADLINE -> "Important Deadline"
-        AcademicCategory.FINALS -> "Finals Week"
-        AcademicCategory.SEMESTER_BOUND -> "Semester Boundary"
-        AcademicCategory.STUDY_BLOCK -> "Suggested Study Period"
-        AcademicCategory.CLASS -> "Scheduled Class"
-        AcademicCategory.REGULAR -> when (event.source) {
-            EventSource.ROUTINE -> "Class/Routine"
-            EventSource.AI_GENERATED -> "Homework/Assignment"
-            EventSource.MANUAL -> "School Calendar"
-            EventSource.STUDENT -> "Personal"
-            EventSource.SCHOOL -> "Institutional"
-            EventSource.CLASS -> "Course Item"
-        }
+    val categoryLabel = remember(event.category, event.source) {
+        EventPresenter.getCategoryLabel(event.category, event.source)
     }
 
     Card(
@@ -374,20 +348,17 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                 Text(categoryLabel, style = MaterialTheme.typography.labelSmall, color = borderColor)
                 if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
                     val daysUntil = Clock.System.todayIn(TimeZone.currentSystemDefault()).daysUntil(event.date)
-                    val chipText = when {
-                        daysUntil < 0 -> "Overdue by ${-daysUntil} day${if (-daysUntil != 1) "s" else ""}"
-                        daysUntil == 0 -> "Due Today"
-                        else -> "Due in $daysUntil day${if (daysUntil != 1) "s" else ""}"
+                    val chipText = remember(daysUntil) { EventPresenter.getDeadlineChipText(daysUntil) }
+                    val status = remember(daysUntil) { EventPresenter.getDeadlineStatus(daysUntil) }
+                    val chipColor = when (status) {
+                        EventPresenter.DeadlineStatus.OVERDUE -> MaterialTheme.colorScheme.errorContainer
+                        EventPresenter.DeadlineStatus.DUE_TODAY -> MaterialTheme.colorScheme.tertiaryContainer
+                        EventPresenter.DeadlineStatus.FUTURE -> MaterialTheme.colorScheme.secondaryContainer
                     }
-                    val chipColor = when {
-                        daysUntil < 0 -> MaterialTheme.colorScheme.errorContainer
-                        daysUntil == 0 -> MaterialTheme.colorScheme.tertiaryContainer
-                        else -> MaterialTheme.colorScheme.secondaryContainer
-                    }
-                    val chipTextColor = when {
-                        daysUntil < 0 -> MaterialTheme.colorScheme.onErrorContainer
-                        daysUntil == 0 -> MaterialTheme.colorScheme.onTertiaryContainer
-                        else -> MaterialTheme.colorScheme.onSecondaryContainer
+                    val chipTextColor = when (status) {
+                        EventPresenter.DeadlineStatus.OVERDUE -> MaterialTheme.colorScheme.onErrorContainer
+                        EventPresenter.DeadlineStatus.DUE_TODAY -> MaterialTheme.colorScheme.onTertiaryContainer
+                        EventPresenter.DeadlineStatus.FUTURE -> MaterialTheme.colorScheme.onSecondaryContainer
                     }
                     
                     Surface(

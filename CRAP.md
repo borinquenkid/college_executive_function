@@ -9,43 +9,32 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 73
-- **High-Risk Files (CRAP > 30)**: 19
+- **Total Files Analyzed**: 75
+- **High-Risk Files (CRAP > 30)**: 18
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| AcademicCalendar.kt | 42 | 21.9% | 881.63 | 🔴 HIGH |
 | CommonSourceProviders.kt | 22 | 0.0% | 506.00 | 🔴 HIGH |
+| AcademicCalendar.kt | 29 | 24.4% | 392.17 | 🔴 HIGH |
 | StudioPanel.kt | 18 | 0.0% | 342.00 | 🔴 HIGH |
 | CalendarAgent.kt | 65 | 66.1% | 230.02 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 29 | 38.9% | 220.94 | 🔴 HIGH |
 | App.kt | 14 | 0.0% | 210.00 | 🔴 HIGH |
-| IcsStringBuilder.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
 | AddRoutineItemDialog.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
 | GeminiAIService.kt | 106 | 83.8% | 153.53 | 🔴 HIGH |
 | CriticActorAIService.kt | 67 | 78.7% | 110.11 | 🔴 HIGH |
-| ModelManager.kt | 9 | 0.0% | 90.00 | 🔴 HIGH |
 | EventAgent.kt | 70 | 86.0% | 83.57 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 91.4% | 42.06 | 🔴 HIGH |
-| AcademicCalendarLogic.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
+| CollisionResolver.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
+| ModelManager.kt | 9 | 26.5% | 41.20 | 🔴 HIGH |
+| EventPresenter.kt | 18 | 59.0% | 40.37 | 🔴 HIGH |
 
 ---
 
 ## Detailed File Breakdown
-
-### AcademicCalendar.kt (Score: 881.63 - 🔴 HIGH)
-- **Total Complexity**: 42
-- **Real Coverage**: 21.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `EventItemView` | 20 |
-| `TaskDecompositionDialog` | 6 |
-| `AcademicCalendar` | 1 |
 
 ### CommonSourceProviders.kt (Score: 506.00 - 🔴 HIGH)
 - **Total Complexity**: 22
@@ -61,6 +50,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `isAuthorized` | 1 |
 | `isAuthorized` | 1 |
 | `DrivePickerDialog` | 1 |
+
+### AcademicCalendar.kt (Score: 392.17 - 🔴 HIGH)
+- **Total Complexity**: 29
+- **Real Coverage**: 24.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `EventItemView` | 7 |
+| `TaskDecompositionDialog` | 6 |
+| `AcademicCalendar` | 1 |
 
 ### StudioPanel.kt (Score: 342.00 - 🔴 HIGH)
 - **Total Complexity**: 18
@@ -118,19 +118,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `App` | 7 |
 | `UniversalHomeLayout` | 7 |
 
-### IcsStringBuilder.kt (Score: 182.00 - 🔴 HIGH)
-- **Total Complexity**: 13
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `buildIcsString` | 7 |
-| `buildRecurrenceRule` | 3 |
-| `formatDateTime` | 1 |
-| `formatDate` | 1 |
-| `plusDays` | 1 |
-
 ### AddRoutineItemDialog.kt (Score: 182.00 - 🔴 HIGH)
 - **Total Complexity**: 13
 - **Real Coverage**: 0.0%
@@ -178,17 +165,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `areTaskListsDifferent` | 4 |
 | `serializeTasks` | 2 |
 | `generateStudyPlan` | 1 |
-
-### ModelManager.kt (Score: 90.00 - 🔴 HIGH)
-- **Total Complexity**: 9
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `downloadModel` | 6 |
-| `isModelDownloaded` | 2 |
-| `getModelFile` | 1 |
 
 ### EventAgent.kt (Score: 83.57 - 🔴 HIGH)
 - **Total Complexity**: 70
@@ -238,16 +214,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getEventCritiquePrompt` | 1 |
 | *... and 1 more* | |
 
-### AcademicCalendarLogic.kt (Score: 42.00 - 🔴 HIGH)
-- **Total Complexity**: 6
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getSemesterRange` | 2 |
-| `getExpandedAndFilteredEvents` | 1 |
-
 ### CollisionResolver.kt (Score: 41.30 - 🔴 HIGH)
 - **Total Complexity**: 41
 - **Real Coverage**: 94.4%
@@ -264,6 +230,29 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findNextTimeSlot` | 1 |
 | `findTimeSlotOnDay` | 1 |
 | `isValidTimeSlot` | 1 |
+
+### ModelManager.kt (Score: 41.20 - 🔴 HIGH)
+- **Total Complexity**: 9
+- **Real Coverage**: 26.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `downloadModel` | 6 |
+| `isModelDownloaded` | 2 |
+| `getModelFile` | 1 |
+
+### EventPresenter.kt (Score: 40.37 - 🔴 HIGH)
+- **Total Complexity**: 18
+- **Real Coverage**: 59.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEventBorderColor` | 9 |
+| `getDeadlineChipText` | 4 |
+| `getCategoryLabel` | 3 |
+| `getDeadlineStatus` | 2 |
 
 ### GoogleDriveService.kt (Score: 39.58 - 🔴 HIGH)
 - **Total Complexity**: 16
@@ -391,6 +380,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `RoutineScreen` | 2 |
 | `RoutineEventView` | 2 |
+
+### IcsStringBuilder.kt (Score: 19.54 - 🟡 MEDIUM)
+- **Total Complexity**: 13
+- **Real Coverage**: 66.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `buildIcsString` | 7 |
+| `buildRecurrenceRule` | 3 |
+| `formatDateTime` | 1 |
+| `formatDate` | 1 |
+| `plusDays` | 1 |
 
 ### IngestionAgent.kt (Score: 19.49 - 🟡 MEDIUM)
 - **Total Complexity**: 10
@@ -673,9 +675,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readText` | 1 |
 | `rememberLocalFileReader` | 1 |
 
-### NormalizationService.kt (Score: 5.79 - 🟢 LOW)
+### NormalizationService.kt (Score: 5.46 - 🟢 LOW)
 - **Total Complexity**: 5
-- **Real Coverage**: 68.4%
+- **Real Coverage**: 73.7%
 
 #### Methods list:
 | Method | Complexity |
@@ -706,6 +708,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `readTextFromUrl` | 2 |
 | `cleanHtml` | 2 |
+
+### EventDisplayPipeline.kt (Score: 4.01 - 🟢 LOW)
+- **Total Complexity**: 4
+- **Real Coverage**: 92.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getExpandedAndFilteredEvents` | 1 |
 
 ### SyncNegotiationDialog.kt (Score: 4.00 - 🟢 LOW)
 - **Total Complexity**: 4
@@ -779,6 +790,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Total Complexity**: 1
 - **Real Coverage**: 0.0%
 
+
+### SemesterResolver.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getSemesterRange` | 2 |
 
 ### RoutineSetupScreen.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1

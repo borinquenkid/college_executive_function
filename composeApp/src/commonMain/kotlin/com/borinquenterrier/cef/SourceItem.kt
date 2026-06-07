@@ -12,6 +12,7 @@ enum class SourceCategory {
     OTHER
 }
 
+@Serializable
 data class SourceItem(
     val title: String,
     val fragments: List<SourceFragment>,

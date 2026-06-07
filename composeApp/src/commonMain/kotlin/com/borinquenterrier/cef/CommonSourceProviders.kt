@@ -17,7 +17,8 @@ import kotlinx.coroutines.launch
 
 class LocalFileSourceProvider(
     private val ingestionAgent: IngestionAgent,
-    private val aiService: AIService
+    private val aiService: AIService,
+    private val filePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit = { onFileSelected -> FilePicker(show = true, onFileSelected = onFileSelected) }
 ) : SourceProvider {
     override val id = "local_file"
     override val displayName = "File"
@@ -33,24 +34,14 @@ class LocalFileSourceProvider(
         var isIngesting by remember { mutableStateOf(false) }
 
         if (isIngesting) {
-            AlertDialog(
-                onDismissRequest = {},
-                title = { Text("Reading Document") },
-                text = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        CircularProgressIndicator()
-                        Text("Extracting text and analyzing structure...")
-                    }
-                },
-                confirmButton = {}
+            IngestingProgressDialog(
+                title = "Reading Document",
+                message = "Extracting text and analyzing structure..."
             )
         }
 
         if (!hasTriggered) {
-            FilePicker(show = true) { path ->
+            filePicker { path ->
                 hasTriggered = true
                 if (path == null) {
                     onDismiss()
@@ -86,19 +77,9 @@ class UrlSourceProvider(
         var isIngesting by remember { mutableStateOf(false) }
 
         if (isIngesting) {
-            AlertDialog(
-                onDismissRequest = {},
-                title = { Text("Reading URL") },
-                text = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        CircularProgressIndicator()
-                        Text("Fetching content and analyzing structure...")
-                    }
-                },
-                confirmButton = {}
+            IngestingProgressDialog(
+                title = "Reading URL",
+                message = "Fetching content and analyzing structure..."
             )
         } else {
             AlertDialog(
@@ -154,19 +135,9 @@ class GoogleDriveSourceProvider(
         var isIngesting by remember { mutableStateOf(false) }
 
         if (isIngesting) {
-            AlertDialog(
-                onDismissRequest = {},
-                title = { Text("Reading Drive File") },
-                text = {
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically,
-                        horizontalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        CircularProgressIndicator()
-                        Text("Downloading and analyzing file...")
-                    }
-                },
-                confirmButton = {}
+            IngestingProgressDialog(
+                title = "Reading Drive File",
+                message = "Downloading and analyzing file..."
             )
         } else if (accessToken == null) {
             AlertDialog(
@@ -250,5 +221,23 @@ fun DrivePickerDialog(
         dismissButton = {
             TextButton(onClick = onDismiss) { Text("Cancel") }
         }
+    )
+}
+
+@Composable
+fun IngestingProgressDialog(title: String, message: String) {
+    AlertDialog(
+        onDismissRequest = {},
+        title = { Text(title) },
+        text = {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                CircularProgressIndicator()
+                Text(message)
+            }
+        },
+        confirmButton = {}
     )
 }

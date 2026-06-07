@@ -10,13 +10,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 76
-- **High-Risk Files (CRAP > 30)**: 17
+- **High-Risk Files (CRAP > 30)**: 16
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| CommonSourceProviders.kt | 18 | 13.3% | 228.91 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 29 | 38.9% | 220.94 | 🔴 HIGH |
 | App.kt | 14 | 0.0% | 210.00 | 🔴 HIGH |
 | AddRoutineItemDialog.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
@@ -31,25 +30,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | EventPresenter.kt | 18 | 59.0% | 40.37 | 🔴 HIGH |
 | GoogleDriveService.kt | 16 | 54.8% | 39.58 | 🔴 HIGH |
 | AgentHarness.kt | 37 | 89.9% | 38.41 | 🔴 HIGH |
+| AcademicCalendar.kt | 29 | 80.7% | 35.09 | 🔴 HIGH |
 
 ---
 
 ## Detailed File Breakdown
-
-### CommonSourceProviders.kt (Score: 228.91 - 🔴 HIGH)
-- **Total Complexity**: 18
-- **Real Coverage**: 13.3%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `SelectorUI` | 4 |
-| `SelectorUI` | 3 |
-| `SelectorUI` | 2 |
-| `isAuthorized` | 1 |
-| `isAuthorized` | 1 |
-| `isAuthorized` | 1 |
-| `DrivePickerDialog` | 1 |
 
 ### GoogleRemoteCalendarRepository.kt (Score: 220.94 - 🔴 HIGH)
 - **Total Complexity**: 29
@@ -341,6 +326,22 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `expandDayEvent` | 5 |
 | `expandEvents` | 2 |
 
+### CommonSourceProviders.kt (Score: 20.61 - 🟡 MEDIUM)
+- **Total Complexity**: 19
+- **Real Coverage**: 83.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `SelectorUI` | 4 |
+| `SelectorUI` | 3 |
+| `SelectorUI` | 2 |
+| `isAuthorized` | 1 |
+| `isAuthorized` | 1 |
+| `isAuthorized` | 1 |
+| `DrivePickerDialog` | 1 |
+| `IngestingProgressDialog` | 1 |
+
 ### ErrorBanner.kt (Score: 20.49 - 🟡 MEDIUM)
 - **Total Complexity**: 5
 - **Real Coverage**: 14.8%
@@ -546,18 +547,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getCriticModified` | 1 |
 | `clear` | 1 |
 
-### SourceIngestionHandler.kt (Score: 9.59 - 🟢 LOW)
-- **Total Complexity**: 8
-- **Real Coverage**: 70.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `ingestLocalFile` | 1 |
-| `ingestUrl` | 1 |
-| `ingestDriveFile` | 1 |
-| `buildIngestibleFilesQuery` | 1 |
-
 ### SqlDelightSourceRepository.kt (Score: 9.01 - 🟢 LOW)
 - **Total Complexity**: 9
 - **Real Coverage**: 95.9%
@@ -571,6 +560,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getAllSources` | 1 |
 | `getSourceById` | 1 |
 | `getFragmentsForSource` | 1 |
+
+### SourceIngestionHandler.kt (Score: 8.04 - 🟢 LOW)
+- **Total Complexity**: 8
+- **Real Coverage**: 91.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `ingestLocalFile` | 1 |
+| `ingestUrl` | 1 |
+| `ingestDriveFile` | 1 |
+| `buildIngestibleFilesQuery` | 1 |
 
 ### GoogleAuthService.kt (Score: 8.00 - 🟢 LOW)
 - **Total Complexity**: 8

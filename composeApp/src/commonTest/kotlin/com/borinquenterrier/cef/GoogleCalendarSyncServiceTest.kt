@@ -1,21 +1,39 @@
 package com.borinquenterrier.cef
 
+                import com.russhwolf.settings.MapSettings
+import io.kotest.assertions.throwables.shouldThrowAny
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
+import io.ktor.client.call.body
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.request.delete
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.request.parameter
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.contentType
 import io.ktor.http.headersOf
+import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
+import io.mockk.*
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import com.russhwolf.settings.MapSettings
+import kotlinx.serialization.Serializable
 
-class GoogleCalendarSyncServiceTest : FunSpec({
+                class GoogleCalendarSyncServiceTest : FunSpec({
 
     test("syncEvent maps correctly and sends POST request to Google API with calendarId") {
         val mockEngine = MockEngine { request ->
@@ -186,5 +204,61 @@ class GoogleCalendarSyncServiceTest : FunSpec({
         mockEngine.requestHistory.size shouldBe 2
         mockEngine.requestHistory[0].url.parameters["pageToken"] shouldBe null
         mockEngine.requestHistory[1].url.parameters["pageToken"] shouldBe "page-2"
+    }
+
+    test("createCalendar sends POST request and returns new calendar ID") {
+        val mockEngine = MockEngine { request ->
+            respond(
+                content = """{"id": "new-cal-123", "summary": "New Calendar"}""",
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
+
+        val httpClient = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+        
+        val tokenRepo = GoogleTokenRepository(MapSettings())
+        tokenRepo.saveTokens("mock-token", "mock-refresh")
+        val authService = GoogleAuthService(MapSettings())
+        val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+
+        val newCalendarId = service.createCalendar("New Calendar")
+
+        newCalendarId shouldBe "new-cal-123"
+        val request = mockEngine.requestHistory.first()
+        request.url.toString() shouldBe "https://www.googleapis.com/calendar/v3/calendars"
+        request.headers["Authorization"] shouldBe "Bearer mock-token"
+    }
+
+    test("deleteEvent sends DELETE request to Google API") {
+        val mockEngine = MockEngine { request ->
+            respond(
+                content = "",
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
+
+        val httpClient = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json()
+            }
+        }
+        
+        val tokenRepo = GoogleTokenRepository(MapSettings())
+        tokenRepo.saveTokens("mock-token", "mock-refresh")
+        val authService = GoogleAuthService(MapSettings())
+        val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+
+        service.deleteEvent("school-cal", "event-123")
+
+        val request = mockEngine.requestHistory.first()
+        request.url.toString() shouldBe "https://www.googleapis.com/calendar/v3/calendars/school-cal/events/event-123"
+        request.method.value shouldBe "DELETE"
+        request.headers["Authorization"] shouldBe "Bearer mock-token"
     }
 })

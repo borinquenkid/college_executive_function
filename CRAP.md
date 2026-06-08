@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 80
+- **Total Files Analyzed**: 81
 - **High-Risk Files (CRAP > 30)**: 14
 
 ### Top 15 High-Risk Files
@@ -22,9 +22,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | EventAgent.kt | 70 | 87.7% | 79.21 | 🔴 HIGH |
 | GeminiAIService.kt | 55 | 84.6% | 66.09 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
-| App.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | UniversalHomeLayout.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | GeminiResponseParser.kt | 35 | 81.6% | 42.59 | 🔴 HIGH |
+| AppContent.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
 | CollisionResolver.kt | 41 | 96.3% | 41.09 | 🔴 HIGH |
 | AgentHarness.kt | 37 | 89.9% | 38.41 | 🔴 HIGH |
@@ -133,15 +133,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseAndSave` | 9 |
 | `SettingsScreen` | 1 |
 
-### App.kt (Score: 56.00 - 🔴 HIGH)
-- **Total Complexity**: 7
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `App` | 7 |
-
 ### UniversalHomeLayout.kt (Score: 56.00 - 🔴 HIGH)
 - **Total Complexity**: 7
 - **Real Coverage**: 0.0%
@@ -163,6 +154,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `filterToSourceYears` | 4 |
 | `parseCategorizeSourceJson` | 3 |
 | `extractSourceYears` | 2 |
+
+### AppContent.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `AppContent` | 6 |
 
 ### AiPrompts.kt (Score: 41.30 - 🔴 HIGH)
 - **Total Complexity**: 41
@@ -663,6 +663,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `isAuthorized` | 1 |
 | `SelectorUI` | 1 |
+
+### App.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `App` | 2 |
 
 ### IcsExport.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2

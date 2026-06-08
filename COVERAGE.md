@@ -4,16 +4,17 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **74.42%** (6570/8828 lines)
-- **Total Source Files**: 80
+- **Overall Line Coverage**: **74.35%** (6570/8836 lines)
+- **Total Source Files**: 81
 
 ## Coverage by File
 
 | Status | File | Line Coverage | Branch Coverage | Instruction Coverage | Classes |
 | :---: | :--- | :---: | :---: | :---: | :--- |
 | 🔴 | SourceInterfaces.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | AppContent.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
-| 🔴 | App.kt | 0.0% (0/320) | 0.0% (0/56) | 0.0% | AppKt, AppKt$App$1$2$1, AppKt$App$1$2$1$1, AppKt$App$1$2$1$2, AppKt$App$containerState$1$1, AppKt$App$containerState$1$1$1, AppKt$UniversalHomeLayout$1$5$1$1$2$1$1, ComposableSingletons$AppKt |
+| 🔴 | App.kt | 0.0% (0/146) | 0.0% (0/24) | 0.0% | AppKt, AppKt$App$1$2$1, AppKt$App$1$2$1$1, AppKt$App$1$2$1$2, AppKt$App$containerState$1$1, AppKt$App$containerState$1$1$1, ComposableSingletons$AppKt |
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | Platform.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceItemView.kt | 0.0% (0/46) | 0.0% (0/42) | 1.6% | SourceItemViewKt |
@@ -26,10 +27,10 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% | ComposableSingletons$RoutineScreenKt, RoutineScreenKt, RoutineScreenKt$RoutineScreen$1$1, RoutineScreenKt$RoutineScreen$4$1$1 |
 | 🔴 | SourceRepository.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
-| 🔴 | AddRoutineItemDialog.kt | 0.0% (0/302) | 0.0% (0/84) | 0.0% | AddRoutineItemDialogKt, ComposableSingletons$AddRoutineItemDialogKt |
+| 🔴 | AddRoutineItemDialog.kt | 0.0% (0/310) | 0.0% (0/84) | 0.0% | AddRoutineItemDialogKt, ComposableSingletons$AddRoutineItemDialogKt |
 | 🔴 | PdfReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
-| 🔴 | UniversalHomeLayout.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | UniversalHomeLayout.kt | 0.0% (0/174) | 0.0% (0/32) | 0.0% | ComposableSingletons$UniversalHomeLayoutKt, UniversalHomeLayoutKt, UniversalHomeLayoutKt$UniversalHomeLayout$1$5$1$1$2$1$1 |
 | 🔴 | FilePicker.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ErrorBanner.kt | 14.8% (18/122) | 22.7% (10/44) | 27.7% | ComposableSingletons$ErrorBannerKt, ErrorBannerKt |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% | RecursiveDecompositionAIService |

@@ -9,14 +9,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 82
-- **High-Risk Files (CRAP > 30)**: 10
+- **Total Files Analyzed**: 85
+- **High-Risk Files (CRAP > 30)**: 9
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| CalendarAgent.kt | 72 | 83.4% | 95.59 | 🔴 HIGH |
 | EventAgent.kt | 70 | 87.7% | 79.21 | 🔴 HIGH |
 | GeminiAIService.kt | 55 | 84.6% | 66.09 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
@@ -31,29 +30,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
 | EventGenerator.kt | 12 | 56.0% | 24.27 | 🟡 MEDIUM |
+| CriticActorAIService.kt | 23 | 88.1% | 23.89 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
-
-### CalendarAgent.kt (Score: 95.59 - 🔴 HIGH)
-- **Total Complexity**: 72
-- **Real Coverage**: 83.4%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `pushLocalChanges` | 7 |
-| `updateEvent` | 6 |
-| `saveEvent` | 4 |
-| `deleteEvent` | 3 |
-| `saveEventLocally` | 2 |
-| `checkSyncProposals` | 2 |
-| `synchronize` | 2 |
-| `getEvents` | 1 |
-| `findRemoteUpdatesAndConflicts` | 1 |
-| `findDeletedLocalIds` | 1 |
-| *... and 7 more* | |
 
 ### EventAgent.kt (Score: 79.21 - 🔴 HIGH)
 - **Total Complexity**: 70
@@ -292,6 +273,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `blacklistModel` | 1 |
 | `negotiateBestModel` | 1 |
 
+### SyncNegotiator.kt (Score: 22.03 - 🟡 MEDIUM)
+- **Total Complexity**: 22
+- **Real Coverage**: 96.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `pushLocalChanges` | 7 |
+| `buildNegotiation` | 2 |
+| `findRemoteUpdatesAndConflicts` | 1 |
+| `findDeletedLocalIds` | 1 |
+| `buildProposedBaseCalendar` | 1 |
+
 ### CriticJsonCodec.kt (Score: 21.02 - 🟡 MEDIUM)
 - **Total Complexity**: 21
 - **Real Coverage**: 96.6%
@@ -344,6 +338,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `pruneOldLogs` | 1 |
 | `clearAllLogs` | 1 |
 
+### Event.kt (Score: 20.16 - 🟡 MEDIUM)
+- **Total Complexity**: 20
+- **Real Coverage**: 92.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `overlaps` | 4 |
+| `overlaps` | 2 |
+| `Event.withSyncStatus` | 2 |
+| `overlaps` | 1 |
+| `Event.timeUntilDue` | 1 |
+| `Event.studyProgress` | 1 |
+
 ### RoutineScreen.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
 - **Real Coverage**: 0.0%
@@ -379,18 +387,23 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `addDriveFile` | 3 |
 | `persistSource` | 1 |
 
-### Event.kt (Score: 18.15 - 🟡 MEDIUM)
+### CalendarAgent.kt (Score: 18.24 - 🟡 MEDIUM)
 - **Total Complexity**: 18
-- **Real Coverage**: 92.3%
+- **Real Coverage**: 90.9%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `overlaps` | 4 |
-| `overlaps` | 2 |
-| `overlaps` | 1 |
-| `Event.timeUntilDue` | 1 |
-| `Event.studyProgress` | 1 |
+| `updateEvent` | 4 |
+| `deleteEvent` | 3 |
+| `saveEvent` | 2 |
+| `synchronize` | 2 |
+| `isLiveSyncEnabled` | 2 |
+| `getEvents` | 1 |
+| `saveEventLocally` | 1 |
+| `checkSyncProposals` | 1 |
+| `applySyncNegotiation` | 1 |
+| `getIncompleteEventsBefore` | 1 |
 
 ### StudioPanel.kt (Score: 18.08 - 🟡 MEDIUM)
 - **Total Complexity**: 18
@@ -412,6 +425,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getDeadlineChipText` | 4 |
 | `getCategoryLabel` | 3 |
 | `getDeadlineStatus` | 2 |
+
+### SyncNegotiationApplier.kt (Score: 17.93 - 🟡 MEDIUM)
+- **Total Complexity**: 15
+- **Real Coverage**: 76.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `isLiveSyncEnabled` | 2 |
+| `apply` | 1 |
+| `applyDeletedLocalEvents` | 1 |
+| `applyRemoteEventsToLocal` | 1 |
+| `applyShiftedStudyBlocks` | 1 |
 
 ### CalendarInterfaces.kt (Score: 16.43 - 🟡 MEDIUM)
 - **Total Complexity**: 13
@@ -443,6 +469,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `listFiles` | 3 |
 | `getFileContent` | 3 |
 | `validateConnection` | 2 |
+
+### StudyBlockShiftResolver.kt (Score: 14.42 - 🟢 LOW)
+- **Total Complexity**: 14
+- **Real Coverage**: 87.1%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `resolveShifts` | 10 |
+| `findCollidingEvent` | 1 |
+| `hasShifted` | 1 |
 
 ### DecompositionOrchestrator.kt (Score: 13.10 - 🟢 LOW)
 - **Total Complexity**: 12

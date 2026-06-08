@@ -127,6 +127,11 @@ data class DayEvent(
     }
 }
 
+fun Event.withSyncStatus(status: SyncStatus): Event = when (this) {
+    is TimeEvent -> copy(syncStatus = status)
+    is DayEvent -> copy(syncStatus = status)
+}
+
 fun Event.timeUntilDue(
     currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 ): Duration {

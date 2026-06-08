@@ -95,6 +95,19 @@ class CriticJsonCodecTest : FunSpec({
         event.date shouldBe LocalDate(2024, 1, 1)
     }
 
+    test("parseEvents coerces explicit null fields to their DTO defaults") {
+        val json = """[{"title": null, "category": null, "date": null, "warning": null}]"""
+
+        val parsed = CriticJsonCodec.parseEvents(json)
+
+        parsed.size shouldBe 1
+        val event = parsed[0] as DayEvent
+        event.title shouldBe "Untitled Event"
+        event.category shouldBe AcademicCategory.REGULAR
+        event.date shouldBe LocalDate(2024, 1, 1)
+        event.warning shouldBe null
+    }
+
     test("parseEvents falls back to default times for an unparseable TIME event") {
         val json = """[{"title": "Bad Time", "type": "TIME", "category": "REGULAR", "date": "2026-06-02", "startTime": "not-a-time", "endTime": "also-bad"}]"""
 
@@ -138,6 +151,14 @@ class CriticJsonCodecTest : FunSpec({
         val parsed = CriticJsonCodec.parseTasks(json)
 
         parsed[0].daysBeforeDue shouldBe 2
+    }
+
+    test("parseTasks leniently coerces a numeric-string daysBeforeDue value to an int") {
+        val json = """[{"title": "Lenient", "daysBeforeDue": "4", "description": "from a quoted number"}]"""
+
+        val parsed = CriticJsonCodec.parseTasks(json)
+
+        parsed[0].daysBeforeDue shouldBe 4
     }
 
     test("parseTasks falls back to defaults for missing fields") {

@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **83.62%** (7360/8802 lines)
+- **Overall Line Coverage**: **83.63%** (7368/8810 lines)
 - **Total Source Files**: 82
 
 ## Coverage by File
@@ -69,7 +69,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | BugReporter.kt | 95.3% (82/86) | 50.0% (8/16) | 84.1% | BugReporter, BugReporter$reportError$1, TelemetryStats, TelemetryStats$Companion |
 | 🟢 | SqlDelightSourceRepository.kt | 95.9% (94/98) | 100.0% (20/20) | 92.4% | SqlDelightSourceRepository, SqlDelightSourceRepository$getAllSources$2, SqlDelightSourceRepository$getFragmentsForSource$2, SqlDelightSourceRepository$getSourceById$2, SqlDelightSourceRepository$getSourceMetadata$2, SqlDelightSourceRepository$saveSource$2, SqlDelightSourceRepository$updateSourceMetadata$2 |
 | 🟢 | CollisionResolver.kt | 96.3% (206/214) | 82.6% (142/172) | 96.3% | CollisionResolver, ResolutionResult$Conflict, ResolutionResult$Success |
-| 🟢 | CriticJsonCodec.kt | 96.5% (164/170) | 65.1% (112/172) | 90.0% | CriticJsonCodec |
+| 🟢 | CriticJsonCodec.kt | 96.6% (172/178) | 45.6% (82/180) | 78.4% | CriticJsonCodec, RawCriticEvent, RawCriticEvent$Companion, RawCriticTask, RawCriticTask$Companion |
 | 🟢 | ContextAgent.kt | 96.8% (182/188) | 67.5% (54/80) | 95.4% | ContextAgent |
 | 🟢 | SyncNegotiationDialog.kt | 97.6% (166/170) | 50.0% (16/32) | 97.0% | ComposableSingletons$SyncNegotiationDialogKt, SyncNegotiationDialogKt, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$1$1$1$1, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$2$1$1$1 |
 | 🟢 | GoogleDriveService.kt | 98.4% (122/124) | 63.0% (58/92) | 87.5% | DriveFile, DriveFile$Companion, DriveFileListResponse, DriveFileListResponse$Companion, GoogleDriveService, GoogleDriveService$getFileContent$2, GoogleDriveService$listFiles$2 |

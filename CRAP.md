@@ -10,7 +10,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 82
-- **High-Risk Files (CRAP > 30)**: 11
+- **High-Risk Files (CRAP > 30)**: 10
 
 ### Top 15 High-Risk Files
 
@@ -25,12 +25,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | CollisionResolver.kt | 41 | 96.3% | 41.09 | 🔴 HIGH |
 | AgentHarness.kt | 37 | 89.9% | 38.41 | 🔴 HIGH |
 | AcademicCalendar.kt | 29 | 81.6% | 34.21 | 🔴 HIGH |
-| CriticJsonCodec.kt | 33 | 96.5% | 33.05 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleRemoteCalendarRepository.kt | 29 | 94.4% | 29.14 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
+| EventGenerator.kt | 12 | 56.0% | 24.27 | 🟡 MEDIUM |
 
 ---
 
@@ -179,20 +179,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `TaskDecompositionDialog` | 6 |
 | `AcademicCalendar` | 1 |
 
-### CriticJsonCodec.kt (Score: 33.05 - 🔴 HIGH)
-- **Total Complexity**: 33
-- **Real Coverage**: 96.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `parseEventFromJson` | 13 |
-| `parseTaskFromJson` | 8 |
-| `serializeEvents` | 5 |
-| `parseEvents` | 3 |
-| `serializeTasks` | 2 |
-| `parseTasks` | 2 |
-
 ### ContextAgent.kt (Score: 31.03 - 🔴 HIGH)
 - **Total Complexity**: 31
 - **Real Coverage**: 96.8%
@@ -305,6 +291,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `clearBlacklistForTesting` | 1 |
 | `blacklistModel` | 1 |
 | `negotiateBestModel` | 1 |
+
+### CriticJsonCodec.kt (Score: 21.02 - 🟡 MEDIUM)
+- **Total Complexity**: 21
+- **Real Coverage**: 96.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `parseEventFromJson` | 7 |
+| `serializeEvents` | 5 |
+| `parseEvents` | 3 |
+| `serializeTasks` | 2 |
+| `parseTasks` | 2 |
+| `parseTaskFromJson` | 2 |
 
 ### CommonSourceProviders.kt (Score: 20.61 - 🟡 MEDIUM)
 - **Total Complexity**: 19

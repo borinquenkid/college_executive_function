@@ -1,11 +1,31 @@
 package com.borinquenterrier.cef
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.*
+
+@Serializable
+private data class RawCriticEvent(
+    val title: String = "Untitled Event",
+    val type: String = "DAY",
+    val date: String = "2024-01-01",
+    val category: String = "REGULAR",
+    val warning: String? = null,
+    val startTime: String = "09:00",
+    val endTime: String = "10:00"
+)
+
+@Serializable
+private data class RawCriticTask(
+    val title: String = "Sub-task",
+    val daysBeforeDue: Double = 1.0,
+    val description: String = ""
+)
 
 object CriticJsonCodec {
     private val json = Json {
         ignoreUnknownKeys = true
         isLenient = true
+        coerceInputValues = true
         prettyPrint = false
     }
 
@@ -47,35 +67,25 @@ object CriticJsonCodec {
 
     private fun parseEventFromJson(element: JsonElement, logger: Logger?): Event? {
         return try {
-            val obj = element.jsonObject
-            val title = obj["title"]?.jsonPrimitive?.content ?: "Untitled Event"
-            val type = obj["type"]?.jsonPrimitive?.content ?: "DAY"
-            val dateStr = obj["date"]?.jsonPrimitive?.content ?: "2024-01-01"
-            val categoryStr = obj["category"]?.jsonPrimitive?.content ?: "REGULAR"
-            val warning = obj["warning"]?.jsonPrimitive?.content
-            val category = try {
-                AcademicCategory.valueOf(categoryStr)
-            } catch (e: Exception) {
-                AcademicCategory.REGULAR
-            }
-            val date = try { kotlinx.datetime.LocalDate.parse(dateStr) }
+            val raw = json.decodeFromJsonElement(RawCriticEvent.serializer(), element)
+            val category = try { AcademicCategory.valueOf(raw.category) }
+                           catch (e: Exception) { AcademicCategory.REGULAR }
+            val date = try { kotlinx.datetime.LocalDate.parse(raw.date) }
                        catch (e: Exception) { kotlinx.datetime.LocalDate(2024, 1, 1) }
 
-            if (type == "TIME") {
-                val startTimeStr = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
-                val endTimeStr = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
-                val start = try { kotlinx.datetime.LocalTime.parse(startTimeStr) }
+            if (raw.type == "TIME") {
+                val start = try { kotlinx.datetime.LocalTime.parse(raw.startTime) }
                             catch (e: Exception) { kotlinx.datetime.LocalTime(9, 0) }
-                val end = try { kotlinx.datetime.LocalTime.parse(endTimeStr) }
+                val end = try { kotlinx.datetime.LocalTime.parse(raw.endTime) }
                           catch (e: Exception) { kotlinx.datetime.LocalTime(10, 0) }
                 TimeEvent(
-                    title = title, source = EventSource.AI_GENERATED, category = category,
-                    date = date, startTime = start, endTime = end, warning = warning
+                    title = raw.title, source = EventSource.AI_GENERATED, category = category,
+                    date = date, startTime = start, endTime = end, warning = raw.warning
                 )
             } else {
                 DayEvent(
-                    title = title, source = EventSource.AI_GENERATED,
-                    category = category, date = date, warning = warning
+                    title = raw.title, source = EventSource.AI_GENERATED,
+                    category = category, date = date, warning = raw.warning
                 )
             }
         } catch (e: Exception) {
@@ -112,14 +122,11 @@ object CriticJsonCodec {
 
     private fun parseTaskFromJson(element: JsonElement, logger: Logger?): DecomposedTask? {
         return try {
-            val obj = element.jsonObject
-            val daysBeforeDue = obj["daysBeforeDue"]?.jsonPrimitive?.let {
-                it.intOrNull ?: it.content.toDoubleOrNull()?.toInt() ?: 1
-            } ?: 1
+            val raw = json.decodeFromJsonElement(RawCriticTask.serializer(), element)
             DecomposedTask(
-                title = obj["title"]?.jsonPrimitive?.content ?: "Sub-task",
-                daysBeforeDue = daysBeforeDue,
-                description = obj["description"]?.jsonPrimitive?.content ?: ""
+                title = raw.title,
+                daysBeforeDue = raw.daysBeforeDue.toInt(),
+                description = raw.description
             )
         } catch (e: Exception) {
             logger?.e("CriticActor", "Failed to parse task element: ${e.message}")

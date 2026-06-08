@@ -132,6 +132,11 @@ fun Event.withSyncStatus(status: SyncStatus): Event = when (this) {
     is DayEvent -> copy(syncStatus = status)
 }
 
+fun Event.withCompletionStatus(status: CompletionStatus): Event = when (this) {
+    is TimeEvent -> copy(completionStatus = status)
+    is DayEvent -> copy(completionStatus = status)
+}
+
 fun Event.timeUntilDue(
     currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 ): Duration {

@@ -3,14 +3,10 @@ package com.borinquenterrier.cef
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.minus
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import kotlinx.datetime.LocalDate
 import com.borinquenterrier.cef.db.AppDatabase
-import kotlinx.serialization.json.*
 
 /**
  * Typed error states surfaced from [EventAgent] to the UI.
@@ -37,6 +33,11 @@ class EventAgent(
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null
 ) {
     private val tag = "EventAgent"
+
+    private val syllabusAuditor = SyllabusAuditor(aiService, logger)
+    private val pushResolver = CalendarPushResolver(repository, preferencesRepository, userPreferenceMemoryRepository, logger)
+    private val generationService = EventGenerationService(aiService, normalizationService, syllabusAuditor, preferencesRepository, userPreferenceMemoryRepository)
+    private val decompositionService = TaskDecompositionService(aiService, repository)
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -68,49 +69,22 @@ class EventAgent(
         message?.startsWith("QuotaExhausted") == true
 
     /**
-     * Extracts standard deliverables from a source using AI, processing the full context at once.
+     * Runs [block] under the standard loading/error-reporting envelope shared by every
+     * agent action: toggles [_isLoading], logs and reports any [Exception] via
+     * [_statusMessage] (and optionally [_errorState] for quota exhaustion), and always
+     * resets [_isLoading] when done.
      */
-    suspend fun extractDeliverables(source: SourceItem) {
+    private suspend fun runAgentAction(
+        logContext: String,
+        handleQuotaErrors: Boolean = false,
+        block: suspend () -> Unit
+    ) {
         _isLoading.value = true
-        _statusMessage.value = "Analyzing ${source.title}..."
-        
         try {
-            val syllabusText = source.fragments.joinToString("\n\n") { it.text }
-            val auditWarnings = if (source.category == SourceCategory.SYLLABUS) {
-                auditSyllabus(syllabusText)
-            } else {
-                emptyList()
-            }
-
-            val allEvents = aiService.generateCalendarEvents(source.fragments)
-            
-            // De-duplicate events by properties (title, date, time)
-            val normalized = normalizationService.extract(allEvents).distinctBy { 
-                "${it.title}-${it.date}-${if (it is TimeEvent) it.startTime else ""}"
-            }
-
-            val processed = if (auditWarnings.isNotEmpty()) {
-                val combinedWarning = auditWarnings.joinToString("; ")
-                normalized.map { event ->
-                    val newWarning = if (event.warning != null) {
-                        "${event.warning}; $combinedWarning"
-                    } else {
-                        combinedWarning
-                    }
-                    when (event) {
-                        is TimeEvent -> event.copy(warning = newWarning)
-                        is DayEvent -> event.copy(warning = newWarning)
-                    }
-                }
-            } else {
-                normalized
-            }
-            
-            _lastGeneratedEvents.value = processed
-            _statusMessage.value = "${processed.size} deadlines and exams found from entire source."
+            block()
         } catch (e: Exception) {
-            logger?.e(tag, "Error extracting deliverables", e)
-            if (e.isQuotaError()) {
+            logger?.e(tag, logContext, e)
+            if (handleQuotaErrors && e.isQuotaError()) {
                 _errorState.value = AgentError.QuotaExhausted
                 _statusMessage.value = "Daily AI quota reached."
             } else {
@@ -121,29 +95,33 @@ class EventAgent(
         }
     }
 
-    private suspend fun auditSyllabus(text: String): List<String> {
-        val prompt = AiPrompts.getSyllabusAuditPrompt(text)
-        val response = aiService.generateChatResponse(prompt)
-        return try {
-            val cleanJson = response.trim()
-                .removePrefix("```json")
-                .removeSuffix("```")
-                .trim()
-            val root = Json.parseToJsonElement(cleanJson).jsonObject
-            val hasAmbiguities = root["hasAmbiguities"]?.jsonPrimitive?.booleanOrNull ?: false
-            if (hasAmbiguities) {
-                root["findings"]?.jsonArray?.map { element ->
-                    val obj = element.jsonObject
-                    val desc = obj["description"]?.jsonPrimitive?.content ?: "Syllabus ambiguity detected"
-                    val type = obj["type"]?.jsonPrimitive?.content ?: "GENERAL"
-                    "[$type] $desc"
-                } ?: emptyList()
-            } else {
-                emptyList()
+    /**
+     * Updates [event]'s [CompletionStatus], persists it, refreshes the incomplete-events
+     * list, and optionally triggers a background sync (errors from which are ignored).
+     */
+    private suspend fun updateCompletionStatus(event: Event, status: CompletionStatus, statusMessage: String, triggerSync: Boolean = false) {
+        val updated = event.withCompletionStatus(status)
+        repository.updateEvent(updated, "default")
+        _statusMessage.value = statusMessage
+        loadIncompleteEvents()
+        if (triggerSync) {
+            try {
+                repository.synchronize("default")
+            } catch (e: Exception) {
+                // Ignore sync errors
             }
-        } catch (e: Exception) {
-            logger?.e(tag, "Failed to parse syllabus audit response: $response", e)
-            emptyList()
+        }
+    }
+
+    /**
+     * Extracts standard deliverables from a source using AI, processing the full context at once.
+     */
+    suspend fun extractDeliverables(source: SourceItem) {
+        runAgentAction("Error extracting deliverables", handleQuotaErrors = true) {
+            _statusMessage.value = "Analyzing ${source.title}..."
+            val processed = generationService.extractDeliverables(source)
+            _lastGeneratedEvents.value = processed
+            _statusMessage.value = "${processed.size} deadlines and exams found from entire source."
         }
     }
 
@@ -151,50 +129,12 @@ class EventAgent(
      * Generates a proactive study plan, using the full document context and existing calendar events.
      */
     suspend fun generateStudyPlan(source: SourceItem) {
-        _isLoading.value = true
-        _statusMessage.value = "Planning study time from full context..."
-        
-        try {
-            // Join parts for study plan logic
-            val syllabusText = source.fragments.joinToString("\n\n") { it.text }
-            
-            // Get existing events to prevent collisions
+        runAgentAction("Error generating study plan", handleQuotaErrors = true) {
+            _statusMessage.value = "Planning study time from full context..."
             val existingEvents = repository.getEvents("default")
-            var existingScheduleText = existingEvents.joinToString("\n") { event ->
-                when (event) {
-                    is TimeEvent -> "- ${event.title} on ${event.date} from ${event.startTime} to ${event.endTime}"
-                    is DayEvent -> "- ${event.title} on ${event.date} (All Day)"
-                }
-            }
-            
-            val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
-            if (userConstraints.isNotEmpty()) {
-                val formatHour = { hour: Int -> "${hour.toString().padStart(2, '0')}:00" }
-                val constraintsStr = userConstraints.joinToString("\n") {
-                    "- Restricted: DO NOT schedule any STUDY_BLOCK on ${it.dayOfWeek} from ${formatHour(it.startHour)} to ${formatHour(it.endHour)}"
-                }
-                existingScheduleText += "\n\nUser Preference Constraints (strictly avoid scheduling study blocks here):\n$constraintsStr"
-            }
-            
-            val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
-            val planEvents = aiService.generateStudyPlan(syllabusText, existingScheduleText, preferences)
-            
-            val processed = normalizationService.extract(planEvents).distinctBy { 
-                "${it.title}-${it.date}-${if (it is TimeEvent) it.startTime else ""}"
-            }
-            
+            val processed = generationService.generateStudyPlan(source, existingEvents)
             _lastGeneratedEvents.value = processed
             _statusMessage.value = "${processed.size} events planned for study time."
-        } catch (e: Exception) {
-            logger?.e(tag, "Error generating study plan", e)
-            if (e.isQuotaError()) {
-                _errorState.value = AgentError.QuotaExhausted
-                _statusMessage.value = "Daily AI quota reached."
-            } else {
-                _statusMessage.value = "Error: ${e.message}"
-            }
-        } finally {
-            _isLoading.value = false
         }
     }
 
@@ -208,57 +148,19 @@ class EventAgent(
 
         _isLoading.value = true
         _statusMessage.value = "Syncing ${events.size} events to your calendar..."
-        
-        val conflicts = mutableListOf<Event>()
-        var successCount = 0
-        
+
+        var conflicts: List<Event> = emptyList()
+
         try {
             val existing = repository.getEvents(calendarId)
-            val currentCalendarState = existing.toMutableList()
-            
-            val resolvedList = mutableListOf<Event>()
-            val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
-            val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
-            val resolver = CollisionResolver(
-                preferences = preferences,
-                userConstraints = userConstraints
-            )
-            
-            for (event in events) {
-                val result = resolver.resolve(event, currentCalendarState)
-                when (result) {
-                    is ResolutionResult.Success -> {
-                        // Update currentCalendarState so subsequent events in this batch resolve against it
-                        for (resolved in result.resolvedEvents) {
-                            resolved.id?.let { id ->
-                                currentCalendarState.removeAll { it.id == id }
-                            }
-                            currentCalendarState.add(resolved)
-                        }
-                        resolvedList.addAll(result.resolvedEvents)
-                    }
-                    is ResolutionResult.Conflict -> {
-                        conflicts.add(event)
-                    }
-                }
-            }
+            val outcome = pushResolver.resolveAndPush(events, existing, calendarId)
+            conflicts = outcome.conflicts
 
-            // Save all successfully resolved events (both new and bumped)
-            for (resolved in resolvedList) {
-                try {
-                    repository.saveEvent(resolved, calendarId)
-                    successCount++
-                } catch (e: OverlapException) {
-                    logger?.d(tag, "Conflict detected for: ${resolved.title}")
-                    conflicts.add(resolved)
-                }
-            }
-            
             if (conflicts.isEmpty()) {
-                _statusMessage.value = "Success! All $successCount events pushed."
+                _statusMessage.value = "Success! All ${outcome.successCount} events pushed."
                 _lastGeneratedEvents.value = emptyList()
             } else {
-                _statusMessage.value = "Synced $successCount events. ${conflicts.size} conflicts need review."
+                _statusMessage.value = "Synced ${outcome.successCount} events. ${conflicts.size} conflicts need review."
                 _lastGeneratedEvents.value = conflicts
             }
         } catch (e: Exception) {
@@ -276,25 +178,14 @@ class EventAgent(
     }
 
     suspend fun decomposeTask(event: Event) {
-        _isLoading.value = true
-        _decompositionTarget.value = event
-        _decomposedTasks.value = emptyList()
-        _statusMessage.value = "Breaking down '${event.title}'..."
+        runAgentAction("Error decomposing task", handleQuotaErrors = true) {
+            _decompositionTarget.value = event
+            _decomposedTasks.value = emptyList()
+            _statusMessage.value = "Breaking down '${event.title}'..."
 
-        try {
-            val tasks = aiService.decomposeTask(event.title, event.date.toString())
+            val tasks = decompositionService.decompose(event)
             _decomposedTasks.value = tasks
             _statusMessage.value = "${tasks.size} steps created."
-        } catch (e: Exception) {
-            logger?.e(tag, "Error decomposing task", e)
-            if (e.isQuotaError()) {
-                _errorState.value = AgentError.QuotaExhausted
-                _statusMessage.value = "Daily AI quota reached."
-            } else {
-                _statusMessage.value = "Error: ${e.message}"
-            }
-        } finally {
-            _isLoading.value = false
         }
     }
 
@@ -303,45 +194,11 @@ class EventAgent(
         val target = _decompositionTarget.value ?: return
         if (tasks.isEmpty()) return
 
-        _isLoading.value = true
-        _statusMessage.value = "Adding ${tasks.size} steps to calendar..."
-
-        var count = 0
-        try {
-            // Find earliest task date
-            val earliestTaskDate = tasks.minOfOrNull {
-                target.date.minus(it.daysBeforeDue, DateTimeUnit.DAY)
-            }
-
-            // Update target event's studyPlanStart and save it back
-            val updatedTarget = when (target) {
-                is TimeEvent -> target.copy(studyPlanStart = earliestTaskDate?.toString())
-                is DayEvent -> target.copy(studyPlanStart = earliestTaskDate?.toString())
-            }
-            repository.updateEvent(updatedTarget, calendarId)
-
-            for (task in tasks) {
-                val taskDate = target.date.minus(task.daysBeforeDue, DateTimeUnit.DAY)
-                val event = DayEvent(
-                    title = task.title,
-                    source = EventSource.AI_GENERATED,
-                    category = AcademicCategory.STUDY_BLOCK,
-                    date = taskDate
-                )
-                try {
-                    repository.saveEvent(event, calendarId)
-                    count++
-                } catch (e: OverlapException) {
-                    // Skip conflicting steps and continue
-                }
-            }
+        runAgentAction("Error accepting decomposition") {
+            _statusMessage.value = "Adding ${tasks.size} steps to calendar..."
+            val count = decompositionService.applyDecomposition(target, tasks, calendarId)
             _statusMessage.value = "$count steps added to calendar."
             clearDecomposition()
-        } catch (e: Exception) {
-            logger?.e(tag, "Error accepting decomposition", e)
-            _statusMessage.value = "Error: ${e.message}"
-        } finally {
-            _isLoading.value = false
         }
     }
 
@@ -364,49 +221,19 @@ class EventAgent(
     }
 
     suspend fun markEventCompleted(event: Event) {
-        _isLoading.value = true
-        try {
-            val updated = when (event) {
-                is TimeEvent -> event.copy(completionStatus = CompletionStatus.COMPLETED)
-                is DayEvent -> event.copy(completionStatus = CompletionStatus.COMPLETED)
-            }
-            repository.updateEvent(updated, "default")
-            _statusMessage.value = "Marked '${event.title}' as completed."
-            loadIncompleteEvents()
-            try {
-                repository.synchronize("default")
-            } catch (e: Exception) {
-                // Ignore sync errors
-            }
-        } catch (e: Exception) {
-            logger?.e(tag, "Failed to mark event completed", e)
-            _statusMessage.value = "Error: ${e.message}"
-        } finally {
-            _isLoading.value = false
+        runAgentAction("Failed to mark event completed") {
+            updateCompletionStatus(event, CompletionStatus.COMPLETED, "Marked '${event.title}' as completed.", triggerSync = true)
         }
     }
 
     suspend fun skipEvent(event: Event) {
-        _isLoading.value = true
-        try {
-            val updated = when (event) {
-                is TimeEvent -> event.copy(completionStatus = CompletionStatus.SKIPPED)
-                is DayEvent -> event.copy(completionStatus = CompletionStatus.SKIPPED)
-            }
-            repository.updateEvent(updated, "default")
-            _statusMessage.value = "Skipped '${event.title}'."
-            loadIncompleteEvents()
-        } catch (e: Exception) {
-            logger?.e(tag, "Failed to skip event", e)
-            _statusMessage.value = "Error: ${e.message}"
-        } finally {
-            _isLoading.value = false
+        runAgentAction("Failed to skip event") {
+            updateCompletionStatus(event, CompletionStatus.SKIPPED, "Skipped '${event.title}'.")
         }
     }
 
     suspend fun rescheduleEvent(event: Event) {
-        _isLoading.value = true
-        try {
+        runAgentAction("Failed to reschedule event") {
             val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
             val updated = when (event) {
                 is TimeEvent -> event.copy(date = today)
@@ -415,31 +242,13 @@ class EventAgent(
             val existing = repository.getEvents("default").toMutableList()
             existing.removeAll { it.id == event.id }
 
-            val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
-            val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
-            val resolver = CollisionResolver(
-                preferences = preferences,
-                userConstraints = userConstraints
-            )
-            val result = resolver.resolve(updated, existing)
-
-            when (result) {
-                is ResolutionResult.Success -> {
-                    for (resolved in result.resolvedEvents) {
-                        repository.updateEvent(resolved, "default")
-                    }
-                    _statusMessage.value = "Rescheduled '${event.title}' successfully."
-                }
-                is ResolutionResult.Conflict -> {
-                    _statusMessage.value = "Cannot reschedule: conflict detected."
-                }
+            val rescheduled = pushResolver.resolveAndReschedule(updated, existing, "default")
+            _statusMessage.value = if (rescheduled) {
+                "Rescheduled '${event.title}' successfully."
+            } else {
+                "Cannot reschedule: conflict detected."
             }
             loadIncompleteEvents()
-        } catch (e: Exception) {
-            logger?.e(tag, "Failed to reschedule event", e)
-            _statusMessage.value = "Error: ${e.message}"
-        } finally {
-            _isLoading.value = false
         }
     }
 }

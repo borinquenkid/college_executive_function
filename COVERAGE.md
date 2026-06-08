@@ -4,8 +4,8 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **83.84%** (7368/8788 lines)
-- **Total Source Files**: 85
+- **Overall Line Coverage**: **84.22%** (7416/8806 lines)
+- **Total Source Files**: 89
 
 ## Coverage by File
 
@@ -53,25 +53,29 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | AppContent.kt | 85.7% (96/112) | 75.0% (24/32) | 86.2% | AppContentKt, AppContentKt$AppContent$1$1, AppContentKt$AppContent$1$1$1, AppContentKt$AppContent$1$1$2, ComposableSingletons$AppContentKt |
 | 🟢 | StudyBlockShiftResolver.kt | 87.1% (54/62) | 56.7% (34/60) | 87.4% | StudyBlockShiftResolver |
 | 🟢 | ChatPanel.kt | 87.4% (208/238) | 50.0% (36/72) | 84.8% | ChatMessage, ChatPanelKt, ChatPanelKt$ChatPanel$1$3$2$1$1, ComposableSingletons$ChatPanelKt |
-| 🟢 | EventAgent.kt | 87.7% (412/470) | 48.6% (134/276) | 79.6% | AgentError, AgentError$GenericError, AgentError$QuotaExhausted, EventAgent |
+| 🟢 | EventGenerationService.kt | 87.5% (70/80) | 59.1% (26/44) | 74.8% | EventGenerationService |
 | 🟢 | CriticActorAIService.kt | 88.1% (148/168) | 44.7% (68/152) | 85.5% | CriticActorAIService |
 | 🟢 | SqlDelightUserPreferenceMemoryRepository.kt | 89.5% (102/114) | 75.0% (54/72) | 86.1% | SqlDelightUserPreferenceMemoryRepository, SqlDelightUserPreferenceMemoryRepository$clearAllLogs$2, SqlDelightUserPreferenceMemoryRepository$getDerivedConstraints$2, SqlDelightUserPreferenceMemoryRepository$logOverride$2, SqlDelightUserPreferenceMemoryRepository$pruneOldLogs$2 |
 | 🟢 | AgentHarness.kt | 89.9% (196/218) | 71.1% (54/76) | 90.1% | AgentHarness, AgentHarness$runHarness$2, AgentHarness$runHarness$2$driveDeferreds$1$1, AgentHarness$runHarness$2$localDeferreds$1$1 |
 | 🟢 | SqlDelightLocalCalendarRepository.kt | 90.0% (144/160) | 76.2% (64/84) | 86.7% | SqlDelightLocalCalendarRepository |
+| 🟢 | SyllabusAuditor.kt | 90.5% (38/42) | 46.2% (24/52) | 85.0% | SyllabusAuditor |
 | 🟢 | CalendarAgent.kt | 90.9% (80/88) | 55.3% (42/76) | 89.7% | CalendarAgent |
 | 🟢 | SourceProcessor.kt | 91.7% (22/24) | 83.3% (10/12) | 86.6% | SourceProcessor |
 | 🟢 | SourceIngestionHandler.kt | 91.7% (44/48) | 100.0% (4/4) | 95.9% | GoogleDriveQueryBuilder, SourceIngestionHandler, SourceIngestionHandler$ingestDriveFile$1, SourceIngestionHandler$ingestLocalFile$1, SourceIngestionHandler$ingestUrl$1 |
 | 🟢 | UniversalHomeLayout.kt | 92.0% (160/174) | 81.3% (26/32) | 93.7% | ComposableSingletons$UniversalHomeLayoutKt, UniversalHomeLayoutKt, UniversalHomeLayoutKt$UniversalHomeLayout$1$3$1$1$2$1$1 |
-| 🟢 | Event.kt | 92.6% (150/162) | 36.5% (132/362) | 72.1% | AcademicCategory, CompletionStatus, DayEvent, DayEvent$Companion, Event, Event$DefaultImpls, EventKt, EventSource, Recurrence, Recurrence$Companion, SyncStatus, TimeEvent, TimeEvent$Companion |
+| 🟢 | Event.kt | 92.9% (156/168) | 36.6% (134/366) | 71.3% | AcademicCategory, CompletionStatus, DayEvent, DayEvent$Companion, Event, Event$DefaultImpls, EventKt, EventSource, Recurrence, Recurrence$Companion, SyncStatus, TimeEvent, TimeEvent$Companion |
 | 🟢 | StudioPanel.kt | 93.8% (330/352) | 72.9% (70/96) | 95.0% | ComposableSingletons$StudioPanelKt, StudioPanelKt, StudioPanelKt$StudioPanel$1$1, StudioPanelKt$StudioPanel$2$1, StudioPanelKt$StudioPanel$3$3$1$1$1$1$1, StudioPanelKt$StudioPanel$3$3$1$3$1$1$1, StudioPanelKt$StudioPanel$3$3$1$4$1$1$1, StudioPanelKt$StudioPanel$3$3$1$5$1 |
 | 🟢 | CheckInDialog.kt | 94.0% (188/200) | 40.0% (8/20) | 91.0% | CheckInDialogKt, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$1$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$2$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$2$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$3$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$3$1$1, ComposableSingletons$CheckInDialogKt |
 | 🟢 | AiPrompts.kt | 94.4% (134/142) | 90.0% (36/40) | 92.4% | AiPrompts, SourceContextBlock |
 | 🟢 | GoogleRemoteCalendarRepository.kt | 94.4% (68/72) | 85.0% (68/80) | 97.9% | GoogleRemoteCalendarRepository |
 | 🟢 | GoogleCalendarSyncService.kt | 94.6% (244/258) | 45.1% (130/288) | 79.5% | GoogleApiException, GoogleCalendarDiscoveryItem, GoogleCalendarDiscoveryItem$Companion, GoogleCalendarEventsResponse, GoogleCalendarEventsResponse$Companion, GoogleCalendarItem, GoogleCalendarItem$Companion, GoogleCalendarListDiscoveryResponse, GoogleCalendarListDiscoveryResponse$Companion, GoogleCalendarSyncService, GoogleCalendarSyncService$createCalendar$2, GoogleCalendarSyncService$deleteEvent$2, GoogleCalendarSyncService$fetchEventsPage$2, GoogleCalendarSyncService$listCalendars$2, GoogleCalendarSyncService$syncEvent$2, GoogleEvent, GoogleEvent$Companion, GoogleEventDateTime, GoogleEventDateTime$Companion |
+| 🟢 | CalendarPushResolver.kt | 95.1% (78/82) | 66.7% (32/48) | 92.6% | CalendarPushResolver, PushOutcome |
 | 🟢 | BugReporter.kt | 95.3% (82/86) | 50.0% (8/16) | 84.1% | BugReporter, BugReporter$reportError$1, TelemetryStats, TelemetryStats$Companion |
+| 🟢 | TaskDecompositionService.kt | 95.5% (42/44) | 64.3% (18/28) | 91.1% | TaskDecompositionService |
 | 🟢 | SqlDelightSourceRepository.kt | 95.9% (94/98) | 100.0% (20/20) | 92.4% | SqlDelightSourceRepository, SqlDelightSourceRepository$getAllSources$2, SqlDelightSourceRepository$getFragmentsForSource$2, SqlDelightSourceRepository$getSourceById$2, SqlDelightSourceRepository$getSourceMetadata$2, SqlDelightSourceRepository$saveSource$2, SqlDelightSourceRepository$updateSourceMetadata$2 |
 | 🟢 | SyncNegotiator.kt | 96.2% (100/104) | 63.2% (48/76) | 93.5% | SyncNegotiator |
 | 🟢 | CollisionResolver.kt | 96.3% (206/214) | 82.6% (142/172) | 96.3% | CollisionResolver, ResolutionResult$Conflict, ResolutionResult$Success |
+| 🟢 | EventAgent.kt | 96.6% (226/234) | 53.6% (30/56) | 94.0% | AgentError, AgentError$GenericError, AgentError$QuotaExhausted, EventAgent, EventAgent$acceptDecomposition$2, EventAgent$decomposeTask$2, EventAgent$extractDeliverables$2, EventAgent$generateStudyPlan$2, EventAgent$markEventCompleted$2, EventAgent$rescheduleEvent$2, EventAgent$skipEvent$2 |
 | 🟢 | CriticJsonCodec.kt | 96.6% (172/178) | 45.6% (82/180) | 78.4% | CriticJsonCodec, RawCriticEvent, RawCriticEvent$Companion, RawCriticTask, RawCriticTask$Companion |
 | 🟢 | ContextAgent.kt | 96.8% (182/188) | 67.5% (54/80) | 95.4% | ContextAgent |
 | 🟢 | SyncNegotiationDialog.kt | 97.6% (166/170) | 50.0% (16/32) | 97.0% | ComposableSingletons$SyncNegotiationDialogKt, SyncNegotiationDialogKt, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$1$1$1$1, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$2$1$1$1 |

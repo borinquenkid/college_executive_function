@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **79.69%** (7070/8872 lines)
+- **Overall Line Coverage**: **83.05%** (7368/8872 lines)
 - **Total Source Files**: 81
 
 ## Coverage by File
@@ -24,7 +24,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% | ComposableSingletons$RoutineScreenKt, RoutineScreenKt, RoutineScreenKt$RoutineScreen$1$1, RoutineScreenKt$RoutineScreen$4$1$1 |
 | 🔴 | SourceRepository.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
-| 🔴 | AddRoutineItemDialog.kt | 0.0% (0/302) | 0.0% (0/84) | 0.0% | AddRoutineItemDialogKt, ComposableSingletons$AddRoutineItemDialogKt |
 | 🔴 | PdfReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | FilePicker.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -73,6 +72,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | ContextAgent.kt | 96.8% (182/188) | 67.5% (54/80) | 95.4% | ContextAgent |
 | 🟢 | SyncNegotiationDialog.kt | 97.6% (166/170) | 50.0% (16/32) | 97.0% | ComposableSingletons$SyncNegotiationDialogKt, SyncNegotiationDialogKt, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$1$1$1$1, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$2$1$1$1 |
 | 🟢 | GoogleDriveService.kt | 98.4% (122/124) | 63.0% (58/92) | 87.5% | DriveFile, DriveFile$Companion, DriveFileListResponse, DriveFileListResponse$Companion, GoogleDriveService, GoogleDriveService$getFileContent$2, GoogleDriveService$listFiles$2 |
+| 🟢 | AddRoutineItemDialog.kt | 98.7% (298/302) | 66.7% (56/84) | 99.1% | AddRoutineItemDialogKt, ComposableSingletons$AddRoutineItemDialogKt |
 | 🟢 | EventDisplayPipeline.kt | 100.0% (28/28) | 83.3% (10/12) | 100.0% | EventDisplayPipeline |
 | 🟢 | IcsCalendarSource.kt | 100.0% (18/18) | N/A | 100.0% | IcsCalendarSource |
 | 🟢 | SourceFragment.kt | 100.0% (24/24) | 34.4% (22/64) | 70.1% | SourceFragment, SourceFragment$Companion, SourceType, SourceType$Companion |

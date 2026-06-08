@@ -10,13 +10,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 81
-- **High-Risk Files (CRAP > 30)**: 12
+- **High-Risk Files (CRAP > 30)**: 11
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| AddRoutineItemDialog.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
 | CriticActorAIService.kt | 69 | 78.4% | 116.77 | 🔴 HIGH |
 | CalendarAgent.kt | 72 | 83.4% | 95.59 | 🔴 HIGH |
 | EventAgent.kt | 70 | 87.7% | 79.21 | 🔴 HIGH |
@@ -31,21 +30,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleRemoteCalendarRepository.kt | 29 | 94.4% | 29.14 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
+| SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
-
-### AddRoutineItemDialog.kt (Score: 182.00 - 🔴 HIGH)
-- **Total Complexity**: 13
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AddRoutineItemDialog` | 11 |
-| `ClickableField` | 1 |
-| `TimePickerDialog` | 1 |
 
 ### CriticActorAIService.kt (Score: 116.77 - 🔴 HIGH)
 - **Total Complexity**: 69
@@ -457,6 +446,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `isComplex` | 3 |
 | `calculateSubDueDate` | 1 |
 | `calculateDaysBeforeDue` | 1 |
+
+### AddRoutineItemDialog.kt (Score: 13.00 - 🟢 LOW)
+- **Total Complexity**: 13
+- **Real Coverage**: 98.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `AddRoutineItemDialog` | 11 |
+| `ClickableField` | 1 |
+| `TimePickerDialog` | 1 |
 
 ### SourceRepository.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 3

@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **74.42%** (6570/8828 lines)
-- **Total Source Files**: 79
+- **Total Source Files**: 80
 
 ## Coverage by File
 
@@ -29,6 +29,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | AddRoutineItemDialog.kt | 0.0% (0/302) | 0.0% (0/84) | 0.0% | AddRoutineItemDialogKt, ComposableSingletons$AddRoutineItemDialogKt |
 | 🔴 | PdfReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | UniversalHomeLayout.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | FilePicker.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ErrorBanner.kt | 14.8% (18/122) | 22.7% (10/44) | 27.7% | ComposableSingletons$ErrorBannerKt, ErrorBannerKt |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% | RecursiveDecompositionAIService |

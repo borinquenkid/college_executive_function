@@ -16,6 +16,9 @@ Confirm these three builds pass before confirming completion.
 ### UI Verification Protocol
 For UI-related changes, verify the visual state by running the relevant module (e.g., `:composeApp:jvmRun`) and performing a screen capture (e.g., using macOS `screencapture`). Layout optimizations and visual features must be physically verified on-screen before being reported as complete.
 
+### CRAP Remediation Protocol
+When a file scores high on the CRAP index (`CRAP.md`), prefer **decomposing it into smaller, single-responsibility files before writing tests against it**. The formula (`complexity² × (1 - coverage)³ + complexity`) squares complexity, so splitting one high-complexity file into focused units shrinks the score sharply on its own — often more than coverage alone would. Testing a monolith first is a sunk cost: once it's split, those tests have to be rewritten or relocated against the new shape anyway. Decompose first, then write targeted tests against the smaller, stable units that result.
+
 ### Native Dependency Management
 Manual modification of Xcode project files (`.pbxproj`) and adding external Swift packages is strictly prohibited due to their brittleness in KMP builds. All native features MUST be implemented using platform-native APIs already available in the system frameworks, accessible via pure Kotlin/Native interop, to ensure build stability.
 

@@ -9,20 +9,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 79
-- **High-Risk Files (CRAP > 30)**: 13
+- **Total Files Analyzed**: 80
+- **High-Risk Files (CRAP > 30)**: 14
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| App.kt | 14 | 0.0% | 210.00 | 🔴 HIGH |
 | AddRoutineItemDialog.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
 | CriticActorAIService.kt | 69 | 78.4% | 116.77 | 🔴 HIGH |
 | CalendarAgent.kt | 72 | 83.4% | 95.59 | 🔴 HIGH |
 | EventAgent.kt | 70 | 87.7% | 79.21 | 🔴 HIGH |
 | GeminiAIService.kt | 55 | 84.6% | 66.09 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
+| App.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
+| UniversalHomeLayout.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | GeminiResponseParser.kt | 35 | 81.6% | 42.59 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
 | CollisionResolver.kt | 41 | 96.3% | 41.09 | 🔴 HIGH |
@@ -30,21 +31,10 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | AcademicCalendar.kt | 29 | 81.6% | 34.21 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| GoogleRemoteCalendarRepository.kt | 29 | 94.4% | 29.14 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
-
-### App.kt (Score: 210.00 - 🔴 HIGH)
-- **Total Complexity**: 14
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `App` | 7 |
-| `UniversalHomeLayout` | 7 |
 
 ### AddRoutineItemDialog.kt (Score: 182.00 - 🔴 HIGH)
 - **Total Complexity**: 13
@@ -142,6 +132,24 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `parseAndSave` | 9 |
 | `SettingsScreen` | 1 |
+
+### App.kt (Score: 56.00 - 🔴 HIGH)
+- **Total Complexity**: 7
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `App` | 7 |
+
+### UniversalHomeLayout.kt (Score: 56.00 - 🔴 HIGH)
+- **Total Complexity**: 7
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `UniversalHomeLayout` | 7 |
 
 ### GeminiResponseParser.kt (Score: 42.59 - 🔴 HIGH)
 - **Total Complexity**: 35

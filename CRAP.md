@@ -10,7 +10,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 89
-- **High-Risk Files (CRAP > 30)**: 8
+- **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
 
@@ -18,7 +18,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: | :---: | :---: | :---: |
 | GeminiAIService.kt | 55 | 84.6% | 66.09 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
-| GeminiResponseParser.kt | 35 | 81.6% | 42.59 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
 | CollisionResolver.kt | 41 | 96.3% | 41.09 | 🔴 HIGH |
 | AgentHarness.kt | 37 | 89.9% | 38.41 | 🔴 HIGH |
@@ -31,6 +30,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
 | EventGenerator.kt | 12 | 56.0% | 24.27 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 88.1% | 23.89 | 🟡 MEDIUM |
+| GeminiModelNegotiator.kt | 20 | 81.9% | 22.36 | 🟡 MEDIUM |
 
 ---
 
@@ -64,19 +64,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `parseAndSave` | 9 |
 | `SettingsScreen` | 1 |
-
-### GeminiResponseParser.kt (Score: 42.59 - 🔴 HIGH)
-- **Total Complexity**: 35
-- **Real Coverage**: 81.6%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `parseEventsJson` | 17 |
-| `parseDecomposeTaskJson` | 9 |
-| `filterToSourceYears` | 4 |
-| `parseCategorizeSourceJson` | 3 |
-| `extractSourceYears` | 2 |
 
 ### AiPrompts.kt (Score: 41.30 - 🔴 HIGH)
 - **Total Complexity**: 41
@@ -314,6 +301,23 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `serializeTasks` | 2 |
 | `parseTasks` | 2 |
 | `parseTaskFromJson` | 2 |
+
+### GeminiResponseParser.kt (Score: 21.01 - 🟡 MEDIUM)
+- **Total Complexity**: 21
+- **Real Coverage**: 97.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `filterToSourceYears` | 4 |
+| `toEvent` | 4 |
+| `extractSourceYears` | 2 |
+| `parseEventsJson` | 2 |
+| `parseClockTime` | 2 |
+| `parseDecomposeTaskJson` | 2 |
+| `parseCategorizeSourceJson` | 2 |
+| `extractJsonArray` | 2 |
+| `stripCodeFences` | 1 |
 
 ### CommonSourceProviders.kt (Score: 20.61 - 🟡 MEDIUM)
 - **Total Complexity**: 19

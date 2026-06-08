@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **84.22%** (7416/8806 lines)
+- **Overall Line Coverage**: **84.54%** (7428/8786 lines)
 - **Total Source Files**: 89
 
 ## Coverage by File
@@ -45,7 +45,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | SyncProposal.kt | 80.0% (32/40) | 25.0% (4/16) | 55.3% | SyncNegotiation, SyncProposal$DirectConflict, SyncProposal$StudyBlockShift |
 | 🟢 | DecompositionOrchestrator.kt | 80.3% (98/122) | 81.3% (26/32) | 90.5% | DecompositionOrchestrator, WorkUnit$SubTask, WorkUnit$Task |
 | 🟢 | WebSourceReader.kt | 81.0% (34/42) | N/A | 86.6% | WebSourceReader |
-| 🟢 | GeminiResponseParser.kt | 81.6% (160/196) | 42.1% (90/214) | 72.7% | GeminiResponseParser |
 | 🟢 | AcademicCalendar.kt | 81.6% (498/610) | 54.3% (102/188) | 81.4% | AcademicCalendarKt, AcademicCalendarKt$AcademicCalendar$1$1, AcademicCalendarKt$AcademicCalendar$2$1, AcademicCalendarKt$AcademicCalendar$2$1$1, AcademicCalendarKt$AcademicCalendar$5$1$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$2$1$1$2$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$3$1$3$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$4$2$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$2$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$3$1$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$4$1$1, ComposableSingletons$AcademicCalendarKt |
 | 🟢 | GeminiModelNegotiator.kt | 81.9% (136/166) | 47.6% (78/164) | 74.3% | GeminiModelNegotiator, GeminiModelNegotiator$Companion, ModelInfo, ModelInfo$Companion, ModelListResponse, ModelListResponse$Companion |
 | 🟢 | CommonSourceProviders.kt | 83.5% (274/328) | 45.7% (64/140) | 83.2% | CommonSourceProvidersKt, CommonSourceProvidersKt$DrivePickerDialog$1$1, CommonSourceProvidersKt$DrivePickerDialog$3$1$1$1$1$1$1, ComposableSingletons$CommonSourceProvidersKt, GoogleDriveSourceProvider, LocalFileSourceProvider, UrlSourceProvider |
@@ -79,6 +78,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | CriticJsonCodec.kt | 96.6% (172/178) | 45.6% (82/180) | 78.4% | CriticJsonCodec, RawCriticEvent, RawCriticEvent$Companion, RawCriticTask, RawCriticTask$Companion |
 | 🟢 | ContextAgent.kt | 96.8% (182/188) | 67.5% (54/80) | 95.4% | ContextAgent |
 | 🟢 | SyncNegotiationDialog.kt | 97.6% (166/170) | 50.0% (16/32) | 97.0% | ComposableSingletons$SyncNegotiationDialogKt, SyncNegotiationDialogKt, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$1$1$1$1, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$2$1$1$1 |
+| 🟢 | GeminiResponseParser.kt | 97.7% (172/176) | 39.0% (82/210) | 75.7% | GeminiResponseParser, RawCategorization, RawCategorization$Companion, RawGeminiEvent, RawGeminiEvent$Companion, RawGeminiTask, RawGeminiTask$Companion |
 | 🟢 | GoogleDriveService.kt | 98.4% (122/124) | 63.0% (58/92) | 87.5% | DriveFile, DriveFile$Companion, DriveFileListResponse, DriveFileListResponse$Companion, GoogleDriveService, GoogleDriveService$getFileContent$2, GoogleDriveService$listFiles$2 |
 | 🟢 | AddRoutineItemDialog.kt | 98.7% (298/302) | 66.7% (56/84) | 99.1% | AddRoutineItemDialogKt, ComposableSingletons$AddRoutineItemDialogKt |
 | 🟢 | EventDisplayPipeline.kt | 100.0% (28/28) | 83.3% (10/12) | 100.0% | EventDisplayPipeline |

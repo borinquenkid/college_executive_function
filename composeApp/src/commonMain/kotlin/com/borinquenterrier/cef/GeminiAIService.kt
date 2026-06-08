@@ -38,14 +38,14 @@ class GeminiAIService(
         }
     }
 
-    /**
-     * Describes how demanding a task is, which drives model selection.
-     *
-     * - [HEAVY]: Long-context reasoning (syllabus parsing, study plans, document analysis).
-     *   Prefers the most capable Flash model available.
-     * - [LIGHT]: Short, latency-sensitive calls (chat, categorisation, task decomposition).
-     *   Prefers the smallest Flash model to preserve daily quota.
-     */
+    private val modelNegotiator = GeminiModelNegotiator(
+        apiKey = apiKey,
+        accessToken = accessToken,
+        client = client,
+        database = database,
+        logger = logger
+    )
+
     enum class TaskTier { HEAVY, LIGHT }
 
     companion object {
@@ -54,193 +54,26 @@ class GeminiAIService(
             isLenient = true
         }
 
-        // Global blacklist to persist across service recreations during a session
-        private val blacklistedModels = mutableMapOf<String, Long>()
-        private const val BLACKLIST_DURATION_MS = 60 * 60 * 1000L // 1 hour
-        private const val PREFERRED_MODEL_KEY = "preferred_gemini_model"
-
-        /**
-         * Ordered model preferences by task tier.
-         *
-         * Only three models per tier — chosen because they are the only ones that:
-         *  (a) exist on the free AI Studio tier,
-         *  (b) have a 1M-token context window, and
-         *  (c) are actively maintained by Google.
-         *
-         * Heavy tasks try the most capable Flash first (better reasoning for parsing).
-         * Light tasks start with the smallest Flash (fastest, cheapest, preserves daily quota).
-         */
-        internal val HEAVY_PREFERENCES = listOf(
-            "gemini-2.5-flash",       // best reasoning, 1M ctx, free tier
-            "gemini-2.0-flash",       // reliable workhorse fallback
-            "gemini-2.5-flash-lite",  // lite variant — less capable but still 1M ctx
-            "gemini-2.0-flash-lite"   // last resort if 2.5/2.0 are exhausted
-        )
-
-        internal val LIGHT_PREFERENCES = listOf(
-            "gemini-2.5-flash-lite",  // fastest & cheapest — confirmed free tier, 1M ctx
-            "gemini-2.0-flash-lite",  // fallback if 2.5-lite unavailable
-            "gemini-2.0-flash",       // step up if both lite variants unavailable
-            "gemini-2.5-flash"        // last resort (overkill for light tasks)
-        )
-
-        /** Clears the in-memory blacklist. Call in test teardown to prevent cross-test contamination. */
-        internal fun clearBlacklistForTesting() = blacklistedModels.clear()
-
-        internal val YEAR_PATTERN = Regex("""\b(20\d{2})\b""")
-
         fun extractSourceYears(sourceText: String): Set<Int> =
-            YEAR_PATTERN.findAll(sourceText).map { it.value.toInt() }.toSet()
+            GeminiResponseParser.extractSourceYears(sourceText)
 
-        fun filterToSourceYears(events: List<Event>, sourceYears: Set<Int>): List<Event> {
-            if (sourceYears.isEmpty()) return events
-            return events.filter { event ->
-                val year = when (event) {
-                    is TimeEvent -> event.date.year
-                    is DayEvent -> event.date.year
-                }
-                year in sourceYears
-            }
-        }
+        fun filterToSourceYears(events: List<Event>, sourceYears: Set<Int>): List<Event> =
+            GeminiResponseParser.filterToSourceYears(events, sourceYears)
 
-        fun parseEventsJson(responseText: String, telemetry: TelemetryManager? = null): List<Event> {
-            val cleanJson = responseText.trim()
-                .removePrefix("```json")
-                .removeSuffix("```")
-                .trim()
+        fun parseEventsJson(responseText: String, telemetry: TelemetryManager? = null): List<Event> =
+            GeminiResponseParser.parseEventsJson(responseText, telemetry)
 
-            val root = json.parseToJsonElement(cleanJson)
-            val jsonArray = if (root is JsonArray) {
-                root
-            } else if (root is JsonObject && root.containsKey("events")) {
-                root["events"]!!.jsonArray
-            } else {
-                throw Exception("Unexpected JSON structure: $cleanJson")
-            }
+        internal fun parseDecomposeTaskJson(responseText: String): List<DecomposedTask> =
+            GeminiResponseParser.parseDecomposeTaskJson(responseText)
 
-            return jsonArray.map { element ->
-                val obj = element.jsonObject
-                val title = obj["title"]?.jsonPrimitive?.content ?: "Untitled Event"
-                val type = obj["type"]?.jsonPrimitive?.content ?: "DAY"
-                val dateStr = obj["date"]?.jsonPrimitive?.content ?: "2024-01-01"
-                val categoryStr = obj["category"]?.jsonPrimitive?.content ?: "REGULAR"
-                val warning = obj["warning"]?.jsonPrimitive?.content
-                val gradeWeight = obj["gradeWeight"]?.jsonPrimitive?.let { prim ->
-                    prim.doubleOrNull?.toFloat() ?: prim.content.toFloatOrNull()
-                }
-                val category = try {
-                    AcademicCategory.valueOf(categoryStr)
-                } catch (e: Exception) {
-                    AcademicCategory.REGULAR
-                }
+        internal fun parseCategorizeSourceJson(responseText: String): SourceCategory =
+            GeminiResponseParser.parseCategorizeSourceJson(responseText)
 
-                val date = try { LocalDate.parse(dateStr) } catch (e: Exception) {
-                    telemetry?.logJsonError()
-                    LocalDate(2024,1,1)
-                }
-
-                if (type == "TIME") {
-                    val startTimeStr = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
-                    val endTimeStr = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
-                    val startTime = try {
-                        // Handle both HH:mm and HH:mm:ss from AI responses
-                        val parts = startTimeStr.split(":")
-                        LocalTime(parts[0].toInt(), parts[1].toInt())
-                    } catch (e: Exception) {
-                        telemetry?.logJsonError()
-                        LocalTime(9, 0)
-                    }
-                    val endTime = try {
-                        val parts = endTimeStr.split(":")
-                        LocalTime(parts[0].toInt(), parts[1].toInt())
-                    } catch (e: Exception) {
-                        telemetry?.logJsonError()
-                        LocalTime(10, 0)
-                    }
-                    TimeEvent(
-                        title = title,
-                        source = EventSource.AI_GENERATED,
-                        date = date,
-                        startTime = startTime,
-                        endTime = endTime,
-                        category = category,
-                        warning = warning,
-                        gradeWeight = gradeWeight
-                    )
-                } else {
-                    DayEvent(
-                        title = title,
-                        source = EventSource.AI_GENERATED,
-                        category = category,
-                        date = date,
-                        warning = warning,
-                        gradeWeight = gradeWeight
-                    )
-                }
-            }
-        }
-
-        /**
-         * Parses the JSON response from a task-decomposition prompt into a list of [DecomposedTask].
-         * Handles both a root JSON array and a `{"tasks":[...]}` wrapper object.
-         */
-        internal fun parseDecomposeTaskJson(responseText: String): List<DecomposedTask> {
-            val cleanJson = responseText.trim()
-                .removePrefix("```json")
-                .removeSuffix("```")
-                .trim()
-
-            val root = json.parseToJsonElement(cleanJson)
-            val jsonArray = when {
-                root is JsonArray -> root
-                root is JsonObject && root.containsKey("tasks") -> root["tasks"]!!.jsonArray
-                else -> throw Exception("Unexpected JSON structure: $cleanJson")
-            }
-
-            return jsonArray.map { element ->
-                val obj = element.jsonObject
-                val daysBeforeDue = obj["daysBeforeDue"]?.jsonPrimitive?.let {
-                    it.intOrNull ?: it.content.toDoubleOrNull()?.toInt() ?: 1
-                } ?: 1
-                DecomposedTask(
-                    title = obj["title"]?.jsonPrimitive?.content ?: "Sub-task",
-                    daysBeforeDue = daysBeforeDue,
-                    description = obj["description"]?.jsonPrimitive?.content ?: ""
-                )
-            }
-        }
-
-        /**
-         * Parses the JSON response from a source-categorisation prompt into a [SourceCategory].
-         */
-        internal fun parseCategorizeSourceJson(responseText: String): SourceCategory {
-            val cleanJson = responseText.trim()
-                .removePrefix("```json")
-                .removeSuffix("```")
-                .trim()
-
-            val root = json.parseToJsonElement(cleanJson)
-            val categoryName = root.jsonObject["category"]?.jsonPrimitive?.content?.uppercase() ?: "OTHER"
-
-            return when (categoryName) {
-                "SYLLABUS" -> SourceCategory.SYLLABUS
-                "READING MATERIAL", "READING_MATERIAL" -> SourceCategory.READING_MATERIAL
-                "LAB MANUAL", "LAB_MANUAL" -> SourceCategory.LAB_MANUAL
-                "LECTURE NOTES", "LECTURE_NOTES" -> SourceCategory.LECTURE_NOTES
-                else -> SourceCategory.OTHER
-            }
+        internal fun clearBlacklistForTesting() {
+            GeminiModelNegotiator.clearBlacklistForTesting()
         }
     }
 
-    // -------------------------------------------------------------------------
-    // Core retry / backoff infrastructure
-    // -------------------------------------------------------------------------
-
-    /**
-     * Builds a Gemini generateContent request body with the standard structure.
-     * When [responseMimeType] is "application/json", native JSON output mode is enabled.
-     * Pass null (or any non-json value) to omit the field and receive unstructured text.
-     */
     private fun buildGeminiBody(
         prompt: String,
         temperature: Double = 0.0,
@@ -261,10 +94,6 @@ class GeminiAIService(
         }
     }
 
-    /**
-     * Posts to the Gemini generateContent endpoint for [modelName] with [body] and
-     * returns the raw [HttpResponse]. Auth headers are applied automatically.
-     */
     private suspend fun postToModel(modelName: String, body: JsonObject): HttpResponse {
         val url = "https://generativelanguage.googleapis.com/v1beta/models/$modelName:generateContent"
         val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
@@ -277,38 +106,25 @@ class GeminiAIService(
         }
     }
 
-    /**
-     * Single-source-of-truth retry engine.
-     *
-     * Behaviour:
-     *  - **Transient** (429, 503, any 5xx): exponential back-off; does NOT blacklist.
-     *  - **Structural** (404, 400 modality): blacklists model locally, tries next best.
-     *  - **Fatal** (401, 403, other 4xx): throws immediately.
-     *
-     * @param maxAttempts   Total allowed attempts (default 5).
-     * @param tier          [TaskTier] hint — drives which model is preferred (default [TaskTier.HEAVY]).
-     * @param body          Lambda that returns the [JsonObject] to POST for a given [modelName].
-     * @param parseResponse Lambda that turns the raw response text into [T].
-     */
     private suspend fun <T> executeWithRetry(
         maxAttempts: Int = 5,
         tier: TaskTier = TaskTier.HEAVY,
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T {
-        val available = getAvailableModels()
+        val available = modelNegotiator.getAvailableModels()
         var attempts = 0
         var lastError: Exception? = null
         var lastNegotiatedModel: String? = null
 
         while (attempts < maxAttempts) {
-            val modelName = negotiateBestModel(available, tier)
+            val modelName = modelNegotiator.negotiateBestModel(available, tier)
             lastNegotiatedModel = modelName
             try {
                 val httpResponse = postToModel(modelName, body(modelName))
                 val responseBody = httpResponse.bodyAsText()
 
-                // --- Fatal errors — throw immediately ---
+                // Fatal errors — throw immediately
                 if (httpResponse.status == HttpStatusCode.Unauthorized) {
                     logger?.e(tag, "401 Unauthorized: Your API Key or Access Token is invalid/expired.")
                     throw Exception("Unauthorized")
@@ -318,31 +134,23 @@ class GeminiAIService(
                     throw Exception("Forbidden")
                 }
 
-                // --- Structural errors — blacklist model, try next ---
+                // Structural errors — blacklist model, try next
                 if (httpResponse.status == HttpStatusCode.NotFound) {
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    modelNegotiator.blacklistModel(modelName)
+                    modelNegotiator.evictFromCache(modelName)
                     logger?.d(tag, "⚠️ Model $modelName returned 404 (Not Found). Blacklisted. Trying next model...")
                     attempts++
                     continue
                 }
                 if (httpResponse.status == HttpStatusCode.BadRequest && responseBody.contains("response modalities")) {
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
+                    modelNegotiator.blacklistModel(modelName)
+                    modelNegotiator.evictFromCache(modelName)
                     logger?.d(tag, "⚠️ Model $modelName does not support text responses. Blacklisted. Trying next model...")
                     attempts++
                     continue
                 }
 
-                // --- Quota exhaustion (RPD) — daily limit, unrecoverable until midnight ---
-                // Gemini signals daily quota exhaustion via specific body phrases.
-                // Retrying makes no sense; throw immediately so the caller can surface a clear message.
-                //
-                // Key distinction:
-                //  RPM (transient): body contains "retry in Xs" — retrying WILL work
-                //  RPD (fatal):     body contains "quota" + exhaustion word, NO retry hint
+                // Quota exhaustion (RPD)
                 if (httpResponse.status == HttpStatusCode.TooManyRequests) {
                     val hasRetryHint = responseBody.contains("retry in", ignoreCase = true)
                     val hasQuotaWord = responseBody.contains("quota", ignoreCase = true)
@@ -357,24 +165,19 @@ class GeminiAIService(
                     }
                 }
 
-                // --- Transient 5xx / 503 errors — blacklist failing model, try next model immediately ---
+                // Transient 5xx / 503 errors
                 if (httpResponse.status == HttpStatusCode.ServiceUnavailable ||
                     httpResponse.status.value >= 500
                 ) {
                     telemetryManager?.logRateLimitError()
-                    val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-                    blacklistedModels[modelName] = expiry
-                    try {
-                        database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-                        logger?.e(tag, "⚠️ Model $modelName returned ${httpResponse.status}. Evicted from cache and blacklisted. Trying next model...")
-                    } catch (e: Exception) {
-                        logger?.e(tag, "Failed to evict model $modelName from cache: ${e.message}")
-                    }
+                    modelNegotiator.blacklistModel(modelName)
+                    modelNegotiator.evictFromCache(modelName)
+                    logger?.e(tag, "⚠️ Model $modelName returned ${httpResponse.status}. Evicted from cache and blacklisted. Trying next model...")
                     attempts++
                     continue
                 }
 
-                // --- Transient 429 Too Many Requests — extract wait time, else back-off, retry same model ---
+                // Transient 429 Too Many Requests
                 if (httpResponse.status == HttpStatusCode.TooManyRequests) {
                     telemetryManager?.logRateLimitError()
                     attempts++
@@ -387,8 +190,6 @@ class GeminiAIService(
                         tag = tag
                     )
 
-                    // If rate-limited with a large delay (>10s), treat it as a quota/exhaustion fail-fast
-                    // to prevent UI freezing and infinite test suite timeouts.
                     if (delayMs > 10000L) {
                         throw Exception("QuotaExhausted: Rate limit delay of ${delayMs}ms exceeds the maximum wait threshold of 10 seconds.")
                     }
@@ -397,12 +198,11 @@ class GeminiAIService(
                     continue
                 }
 
-                // --- Other non-success errors ---
                 if (!httpResponse.status.isSuccess()) {
                     throw Exception("Gemini API Error (${httpResponse.status}): $responseBody")
                 }
 
-                // --- Success ---
+                // Success
                 val geminiResponse = json.decodeFromString<GeminiResponse>(responseBody)
                 val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
                     ?: throw Exception("Empty response from AI")
@@ -410,7 +210,6 @@ class GeminiAIService(
                 return parseResponse(responseText)
 
             } catch (e: Exception) {
-                // Propagate fatal/quota errors immediately
                 if (e.message == "Unauthorized" || 
                     e.message == "Forbidden" || 
                     e.message?.startsWith("QuotaExhausted") == true
@@ -424,35 +223,15 @@ class GeminiAIService(
             }
         }
 
-        // If we reach here, it means we exceeded maxAttempts.
-        // Evict the failing model from the database cache and blacklist it so it's not immediately re-negotiated.
         if (lastNegotiatedModel != null) {
-            val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
-            blacklistedModels[lastNegotiatedModel] = expiry
-            try {
-                database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
-                logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts retry attempts. Evicted from cache and blacklisted.")
-            } catch (e: Exception) {
-                logger?.e(tag, "Failed to evict model $lastNegotiatedModel from cache: ${e.message}")
-            }
+            modelNegotiator.blacklistModel(lastNegotiatedModel)
+            modelNegotiator.evictFromCache(lastNegotiatedModel)
+            logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts retry attempts. Evicted from cache and blacklisted.")
         }
 
         throw lastError ?: Exception("Failed after $maxAttempts attempts")
     }
 
-    // -------------------------------------------------------------------------
-    // Model discovery & negotiation
-    // -------------------------------------------------------------------------
-
-    /**
-     * Determines how long to wait before the next retry after a transient error.
-     *
-     * Priority order (Gemini-specific):
-     *  1. Response body contains "retry in X.Xs" — Gemini's most common signal
-     *  2. `x-ratelimit-reset` epoch header — absolute reset timestamp (seconds)
-     *  3. `Retry-After` header — standard RFC 7231 integer seconds
-     *  4. Exponential back-off — fallback when no server hint is available
-     */
     internal fun resolveRetryDelay(
         status: HttpStatusCode,
         headers: io.ktor.http.Headers,
@@ -460,19 +239,17 @@ class GeminiAIService(
         attempts: Int,
         tag: String
     ): Long {
-        // 1. Body hint: "Please retry in 17.6s" or "retry in 30s"
         val bodyRetryMatch = Regex("""retry in (\d+(?:\.\d+)?)\s*s""", RegexOption.IGNORE_CASE)
             .find(body)
         if (bodyRetryMatch != null) {
             val seconds = bodyRetryMatch.groupValues[1].toDoubleOrNull()
             if (seconds != null) {
-                val ms = (seconds * 1000).toLong() + 500L // +500ms buffer
+                val ms = (seconds * 1000).toLong() + 500L
                 logger?.d(tag, "⏱️ Rate-limited — server body says retry in ${seconds}s. Waiting ${ms}ms.")
                 return ms
             }
         }
 
-        // 2. x-ratelimit-reset: absolute epoch seconds (compute delta from now)
         val resetHeader = headers["x-ratelimit-reset"] ?: headers["X-RateLimit-Reset"]
         if (resetHeader != null) {
             val resetEpoch = resetHeader.toLongOrNull()
@@ -485,7 +262,6 @@ class GeminiAIService(
             }
         }
 
-        // 3. Standard Retry-After header (integer seconds)
         val retryAfter = headers["Retry-After"] ?: headers["retry-after"]
         if (retryAfter != null) {
             val seconds = retryAfter.toLongOrNull()
@@ -496,106 +272,11 @@ class GeminiAIService(
             }
         }
 
-        // 4. Exponential back-off fallback
         val baseDelay = if (status == HttpStatusCode.TooManyRequests) 2000L else 1000L
         val ms = baseDelay * (1 shl (attempts - 1))
         logger?.d(tag, "⚠️ Transient error ($status). No server hint — exponential backoff ${ms}ms (attempt $attempts).")
         return ms
     }
-
-    private suspend fun getAvailableModels(): List<ModelInfo> {
-        val url = "https://generativelanguage.googleapis.com/v1beta/models"
-        val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
-        
-        return try {
-            val response: HttpResponse = client.get(authUrl) {
-                if (apiKey == null && accessToken != null) {
-                    header("Authorization", "Bearer $accessToken")
-                }
-            }
-            
-            if (!response.status.isSuccess()) {
-                val body = response.bodyAsText()
-                logger?.e(tag, "Failed to get available models: ${response.status}. Body: $body")
-                return emptyList()
-            }
-
-            val modelList = json.decodeFromString<ModelListResponse>(response.bodyAsText())
-            modelList.models
-        } catch (e: Exception) {
-            logger?.e(tag, "Exception fetching models: ${e.message}")
-            emptyList()
-        }
-    }
-
-    private suspend fun negotiateBestModel(
-        available: List<ModelInfo>,
-        tier: TaskTier = TaskTier.HEAVY
-    ): String {
-        val currentTime = Clock.System.now().toEpochMilliseconds()
-        
-        // 1. Check SQLite Cache first
-        val cachedModel = database?.appDatabaseQueries?.getSelectedModel(PREFERRED_MODEL_KEY)?.executeAsOneOrNull()
-        if (cachedModel != null) {
-            val expiry = blacklistedModels[cachedModel]
-            if (expiry == null || currentTime > expiry) {
-                logger?.d(tag, "Using cached model from database: $cachedModel")
-                return cachedModel
-            } else {
-                logger?.d(tag, "Cached model $cachedModel is currently blacklisted. Re-negotiating...")
-            }
-        }
-
-        // 2. Perform negotiation
-        val generationCapable = available.filter { it.supportedGenerationMethods.contains("generateContent") }
-        val names = generationCapable.map { it.name.removePrefix("models/") }
-        
-        logger?.d(tag, "Negotiation Step - Available names: ${names.joinToString(", ")}")
-
-        // Filter out non-text models (TTS, image, audio, specialized) and blacklisted ones
-        val textCapableNames = names.filter { name ->
-            val expiry = blacklistedModels[name]
-            val notBlacklisted = expiry == null || currentTime > expiry
-            val isTextCapable = !name.contains("tts") &&
-                !name.contains("-image") &&
-                !name.contains("-audio") &&
-                !name.contains("robotics") &&
-                !name.contains("lyria") &&
-                !name.contains("deep-research") &&
-                !name.contains("computer-use") &&
-                !name.contains("nano-banana")
-            notBlacklisted && isTextCapable
-        }
-
-        logger?.d(tag, "Negotiating best model. Available: ${names.size}, Text-capable & non-blacklisted: ${textCapableNames.size}")
-
-        // Select ordered preferences based on task tier.
-        // Heavy tasks (syllabus parsing, study plans) → most-capable Flash first.
-        // Light tasks (chat, categorise) → smallest Flash first to preserve daily quota.
-        val preferences = if (tier == TaskTier.HEAVY) HEAVY_PREFERENCES else LIGHT_PREFERENCES
-
-        logger?.d(tag, "Task tier: $tier — preference order: ${preferences.joinToString(", ")}")
-
-        // Find best match among text-capable models, with graceful fallbacks
-        val selected = preferences.firstOrNull { pref -> textCapableNames.contains(pref) }
-            ?: textCapableNames.firstOrNull { it.contains("flash") && !it.contains("tts") }
-            ?: textCapableNames.firstOrNull()
-            ?: "gemini-2.0-flash" // last-resort default (always exists on free tier)
-
-        // 3. Save to Cache
-        try {
-            database?.appDatabaseQueries?.insertModel(PREFERRED_MODEL_KEY, selected, currentTime)
-            logger?.d(tag, "Saved newly negotiated model to database: $selected")
-        } catch (e: Exception) {
-            logger?.e(tag, "Failed to save model to cache: ${e.message}")
-        }
-
-        return selected
-    }
-
-    // -------------------------------------------------------------------------
-    // Public API methods — all backed by executeWithRetry
-    // -------------------------------------------------------------------------
 
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         val combinedJson = buildJsonArray {
@@ -609,7 +290,7 @@ class GeminiAIService(
     suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
         return executeWithRetry(
             maxAttempts = 5,
-            tier = TaskTier.HEAVY,   // parsing a full syllabus — needs best reasoning
+            tier = TaskTier.HEAVY,
             body = { _ -> buildGeminiBody(prompt) },
             parseResponse = { responseText ->
                 try {
@@ -636,7 +317,7 @@ class GeminiAIService(
         val prompt = AiPrompts.getTaskDecompositionPrompt(taskTitle, dueDate)
         return executeWithRetry(
             maxAttempts = 5,
-            tier = TaskTier.LIGHT,   // short structured prompt — lite model is sufficient
+            tier = TaskTier.LIGHT,
             body = { _ -> buildGeminiBody(prompt) },
             parseResponse = { responseText -> parseDecomposeTaskJson(responseText) }
         )
@@ -646,7 +327,7 @@ class GeminiAIService(
         return try {
             executeWithRetry(
                 maxAttempts = 3,
-                tier = TaskTier.LIGHT,   // conversational — fast response matters most
+                tier = TaskTier.LIGHT,
                 body = { _ -> buildGeminiBody(prompt, responseMimeType = null) },
                 parseResponse = { responseText -> responseText }
             )
@@ -660,7 +341,7 @@ class GeminiAIService(
         return try {
             executeWithRetry(
                 maxAttempts = 3,
-                tier = TaskTier.HEAVY,   // document can be large; reasoning quality matters
+                tier = TaskTier.HEAVY,
                 body = { _ -> buildGeminiBody(AiPrompts.getDocumentIntelligencePrompt(text), responseMimeType = null) },
                 parseResponse = { responseText -> responseText }
             )
@@ -677,7 +358,7 @@ class GeminiAIService(
         return try {
             executeWithRetry(
                 maxAttempts = 3,
-                tier = TaskTier.LIGHT,   // simple classification — lite model is ideal
+                tier = TaskTier.LIGHT,
                 body = { _ -> buildGeminiBody(prompt) },
                 parseResponse = { responseText -> parseCategorizeSourceJson(responseText) }
             )
@@ -699,9 +380,3 @@ data class Part(val text: String)
 
 @Serializable
 data class Candidate(val content: Content)
-
-@Serializable
-data class ModelListResponse(val models: List<ModelInfo>)
-
-@Serializable
-data class ModelInfo(val name: String, val supportedGenerationMethods: List<String>)

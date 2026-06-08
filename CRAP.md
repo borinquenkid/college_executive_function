@@ -9,8 +9,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 77
-- **High-Risk Files (CRAP > 30)**: 12
+- **Total Files Analyzed**: 79
+- **High-Risk Files (CRAP > 30)**: 13
 
 ### Top 15 High-Risk Files
 
@@ -18,11 +18,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: | :---: | :---: | :---: |
 | App.kt | 14 | 0.0% | 210.00 | 🔴 HIGH |
 | AddRoutineItemDialog.kt | 13 | 0.0% | 182.00 | 🔴 HIGH |
-| GeminiAIService.kt | 107 | 82.0% | 173.89 | 🔴 HIGH |
 | CriticActorAIService.kt | 69 | 78.4% | 116.77 | 🔴 HIGH |
 | CalendarAgent.kt | 72 | 83.4% | 95.59 | 🔴 HIGH |
 | EventAgent.kt | 70 | 87.7% | 79.21 | 🔴 HIGH |
+| GeminiAIService.kt | 55 | 84.6% | 66.09 | 🔴 HIGH |
 | SettingsScreen.kt | 35 | 73.8% | 57.03 | 🔴 HIGH |
+| GeminiResponseParser.kt | 35 | 81.6% | 42.59 | 🔴 HIGH |
 | AiPrompts.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
 | CollisionResolver.kt | 41 | 96.3% | 41.09 | 🔴 HIGH |
 | AgentHarness.kt | 37 | 89.9% | 38.41 | 🔴 HIGH |
@@ -30,7 +31,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleRemoteCalendarRepository.kt | 29 | 94.4% | 29.14 | 🟡 MEDIUM |
-| GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
 
 ---
 
@@ -56,25 +56,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `AddRoutineItemDialog` | 11 |
 | `ClickableField` | 1 |
 | `TimePickerDialog` | 1 |
-
-### GeminiAIService.kt (Score: 173.89 - 🔴 HIGH)
-- **Total Complexity**: 107
-- **Real Coverage**: 82.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `parseEventsJson` | 17 |
-| `parseDecomposeTaskJson` | 9 |
-| `getAvailableModels` | 5 |
-| `filterToSourceYears` | 4 |
-| `parseCategorizeSourceJson` | 3 |
-| `postToModel` | 3 |
-| `categorizeSource` | 3 |
-| `extractSourceYears` | 2 |
-| `generateCalendarEvents` | 2 |
-| `generateCalendarEventsFromPrompt` | 2 |
-| *... and 9 more* | |
 
 ### CriticActorAIService.kt (Score: 116.77 - 🔴 HIGH)
 - **Total Complexity**: 69
@@ -133,6 +114,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `loadIncompleteEvents` | 2 |
 | *... and 5 more* | |
 
+### GeminiAIService.kt (Score: 66.09 - 🔴 HIGH)
+- **Total Complexity**: 55
+- **Real Coverage**: 84.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `postToModel` | 3 |
+| `categorizeSource` | 3 |
+| `generateCalendarEvents` | 2 |
+| `generateCalendarEventsFromPrompt` | 2 |
+| `generateChatResponse` | 2 |
+| `analyzeDocument` | 2 |
+| `extractSourceYears` | 1 |
+| `filterToSourceYears` | 1 |
+| `parseEventsJson` | 1 |
+| `parseDecomposeTaskJson` | 1 |
+| *... and 7 more* | |
+
 ### SettingsScreen.kt (Score: 57.03 - 🔴 HIGH)
 - **Total Complexity**: 35
 - **Real Coverage**: 73.8%
@@ -142,6 +142,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `parseAndSave` | 9 |
 | `SettingsScreen` | 1 |
+
+### GeminiResponseParser.kt (Score: 42.59 - 🔴 HIGH)
+- **Total Complexity**: 35
+- **Real Coverage**: 81.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `parseEventsJson` | 17 |
+| `parseDecomposeTaskJson` | 9 |
+| `filterToSourceYears` | 4 |
+| `parseCategorizeSourceJson` | 3 |
+| `extractSourceYears` | 2 |
 
 ### AiPrompts.kt (Score: 41.30 - 🔴 HIGH)
 - **Total Complexity**: 41
@@ -291,6 +304,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `expandTimeEvent` | 5 |
 | `expandDayEvent` | 5 |
 | `expandEvents` | 2 |
+
+### GeminiModelNegotiator.kt (Score: 22.36 - 🟡 MEDIUM)
+- **Total Complexity**: 20
+- **Real Coverage**: 81.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getAvailableModels` | 5 |
+| `evictFromCache` | 2 |
+| `clearBlacklistForTesting` | 1 |
+| `blacklistModel` | 1 |
+| `negotiateBestModel` | 1 |
 
 ### CommonSourceProviders.kt (Score: 20.61 - 🟡 MEDIUM)
 - **Total Complexity**: 19

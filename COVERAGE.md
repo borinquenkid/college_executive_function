@@ -4,8 +4,8 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **74.27%** (6522/8782 lines)
-- **Total Source Files**: 77
+- **Overall Line Coverage**: **74.42%** (6570/8828 lines)
+- **Total Source Files**: 79
 
 ## Coverage by File
 
@@ -47,10 +47,12 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | SyncProposal.kt | 80.0% (32/40) | 25.0% (4/16) | 55.3% | SyncNegotiation, SyncProposal$DirectConflict, SyncProposal$StudyBlockShift |
 | 🟢 | DecompositionOrchestrator.kt | 80.3% (98/122) | 81.3% (26/32) | 90.5% | DecompositionOrchestrator, WorkUnit$SubTask, WorkUnit$Task |
 | 🟢 | WebSourceReader.kt | 81.0% (34/42) | N/A | 86.6% | WebSourceReader |
+| 🟢 | GeminiResponseParser.kt | 81.6% (160/196) | 42.1% (90/214) | 72.7% | GeminiResponseParser |
 | 🟢 | AcademicCalendar.kt | 81.6% (498/610) | 54.3% (102/188) | 81.4% | AcademicCalendarKt, AcademicCalendarKt$AcademicCalendar$1$1, AcademicCalendarKt$AcademicCalendar$2$1, AcademicCalendarKt$AcademicCalendar$2$1$1, AcademicCalendarKt$AcademicCalendar$5$1$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$2$1$1$2$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$3$1$3$1$1, AcademicCalendarKt$AcademicCalendar$6$1$1$4$2$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$2$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$3$1$1$1, AcademicCalendarKt$TaskDecompositionDialog$2$1$4$1$1, ComposableSingletons$AcademicCalendarKt |
-| 🟢 | GeminiAIService.kt | 82.0% (610/744) | 47.2% (326/690) | 72.9% | Candidate, Candidate$Companion, Content, Content$Companion, GeminiAIService, GeminiAIService$1, GeminiAIService$Companion, GeminiAIService$TaskTier, GeminiResponse, GeminiResponse$Companion, ModelInfo, ModelInfo$Companion, ModelListResponse, ModelListResponse$Companion, Part, Part$Companion |
+| 🟢 | GeminiModelNegotiator.kt | 81.9% (136/166) | 47.6% (78/164) | 74.3% | GeminiModelNegotiator, GeminiModelNegotiator$Companion, ModelInfo, ModelInfo$Companion, ModelListResponse, ModelListResponse$Companion |
 | 🟢 | CalendarAgent.kt | 83.4% (292/350) | 51.7% (178/344) | 81.7% | CalendarAgent |
 | 🟢 | CommonSourceProviders.kt | 83.5% (274/328) | 45.7% (64/140) | 83.2% | CommonSourceProvidersKt, CommonSourceProvidersKt$DrivePickerDialog$1$1, CommonSourceProvidersKt$DrivePickerDialog$3$1$1$1$1$1$1, ComposableSingletons$CommonSourceProvidersKt, GoogleDriveSourceProvider, LocalFileSourceProvider, UrlSourceProvider |
+| 🟢 | GeminiAIService.kt | 84.6% (362/428) | 54.2% (154/284) | 75.3% | Candidate, Candidate$Companion, Content, Content$Companion, GeminiAIService, GeminiAIService$1, GeminiAIService$Companion, GeminiAIService$TaskTier, GeminiResponse, GeminiResponse$Companion, Part, Part$Companion |
 | 🟢 | ChatPanel.kt | 87.4% (208/238) | 44.4% (32/72) | 84.7% | ChatMessage, ChatPanelKt, ChatPanelKt$ChatPanel$1$3$2$1$1, ComposableSingletons$ChatPanelKt |
 | 🟢 | EventAgent.kt | 87.7% (412/470) | 48.6% (134/276) | 79.6% | AgentError, AgentError$GenericError, AgentError$QuotaExhausted, EventAgent |
 | 🟢 | SqlDelightUserPreferenceMemoryRepository.kt | 89.5% (102/114) | 75.0% (54/72) | 86.1% | SqlDelightUserPreferenceMemoryRepository, SqlDelightUserPreferenceMemoryRepository$clearAllLogs$2, SqlDelightUserPreferenceMemoryRepository$getDerivedConstraints$2, SqlDelightUserPreferenceMemoryRepository$logOverride$2, SqlDelightUserPreferenceMemoryRepository$pruneOldLogs$2 |

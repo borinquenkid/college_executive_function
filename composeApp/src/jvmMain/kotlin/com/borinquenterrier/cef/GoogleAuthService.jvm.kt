@@ -1,5 +1,6 @@
 package com.borinquenterrier.cef
 
+import com.google.api.client.auth.oauth2.Credential
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow
@@ -40,19 +41,18 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     actual suspend fun login(): Pair<String, String?> = withContext(Dispatchers.IO) {
         try {
             println("[$tag] Preparing Google Login flow...")
-            val flow = buildFlow()
-            
-            // Fixed port 8888 for consistent Redirect URI matching
-            val receiver = LocalServerReceiver.Builder().setPort(8888).build()
-            
-            println("[$tag] Attempting to open your default browser for sign-in...")
-            val authorizationCodeInstalledApp = AuthorizationCodeInstalledApp(flow, receiver)
-            
-            // This is the call that triggers the system browser
-            val credential = authorizationCodeInstalledApp.authorize("user")
-            
+
+            val (credential, accessToken) = signInRetryingOnStaleCredential(
+                authorize = ::authorize,
+                obtainAccessToken = ::obtainAccessToken,
+                onStaleCredential = { e ->
+                    println("[$tag] Stored Google credentials look stale (${e.message}); clearing and retrying with a fresh sign-in...")
+                    logout()
+                }
+            )
+
             println("[$tag] Google Login Successful!")
-            Pair(credential.accessToken, credential.refreshToken)
+            Pair(accessToken, credential.refreshToken)
         } catch (e: Exception) {
             val errorMsg = "Login failed: ${e.message}"
             println("[$tag] ERROR: $errorMsg")
@@ -61,6 +61,60 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
             }
             throw Exception(errorMsg)
         }
+    }
+
+    /** Runs the (browser-based, when needed) authorization flow and returns the resulting credential. */
+    private fun authorize(): Credential {
+        val flow = buildFlow()
+        // Fixed port 8888 for consistent Redirect URI matching
+        val receiver = LocalServerReceiver.Builder().setPort(8888).build()
+        println("[$tag] Attempting to open your default browser for sign-in...")
+        // This is the call that triggers the system browser when no valid stored credential exists
+        return AuthorizationCodeInstalledApp(flow, receiver).authorize("user")
+    }
+
+    private fun obtainAccessToken(credential: Credential): String =
+        // A credential loaded from a prior session can come back with a null accessToken
+        // if only its refreshToken was persisted — authorize() accepts such a credential
+        // as "valid" without refreshing it.
+        resolveAccessToken(credential.accessToken) {
+            credential.refreshToken()
+            credential.accessToken
+        }
+
+    /**
+     * Returns [currentAccessToken] if present; otherwise calls [refresh] once to obtain a
+     * fresh one. Throws if both are null — this is the only path that hands a token to
+     * [GoogleTokenRepository.saveTokens], whose `accessToken` parameter is non-null, so a
+     * null here must become a clear error rather than a cryptic Kotlin null-check crash.
+     */
+    internal fun resolveAccessToken(currentAccessToken: String?, refresh: () -> String?): String {
+        return currentAccessToken
+            ?: refresh()
+            ?: throw Exception("Google sign-in succeeded but no access token could be obtained. Please disconnect and reconnect your Google account.")
+    }
+
+    /**
+     * Sign-in orchestration, parameterized so it's testable without real Google OAuth
+     * machinery: produce a credential and resolve its access token; if that fails (e.g. a
+     * revoked refresh token surfacing as "401 Unauthorized" from Google's token endpoint),
+     * notify [onStaleCredential] (which is expected to clear the stale local session) and
+     * try exactly once more with a fresh credential. The second failure propagates as-is.
+     */
+    internal fun <C> signInRetryingOnStaleCredential(
+        authorize: () -> C,
+        obtainAccessToken: (C) -> String,
+        onStaleCredential: (Exception) -> Unit
+    ): Pair<C, String> {
+        val firstCredential = authorize()
+        val accessToken = try {
+            obtainAccessToken(firstCredential)
+        } catch (e: Exception) {
+            onStaleCredential(e)
+            val freshCredential = authorize()
+            return Pair(freshCredential, obtainAccessToken(freshCredential))
+        }
+        return Pair(firstCredential, accessToken)
     }
 
     actual suspend fun refreshAccessToken(refreshToken: String): String? = withContext(Dispatchers.IO) {

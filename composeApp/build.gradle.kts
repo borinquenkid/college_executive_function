@@ -244,7 +244,11 @@ compose.desktop {
 
         nativeDistributions {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
-            packageName = "com.borinquenterrier.college_executive_function"
+            // Display/bundle name shown to users (Finder, Start Menu, Dock, .app/.exe/.deb names).
+            // The technical identifier stays as com.borinquenterrier.college_executive_function
+            // (set explicitly via macOS.bundleID below) so existing installs/Launch Services
+            // associations aren't treated as a different app after this rename.
+            packageName = "CEF"
             packageVersion = (findProperty("cef.versionName") as String?) ?: "1.0.0"
 
             // Calling modules(...) replaces the plugin's default minimal set
@@ -265,6 +269,10 @@ compose.desktop {
                 shortcut = true
                 perUserInstall = true
                 upgradeUuid = "AA9FA31A-BB3B-4443-B61C-721556B04FEA"
+            }
+
+            macOS {
+                bundleID = "com.borinquenterrier.college_executive_function"
             }
         }
 

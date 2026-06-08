@@ -9,14 +9,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 81
+- **Total Files Analyzed**: 82
 - **High-Risk Files (CRAP > 30)**: 11
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| CriticActorAIService.kt | 69 | 78.4% | 116.77 | 🔴 HIGH |
 | CalendarAgent.kt | 72 | 83.4% | 95.59 | 🔴 HIGH |
 | EventAgent.kt | 70 | 87.7% | 79.21 | 🔴 HIGH |
 | GeminiAIService.kt | 55 | 84.6% | 66.09 | 🔴 HIGH |
@@ -26,6 +25,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | CollisionResolver.kt | 41 | 96.3% | 41.09 | 🔴 HIGH |
 | AgentHarness.kt | 37 | 89.9% | 38.41 | 🔴 HIGH |
 | AcademicCalendar.kt | 29 | 81.6% | 34.21 | 🔴 HIGH |
+| CriticJsonCodec.kt | 33 | 96.5% | 33.05 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleRemoteCalendarRepository.kt | 29 | 94.4% | 29.14 | 🟡 MEDIUM |
@@ -35,25 +35,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 ---
 
 ## Detailed File Breakdown
-
-### CriticActorAIService.kt (Score: 116.77 - 🔴 HIGH)
-- **Total Complexity**: 69
-- **Real Coverage**: 78.4%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `parseEventFromJson` | 13 |
-| `parseTaskFromJson` | 8 |
-| `generateCalendarEvents` | 7 |
-| `decomposeTask` | 7 |
-| `areEventListsDifferent` | 7 |
-| `serializeEvents` | 5 |
-| `generateChatResponse` | 4 |
-| `areTaskListsDifferent` | 4 |
-| `parseEvents` | 3 |
-| `serializeTasks` | 2 |
-| *... and 2 more* | |
 
 ### CalendarAgent.kt (Score: 95.59 - 🔴 HIGH)
 - **Total Complexity**: 72
@@ -198,6 +179,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `TaskDecompositionDialog` | 6 |
 | `AcademicCalendar` | 1 |
 
+### CriticJsonCodec.kt (Score: 33.05 - 🔴 HIGH)
+- **Total Complexity**: 33
+- **Real Coverage**: 96.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `parseEventFromJson` | 13 |
+| `parseTaskFromJson` | 8 |
+| `serializeEvents` | 5 |
+| `parseEvents` | 3 |
+| `serializeTasks` | 2 |
+| `parseTasks` | 2 |
+
 ### ContextAgent.kt (Score: 31.03 - 🔴 HIGH)
 - **Total Complexity**: 31
 - **Real Coverage**: 96.8%
@@ -283,6 +278,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `expandTimeEvent` | 5 |
 | `expandDayEvent` | 5 |
 | `expandEvents` | 2 |
+
+### CriticActorAIService.kt (Score: 23.89 - 🟡 MEDIUM)
+- **Total Complexity**: 23
+- **Real Coverage**: 88.1%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `areEventListsDifferent` | 7 |
+| `generateChatResponse` | 4 |
+| `generateCalendarEvents` | 2 |
+| `decomposeTask` | 2 |
+| `generateStudyPlan` | 1 |
+| `<T> runCritiqueLoop` | 1 |
 
 ### GeminiModelNegotiator.kt (Score: 22.36 - 🟡 MEDIUM)
 - **Total Complexity**: 20

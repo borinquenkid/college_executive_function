@@ -4,8 +4,8 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **83.05%** (7368/8872 lines)
-- **Total Source Files**: 81
+- **Overall Line Coverage**: **83.62%** (7360/8802 lines)
+- **Total Source Files**: 82
 
 ## Coverage by File
 
@@ -40,7 +40,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | CalendarInterfaces.kt | 72.7% (16/22) | N/A | 68.2% | OverlapException, RemoteCalendarMetadata, StudentCalendarRepository |
 | 🟡 | NormalizationService.kt | 73.7% (28/38) | 46.2% (24/52) | 68.7% | NormalizationService |
 | 🟡 | SettingsScreen.kt | 73.8% (462/626) | 46.4% (52/112) | 73.1% | ComposableSingletons$SettingsScreenKt, SettingsScreenKt, SettingsScreenKt$SettingsScreen$1$1, SettingsScreenKt$SettingsScreen$2$1, SettingsScreenKt$SettingsScreen$3$2$1$2$1$1, SettingsScreenKt$SettingsScreen$parseAndSave$1 |
-| 🟡 | CriticActorAIService.kt | 78.4% (320/408) | 37.0% (160/432) | 69.6% | CriticActorAIService |
 | 🟡 | DependencyContainer.kt | 79.3% (92/116) | N/A | 95.2% | DependencyContainer |
 | 🟢 | SyncProposal.kt | 80.0% (32/40) | 25.0% (4/16) | 55.3% | SyncNegotiation, SyncProposal$DirectConflict, SyncProposal$StudyBlockShift |
 | 🟢 | DecompositionOrchestrator.kt | 80.3% (98/122) | 81.3% (26/32) | 90.5% | DecompositionOrchestrator, WorkUnit$SubTask, WorkUnit$Task |
@@ -54,6 +53,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | AppContent.kt | 85.7% (96/112) | 75.0% (24/32) | 86.2% | AppContentKt, AppContentKt$AppContent$1$1, AppContentKt$AppContent$1$1$1, AppContentKt$AppContent$1$1$2, ComposableSingletons$AppContentKt |
 | 🟢 | ChatPanel.kt | 87.4% (208/238) | 50.0% (36/72) | 84.8% | ChatMessage, ChatPanelKt, ChatPanelKt$ChatPanel$1$3$2$1$1, ComposableSingletons$ChatPanelKt |
 | 🟢 | EventAgent.kt | 87.7% (412/470) | 48.6% (134/276) | 79.6% | AgentError, AgentError$GenericError, AgentError$QuotaExhausted, EventAgent |
+| 🟢 | CriticActorAIService.kt | 88.1% (148/168) | 44.7% (68/152) | 85.5% | CriticActorAIService |
 | 🟢 | SqlDelightUserPreferenceMemoryRepository.kt | 89.5% (102/114) | 75.0% (54/72) | 86.1% | SqlDelightUserPreferenceMemoryRepository, SqlDelightUserPreferenceMemoryRepository$clearAllLogs$2, SqlDelightUserPreferenceMemoryRepository$getDerivedConstraints$2, SqlDelightUserPreferenceMemoryRepository$logOverride$2, SqlDelightUserPreferenceMemoryRepository$pruneOldLogs$2 |
 | 🟢 | AgentHarness.kt | 89.9% (196/218) | 71.1% (54/76) | 90.1% | AgentHarness, AgentHarness$runHarness$2, AgentHarness$runHarness$2$driveDeferreds$1$1, AgentHarness$runHarness$2$localDeferreds$1$1 |
 | 🟢 | SqlDelightLocalCalendarRepository.kt | 90.0% (144/160) | 76.2% (64/84) | 86.7% | SqlDelightLocalCalendarRepository |
@@ -69,6 +69,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | BugReporter.kt | 95.3% (82/86) | 50.0% (8/16) | 84.1% | BugReporter, BugReporter$reportError$1, TelemetryStats, TelemetryStats$Companion |
 | 🟢 | SqlDelightSourceRepository.kt | 95.9% (94/98) | 100.0% (20/20) | 92.4% | SqlDelightSourceRepository, SqlDelightSourceRepository$getAllSources$2, SqlDelightSourceRepository$getFragmentsForSource$2, SqlDelightSourceRepository$getSourceById$2, SqlDelightSourceRepository$getSourceMetadata$2, SqlDelightSourceRepository$saveSource$2, SqlDelightSourceRepository$updateSourceMetadata$2 |
 | 🟢 | CollisionResolver.kt | 96.3% (206/214) | 82.6% (142/172) | 96.3% | CollisionResolver, ResolutionResult$Conflict, ResolutionResult$Success |
+| 🟢 | CriticJsonCodec.kt | 96.5% (164/170) | 65.1% (112/172) | 90.0% | CriticJsonCodec |
 | 🟢 | ContextAgent.kt | 96.8% (182/188) | 67.5% (54/80) | 95.4% | ContextAgent |
 | 🟢 | SyncNegotiationDialog.kt | 97.6% (166/170) | 50.0% (16/32) | 97.0% | ComposableSingletons$SyncNegotiationDialogKt, SyncNegotiationDialogKt, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$1$1$1$1, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$2$1$1$1 |
 | 🟢 | GoogleDriveService.kt | 98.4% (122/124) | 63.0% (58/92) | 87.5% | DriveFile, DriveFile$Companion, DriveFileListResponse, DriveFileListResponse$Companion, GoogleDriveService, GoogleDriveService$getFileContent$2, GoogleDriveService$listFiles$2 |

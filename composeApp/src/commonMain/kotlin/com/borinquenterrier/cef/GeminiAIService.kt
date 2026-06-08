@@ -537,19 +537,12 @@ class GeminiAIService(
     // -------------------------------------------------------------------------
 
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
-        val sourceText = fragments.joinToString(" ") { it.text }
-        val sourceYears = extractSourceYears(sourceText)
-
         val combinedJson = buildJsonArray {
             fragments.forEach { fragment ->
                 add(Json.parseToJsonElement(fragment.toJson()))
             }
         }.toString()
-        val events = generateCalendarEventsFromPrompt(AiPrompts.getSourceEventExtractionPrompt(combinedJson))
-        val filtered = filterToSourceYears(events, sourceYears)
-        val dropped = events.size - filtered.size
-        if (dropped > 0) logger?.d(tag, "⚠️ Dropped $dropped confabulated event(s) outside source years $sourceYears")
-        return filtered
+        return generateCalendarEventsFromPrompt(AiPrompts.getSourceEventExtractionPrompt(combinedJson))
     }
 
     suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {

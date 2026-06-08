@@ -59,11 +59,14 @@ class DependencyContainer(
     val telemetryManager by lazy { TelemetryManager(settings) }
     val bugReporter by lazy { BugReporter(httpClient, preferencesRepository, telemetryManager, logger) }
 
-    val aiService: AIService by lazy { 
-        CriticActorAIService(
-            RecursiveDecompositionAIService(RealAIService(settings, logger, database)),
-            logger,
-            telemetryManager
+    val aiService: AIService by lazy {
+        GroundingGuardAIService(
+            CriticActorAIService(
+                RecursiveDecompositionAIService(RealAIService(settings, logger, database)),
+                logger,
+                telemetryManager
+            ),
+            logger
         )
     }
     val sourceRepository by lazy { SqlDelightSourceRepository(database) }

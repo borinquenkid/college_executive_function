@@ -41,7 +41,7 @@ class CriticActorAIService(
                 }
 
                 val correctedEvents = parseEvents(critiqueResponse)
-                
+
                 val correctedJson = serializeEvents(correctedEvents)
                 if (visitedStates.contains(correctedJson)) {
                     val isConvergence = (correctedJson == currentJson)
@@ -78,7 +78,7 @@ class CriticActorAIService(
         if (firstPass.isEmpty()) return firstPass
 
         logger?.d("CriticActor", "First-pass study plan count: ${firstPass.size}. Entering critique loop...")
-        
+
         var currentPlan = firstPass
         val visitedStates = mutableSetOf<String>()
         visitedStates.add(serializeEvents(firstPass))
@@ -98,7 +98,7 @@ class CriticActorAIService(
                 }
 
                 val correctedPlan = parseEvents(critiqueResponse)
-                
+
                 val correctedJson = serializeEvents(correctedPlan)
                 if (visitedStates.contains(correctedJson)) {
                     val isConvergence = (correctedJson == currentJson)

@@ -56,9 +56,6 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         } catch (e: Exception) {
             val errorMsg = "Login failed: ${e.message}"
             println("[$tag] ERROR: $errorMsg")
-            if (e.message?.contains("8888") == true) {
-                println("[$tag] HINT: Something else is using port 8888. Please close other apps or restart your computer.")
-            }
             throw Exception(errorMsg)
         }
     }
@@ -66,10 +63,8 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     /** Runs the (browser-based, when needed) authorization flow and returns the resulting credential. */
     private fun authorize(): Credential {
         val flow = buildFlow()
-        // Fixed port 8888 for consistent Redirect URI matching
-        val receiver = LocalServerReceiver.Builder().setPort(8888).build()
-        println("[$tag] Attempting to open your default browser for sign-in...")
-        // This is the call that triggers the system browser when no valid stored credential exists
+        println("[$tag] Attempting to open your default browser for sign-in on an ephemeral port...")
+        val receiver = LocalServerReceiver.Builder().build() // Default port is -1, which uses a random free port allocated by the OS
         return AuthorizationCodeInstalledApp(flow, receiver).authorize("user")
     }
 

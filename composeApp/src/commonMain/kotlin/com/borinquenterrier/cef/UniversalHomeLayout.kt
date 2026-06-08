@@ -13,6 +13,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -43,29 +44,6 @@ fun UniversalHomeLayout(container: DependencyContainer) {
             appController = appController
         )
 
-        // --- LAYER 2: EDGE NAVIGATION (THE FLOATING CONTROLS) ---
-        // Left Edge: Sources Trigger
-        Box(Modifier.fillMaxHeight().align(Alignment.CenterStart).padding(start = 8.dp), contentAlignment = Alignment.Center) {
-            FloatingActionButton(
-                onClick = { showSources = !showSources; if(showSources) showStudio = false },
-                containerColor = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(if (showSources) Icons.AutoMirrored.Filled.KeyboardArrowLeft else Icons.Default.Menu, "Sources")
-            }
-        }
-
-        // Right Edge: Studio Trigger
-        Box(Modifier.fillMaxHeight().align(Alignment.CenterEnd).padding(end = 8.dp), contentAlignment = Alignment.Center) {
-            FloatingActionButton(
-                onClick = { showStudio = !showStudio; if(showStudio) showSources = false },
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(if (showStudio) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.Build, "Studio")
-            }
-        }
-
         // --- LAYER 3: ADAPTIVE OVERLAY DRAWERS ---
         // Sources Overlay (Left)
         androidx.compose.animation.AnimatedVisibility(
@@ -75,7 +53,7 @@ fun UniversalHomeLayout(container: DependencyContainer) {
             modifier = Modifier.align(Alignment.CenterStart)
         ) {
             Surface(
-                modifier = Modifier.fillMaxHeight().width(320.dp).shadow(16.dp),
+                modifier = Modifier.fillMaxHeight().width(320.dp).shadow(16.dp).testTag("sources_drawer"),
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
@@ -117,7 +95,7 @@ fun UniversalHomeLayout(container: DependencyContainer) {
             modifier = Modifier.align(Alignment.CenterEnd)
         ) {
             Surface(
-                modifier = Modifier.fillMaxHeight().width(360.dp).shadow(16.dp),
+                modifier = Modifier.fillMaxHeight().width(360.dp).shadow(16.dp).testTag("studio_drawer"),
                 color = MaterialTheme.colorScheme.surface,
                 border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
             ) {
@@ -134,6 +112,31 @@ fun UniversalHomeLayout(container: DependencyContainer) {
                         modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
                     ) { Icon(Icons.Default.Close, null) }
                 }
+            }
+        }
+
+        // --- LAYER 2: EDGE NAVIGATION (THE FLOATING CONTROLS) ---
+        // Declared after the drawers so the triggers stay on top and remain clickable
+        // (and thus able to collapse their own drawer) while it's open.
+        // Left Edge: Sources Trigger
+        Box(Modifier.fillMaxHeight().align(Alignment.CenterStart).padding(start = 8.dp), contentAlignment = Alignment.Center) {
+            FloatingActionButton(
+                onClick = { showSources = !showSources; if(showSources) showStudio = false },
+                containerColor = MaterialTheme.colorScheme.secondaryContainer,
+                modifier = Modifier.size(48.dp).testTag("sources_toggle_button")
+            ) {
+                Icon(if (showSources) Icons.AutoMirrored.Filled.KeyboardArrowLeft else Icons.Default.Menu, "Sources")
+            }
+        }
+
+        // Right Edge: Studio Trigger
+        Box(Modifier.fillMaxHeight().align(Alignment.CenterEnd).padding(end = 8.dp), contentAlignment = Alignment.Center) {
+            FloatingActionButton(
+                onClick = { showStudio = !showStudio; if(showStudio) showSources = false },
+                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                modifier = Modifier.size(48.dp).testTag("studio_toggle_button")
+            ) {
+                Icon(if (showStudio) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.Build, "Studio")
             }
         }
     }

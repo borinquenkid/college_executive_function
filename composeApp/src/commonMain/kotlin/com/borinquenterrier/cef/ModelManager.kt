@@ -9,6 +9,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 import kotlinx.coroutines.withContext
 import kotlinx.io.readByteArray
 import okio.FileSystem
@@ -56,23 +57,28 @@ class ModelManager(
             val contentLength = response.contentLength() ?: -1L
             var totalBytesRead = 0L
 
-            withContext(Dispatchers.IO) {
-                fileSystem.write(destination) {
-                    while (!channel.isClosedForRead) {
-                        val packet = channel.readRemaining(1024 * 64) // 64KB chunks
-                        while (!packet.exhausted()) {
-                            val bytes = packet.readByteArray()
-                            write(bytes)
-                            totalBytesRead += bytes.size
-                        }
+            fileSystem.write(destination) {
+                while (!channel.isClosedForRead) {
+                    val packet = channel.readRemaining(1024 * 64) // 64KB chunks
+                    while (!packet.exhausted()) {
+                        val bytes = packet.readByteArray()
+                        write(bytes)
+                        totalBytesRead += bytes.size
                     }
+                    // Emit intermediate progress after each chunk
+                    val fraction = if (contentLength > 0L) {
+                        (totalBytesRead.toFloat() / contentLength.toFloat()).coerceIn(0f, 1f)
+                    } else {
+                        0f // unknown length — report 0 until done
+                    }
+                    emit(DownloadProgress(fraction, false))
                 }
             }
         }
         
         logger?.d(tag, "Download complete")
         emit(DownloadProgress(1f, true))
-    }
+    }.flowOn(Dispatchers.IO)
 }
 
 data class DownloadProgress(val progress: Float, val isDone: Boolean)

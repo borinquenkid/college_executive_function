@@ -51,7 +51,7 @@ object LocalTestGenerator {
     }
     
     private const val OLLAMA_URL = "http://localhost:11434/api/generate"
-    private const val DEFAULT_MODEL = "llama3.2:3b" // Lightweight for 16GB RAM constraints
+    private const val DEFAULT_MODEL = "qwen2.5-coder:3b" // Optimized for coding, lightweight for 16GB RAM
 
     @JvmStatic
     fun main(args: Array<String>) {

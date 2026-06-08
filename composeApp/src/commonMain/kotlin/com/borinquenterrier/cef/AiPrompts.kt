@@ -381,7 +381,7 @@ object AiPrompts {
             Do not include any markdown formatting (like ```json) or conversational filler.
             
             Syllabus Text:
-            ${'$'}syllabusText
+            $syllabusText
         """.trimIndent()
     }
 

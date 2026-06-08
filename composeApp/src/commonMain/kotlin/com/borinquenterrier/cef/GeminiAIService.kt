@@ -103,7 +103,7 @@ class GeminiAIService(
             }
         }
 
-        fun parseEventsJson(responseText: String): List<Event> {
+        fun parseEventsJson(responseText: String, telemetry: TelemetryManager? = null): List<Event> {
             val cleanJson = responseText.trim()
                 .removePrefix("```json")
                 .removeSuffix("```")
@@ -134,19 +134,29 @@ class GeminiAIService(
                     AcademicCategory.REGULAR
                 }
 
-                val date = try { LocalDate.parse(dateStr) } catch (e: Exception) { LocalDate(2024,1,1) }
+                val date = try { LocalDate.parse(dateStr) } catch (e: Exception) {
+                    telemetry?.logJsonError()
+                    LocalDate(2024,1,1)
+                }
 
                 if (type == "TIME") {
                     val startTimeStr = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
                     val endTimeStr = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
                     val startTime = try {
+                        // Handle both HH:mm and HH:mm:ss from AI responses
                         val parts = startTimeStr.split(":")
                         LocalTime(parts[0].toInt(), parts[1].toInt())
-                    } catch (e: Exception) { LocalTime(9, 0) }
+                    } catch (e: Exception) {
+                        telemetry?.logJsonError()
+                        LocalTime(9, 0)
+                    }
                     val endTime = try {
                         val parts = endTimeStr.split(":")
                         LocalTime(parts[0].toInt(), parts[1].toInt())
-                    } catch (e: Exception) { LocalTime(10, 0) }
+                    } catch (e: Exception) {
+                        telemetry?.logJsonError()
+                        LocalTime(10, 0)
+                    }
                     TimeEvent(
                         title = title,
                         source = EventSource.AI_GENERATED,
@@ -167,6 +177,57 @@ class GeminiAIService(
                         gradeWeight = gradeWeight
                     )
                 }
+            }
+        }
+
+        /**
+         * Parses the JSON response from a task-decomposition prompt into a list of [DecomposedTask].
+         * Handles both a root JSON array and a `{"tasks":[...]}` wrapper object.
+         */
+        internal fun parseDecomposeTaskJson(responseText: String): List<DecomposedTask> {
+            val cleanJson = responseText.trim()
+                .removePrefix("```json")
+                .removeSuffix("```")
+                .trim()
+
+            val root = json.parseToJsonElement(cleanJson)
+            val jsonArray = when {
+                root is JsonArray -> root
+                root is JsonObject && root.containsKey("tasks") -> root["tasks"]!!.jsonArray
+                else -> throw Exception("Unexpected JSON structure: $cleanJson")
+            }
+
+            return jsonArray.map { element ->
+                val obj = element.jsonObject
+                val daysBeforeDue = obj["daysBeforeDue"]?.jsonPrimitive?.let {
+                    it.intOrNull ?: it.content.toDoubleOrNull()?.toInt() ?: 1
+                } ?: 1
+                DecomposedTask(
+                    title = obj["title"]?.jsonPrimitive?.content ?: "Sub-task",
+                    daysBeforeDue = daysBeforeDue,
+                    description = obj["description"]?.jsonPrimitive?.content ?: ""
+                )
+            }
+        }
+
+        /**
+         * Parses the JSON response from a source-categorisation prompt into a [SourceCategory].
+         */
+        internal fun parseCategorizeSourceJson(responseText: String): SourceCategory {
+            val cleanJson = responseText.trim()
+                .removePrefix("```json")
+                .removeSuffix("```")
+                .trim()
+
+            val root = json.parseToJsonElement(cleanJson)
+            val categoryName = root.jsonObject["category"]?.jsonPrimitive?.content?.uppercase() ?: "OTHER"
+
+            return when (categoryName) {
+                "SYLLABUS" -> SourceCategory.SYLLABUS
+                "READING MATERIAL", "READING_MATERIAL" -> SourceCategory.READING_MATERIAL
+                "LAB MANUAL", "LAB_MANUAL" -> SourceCategory.LAB_MANUAL
+                "LECTURE NOTES", "LECTURE_NOTES" -> SourceCategory.LECTURE_NOTES
+                else -> SourceCategory.OTHER
             }
         }
     }
@@ -577,31 +638,7 @@ class GeminiAIService(
             maxAttempts = 5,
             tier = TaskTier.LIGHT,   // short structured prompt — lite model is sufficient
             body = { _ -> buildGeminiBody(prompt) },
-            parseResponse = { responseText ->
-                val cleanJson = responseText.trim()
-                    .removePrefix("```json")
-                    .removeSuffix("```")
-                    .trim()
-
-                val root = json.parseToJsonElement(cleanJson)
-                val jsonArray = when {
-                    root is JsonArray -> root
-                    root is JsonObject && root.containsKey("tasks") -> root["tasks"]!!.jsonArray
-                    else -> throw Exception("Unexpected JSON structure: $cleanJson")
-                }
-
-                jsonArray.map { element ->
-                    val obj = element.jsonObject
-                    val daysBeforeDue = obj["daysBeforeDue"]?.jsonPrimitive?.let {
-                        it.intOrNull ?: it.content.toDoubleOrNull()?.toInt() ?: 1
-                    } ?: 1
-                    DecomposedTask(
-                        title = obj["title"]?.jsonPrimitive?.content ?: "Sub-task",
-                        daysBeforeDue = daysBeforeDue,
-                        description = obj["description"]?.jsonPrimitive?.content ?: ""
-                    )
-                }
-            }
+            parseResponse = { responseText -> parseDecomposeTaskJson(responseText) }
         )
     }
 
@@ -642,23 +679,7 @@ class GeminiAIService(
                 maxAttempts = 3,
                 tier = TaskTier.LIGHT,   // simple classification — lite model is ideal
                 body = { _ -> buildGeminiBody(prompt) },
-                parseResponse = { responseText ->
-                    val cleanJson = responseText.trim()
-                        .removePrefix("```json")
-                        .removeSuffix("```")
-                        .trim()
-
-                    val root = json.parseToJsonElement(cleanJson)
-                    val categoryName = root.jsonObject["category"]?.jsonPrimitive?.content?.uppercase() ?: "OTHER"
-
-                    when (categoryName) {
-                        "SYLLABUS" -> SourceCategory.SYLLABUS
-                        "READING MATERIAL", "READING_MATERIAL" -> SourceCategory.READING_MATERIAL
-                        "LAB MANUAL", "LAB_MANUAL" -> SourceCategory.LAB_MANUAL
-                        "LECTURE NOTES", "LECTURE_NOTES" -> SourceCategory.LECTURE_NOTES
-                        else -> SourceCategory.OTHER
-                    }
-                }
+                parseResponse = { responseText -> parseCategorizeSourceJson(responseText) }
             )
         } catch (e: Exception) {
             logger?.e(tag, "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}")

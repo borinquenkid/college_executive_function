@@ -275,4 +275,24 @@ class CalendarAgentTest : FunSpec({
         result.first().id shouldBe "event-2"
         coVerify(exactly = 1) { localRepo.getIncompleteEventsBefore(date, "default") }
     }
+
+    test("synchronize should call checkSyncProposals and applySyncNegotiation") {
+        coEvery { localRepo.getEventsBySyncStatus(any(), any()) } returns emptyList()
+        coEvery { localRepo.getAllEvents(any()) } returns emptyList()
+        coEvery { remoteRepo.getAllEvents(any()) } returns emptyList()
+
+        calendarAgent.synchronize("default")
+
+        coVerify(exactly = 1) { remoteRepo.getAllEvents("default") }
+        coVerify(exactly = 2) { localRepo.getAllEvents("default") }
+    }
+
+    test("synchronize should throw exception if checkSyncProposals fails") {
+        coEvery { localRepo.getEventsBySyncStatus(any(), any()) } returns emptyList()
+        coEvery { localRepo.getAllEvents(any()) } throws Exception("Sync failed")
+
+        shouldThrow<Exception> {
+            calendarAgent.synchronize("default")
+        }
+    }
 })

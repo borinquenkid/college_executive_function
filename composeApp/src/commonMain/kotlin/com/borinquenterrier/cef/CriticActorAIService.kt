@@ -234,7 +234,11 @@ class CriticActorAIService(
         } else {
             throw Exception("Unexpected JSON structure: $cleanJson")
         }
-        return jsonArray.map { element ->
+        return jsonArray.mapNotNull { parseEventFromJson(it) }
+    }
+
+    private fun parseEventFromJson(element: JsonElement): Event? {
+        return try {
             val obj = element.jsonObject
             val title = obj["title"]?.jsonPrimitive?.content ?: "Untitled Event"
             val type = obj["type"]?.jsonPrimitive?.content ?: "DAY"
@@ -246,33 +250,29 @@ class CriticActorAIService(
             } catch (e: Exception) {
                 AcademicCategory.REGULAR
             }
-
-            val date = try { kotlinx.datetime.LocalDate.parse(dateStr) } catch (e: Exception) { kotlinx.datetime.LocalDate(2024,1,1) }
+            val date = try { kotlinx.datetime.LocalDate.parse(dateStr) }
+                       catch (e: Exception) { kotlinx.datetime.LocalDate(2024, 1, 1) }
 
             if (type == "TIME") {
                 val startTimeStr = obj["startTime"]?.jsonPrimitive?.content ?: "09:00"
                 val endTimeStr = obj["endTime"]?.jsonPrimitive?.content ?: "10:00"
-                val start = try { kotlinx.datetime.LocalTime.parse(startTimeStr) } catch (e: Exception) { kotlinx.datetime.LocalTime(9,0) }
-                val end = try { kotlinx.datetime.LocalTime.parse(endTimeStr) } catch (e: Exception) { kotlinx.datetime.LocalTime(10,0) }
-                
+                val start = try { kotlinx.datetime.LocalTime.parse(startTimeStr) }
+                            catch (e: Exception) { kotlinx.datetime.LocalTime(9, 0) }
+                val end = try { kotlinx.datetime.LocalTime.parse(endTimeStr) }
+                          catch (e: Exception) { kotlinx.datetime.LocalTime(10, 0) }
                 TimeEvent(
-                    title = title,
-                    source = EventSource.AI_GENERATED,
-                    category = category,
-                    date = date,
-                    startTime = start,
-                    endTime = end,
-                    warning = warning
+                    title = title, source = EventSource.AI_GENERATED, category = category,
+                    date = date, startTime = start, endTime = end, warning = warning
                 )
             } else {
                 DayEvent(
-                    title = title,
-                    source = EventSource.AI_GENERATED,
-                    category = category,
-                    date = date,
-                    warning = warning
+                    title = title, source = EventSource.AI_GENERATED,
+                    category = category, date = date, warning = warning
                 )
             }
+        } catch (e: Exception) {
+            logger?.e("CriticActor", "Failed to parse event element: ${e.message}")
+            null
         }
     }
 
@@ -299,7 +299,11 @@ class CriticActorAIService(
             root is JsonObject && root.containsKey("tasks") -> root["tasks"]!!.jsonArray
             else -> throw Exception("Unexpected JSON structure: $cleanJson")
         }
-        return jsonArray.map { element ->
+        return jsonArray.mapNotNull { parseTaskFromJson(it) }
+    }
+
+    private fun parseTaskFromJson(element: JsonElement): DecomposedTask? {
+        return try {
             val obj = element.jsonObject
             val daysBeforeDue = obj["daysBeforeDue"]?.jsonPrimitive?.let {
                 it.intOrNull ?: it.content.toDoubleOrNull()?.toInt() ?: 1
@@ -309,6 +313,9 @@ class CriticActorAIService(
                 daysBeforeDue = daysBeforeDue,
                 description = obj["description"]?.jsonPrimitive?.content ?: ""
             )
+        } catch (e: Exception) {
+            logger?.e("CriticActor", "Failed to parse task element: ${e.message}")
+            null
         }
     }
 

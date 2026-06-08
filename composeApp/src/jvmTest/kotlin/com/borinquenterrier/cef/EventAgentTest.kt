@@ -14,6 +14,11 @@ import io.mockk.coVerify
 import io.mockk.slot
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.plus
 
 /**
  * Demonstrates that the application logic can now run "Headless"
@@ -270,5 +275,133 @@ class HeadlessLogicTest : FunSpec({
                 it.id == "event1" && it.completionStatus == CompletionStatus.INCOMPLETE && it.date != LocalDate(2026, 6, 1)
             }, "default")
         }
+    }
+
+    test("EventAgent error state, status and general clear operations") {
+        val mockAiService = mockk<AIService>()
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val logger = Logger(MapSettings())
+
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+
+        // Test clearError and errorState
+        val stateProp = eventAgent::class.java.getDeclaredField("_errorState")
+        stateProp.isAccessible = true
+        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<AgentError?>).value = AgentError.QuotaExhausted
+
+        eventAgent.errorState.value shouldBe AgentError.QuotaExhausted
+        eventAgent.clearError()
+        eventAgent.errorState.value shouldBe null
+
+        // Test updateStatus
+        eventAgent.updateStatus("New Status Message")
+        eventAgent.statusMessage.value shouldBe "New Status Message"
+
+        // Test clear
+        val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
+        lastGeneratedProp.isAccessible = true
+        val event = DayEvent(title = "Temp Event", source = EventSource.AI_GENERATED, category = AcademicCategory.REGULAR, date = LocalDate(2026, 1, 1))
+        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(event)
+
+        eventAgent.clear()
+        eventAgent.lastGeneratedEvents.value shouldBe emptyList()
+        eventAgent.statusMessage.value shouldBe "Select a source and an action."
+
+        // Test clearDecomposition
+        val decompTasksProp = eventAgent::class.java.getDeclaredField("_decomposedTasks")
+        decompTasksProp.isAccessible = true
+        (decompTasksProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<DecomposedTask>>).value = listOf(DecomposedTask("Task", 1, "Desc"))
+
+        val decompTargetProp = eventAgent::class.java.getDeclaredField("_decompositionTarget")
+        decompTargetProp.isAccessible = true
+        (decompTargetProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<Event?>).value = event
+
+        eventAgent.clearDecomposition()
+        eventAgent.decomposedTasks.value shouldBe emptyList()
+        eventAgent.decompositionTarget.value shouldBe null
+    }
+
+    test("EventAgent pushToCalendar with empty generated events should return empty list") {
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val eventAgent = EventAgent(mockk(), mockCalendarAgent, null, NormalizationService(), logger = Logger(MapSettings()))
+
+        val result = eventAgent.pushToCalendar()
+        result shouldBe emptyList()
+    }
+
+    test("EventAgent pushToCalendar should set status message and error state on repository exception") {
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val eventAgent = EventAgent(mockk(), mockCalendarAgent, null, NormalizationService(), logger = Logger(MapSettings()))
+
+        val event = DayEvent(title = "Temp Event", source = EventSource.AI_GENERATED, category = AcademicCategory.REGULAR, date = LocalDate(2026, 1, 1))
+        val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
+        lastGeneratedProp.isAccessible = true
+        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(event)
+
+        coEvery { mockCalendarAgent.getEvents(any()) } throws Exception("Database failure")
+
+        val result = eventAgent.pushToCalendar()
+        result shouldBe emptyList()
+        eventAgent.statusMessage.value shouldBe "Sync Error: Database failure"
+    }
+
+    test("EventAgent operations should handle exceptions gracefully") {
+        val mockAiService = mockk<AIService>()
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val logger = Logger(MapSettings())
+
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+        val event = DayEvent(id = "event1", title = "Temp Event", source = EventSource.AI_GENERATED, category = AcademicCategory.REGULAR, date = LocalDate(2026, 1, 1))
+
+        // loadIncompleteEvents exception
+        coEvery { mockCalendarAgent.getIncompleteEventsBefore(any(), any()) } throws Exception("Failed to load")
+        eventAgent.loadIncompleteEvents() // Should not throw
+
+        // markEventCompleted exception
+        coEvery { mockCalendarAgent.updateEvent(any(), any()) } throws Exception("Failed to update")
+        eventAgent.markEventCompleted(event)
+        eventAgent.statusMessage.value shouldBe "Error: Failed to update"
+
+        // skipEvent exception
+        eventAgent.skipEvent(event)
+        eventAgent.statusMessage.value shouldBe "Error: Failed to update"
+
+        // rescheduleEvent exception
+        coEvery { mockCalendarAgent.getEvents(any()) } throws Exception("Failed to get events")
+        eventAgent.rescheduleEvent(event)
+        eventAgent.statusMessage.value shouldBe "Error: Failed to get events"
+    }
+
+    test("EventAgent rescheduleEvent should handle conflict case") {
+        val mockAiService = mockk<AIService>()
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val logger = Logger(MapSettings())
+
+        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+
+        val event = DayEvent(
+            id = "event1",
+            title = "Missed Study Block",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = LocalDate(2026, 6, 1),
+            completionStatus = CompletionStatus.INCOMPLETE
+        )
+
+        val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
+        val conflictingEvents = (-7..3).map { offset ->
+            DayEvent(
+                id = "conflict-$offset",
+                title = "Conflicting Class $offset",
+                source = EventSource.CLASS,
+                category = AcademicCategory.CLASS,
+                date = today.plus(offset, kotlinx.datetime.DateTimeUnit.DAY)
+            )
+        }
+
+        coEvery { mockCalendarAgent.getEvents("default") } returns conflictingEvents
+
+        eventAgent.rescheduleEvent(event)
+        eventAgent.statusMessage.value shouldBe "Cannot reschedule: conflict detected."
     }
 })

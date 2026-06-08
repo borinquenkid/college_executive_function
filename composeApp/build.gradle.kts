@@ -246,6 +246,26 @@ compose.desktop {
             targetFormats(TargetFormat.Dmg, TargetFormat.Msi, TargetFormat.Deb)
             packageName = "com.borinquenterrier.college_executive_function"
             packageVersion = (findProperty("cef.versionName") as String?) ?: "1.0.0"
+
+            // Calling modules(...) replaces the plugin's default minimal set
+            // (java.base, java.desktop, java.logging, jdk.crypto.ec) entirely, so we must
+            // list everything the app needs: those defaults, plus what `suggestRuntimeModules`
+            // (jdeps static analysis) detects, plus java.net.http — which jdeps misses because
+            // ktor-client-java resolves its engine via ServiceLoader at runtime, causing jlink to
+            // strip it and crash with NoClassDefFoundError: java/net/http/HttpClient$Version.
+            modules(
+                "java.base", "java.desktop", "java.logging", "jdk.crypto.ec",
+                "java.compiler", "java.instrument", "java.management", "java.naming",
+                "java.prefs", "java.security.jgss", "java.sql", "jdk.httpserver", "jdk.unsupported",
+                "java.net.http"
+            )
+
+            windows {
+                menuGroup = "College Executive Function"
+                shortcut = true
+                perUserInstall = true
+                upgradeUuid = "AA9FA31A-BB3B-4443-B61C-721556B04FEA"
+            }
         }
 
         buildTypes.release.proguard {

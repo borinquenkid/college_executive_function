@@ -22,12 +22,14 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Icon
@@ -84,6 +86,11 @@ fun SettingsScreen(
     var calendars by remember { mutableStateOf<List<RemoteCalendarMetadata>>(emptyList()) }
     var isLoadingCalendars by remember { mutableStateOf(false) }
     var calendarLoadError by remember { mutableStateOf<String?>(null) }
+
+    var showCreateCalendarDialog by remember { mutableStateOf(false) }
+    var newCalendarNameInput by remember { mutableStateOf("") }
+    var isCreatingCalendar by remember { mutableStateOf(false) }
+    var createCalendarError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(preferences) {
         studyStartStr = preferences.studyStartHour.toString()
@@ -325,44 +332,67 @@ fun SettingsScreen(
                         var expanded by remember { mutableStateOf(false) }
                         val currentDisplayName = if (googleCalendarId == "default") "CEF Academic (Default)" else googleCalendarName
                         
-                        androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
-                            OutlinedTextField(
-                                value = currentDisplayName,
-                                onValueChange = {},
-                                readOnly = true,
-                                modifier = Modifier.fillMaxWidth().testTag("settings_calendar_picker_input"),
-                                trailingIcon = {
-                                    IconButton(onClick = { expanded = true }) {
-                                        Icon(
-                                            imageVector = Icons.Default.Settings,
-                                            contentDescription = "Select Calendar"
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(4.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
+                                OutlinedTextField(
+                                    value = currentDisplayName,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    modifier = Modifier.fillMaxWidth().testTag("settings_calendar_picker_input"),
+                                    trailingIcon = {
+                                        IconButton(onClick = { expanded = true }) {
+                                            Icon(
+                                                imageVector = Icons.Default.Settings,
+                                                contentDescription = "Select Calendar"
+                                            )
+                                        }
+                                    }
+                                )
+                                
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false },
+                                    modifier = Modifier.fillMaxWidth(0.9f).testTag("settings_calendar_dropdown_menu")
+                                ) {
+                                    DropdownMenuItem(
+                                        text = { Text("CEF Academic (Default)") },
+                                        onClick = {
+                                            parseAndSave(newCalendarId = "default", newCalendarName = "CEF Academic")
+                                            expanded = false
+                                        },
+                                        modifier = Modifier.testTag("settings_calendar_option_default")
+                                    )
+                                    calendars.forEach { cal ->
+                                        DropdownMenuItem(
+                                            text = { Text(cal.name) },
+                                            onClick = {
+                                                parseAndSave(newCalendarId = cal.id, newCalendarName = cal.name)
+                                                expanded = false
+                                            },
+                                            modifier = Modifier.testTag("settings_calendar_option_${cal.name}")
                                         )
                                     }
                                 }
-                            )
+                            }
                             
-                            DropdownMenu(
-                                expanded = expanded,
-                                onDismissRequest = { expanded = false },
-                                modifier = Modifier.fillMaxWidth(0.9f).testTag("settings_calendar_dropdown_menu")
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.End
                             ) {
-                                DropdownMenuItem(
-                                    text = { Text("CEF Academic (Default)") },
-                                    onClick = {
-                                        parseAndSave(newCalendarId = "default", newCalendarName = "CEF Academic")
-                                        expanded = false
-                                    },
-                                    modifier = Modifier.testTag("settings_calendar_option_default")
-                                )
-                                calendars.forEach { cal ->
-                                    DropdownMenuItem(
-                                        text = { Text(cal.name) },
-                                        onClick = {
-                                            parseAndSave(newCalendarId = cal.id, newCalendarName = cal.name)
-                                            expanded = false
-                                        },
-                                        modifier = Modifier.testTag("settings_calendar_option_${cal.name}")
+                                TextButton(
+                                    onClick = { showCreateCalendarDialog = true },
+                                    modifier = Modifier.testTag("settings_create_calendar_button")
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = "Create New Calendar",
+                                        modifier = Modifier.size(16.dp)
                                     )
+                                    Spacer(Modifier.width(4.dp))
+                                    Text("Create New Calendar", style = MaterialTheme.typography.labelMedium)
                                 }
                             }
                         }
@@ -572,4 +602,86 @@ fun SettingsScreen(
             }
         }
     }
+
+    if (showCreateCalendarDialog) {
+        androidx.compose.material3.AlertDialog(
+            onDismissRequest = {
+                if (!isCreatingCalendar) {
+                    showCreateCalendarDialog = false
+                    newCalendarNameInput = ""
+                    createCalendarError = null
+                }
+            },
+            title = { Text("Create New Google Calendar") },
+            text = {
+                Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                    Text("Enter a name for the new Google Calendar:")
+                    OutlinedTextField(
+                        value = newCalendarNameInput,
+                        onValueChange = { newCalendarNameInput = it },
+                        modifier = Modifier.fillMaxWidth().testTag("create_calendar_name_input"),
+                        label = { Text("Calendar Name") },
+                        placeholder = { Text("e.g., Study Calendar") },
+                        singleLine = true,
+                        enabled = !isCreatingCalendar
+                    )
+                    if (createCalendarError != null) {
+                        Text(createCalendarError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    }
+                }
+            },
+            confirmButton = {
+                Button(
+                    onClick = {
+                        if (newCalendarNameInput.isNotBlank()) {
+                            scope.launch {
+                                isCreatingCalendar = true
+                                createCalendarError = null
+                                try {
+                                    val newId = container.syncService.createCalendar(newCalendarNameInput)
+                                    parseAndSave(newCalendarId = newId, newCalendarName = newCalendarNameInput)
+                                    
+                                    isLoadingCalendars = true
+                                    try {
+                                        calendars = container.remoteRepository.getAvailableCalendars()
+                                    } catch (e: Exception) {
+                                        calendarLoadError = "Failed to reload calendars: ${e.message}"
+                                    } finally {
+                                        isLoadingCalendars = false
+                                    }
+                                    
+                                    showCreateCalendarDialog = false
+                                    newCalendarNameInput = ""
+                                } catch (e: Exception) {
+                                    createCalendarError = "Failed to create calendar: ${e.message}"
+                                } finally {
+                                    isCreatingCalendar = false
+                                }
+                            }
+                        }
+                    },
+                    enabled = newCalendarNameInput.isNotBlank() && !isCreatingCalendar
+                ) {
+                    if (isCreatingCalendar) {
+                        CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    } else {
+                        Text("Create")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(
+                    onClick = {
+                        showCreateCalendarDialog = false
+                        newCalendarNameInput = ""
+                        createCalendarError = null
+                    },
+                    enabled = !isCreatingCalendar
+                ) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
+

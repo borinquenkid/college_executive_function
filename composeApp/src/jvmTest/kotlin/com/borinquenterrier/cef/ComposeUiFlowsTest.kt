@@ -275,4 +275,67 @@ class ComposeUiFlowsTest {
         routineButton.performClick()
         navigatedScreen shouldBe AppScreen.Routine
     }
+
+    @Test
+    fun testSettingsCreateGoogleCalendarDialog() = runComposeUiTest {
+        val settings = MapSettings()
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val preferencesRepository = PreferencesRepository(settings)
+        every { mockContainer.settings } returns settings
+        every { mockContainer.preferencesRepository } returns preferencesRepository
+        
+        val mockGoogleFlow = mockk<GoogleAccountFlow>(relaxed = true)
+        every { mockGoogleFlow.state } returns MutableStateFlow(GoogleConnectionState.Linked)
+        every { mockContainer.googleAccountFlow } returns mockGoogleFlow
+
+        val mockSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
+        every { mockContainer.syncService } returns mockSyncService
+        coEvery { mockSyncService.createCalendar("New Test Calendar") } returns "new-cal-123"
+
+        val mockRemoteRepo = mockk<GoogleRemoteCalendarRepository>(relaxed = true)
+        every { mockContainer.remoteRepository } returns mockRemoteRepo
+        coEvery { mockRemoteRepo.getAvailableCalendars() } returns listOf(
+            RemoteCalendarMetadata("new-cal-123", "New Test Calendar")
+        )
+
+        setContent {
+            SettingsScreen(container = mockContainer)
+        }
+
+        // Verify button exists and click it
+        val createBtn = onNodeWithTag("settings_create_calendar_button")
+        createBtn.assertExists()
+        createBtn.performClick()
+
+        // Verify dialog and input field exist
+        val nameInput = onNodeWithTag("create_calendar_name_input")
+        nameInput.assertExists()
+        nameInput.performTextInput("New Test Calendar")
+
+        // Click Create button on dialog
+        val createConfirmBtn = onNodeWithText("Create")
+        createConfirmBtn.assertExists()
+        createConfirmBtn.performClick()
+
+        // Wait for preference storage to be updated asynchronously
+        waitUntil(timeoutMillis = 5000L) {
+            val jsonStr = settings.getString("STUDY_PREFERENCES", "")
+            if (jsonStr.isBlank()) return@waitUntil false
+            try {
+                val prefs = kotlinx.serialization.json.Json.decodeFromString<StudyPreferences>(jsonStr)
+                prefs.googleCalendarId == "new-cal-123"
+            } catch (e: Exception) {
+                false
+            }
+        }
+
+        // Verify API calls
+        coVerify { mockSyncService.createCalendar("New Test Calendar") }
+        coVerify { mockRemoteRepo.getAvailableCalendars() }
+
+        // Verify preference storage was updated
+        val jsonStr = settings.getString("STUDY_PREFERENCES", "")
+        val prefs = kotlinx.serialization.json.Json.decodeFromString<StudyPreferences>(jsonStr)
+        prefs.googleCalendarName shouldBe "New Test Calendar"
+    }
 }

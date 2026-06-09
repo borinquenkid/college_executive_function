@@ -9,15 +9,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 104
-- **High-Risk Files (CRAP > 30)**: 7
+- **Total Files Analyzed**: 108
+- **High-Risk Files (CRAP > 30)**: 10
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
+| StudyPlanBuilder.kt | 18 | 0.0% | 342.00 | 🔴 HIGH |
+| ChatBuilder.kt | 9 | 0.0% | 90.00 | 🔴 HIGH |
+| CategorizationBuilder.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | AgentHarness.kt | 41 | 89.8% | 42.78 | 🔴 HIGH |
-| AiPrompts.kt | 41 | 94.4% | 41.30 | 🔴 HIGH |
+| EventBuilder.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | AcademicCalendar.kt | 29 | 80.7% | 35.09 | 🔴 HIGH |
 | SourceManager.kt | 16 | 60.8% | 31.44 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
@@ -28,13 +31,43 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 26 | 86.1% | 27.81 | 🟡 MEDIUM |
 | GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
-| SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
-| CollisionDetector.kt | 17 | 71.1% | 23.97 | 🟡 MEDIUM |
-| CriticActorAIService.kt | 23 | 88.1% | 23.89 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
+
+### StudyPlanBuilder.kt (Score: 342.00 - 🔴 HIGH)
+- **Total Complexity**: 18
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `formatHour` | 3 |
+| `getTaskDecompositionPrompt` | 2 |
+| `getSyllabusStudyPlanPrompt` | 1 |
+| `getDecompositionCritiquePrompt` | 1 |
+
+### ChatBuilder.kt (Score: 90.00 - 🔴 HIGH)
+- **Total Complexity**: 9
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getChatCritiquePrompt` | 2 |
+| `getMultiSourceChatPrompt` | 1 |
+
+### CategorizationBuilder.kt (Score: 72.00 - 🔴 HIGH)
+- **Total Complexity**: 8
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getSyllabusAuditPrompt` | 4 |
+| `getSourceCategorizationPrompt` | 2 |
+| `getDocumentIntelligencePrompt` | 2 |
 
 ### AgentHarness.kt (Score: 42.78 - 🔴 HIGH)
 - **Total Complexity**: 41
@@ -55,24 +88,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `setLastPollTime` | 1 |
 | *... and 2 more* | |
 
-### AiPrompts.kt (Score: 41.30 - 🔴 HIGH)
-- **Total Complexity**: 41
-- **Real Coverage**: 94.4%
+### EventBuilder.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
 | `getSourceEventExtractionPrompt` | 4 |
-| `getSyllabusAuditPrompt` | 4 |
-| `formatHour` | 3 |
-| `getTaskDecompositionPrompt` | 2 |
-| `getDocumentIntelligencePrompt` | 2 |
-| `getSourceCategorizationPrompt` | 2 |
-| `getChatCritiquePrompt` | 2 |
-| `getSyllabusStudyPlanPrompt` | 1 |
-| `getMultiSourceChatPrompt` | 1 |
 | `getEventCritiquePrompt` | 1 |
-| *... and 1 more* | |
 
 ### AcademicCalendar.kt (Score: 35.09 - 🔴 HIGH)
 - **Total Complexity**: 29
@@ -650,6 +674,24 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `StudyPreferencesPanel` | 1 |
 
+### AiPrompts.kt (Score: 10.02 - 🟢 LOW)
+- **Total Complexity**: 10
+- **Real Coverage**: 94.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getSourceEventExtractionPrompt` | 1 |
+| `getSyllabusStudyPlanPrompt` | 1 |
+| `getTaskDecompositionPrompt` | 1 |
+| `getDocumentIntelligencePrompt` | 1 |
+| `getSourceCategorizationPrompt` | 1 |
+| `getMultiSourceChatPrompt` | 1 |
+| `getEventCritiquePrompt` | 1 |
+| `getChatCritiquePrompt` | 1 |
+| `getDecompositionCritiquePrompt` | 1 |
+| `getSyllabusAuditPrompt` | 1 |
+
 ### SqlDelightSourceRepository.kt (Score: 10.01 - 🟢 LOW)
 - **Total Complexity**: 10
 - **Real Coverage**: 96.2%
@@ -899,6 +941,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readText` | 1 |
 | `rememberLocalFileReader` | 1 |
 
+### NormalizationService.kt (Score: 5.46 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 73.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extract` | 5 |
+
 ### SourceProcessor.kt (Score: 5.01 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 91.7%
@@ -927,15 +978,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `UniversalHomeLayout` | 5 |
-
-### NormalizationService.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `extract` | 5 |
 
 ### SyncProposal.kt (Score: 4.13 - 🟢 LOW)
 - **Total Complexity**: 4

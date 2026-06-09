@@ -4,8 +4,8 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **85.82%** (8306/9678 lines)
-- **Total Source Files**: 104
+- **Overall Line Coverage**: **85.72%** (8296/9678 lines)
+- **Total Source Files**: 108
 
 ## Coverage by File
 
@@ -13,13 +13,16 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | :---: | :--- | :---: | :---: | :---: | :--- |
 | 🔴 | SourceInterfaces.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | StudyPlanBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | App.kt | 0.0% (0/52) | 0.0% (0/4) | 0.0% | AppKt, AppKt$App$containerState$1$1, AppKt$App$containerState$1$1$1 |
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | Platform.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AdvancedSettingsPanel.kt | 0.0% (0/88) | 0.0% (0/20) | 0.0% | AdvancedSettingsPanelKt, ComposableSingletons$AdvancedSettingsPanelKt |
+| 🔴 | EventBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceItemView.kt | 0.0% (0/66) | 0.0% (0/48) | 1.2% | ComposableSingletons$SourceItemViewKt, SourceItemViewKt |
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineItem.kt | 0.0% (0/24) | 0.0% (0/4) | 0.0% | RoutineItem, RoutineItem$Companion |
+| 🔴 | CategorizationBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% | RoutineSetupScreenKt |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -28,6 +31,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PdfReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | FilePicker.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | ChatBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ErrorBanner.kt | 14.8% (18/122) | 22.7% (10/44) | 27.7% | ComposableSingletons$ErrorBannerKt, ErrorBannerKt |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% | RecursiveDecompositionAIService |
 | 🟡 | SourceManager.kt | 60.8% (62/102) | 50.0% (24/48) | 64.6% | SourceManager, SourceManager$addSource$1, SourceManager$deleteSource$1, SourceManager$loadSources$1 |
@@ -38,6 +42,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | CollisionDetector.kt | 71.1% (64/90) | 50.0% (36/72) | 70.5% | CollisionDetector |
 | 🟡 | GeminiBodyBuilder.kt | 71.4% (20/28) | 100.0% (4/4) | 83.1% | GeminiBodyBuilder |
 | 🟡 | CalendarInterfaces.kt | 72.7% (16/22) | N/A | 68.2% | OverlapException, RemoteCalendarMetadata, StudentCalendarRepository |
+| 🟡 | NormalizationService.kt | 73.7% (28/38) | 46.2% (24/52) | 68.7% | NormalizationService |
 | 🟡 | AppController.kt | 78.0% (64/82) | 50.0% (4/8) | 72.8% | AppController, AppController$1, AppController$1$1, AppController$2, AppController$2$1, AppController$3, AppController$launchInScope$1, AppController$loadSources$1, AppScreen, AppScreen$Calendar, AppScreen$Home, AppScreen$Routine, AppScreen$Settings |
 | 🟡 | DependencyContainer.kt | 79.3% (92/116) | N/A | 95.2% | DependencyContainer |
 | 🟡 | GeminiRequestExecutor.kt | 79.6% (164/206) | 55.3% (104/188) | 73.3% | GeminiRequestExecutor, GeminiRequestExecutor$Companion |
@@ -88,7 +93,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | IcsCalendarSource.kt | 100.0% (18/18) | N/A | 100.0% | IcsCalendarSource |
 | 🟢 | CalendarErrorFormatter.kt | 100.0% (20/20) | 100.0% (36/36) | 100.0% | CalendarErrorFormatter |
 | 🟢 | SourceFragment.kt | 100.0% (24/24) | 34.4% (22/64) | 70.1% | SourceFragment, SourceFragment$Companion, SourceType, SourceType$Companion |
-| 🟢 | NormalizationService.kt | 100.0% (38/38) | 88.5% (46/52) | 100.0% | NormalizationService |
 | 🟢 | DecomposedTask.kt | 100.0% (8/8) | N/A | 100.0% | DecomposedTask |
 | 🟢 | TelemetryManager.kt | 100.0% (50/50) | 100.0% (8/8) | 100.0% | TelemetryManager |
 | 🟢 | AppNavigationService.kt | 100.0% (8/8) | N/A | 100.0% | AppNavigationService |

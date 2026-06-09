@@ -140,7 +140,7 @@ fun SettingsScreen(
             try {
                 calendars = container.remoteRepository.getAvailableCalendars()
             } catch (e: Exception) {
-                calendarLoadError = "Failed to load calendars: ${e.message}"
+                calendarLoadError = formatCalendarError(e)
             } finally {
                 isLoadingCalendars = false
             }
@@ -319,7 +319,7 @@ fun SettingsScreen(
                                     try {
                                         calendars = container.remoteRepository.getAvailableCalendars()
                                     } catch (e: Exception) {
-                                        calendarLoadError = "Failed to load: ${e.message}"
+                                        calendarLoadError = formatCalendarError(e)
                                     } finally {
                                         isLoadingCalendars = false
                                     }
@@ -645,7 +645,7 @@ fun SettingsScreen(
                                     try {
                                         calendars = container.remoteRepository.getAvailableCalendars()
                                     } catch (e: Exception) {
-                                        calendarLoadError = "Failed to reload calendars: ${e.message}"
+                                        calendarLoadError = formatCalendarError(e)
                                     } finally {
                                         isLoadingCalendars = false
                                     }
@@ -653,7 +653,7 @@ fun SettingsScreen(
                                     showCreateCalendarDialog = false
                                     newCalendarNameInput = ""
                                 } catch (e: Exception) {
-                                    createCalendarError = "Failed to create calendar: ${e.message}"
+                                    createCalendarError = formatCalendarError(e)
                                 } finally {
                                     isCreatingCalendar = false
                                 }
@@ -683,5 +683,20 @@ fun SettingsScreen(
             }
         )
     }
+}
+
+private fun formatCalendarError(e: Throwable): String {
+    val msg = e.message ?: "Unknown error"
+    if (msg.contains("401") || msg.contains("Unauthorized", ignoreCase = true) || msg.contains("invalid_grant", ignoreCase = true)) {
+        return "Your Google session has expired. Please disconnect and reconnect your Google account."
+    }
+    if (msg.contains("403") || msg.contains("Forbidden", ignoreCase = true)) {
+        return "Access denied. Please ensure the Google Calendar API is enabled in your Google Cloud Project."
+    }
+    if (msg.startsWith("Google API Error") || msg.contains("{\n")) {
+        val cleanMsg = msg.substringBefore("\n").substringBefore("{")
+        return if (cleanMsg.isNotBlank()) cleanMsg.trim() else "Google API error. Please reconnect your account."
+    }
+    return msg
 }
 

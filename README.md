@@ -45,4 +45,36 @@ in your IDE’s toolbar or open the [/iosApp](./iosApp) directory in Xcode and r
 
 ---
 
+## Google Cloud Console & API Setup
+
+To enable Calendar sync and file import capabilities:
+
+1. **Enable APIs**:
+   Go to the Google Cloud Console and enable the following APIs for your project:
+   - **Google Calendar API**: [Enable Calendar API](https://console.developers.google.com/apis/api/calendar-json.googleapis.com/overview)
+   - **Google Drive API**: [Enable Drive API](https://console.developers.google.com/apis/api/drive.googleapis.com/overview)
+
+2. **Configure OAuth Consent**:
+   - Go to APIs & Services > OAuth Consent Screen.
+   - Set the User Type to **External** and the Publishing Status to **Testing**.
+   - Under **Test users**, add your Google Account email (e.g. `your-email@gmail.com`).
+   - Under **Scopes**, ensure the following scopes are added:
+     - `.../auth/calendar`
+     - `.../auth/drive.readonly`
+
+3. **Create Credentials**:
+   - Go to APIs & Services > Credentials.
+   - Click **Create Credentials** > **OAuth client ID**.
+   - Select application type **Desktop app**.
+   - Copy the generated Client ID and Client Secret.
+
+4. **Add to `.env`**:
+   Create a `.env` file at the root of the project (copying from `.env_template`) and populate it:
+   ```env
+   GOOGLE_CLIENT_ID=your_client_id_here
+   GOOGLE_CLIENT_SECRET=your_client_secret_here
+   ```
+
+---
+
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…

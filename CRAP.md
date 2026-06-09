@@ -9,17 +9,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 126
+- **Total Files Analyzed**: 128
 - **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| DriveFileScanner.kt | 12 | 0.0% | 156.00 | 🔴 HIGH |
 | GeminiErrorHandler.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | DirectoryPreferencesManager.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | LocalFileScanner.kt | 9 | 0.0% | 90.00 | 🔴 HIGH |
+| DriveFileFetcher.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 30 | 95.2% | 30.10 | 🔴 HIGH |
@@ -35,16 +35,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 ---
 
 ## Detailed File Breakdown
-
-### DriveFileScanner.kt (Score: 156.00 - 🔴 HIGH)
-- **Total Complexity**: 12
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `scanNewFiles` | 11 |
-| `buildDriveQuery` | 1 |
 
 ### GeminiErrorHandler.kt (Score: 110.00 - 🔴 HIGH)
 - **Total Complexity**: 10
@@ -79,6 +69,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `scanNewFiles` | 9 |
+
+### DriveFileFetcher.kt (Score: 72.00 - 🔴 HIGH)
+- **Total Complexity**: 8
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `fetchFromFolders` | 6 |
+| `deduplicateFiles` | 2 |
 
 ### ContextAgent.kt (Score: 31.03 - 🔴 HIGH)
 - **Total Complexity**: 31
@@ -392,6 +392,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `deleteSource` | 4 |
 
+### DriveFileScanner.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `scanNewFiles` | 4 |
+
 ### SourceLoader.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
 - **Real Coverage**: 0.0%
@@ -674,6 +683,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `addSource` | 3 |
+
+### DriveQueryBuilder.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `buildQueryForFolder` | 1 |
+| `buildMimeTypeCriteria` | 1 |
+| `getSupportedMimeTypes` | 1 |
 
 ### SourceProcessingPipeline.kt (Score: 11.10 - 🟢 LOW)
 - **Total Complexity**: 5

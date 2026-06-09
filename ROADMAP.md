@@ -14,20 +14,16 @@
 
 ---
 
-## 🆕 Planned Integration Tests & CRAP Refactorings
+## 🆕 Planned Work & CRAP Refactorings
 
-### 1. Headless Multi-Source Ingestion Integration Test
-Create `MultiSourceIngestionIntegrationTest.kt` to headlessly ingest a dynamically generated `calendar.pdf` (wrapping the Spring 2025 semester timeline, drop dates, and holidays) alongside `syllabus_bdan250.pdf` and `syllabus_hist152.pdf`.
-* **Status**: ✅ Completed (June 2026)
-* **Key Enhancements (Dynamic PDF Generation)**:
-  * Instead of committing binary PDF files to git, implement a reusable `TestPdfGenerator` helper class in `jvmTest` that uses PDFBox to dynamically generate PDF files in temporary directories on-the-fly.
-  * This allows us to generate a custom `calendar.pdf` representing the semester boundaries (Start: Jan 13, 2025; End: May 16, 2025; Drop dates: Jan 28 & Apr 3, 2025; MLK & Spring Break holidays) and verify classification and validation dynamically.
+### 1. Custom Google Calendar Selection UI
+Add ability to fetch available Google Calendars, save the selected calendar ID/name to preferences, and configure the synchronization pipeline to target the chosen calendar. This enables flexible desktop testing using specific test calendars instead of hardcoding target IDs.
+* **Status**: ⏳ Planned
 * **Tasks**:
-  1. Implement `TestPdfGenerator` utility in `jvmTest`.
-  2. Dynamically compile a Spring 2025 academic calendar PDF and save it in a temporary file.
-  3. Load expected ground truth events from `syllabus_bdan250_expected.json` and `syllabus_hist152_expected.json`, and combine them with semester-level calendar events.
-  4. Run the end-to-end ingestion and extraction pipeline over the generated calendar PDF and the two syllabi.
-  5. Verify that the combined events accumulate correctly in the master calendar with high precision and recall, and that the syllabi do not conflict in class hours.
+  1. Fetch available calendars via `RemoteCalendarRepository.getAvailableCalendars()` (wired through `syncService.listCalendars()`).
+  2. Add preference keys (`google_calendar_id`, `google_calendar_name`) to `PreferencesRepository` / `StudyPreferences`.
+  3. Display a dropdown menu in `SettingsScreen.kt` listing all fetched Google Calendars and saving the selected choice.
+  4. Refactor `GoogleRemoteCalendarRepository.kt` to query and use the selected calendar ID from settings rather than defaulting to `"CEF Academic"`.
 
 ### 2. CRAP Risk Reduction (Phase 2 & 5 follow-ups)
 * **SettingsScreen.kt Refactoring**: Extract parsing and input mapping from the 9-complexity `parseAndSave()` method and add unit tests to cover empty/corrupted configs.
@@ -102,6 +98,7 @@ All items below have been verified against the actual codebase — not just the 
 | **Source Fragment Indexing** | Relevance ranking (TF-IDF) in `ContextAgent` before prompt injection |
 | **Stateful User Preference Memory** | Track manual study block moves/deletions, derive implicit constraints, and inject as prompt rules and resolver filters |
 | **Sync Re-negotiation UI** | Replace silent collision resolution on remote sync with interactive user proposal diff dialog |
+| **Headless Multi-Source Ingestion Integration Test** | Ingests a dynamically compiled Spring 2025 calendar PDF alongside BDAN 250 and HIST 152 syllabi, resolving collision-free and matching ground-truth events |
 
 ---
 

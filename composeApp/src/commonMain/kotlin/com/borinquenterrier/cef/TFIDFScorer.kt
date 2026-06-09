@@ -36,8 +36,7 @@ class TFIDFScorer {
             if (tf > 0) {
                 val df = documentFrequencies[term] ?: 0
                 val idf = ln(1.0 + totalDocuments / (1.0 + df))
-                val normalizedTF = tf.toDouble() / words.size
-                score += normalizedTF * idf
+                score += tf * idf
             }
         }
 

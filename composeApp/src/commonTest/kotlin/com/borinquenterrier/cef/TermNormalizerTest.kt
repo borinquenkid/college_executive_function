@@ -16,7 +16,7 @@ class TermNormalizerTest : FunSpec({
     test("extractQueryTerms filters terms shorter than 3 characters") {
         val result = normalizer.extractQueryTerms("is it a good day")
 
-        result.shouldBeEmpty()
+        result shouldContainExactlyInAnyOrder setOf("good", "day")
     }
 
     test("extractQueryTerms keeps terms longer than 2 characters") {

@@ -9,19 +9,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 143
-- **High-Risk Files (CRAP > 30)**: 6
+- **Total Files Analyzed**: 147
+- **High-Risk Files (CRAP > 30)**: 8
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| FragmentRanker.kt | 19 | 0.0% | 380.00 | 🔴 HIGH |
+| AcademicCalendarComponents.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | ConcurrentFolderFetcher.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
+| TermNormalizer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | EventRangeFilter.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | PreferenceSerializer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
+| TFIDFScorer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
+| FragmentRanker.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | SourceContextBuilder.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
-| AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
 | LocalFileFetcher.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | CalendarIdResolver.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -29,24 +31,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRequestBuilder.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
 | EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
-| GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
-| GeminiRequestExecutor.kt | 23 | 79.6% | 27.48 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
 
-### FragmentRanker.kt (Score: 380.00 - 🔴 HIGH)
-- **Total Complexity**: 19
+### AcademicCalendarComponents.kt (Score: 110.00 - 🔴 HIGH)
+- **Total Complexity**: 10
 - **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `extractQueryTerms` | 2 |
-| `rankFragments` | 1 |
-| `calculateDocumentFrequencies` | 1 |
-| `scoreFragments` | 1 |
+| `GoogleLinkPrompt` | 1 |
+| `AcademicCalendarHeader` | 1 |
+| `EventListContent` | 1 |
 
 ### ConcurrentFolderFetcher.kt (Score: 56.00 - 🔴 HIGH)
 - **Total Complexity**: 7
@@ -57,6 +56,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `fetchFromFolders` | 4 |
 | `fetchFromFolder` | 3 |
+
+### TermNormalizer.kt (Score: 56.00 - 🔴 HIGH)
+- **Total Complexity**: 7
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extractQueryTerms` | 2 |
+| `tokenizeFragment` | 2 |
 
 ### EventRangeFilter.kt (Score: 56.00 - 🔴 HIGH)
 - **Total Complexity**: 7
@@ -79,6 +88,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `deserializeDirectories` | 4 |
 | `serializeDirectories` | 3 |
 
+### TFIDFScorer.kt (Score: 56.00 - 🔴 HIGH)
+- **Total Complexity**: 7
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `scoreDocuments` | 1 |
+| `calculateTFIDF` | 1 |
+
+### FragmentRanker.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `rankFragments` | 1 |
+
 ### SourceContextBuilder.kt (Score: 42.00 - 🔴 HIGH)
 - **Total Complexity**: 6
 - **Real Coverage**: 0.0%
@@ -88,17 +116,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `formatFragments` | 2 |
 | `buildContextBlocks` | 1 |
-
-### AcademicCalendar.kt (Score: 30.50 - 🔴 HIGH)
-- **Total Complexity**: 26
-- **Real Coverage**: 81.2%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `EventItemView` | 7 |
-| `TaskDecompositionDialog` | 6 |
-| `AcademicCalendar` | 1 |
 
 ### LocalFileFetcher.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -301,6 +318,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseDecomposeTaskJson` | 2 |
 | `extractJsonArray` | 2 |
 | `stripCodeFences` | 1 |
+
+### AcademicCalendar.kt (Score: 22.66 - 🟡 MEDIUM)
+- **Total Complexity**: 20
+- **Real Coverage**: 81.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `EventItemView` | 7 |
+| `TaskDecompositionDialog` | 6 |
+| `AcademicCalendar` | 1 |
 
 ### SyncNegotiator.kt (Score: 22.03 - 🟡 MEDIUM)
 - **Total Complexity**: 22
@@ -1466,6 +1494,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `logOverride` | 1 |
 | `getDerivedConstraints` | 1 |
+
+### DocumentFrequencyCalculator.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `calculateDocumentFrequencies` | 1 |
 
 ### AiEventsService.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 2

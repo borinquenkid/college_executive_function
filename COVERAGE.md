@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **83.90%** (8390/10000 lines)
-- **Total Source Files**: 143
+- **Total Source Files**: 147
 
 ## Coverage by File
 
@@ -23,6 +23,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | DriveFileFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | FragmentRanker.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | CalendarIdResolver.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | TermNormalizer.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceItemView.kt | 0.0% (0/66) | 0.0% (0/48) | 1.2% | ComposableSingletons$SourceItemViewKt, SourceItemViewKt |
 | 🔴 | RetryAfterParser.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -30,12 +31,14 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | GeminiErrorHandler.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | EventRangeFilter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DirectoryPreferencesManager.kt | 0.0% (0/40) | 0.0% (0/8) | 0.0% | DirectoryPreferencesManager |
+| 🔴 | AcademicCalendarComponents.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceDeleter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveDirectoryPreferences.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ErrorCategorizer.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% | RoutineSetupScreenKt |
 | 🔴 | SourceAdder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveFileScanner.kt | 0.0% (0/60) | 0.0% (0/24) | 0.0% | DriveFileScanner, DriveFileScanner$scanNewFiles$2, DriveFileScanner$scanNewFiles$2$deferreds$1$1 |
+| 🔴 | DocumentFrequencyCalculator.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PreferenceSerializer.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceLoader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -43,6 +46,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveQueryBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceContextBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | TFIDFScorer.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% | ComposableSingletons$RoutineScreenKt, RoutineScreenKt, RoutineScreenKt$RoutineScreen$1$1, RoutineScreenKt$RoutineScreen$4$1$1 |
 | 🔴 | FileDuplicateFilter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceSelector.kt | 0.0% (0/0) | N/A | 0.0% | *None* |

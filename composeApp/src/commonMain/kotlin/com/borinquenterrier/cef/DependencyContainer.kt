@@ -84,7 +84,13 @@ class DependencyContainer(
 
     val sourceScanner by lazy { SourceScanner(directoryPreferencesManager, localFileScanner, driveFileScanner) }
 
-    val harnessSourceProcessor by lazy { HarnessSourceProcessor(ingestionAgent, eventAgent, contextAgent, logger, bugReporter) }
+    val sourceProcessingPipeline by lazy { SourceProcessingPipeline(ingestionAgent, eventAgent, contextAgent, logger, bugReporter) }
+
+    val localFileProcessor by lazy { LocalFileProcessor(ingestionAgent, sourceProcessingPipeline, logger, bugReporter) }
+
+    val driveFileProcessor by lazy { DriveFileProcessor(ingestionAgent, sourceProcessingPipeline, logger, bugReporter) }
+
+    val harnessSourceProcessor by lazy { HarnessSourceProcessor(sourceProcessingPipeline, localFileProcessor, driveFileProcessor, logger) }
 
     val agentHarness by lazy {
        AgentHarness(

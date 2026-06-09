@@ -33,6 +33,44 @@ For UI-related changes, verify the visual state by running the relevant module (
 ### CRAP Remediation Protocol
 When a file scores high on the CRAP index (`CRAP.md`), prefer **decomposing it into smaller, single-responsibility files before writing tests against it**. The formula (`complexity² × (1 - coverage)³ + complexity`) squares complexity, so splitting one high-complexity file into focused units shrinks the score sharply on its own — often more than coverage alone would. Testing a monolith first is a sunk cost: once it's split, those tests have to be rewritten or relocated against the new shape anyway. Decompose first, then write targeted tests against the smaller, stable units that result.
 
+### Complexity & Decomposition Standards
+Prevent high-CRAP code by designing for decomposition and testability **from the spec phase**, not by discovering problems during metrics review. Architectural requirements must enforce these limits:
+
+1. **Per-Method Complexity Limit: 5**
+   - Any public method exceeding 5 control flows (branches, loops, logical operators, safe calls, collection operators) must be refactored into smaller focused methods or delegated to extracted services.
+   - Example: `GoogleRemoteCalendarRepository.clearCalendar()` had 6 branches → extracted loop logic to `EventRangeFilter`.
+
+2. **Per-File Complexity Limit: 15**
+   - No file shall exceed 15 total complexity across all methods. Files nearing this limit are candidates for service extraction.
+   - Example: `GoogleRemoteCalendarRepository` at 30 → decomposed into three services (complexity 2–5 each).
+
+3. **Thin Facade Pattern as Architectural Requirement**
+   - Any class coordinating 3+ distinct responsibilities must delegate to separate, focused services rather than handle them inline.
+   - Require explicit dependency injection of extracted services in constructors.
+   - Example: Instead of "GoogleRemoteCalendarRepository handles calendar operations," spec: "GoogleRemoteCalendarRepository is a thin facade delegating to CalendarIdResolver, EventConflictDetector, and EventRangeFilter."
+
+4. **Testability-First Requirements**
+   - Every public method must be independently testable with focused unit tests (1–3 assertions, clear mocks).
+   - Methods with 6+ control flows are flagged as "not testable cleanly" and must be split before merging.
+   - Each extracted service must have its own unit test file with 5+ test cases covering happy paths, edge cases, and error conditions.
+
+5. **Service Extraction Rules**
+   - Extract a service when a method has 3+ distinct responsibilities (e.g., ID resolution + conflict detection + filtering).
+   - Extracted services must be single-responsibility: handle exactly one concern (e.g., "detect overlaps," "filter by date," "resolve calendar ID").
+   - Use dependency injection to wire extracted services; document the dependency graph in class comments.
+
+6. **Coverage-by-Design Targets**
+   - Business logic services (not UI, not Compose) target **100% line coverage** to catch missing branches early.
+   - No file shall have coverage below the threshold determined at spec time (e.g., "no business logic below 80% coverage").
+   - Coverage gaps are blockers: code with 0% coverage cannot be merged, even if "it's new."
+
+7. **CRAP Index as Non-Functional Requirement**
+   - Include CRAP acceptance criteria in the spec: "No file shall exceed CRAP index of 20."
+   - Files exceeding the threshold at PR time are rejected; author must decompose before re-review.
+   - Use `generateCrapReport` as part of CI/CD validation, not post-hoc analysis.
+
+**Pattern:** The three-service structure that emerged in Phase 0.23 (`CalendarIdResolver`, `EventConflictDetector`, `EventRangeFilter`) is what should have been in the original spec — not derived through refactoring. Spec decomposition prevents CRAP; metrics review only measures what you missed.
+
 ### Native Dependency Management
 Manual modification of Xcode project files (`.pbxproj`) and adding external Swift packages is strictly prohibited due to their brittleness in KMP builds. All native features MUST be implemented using platform-native APIs already available in the system frameworks, accessible via pure Kotlin/Native interop, to ensure build stability.
 

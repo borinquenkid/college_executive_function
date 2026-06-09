@@ -1,49 +1,35 @@
 package com.borinquenterrier.cef
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-
 /**
- * Fetches files from multiple Google Drive folders concurrently.
- * Handles error recovery per folder and result collection.
+ * Facade coordinating concurrent folder fetching and file deduplication.
+ * Delegates to specialized services for async orchestration and filtering.
  */
 class DriveFileFetcher(
-    private val driveService: GoogleDriveService,
-    private val queryBuilder: DriveQueryBuilder,
-    private val logger: Logger?
+    private val folderFetcher: ConcurrentFolderFetcher,
+    private val duplicateFilter: FileDuplicateFilter
 ) {
-    private val tag = "DriveFileFetcher"
 
-    suspend fun fetchFromFolders(folderIds: List<String>): List<DriveFile> {
-        val allFiles = mutableListOf<DriveFile>()
-
-        coroutineScope {
-            val deferreds = folderIds.map { folderId ->
-                async {
-                    try {
-                        val query = queryBuilder.buildQueryForFolder(folderId)
-                        driveService.listFiles(query)
-                    } catch (e: Exception) {
-                        logger?.e(tag, "Failed to list files for drive folder: $folderId", e)
-                        emptyList()
-                    }
-                }
-            }
-
-            for (files in deferreds.map { it.await() }) {
-                allFiles.addAll(files)
-            }
-        }
-
-        return allFiles
+    /**
+     * Fetch files from multiple folders and deduplicate against existing files.
+     *
+     * @param folderIds List of folder IDs to fetch from
+     * @param existingUris URIs of files already in the system
+     * @return Deduplicated list of new files
+     */
+    suspend fun fetchFromFolders(folderIds: List<String>, existingUris: Set<String> = emptySet()): List<DriveFile> {
+        val allFiles = folderFetcher.fetchFromFolders(folderIds)
+        return duplicateFilter.filterDuplicates(allFiles, existingUris)
     }
 
+    /**
+     * Deduplicate files against existing URIs.
+     * Kept for backward compatibility; prefer fetchFromFolders() which integrates both steps.
+     *
+     * @param files Files to deduplicate
+     * @param existingUris URIs of files already known
+     * @return Filtered list of new files
+     */
     fun deduplicateFiles(files: List<DriveFile>, existingUris: Set<String>): List<DriveFile> {
-        val seenIds = mutableSetOf<String>()
-        return files.filter { file ->
-            val uri = "google_drive://${file.id}"
-            val isNew = !existingUris.contains(uri) && seenIds.add(file.id)
-            isNew
-        }
+        return duplicateFilter.filterDuplicates(files, existingUris)
     }
 }

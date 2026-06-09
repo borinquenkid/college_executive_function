@@ -14,7 +14,9 @@ class DriveFileScanner(
 ) {
     private val tag = "DriveFileScanner"
     private val queryBuilder = DriveQueryBuilder()
-    private val fileFetcher = DriveFileFetcher(driveService, queryBuilder, logger)
+    private val folderFetcher = ConcurrentFolderFetcher(driveService, queryBuilder, logger)
+    private val duplicateFilter = FileDuplicateFilter()
+    private val fileFetcher = DriveFileFetcher(folderFetcher, duplicateFilter)
 
     suspend fun scanNewFiles(existingUris: Set<String>): List<DriveFile> {
         if (!tokenRepository.hasTokens()) {
@@ -28,8 +30,7 @@ class DriveFileScanner(
             return emptyList()
         }
 
-        val allFiles = fileFetcher.fetchFromFolders(watchedFolders)
-        val newFiles = fileFetcher.deduplicateFiles(allFiles, existingUris)
+        val newFiles = fileFetcher.fetchFromFolders(watchedFolders, existingUris)
 
         logger.d(tag, "Found ${newFiles.size} new GDrive files from ${watchedFolders.size} folders")
         return newFiles

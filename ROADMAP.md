@@ -18,7 +18,7 @@
 
 ### 1. Headless Multi-Source Ingestion Integration Test
 Create `MultiSourceIngestionIntegrationTest.kt` to headlessly ingest a dynamically generated `calendar.pdf` (wrapping the Spring 2025 semester timeline, drop dates, and holidays) alongside `syllabus_bdan250.pdf` and `syllabus_hist152.pdf`.
-* **Status**: ⏳ Planned
+* **Status**: ✅ Completed (June 2026)
 * **Key Enhancements (Dynamic PDF Generation)**:
   * Instead of committing binary PDF files to git, implement a reusable `TestPdfGenerator` helper class in `jvmTest` that uses PDFBox to dynamically generate PDF files in temporary directories on-the-fly.
   * This allows us to generate a custom `calendar.pdf` representing the semester boundaries (Start: Jan 13, 2025; End: May 16, 2025; Drop dates: Jan 28 & Apr 3, 2025; MLK & Spring Break holidays) and verify classification and validation dynamically.

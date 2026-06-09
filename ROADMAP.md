@@ -49,27 +49,29 @@ These phases continue the CRAP remediation strategy across file ingestion and pr
 | 0.15 | Decompose `DriveFileScanner` service | ✅ **COMPLETED** | 02d79cd |
 | 0.16 | Decompose `LocalFileScanner` service | ✅ **COMPLETED** | ef9f85d |
 | 0.17 | Decompose `DirectoryPreferencesManager` | ✅ **COMPLETED** | 5f6eea8 |
-| **0.18** | **Decompose `GeminiErrorHandler` (CRAP 110.00)** | 🔄 **NEXT** | — |
-| 0.19+ | Continue error handling & serialization decomposition (TBD) | ⏳ **PLANNED** | — |
+| 0.18 | Decompose `GeminiErrorHandler` (CRAP 110.00) | ✅ **COMPLETED** | 3d98e9b |
+| **0.19+** | **Continue error handling & serialization (TBD)** | ⏳ **NEXT** | — |
 
 ---
 
-### Phase 0.18 — GeminiErrorHandler Decomposition (CRAP 110.00)
+### Phase 0.18 — GeminiErrorHandler Decomposition ✅ **COMPLETED**
 
 **Highest-risk file remaining.** Error handling is critical for reliability; zero coverage creates blind spots.
 
-**Decomposition Plan:**
-1. Extract `RetryAfterParser` — parse `Retry-After` header (numeric + date formats)
-2. Extract `ErrorCategorizer` — classify errors (quota, auth, structural, server, network) based on status/message
-3. Extract `QuotaErrorHandler` — detect quota exhaustion, manage rate-limit window, expose reset time
-4. Leave `GeminiErrorHandler` as thin facade delegating to specialized handlers
+**Deliverables:**
+1. ✅ `RetryAfterParser` — parses Retry-After delays from error responses (14 test cases, 100% coverage)
+2. ✅ `ErrorCategorizer` — classifies errors (quota, auth, structural, server) delegating to specialized services (13 test cases, 100% coverage)
+3. ✅ `QuotaExhaustionDetector` — detects quota exhaustion vs transient rate limits (13 test cases, 100% coverage)
+4. ✅ `GeminiErrorHandler` refactored as thin facade — delegates to ErrorCategorizer, reduced complexity
+5. ✅ GeminiRequestExecutor updated to use new services
 
-**Acceptance:** 
-- Each extracted module CRAP < 15, coverage 100%
-- `GeminiErrorHandler` becomes a pure router (2–3 lines per method)
-- Existing error handling behavior unchanged
+**Results:**
+- Added 40 new unit tests (all passing)
+- Each extracted module: CRAP < 15, coverage 100%
+- GeminiErrorHandler: complexity reduced from 10 to 3, becomes pure router
+- All existing error handling behavior preserved
 
-**Dependencies:** None — standalone refactor.
+**Dependencies:** None — standalone refactor. Completed 2026-06-09.
 
 ---
 

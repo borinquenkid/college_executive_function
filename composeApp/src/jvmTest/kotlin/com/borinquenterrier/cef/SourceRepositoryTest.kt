@@ -60,4 +60,19 @@ class SourceRepositoryTest : FunSpec({
         val metadata = repository.getSourceMetadata("syllabus.pdf")
         metadata shouldBe "{\"late_policy\": \"no late work\"}"
     }
+
+    test("deleteSource removes source and fragments cascade") {
+        val fragment = SourceFragment(text = "Line 1 of syllabus", pageNumber = 1, sectionTitle = "Introduction")
+        val sourceItem = SourceItem(
+            title = "syllabus.pdf",
+            fragments = listOf(fragment),
+            category = SourceCategory.SYLLABUS
+        )
+
+        repository.saveSource(sourceItem, "/path/to/syllabus.pdf")
+        repository.deleteSource("syllabus.pdf")
+
+        repository.getAllSources().size shouldBe 0
+        repository.getFragmentsForSource("syllabus.pdf").size shouldBe 0
+    }
 })

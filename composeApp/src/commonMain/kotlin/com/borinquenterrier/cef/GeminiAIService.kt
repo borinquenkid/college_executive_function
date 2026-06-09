@@ -69,8 +69,11 @@ class GeminiAIService(
         internal fun parseCategorizeSourceJson(responseText: String): SourceCategory =
             GeminiResponseParser.parseCategorizeSourceJson(responseText)
 
+        private var rateLimitResetTime: Long = 0L
+
         internal fun clearBlacklistForTesting() {
             GeminiModelNegotiator.clearBlacklistForTesting()
+            rateLimitResetTime = 0L
         }
     }
 
@@ -112,6 +115,12 @@ class GeminiAIService(
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T {
+        val now = Clock.System.now().toEpochMilliseconds()
+        if (now < rateLimitResetTime) {
+            val remainingSeconds = ((rateLimitResetTime - now) + 999L) / 1000L
+            throw Exception("QuotaExhausted: Rate limit reached. Please wait $remainingSeconds seconds before trying again.")
+        }
+
         val available = modelNegotiator.getAvailableModels()
         var attempts = 0
         var lastError: Exception? = null
@@ -161,7 +170,8 @@ class GeminiAIService(
                     if (isQuotaExhausted) {
                         logger?.e(tag, "🚫 Daily quota exhausted for model $modelName. No point retrying until quota resets.")
                         telemetryManager?.logRateLimitError()
-                        throw Exception("QuotaExhausted: Your free-tier daily request limit has been reached. Try again tomorrow or upgrade your Google AI Studio plan.")
+                        rateLimitResetTime = Clock.System.now().toEpochMilliseconds() + (12 * 60 * 60 * 1000L) // 12 hours
+                        throw Exception("QuotaExhausted: Your free-tier daily request limit has been reached. Please try again tomorrow.")
                     }
                 }
 
@@ -191,7 +201,9 @@ class GeminiAIService(
                     )
 
                     if (delayMs > 10000L) {
-                        throw Exception("QuotaExhausted: Rate limit delay of ${delayMs}ms exceeds the maximum wait threshold of 10 seconds.")
+                        rateLimitResetTime = Clock.System.now().toEpochMilliseconds() + delayMs
+                        val seconds = (delayMs + 999L) / 1000L
+                        throw Exception("QuotaExhausted: Rate limit reached. Please wait $seconds seconds before trying again.")
                     }
 
                     delayFn(delayMs)

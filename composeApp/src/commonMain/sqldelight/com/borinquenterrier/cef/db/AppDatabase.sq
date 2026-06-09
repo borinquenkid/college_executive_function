@@ -99,6 +99,9 @@ SELECT * FROM FragmentEntity WHERE sourceId = ? ORDER BY pageNumber ASC;
 deleteSource:
 DELETE FROM SourceEntity WHERE id = ?;
 
+deleteFragmentsBySource:
+DELETE FROM FragmentEntity WHERE sourceId = ?;
+
 deleteAllSources:
 DELETE FROM SourceEntity;
 

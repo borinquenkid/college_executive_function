@@ -13,6 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.key
+import androidx.compose.ui.input.key.onKeyEvent
+import androidx.compose.ui.input.key.type
+import androidx.compose.ui.input.key.KeyEventType
 import kotlinx.coroutines.launch
 
 class LocalFileSourceProvider(
@@ -76,6 +81,18 @@ class UrlSourceProvider(
         var url by remember { mutableStateOf("") }
         var isIngesting by remember { mutableStateOf(false) }
 
+        val submitUrl = {
+            if (url.isNotBlank()) {
+                handler.ingestUrl(
+                    url = url,
+                    onStart = { isIngesting = true },
+                    onSuccess = onSourceAdded,
+                    onFailure = onDismiss,
+                    onFinish = { isIngesting = false }
+                )
+            }
+        }
+
         if (isIngesting) {
             IngestingProgressDialog(
                 title = "Reading URL",
@@ -90,19 +107,20 @@ class UrlSourceProvider(
                         value = url,
                         onValueChange = { url = it },
                         label = { Text("https://...") },
-                        modifier = Modifier.fillMaxWidth()
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .onKeyEvent { keyEvent ->
+                                if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyDown) {
+                                    submitUrl()
+                                    true
+                                } else {
+                                    false
+                                }
+                            }
                     )
                 },
                 confirmButton = {
-                    TextButton(onClick = {
-                        handler.ingestUrl(
-                            url = url,
-                            onStart = { isIngesting = true },
-                            onSuccess = onSourceAdded,
-                            onFailure = onDismiss,
-                            onFinish = { isIngesting = false }
-                        )
-                    }) {
+                    TextButton(onClick = submitUrl) {
                         Text("Add")
                     }
                 },

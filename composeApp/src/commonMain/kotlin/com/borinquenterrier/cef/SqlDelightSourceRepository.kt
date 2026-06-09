@@ -76,4 +76,9 @@ class SqlDelightSourceRepository(
     override suspend fun getFragmentsForSource(sourceId: String): List<FragmentEntity> = withContext(Dispatchers.Default) {
         database.appDatabaseQueries.selectFragmentsBySource(sourceId).executeAsList()
     }
+
+    override suspend fun deleteSource(sourceId: String) = withContext(Dispatchers.Default) {
+        database.appDatabaseQueries.deleteFragmentsBySource(sourceId)
+        database.appDatabaseQueries.deleteSource(sourceId)
+    }
 }

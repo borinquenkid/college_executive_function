@@ -185,22 +185,33 @@ object AiPrompts {
      */
     fun getSourceCategorizationPrompt(text: String): String {
         return """
-            Analyze the provided document text and categorize it into exactly one of the following categories:
-            - "Syllabus" (contains course details, schedule, grading scales, assignment due dates, policies)
-            - "Reading Material" (textbook chapters, papers, articles, research papers, stories)
-            - "Lab Manual" (instructions/procedures for laboratory experiments or hands-on activities)
-            - "Lecture Notes" (summaries of lectures, presentation slides, class notes)
-            - "Other" (any other document that does not fit the above categories)
+            Analyze the provided document text and categorize it into exactly one of:
+            - "Syllabus": Contains course details, policies, and MUST contain at least one of:
+               * Repeating meeting times / class schedule (e.g., "Mondays and Wednesdays 10:00-11:30")
+               * Deliverables (quizzes, homework, tests, exams) with deadlines/due dates
+            - "Calendar": Contains day-long events, deadlines, and holidays, and MUST contain at least one of:
+               * Day-long events
+               * Deadlines
+               * Holidays
 
-            Analyze the tone, structure, and content of the document.
-            Return ONLY a raw JSON object with a single key "category" whose value is one of the exact strings above.
+            Validation Rule:
+            You must verify that the document contains at least one of the required elements for its category.
+            If a document categorized as "Syllabus" has NO repeating meeting times and NO deliverables, or a document categorized as "Calendar" has NO day-long events, deadlines, or holidays, you must set "isValid" to false. Otherwise, set "isValid" to true.
+
+            Return ONLY a raw JSON object with the following keys:
+            - "category": either "Syllabus" or "Calendar"
+            - "isValid": boolean (true/false)
+            - "reason": brief string explaining the categorization and listing at least one matching element found as validation, or explaining why it is invalid.
+
             Example output format:
             {
-              "category": "Syllabus"
+              "category": "Syllabus",
+              "isValid": true,
+              "reason": "Found repeating class time 'MWF 9-10 AM' and homework deadlines."
             }
 
             Document Text (truncated/sample):
-            $text
+            ${text.take(8000)}
         """.trimIndent()
     }
 

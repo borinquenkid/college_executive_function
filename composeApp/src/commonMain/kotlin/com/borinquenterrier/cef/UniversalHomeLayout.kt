@@ -76,6 +76,9 @@ fun UniversalHomeLayout(container: DependencyContainer) {
                                 }
                             }
                         },
+                        onSourceDeleted = { source ->
+                            appController.deleteSource(source)
+                        },
                         providers = sourceProviders
                     )
                     // Close shortcut

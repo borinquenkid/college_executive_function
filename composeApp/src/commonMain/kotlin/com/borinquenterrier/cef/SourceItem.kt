@@ -5,6 +5,7 @@ import kotlinx.serialization.Serializable
 @Serializable
 enum class SourceCategory {
     SYLLABUS,
+    CALENDAR,
     READING_MATERIAL,
     LAB_MANUAL,
     LECTURE_NOTES,

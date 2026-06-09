@@ -24,9 +24,13 @@ private data class RawGeminiTask(
     val description: String = ""
 )
 
+class SourceValidationException(message: String) : Exception(message)
+
 @Serializable
 private data class RawCategorization(
-    val category: String = "OTHER"
+    val category: String = "OTHER",
+    val isValid: Boolean = true,
+    val reason: String = ""
 )
 
 object GeminiResponseParser {
@@ -120,8 +124,12 @@ object GeminiResponseParser {
     fun parseCategorizeSourceJson(responseText: String): SourceCategory {
         val element = json.parseToJsonElement(stripCodeFences(responseText))
         val raw = json.decodeFromJsonElement(RawCategorization.serializer(), element)
+        if (!raw.isValid) {
+            throw SourceValidationException(raw.reason.ifBlank { "Document does not contain the required elements for its category." })
+        }
         return when (raw.category.uppercase()) {
             "SYLLABUS" -> SourceCategory.SYLLABUS
+            "CALENDAR" -> SourceCategory.CALENDAR
             "READING MATERIAL", "READING_MATERIAL" -> SourceCategory.READING_MATERIAL
             "LAB MANUAL", "LAB_MANUAL" -> SourceCategory.LAB_MANUAL
             "LECTURE NOTES", "LECTURE_NOTES" -> SourceCategory.LECTURE_NOTES

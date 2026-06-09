@@ -30,6 +30,7 @@ fun SourcesPanel(
     selectedSource: SourceItem?,
     onSourceSelected: (SourceItem) -> Unit,
     onSourceAdded: (SourceItem) -> Unit,
+    onSourceDeleted: (SourceItem) -> Unit,
     providers: List<SourceProvider>
 ) {
     var activeProviderId by remember { mutableStateOf<String?>(null) }
@@ -61,7 +62,8 @@ fun SourcesPanel(
                 SourceItemView(
                     item = item,
                     isSelected = item == selectedSource,
-                    onClick = { onSourceSelected(item) }
+                    onClick = { onSourceSelected(item) },
+                    onDelete = { onSourceDeleted(item) }
                 )
             }
         }

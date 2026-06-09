@@ -88,6 +88,7 @@ class GeminiResponseParserTest : FunSpec({
 
     test("parseCategorizeSourceJson maps known category strings case-insensitively, including spaced and underscored variants") {
         GeminiResponseParser.parseCategorizeSourceJson("""{"category": "syllabus"}""") shouldBe SourceCategory.SYLLABUS
+        GeminiResponseParser.parseCategorizeSourceJson("""{"category": "calendar"}""") shouldBe SourceCategory.CALENDAR
         GeminiResponseParser.parseCategorizeSourceJson("""{"category": "READING MATERIAL"}""") shouldBe SourceCategory.READING_MATERIAL
         GeminiResponseParser.parseCategorizeSourceJson("""{"category": "lab_manual"}""") shouldBe SourceCategory.LAB_MANUAL
         GeminiResponseParser.parseCategorizeSourceJson("""{"category": "Lecture Notes"}""") shouldBe SourceCategory.LECTURE_NOTES
@@ -96,6 +97,14 @@ class GeminiResponseParserTest : FunSpec({
 
     test("parseCategorizeSourceJson defaults to OTHER when the category field is missing") {
         GeminiResponseParser.parseCategorizeSourceJson("""{}""") shouldBe SourceCategory.OTHER
+    }
+
+    test("parseCategorizeSourceJson throws SourceValidationException when isValid is false") {
+        val json = """{"category": "syllabus", "isValid": false, "reason": "No assignments or meeting times found."}"""
+        val ex = shouldThrow<SourceValidationException> {
+            GeminiResponseParser.parseCategorizeSourceJson(json)
+        }
+        ex.message shouldBe "No assignments or meeting times found."
     }
 
     test("extractSourceYears finds 4-digit years starting with 20 in free text") {

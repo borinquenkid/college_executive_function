@@ -64,7 +64,7 @@ class IngestionAgentTest : FunSpec({
         persisted?.category shouldBe "SYLLABUS"
     }
 
-    test("addLocalFile defaults to OTHER for calendar/ics files and skips AI categorization") {
+    test("addLocalFile defaults to CALENDAR for calendar/ics files and skips AI categorization") {
         val path = "my_schedule.ics"
         val icsContent = """
             BEGIN:VCALENDAR
@@ -78,11 +78,11 @@ class IngestionAgentTest : FunSpec({
 
         val result = ingestionAgent.addLocalFile(path)
 
-        result.category shouldBe SourceCategory.OTHER
+        result.category shouldBe SourceCategory.CALENDAR
         coVerify(exactly = 0) { aiService.categorizeSource(any()) }
 
         val persisted = database.appDatabaseQueries.selectSourceById(result.title).executeAsOneOrNull()
         persisted shouldNotBe null
-        persisted?.category shouldBe "OTHER"
+        persisted?.category shouldBe "CALENDAR"
     }
 })

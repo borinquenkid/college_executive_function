@@ -41,7 +41,10 @@ class IngestionAgent(
                 else -> SourceProcessor.process(fileReader.readText(path))
             }
             val category = if (fileName.lowercase().endsWith(".ics")) {
-                SourceCategory.OTHER
+                if (fragments.isEmpty()) {
+                    throw SourceValidationException("Calendar must contain at least one day-long event, deadline, or holiday.")
+                }
+                SourceCategory.CALENDAR
             } else {
                 val fullText = fragments.joinToString("\n\n") { it.text }
                 aiService.categorizeSource(fullText)
@@ -64,7 +67,10 @@ class IngestionAgent(
                 SourceProcessor.process(rawContent)
             }
             val category = if (url.lowercase().endsWith(".ics")) {
-                SourceCategory.OTHER
+                if (fragments.isEmpty()) {
+                    throw SourceValidationException("Calendar must contain at least one day-long event, deadline, or holiday.")
+                }
+                SourceCategory.CALENDAR
             } else {
                 val fullText = fragments.joinToString("\n\n") { it.text }
                 aiService.categorizeSource(fullText)
@@ -86,7 +92,10 @@ class IngestionAgent(
                 else -> SourceProcessor.process(rawContent)
             }
             val category = if (file.name.lowercase().endsWith(".ics")) {
-                SourceCategory.OTHER
+                if (fragments.isEmpty()) {
+                    throw SourceValidationException("Calendar must contain at least one day-long event, deadline, or holiday.")
+                }
+                SourceCategory.CALENDAR
             } else {
                 val fullText = fragments.joinToString("\n\n") { it.text }
                 aiService.categorizeSource(fullText)

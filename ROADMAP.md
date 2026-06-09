@@ -14,6 +14,30 @@
 
 ---
 
+## 🆕 User-Identified Issues & UX Enhancements (Completed June 2026)
+
+These are the immediate issues identified by the user regarding source management, input validation, key interactions, copy/paste functionality, and quota error friendliness.
+
+*   **Source Deletion Capability**: Added `deleteSource(sourceId)` to `SourceRepository`/`SqlDelightSourceRepository`. Wired the UI (`SourcesPanel`, `SourceItemView`) with a delete button to allow physical removal of sources and their associated calendar events, followed by database synchronization.
+*   **Syllabus & Calendar Classification & Validation**:
+    *   Restructured `SourceCategory` to include `CALENDAR` alongside `SYLLABUS`.
+    *   Updated the AI categorization prompt in `AiPrompts.kt` to classify raw text strictly as either `Syllabus` or `Calendar`.
+    *   Added semantic validation rules:
+        *   A **Calendar** must contain at least one day-long event, deadline, or holiday.
+        *   A **Syllabus** must contain at least one repeating meeting time or deliverable (quiz, homework, test with deadline).
+    *   Modified `GeminiResponseParser` to parse the `isValid` and `reason` fields returned by the AI, throwing a `SourceValidationException` if validation fails.
+    *   Updated `IngestionAgent` to classify `.ics` files as `CALENDAR` and validate that they contain at least one event.
+*   **Submit on ENTER Key**: Intercepted Enter key presses in the chat panel input field (`ChatPanel.kt`) and URL input dialog (`CommonSourceProviders.kt`) using Compose `onKeyEvent` to trigger submission automatically.
+*   **Copy/Paste (c/p) Interaction**:
+    *   Wrapped chat bubbles in `SelectionContainer` to enable highlighting and copying text.
+    *   Added a dedicated "Copy" icon button to both user and AI message bubbles for single-click copy to the clipboard.
+    *   Added a native `MenuBar` in `main.kt` containing an "Edit" menu (Cut, Copy, Paste, Select All) to support native OS copy/paste interaction on macOS.
+*   **Friendly Quota & Rate Limit Errors**:
+    *   Refactored `GeminiAIService.executeWithRetry` and rate limit handling to throw clean, user-friendly messages instead of using unfriendly technical terms like "ms" or "exceeds threshold".
+    *   Implemented a static `rateLimitResetTime` tracker. If a rate limit (429) is hit, subsequent requests fast-fail immediately during the lockout window, showing a remaining wait time in seconds that correctly decreases over time rather than increasing.
+
+---
+
 ## ✅ Completed (as of June 2026)
 
 All items below have been verified against the actual codebase — not just the roadmap.
@@ -246,19 +270,72 @@ Implemented relevance ranking (TF-IDF) in `ContextAgent.rankFragments` to select
 Refining the Critic-Actor loop into a graph-based state tracker and implementing a lifecycle-driven background polling harness.
 
 ### 5.1 — Graph-Based Cycle Detection (COMPLETED)
-Implement visited-state graph tracking in `CriticActorAIService` to handle natural convergence and multi-step oscillation cycles. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+Implement visited-state graph tracking in `CriticActorAIService` to handle natural convergence and multi-step oscillation cycles. Guided by the CRAP Risk Reduction Plan below.
 
 ### 5.2 — Active Lifecycle Agent Harness (COMPLETED)
-Implement `AgentHarness` to orchestrate startup and once-daily polling of local watched directories and Google Drive, sequentially processing new files and synchronizing calendar mutations. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+Implement `AgentHarness` to orchestrate startup and once-daily polling of local watched directories and Google Drive, sequentially processing new files and synchronizing calendar mutations. Guided by the CRAP Risk Reduction Plan below.
 
 ### 5.3 — Startup Check-In Interview Loop (COMPLETED)
-Query incomplete past-due study blocks and tasks at startup/daily check-in, presenting an interactive interview dialog for completion confirmation or automated rescheduling. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+Query incomplete past-due study blocks and tasks at startup/daily check-in, presenting an interactive interview dialog for completion confirmation or automated rescheduling. Guided by the CRAP Risk Reduction Plan below.
 
 ### 5.4 — Stateful User Preference Memory (COMPLETED)
-Store user calendar edits and deletions to derive implicit scheduling constraints, injecting them into future AI prompt generations. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+Store user calendar edits and deletions to derive implicit scheduling constraints, injecting them into future AI prompt generations. Guided by the CRAP Risk Reduction Plan below.
 
 ### 5.5 — Sync Re-negotiation UI (COMPLETED)
-Replace silent conflict resolution during two-way sync with interactive user proposal diffs. Guided by [PLAN.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/PLAN.md).
+Replace silent conflict resolution during two-way sync with interactive user proposal diffs. Guided by the CRAP Risk Reduction Plan below.
+
+---
+
+## 📊 CRAP Risk Reduction Plan (Merged from PLAN.md)
+
+This plan outlines the strategy and completed phases to bring high-risk files (high complexity and low coverage) under control (below CRAP 30).
+
+### Strategy
+Two complementary levers reduce CRAP:
+1. **Coverage** — adding tests brings `(1 - coverage)^3` toward 0. Most effective when coverage is low.
+2. **Refactoring** — splitting large methods reduces `complexity^2`. Most effective when a single method dominates complexity.
+
+Pure Compose UI files (`App.kt`, `AddRoutineItemDialog.kt`, `AcademicCalendar.kt`, `RoutineScreen.kt`) score high only because they have 0% coverage — not because of dangerous logic. They are deferred to Compose UI testing pass (Phase 5 of the CRAP plan) and skipped here.
+
+### Progress Tracker
+
+| Phase | File | Baseline CRAP | Target | Status |
+|---|---|---|---|---|
+| 1 | GoogleRemoteCalendarRepository.kt | 220.94 | < 50 | ✅ Done |
+| 2 | ModelManager.kt | 41.20 | < 15 | ✅ Done |
+| 3 | EventPresenter.kt | 40.37 | < 20 | ✅ Done |
+| 4 | GoogleDriveService.kt | 39.58 | < 20 | ✅ Done |
+| 5 | GeminiAIService.kt | 153.53 | < 80 | ✅ Done |
+| 6 | CriticActorAIService.kt | 110.11 | < 60 | ✅ Done |
+| 7 | CalendarAgent.kt + EventAgent.kt | 95.59 / 83.57 | < 60 / < 50 | ✅ Done |
+| 8 | AiPrompts.kt | 42.06 | < 25 | ✅ Done |
+| 9 | Compose UI files | 210 / 182 / 35 / 20 | — | ⏳ Future |
+
+### Refactoring & Coverage Details
+
+#### Phase 1 — `GoogleRemoteCalendarRepository.kt` (CRAP 220.94)
+- **Actions**: Created `GoogleRemoteCalendarRepositoryTest.kt` in `jvmTest`. Mocked `GoogleCalendarSyncService` with `MockK`. Added tests for all currently-uncovered paths: `getCEFCalendarId` (create path), `deleteEvent` (swallow), `clearCalendar`, `getEventsInRange`, overlap detection, and isolated updates.
+
+#### Phase 2 — `ModelManager.kt` (CRAP 41.20)
+- **Actions**: Fixed progress emission bug in `downloadModel` (emitted intermediate progress inside chunk loop). Added tests for successful and 404 download paths, verifying that `DownloadProgress(1f, true)` is emitted last.
+
+#### Phase 3 — `EventPresenter.kt` (CRAP 40.37)
+- **Actions**: Added exhaustive `getEventBorderColor` and `getCategoryLabel` tests for missing combinations (`FINALS`, `SEMESTER_BOUND`, etc.). Extracted duplicated `when(source)` block into a shared private helper.
+
+#### Phase 4 — `GoogleDriveService.kt` (CRAP 39.58)
+- **Actions**: Fixed `validateConnection` to use `withToken`. Fixed 401 detection to use `ResponseException.response.status`. Created `GoogleDriveServiceTest.kt` with MockEngine verifying validation, file listings, and retry behavior.
+
+#### Phase 5 — `GeminiAIService.kt` (CRAP 153.53)
+- **Actions**: Extracted focused private helpers from the 148-line `executeWithRetry` God method (`handleRpdError`, `handleStructuralError`, `handleAuthError`, `applyExponentialBackoff`). Extracted JSON parsers for tasks and categorizations. Fixed time parsing to support both `HH:mm:ss` and `HH:mm`.
+
+#### Phase 6 — `CriticActorAIService.kt` (CRAP 110.11)
+- **Actions**: Extracted loop bodies into `parseEventFromJson` and `parseTaskFromJson` methods, significantly reducing cyclomatic complexity.
+
+#### Phase 7 — `CalendarAgent.kt` + `EventAgent.kt` (CRAP 95.59 / 83.57)
+- **Actions**: Added synchronization logic tests for Ollama timeouts. Added tests for event completion updates, calendar pushes, rescheduling, and skipping.
+
+#### Phase 8 — `AiPrompts.kt` (CRAP 42.06)
+- **Actions**: Added coverage for hour formatting edge cases (midnight=0, noon=12, PM hours).
 
 ---
 
@@ -283,4 +360,3 @@ Phase 4.1 (Test Syllabi)
     └── Phase 4.2 (Offline Evals) [requires test syllabi]
     └── Phase 4.3 (Production Telemetry) [builds on test observations]
 ```
-

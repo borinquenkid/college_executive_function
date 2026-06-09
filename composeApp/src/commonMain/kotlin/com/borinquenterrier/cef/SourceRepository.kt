@@ -10,4 +10,5 @@ interface SourceRepository {
     suspend fun getAllSources(): List<SourceEntity>
     suspend fun getSourceById(sourceId: String): SourceEntity?
     suspend fun getFragmentsForSource(sourceId: String): List<FragmentEntity>
+    suspend fun deleteSource(sourceId: String)
 }

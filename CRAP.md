@@ -9,36 +9,36 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 111
-- **High-Risk Files (CRAP > 30)**: 7
+- **Total Files Analyzed**: 114
+- **High-Risk Files (CRAP > 30)**: 9
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| SourceScanner.kt | 25 | 0.0% | 650.00 | 🔴 HIGH |
-| HarnessSourceProcessor.kt | 11 | 0.0% | 132.00 | 🔴 HIGH |
-| AcademicCalendar.kt | 29 | 80.7% | 35.09 | 🔴 HIGH |
+| SourceScanner.kt | 25 | 51.1% | 98.24 | 🔴 HIGH |
+| HarnessSourceProcessor.kt | 11 | 20.0% | 72.95 | 🔴 HIGH |
+| CalendarSyncManager.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
+| CalendarEventGrouper.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | SourceManager.kt | 16 | 60.8% | 31.44 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
+| AcademicCalendar.kt | 26 | 80.7% | 30.89 | 🔴 HIGH |
 | GeminiRequestExecutor.kt | 25 | 79.6% | 30.30 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 30 | 95.2% | 30.10 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| PollScheduler.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
+| GoogleAuthManager.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
 | EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
-| GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
+| GeminiAIService.kt | 26 | 86.1% | 27.81 | 🟡 MEDIUM |
 | GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
-| SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
-| CollisionDetector.kt | 17 | 71.1% | 23.97 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
 
-### SourceScanner.kt (Score: 650.00 - 🔴 HIGH)
+### SourceScanner.kt (Score: 98.24 - 🔴 HIGH)
 - **Total Complexity**: 25
-- **Real Coverage**: 0.0%
+- **Real Coverage**: 51.1%
 
 #### Methods list:
 | Method | Complexity |
@@ -51,9 +51,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `setWatchedGDriveFolders` | 1 |
 | `buildDriveQuery` | 1 |
 
-### HarnessSourceProcessor.kt (Score: 132.00 - 🔴 HIGH)
+### HarnessSourceProcessor.kt (Score: 72.95 - 🔴 HIGH)
 - **Total Complexity**: 11
-- **Real Coverage**: 0.0%
+- **Real Coverage**: 20.0%
 
 #### Methods list:
 | Method | Complexity |
@@ -62,16 +62,27 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `processLocalFiles` | 3 |
 | `processDriveFiles` | 3 |
 
-### AcademicCalendar.kt (Score: 35.09 - 🔴 HIGH)
-- **Total Complexity**: 29
-- **Real Coverage**: 80.7%
+### CalendarSyncManager.kt (Score: 72.00 - 🔴 HIGH)
+- **Total Complexity**: 8
+- **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `EventItemView` | 7 |
-| `TaskDecompositionDialog` | 6 |
-| `AcademicCalendar` | 1 |
+| `refreshEvents` | 2 |
+| `initiateSyncIfNeeded` | 1 |
+| `applySyncProposal` | 1 |
+
+### CalendarEventGrouper.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `groupEventsByDate` | 2 |
+| `isDecomposable` | 1 |
+| `filterEventsByDateRange` | 1 |
 
 ### SourceManager.kt (Score: 31.44 - 🔴 HIGH)
 - **Total Complexity**: 16
@@ -97,6 +108,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceMetadata` | 1 |
 | `rankFragments` | 1 |
 | `queryAllSources` | 1 |
+
+### AcademicCalendar.kt (Score: 30.89 - 🔴 HIGH)
+- **Total Complexity**: 26
+- **Real Coverage**: 80.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `EventItemView` | 7 |
+| `TaskDecompositionDialog` | 6 |
+| `AcademicCalendar` | 1 |
 
 ### GeminiRequestExecutor.kt (Score: 30.30 - 🔴 HIGH)
 - **Total Complexity**: 25
@@ -137,16 +159,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `SourceItemView` | 1 |
 
-### PollScheduler.kt (Score: 30.00 - 🟡 MEDIUM)
+### GoogleAuthManager.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
 - **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `shouldPoll` | 3 |
-| `getLastPollTime` | 1 |
-| `setLastPollTime` | 1 |
+| `loginAndLink` | 2 |
+| `unlinkAccount` | 2 |
+| `isLinked` | 1 |
 
 ### GoogleCalendarSyncService.kt (Score: 29.13 - 🟡 MEDIUM)
 - **Total Complexity**: 29
@@ -183,9 +205,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `runAgentAction` | 1 |
 | *... and 6 more* | |
 
-### GeminiAIService.kt (Score: 28.20 - 🟡 MEDIUM)
+### GeminiAIService.kt (Score: 27.81 - 🟡 MEDIUM)
 - **Total Complexity**: 26
-- **Real Coverage**: 85.2%
+- **Real Coverage**: 86.1%
 
 #### Methods list:
 | Method | Complexity |
@@ -652,6 +674,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getCriticModified` | 1 |
 | `clear` | 1 |
 
+### AgentHarness.kt (Score: 10.53 - 🟢 LOW)
+- **Total Complexity**: 10
+- **Real Coverage**: 82.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `runHarness` | 4 |
+| `getLastPollTime` | 1 |
+| `setLastPollTime` | 1 |
+| `getWatchedLocalDirectories` | 1 |
+| `setWatchedLocalDirectories` | 1 |
+| `getWatchedGDriveFolders` | 1 |
+| `setWatchedGDriveFolders` | 1 |
+
 ### StudyPreferencesPanel.kt (Score: 10.39 - 🟢 LOW)
 - **Total Complexity**: 10
 - **Real Coverage**: 84.3%
@@ -678,21 +715,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getChatCritiquePrompt` | 1 |
 | `getDecompositionCritiquePrompt` | 1 |
 | `getSyllabusAuditPrompt` | 1 |
-
-### AgentHarness.kt (Score: 10.11 - 🟢 LOW)
-- **Total Complexity**: 10
-- **Real Coverage**: 89.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `runHarness` | 4 |
-| `getLastPollTime` | 1 |
-| `setLastPollTime` | 1 |
-| `getWatchedLocalDirectories` | 1 |
-| `setWatchedLocalDirectories` | 1 |
-| `getWatchedGDriveFolders` | 1 |
-| `setWatchedGDriveFolders` | 1 |
 
 ### SqlDelightSourceRepository.kt (Score: 10.01 - 🟢 LOW)
 - **Total Complexity**: 10
@@ -847,6 +869,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `performTokenExchange` | 2 |
 | `exchangeCodeForTokens` | 1 |
 | `refreshAccessToken` | 1 |
+
+### PollScheduler.kt (Score: 7.09 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 56.3%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `shouldPoll` | 3 |
+| `getLastPollTime` | 1 |
+| `setLastPollTime` | 1 |
 
 ### SettingsScreen.kt (Score: 7.02 - 🟢 LOW)
 - **Total Complexity**: 7
@@ -1211,7 +1244,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ### DependencyContainer.kt (Score: 1.01 - 🟢 LOW)
 - **Total Complexity**: 1
-- **Real Coverage**: 79.3%
+- **Real Coverage**: 81.7%
 
 
 ### CheckInDialog.kt (Score: 1.00 - 🟢 LOW)

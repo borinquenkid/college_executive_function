@@ -95,5 +95,9 @@ class DependencyContainer(
         )
     }
 
+    val googleAuthManager by lazy { GoogleAuthManager(authService, tokenRepository, logger) }
+
+    val calendarSyncManager by lazy { CalendarSyncManager(calendarAgent, logger) }
+
     val appController by lazy { AppController(this) }
 }

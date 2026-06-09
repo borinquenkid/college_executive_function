@@ -3,7 +3,6 @@ package com.borinquenterrier.cef
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -14,7 +13,6 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
-import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlinx.datetime.*
@@ -30,39 +28,43 @@ fun AcademicCalendar(
 ) {
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
+    val logger = rememberLogger()
     val routineRepository = remember { RoutineRepository(settings) }
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
     val authService = remember(settings) { GoogleAuthService(settings) }
     
+    // Delegate business logic to extracted services
+    val authManager = remember(authService, tokenRepository, logger) {
+        GoogleAuthManager(authService, tokenRepository, logger)
+    }
+    val syncManager = remember(calendarAgent, logger) {
+        CalendarSyncManager(calendarAgent, logger)
+    }
+    
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
     var displayedEvents by remember { mutableStateOf(emptyList<Event>()) }
-    var isGoogleLinked by remember { mutableStateOf(tokenRepository.hasTokens()) }
+    var isGoogleLinked by remember { mutableStateOf(authManager.isLinked()) }
     var isSyncing by remember { mutableStateOf(false) }
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
     var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
     val errorState by eventAgent.errorState.collectAsState()
 
-    // Load the routine items
     LaunchedEffect(routineRepository) {
         routineEvents = routineRepository.getRoutineEvents()
     }
 
-    // Initial Load and Sync
     LaunchedEffect(isGoogleLinked) {
         displayedEvents = calendarAgent.getEvents("default")
         if (isGoogleLinked) {
             scope.launch {
                 isSyncing = true
                 try {
-                    val negotiation = calendarAgent.checkSyncProposals("default")
-                    if (negotiation.proposals.isNotEmpty()) {
+                    val negotiation = syncManager.initiateSyncIfNeeded(isGoogleLinked)
+                    if (negotiation != null) {
                         activeSyncNegotiation = negotiation
                     } else {
-                        calendarAgent.applySyncNegotiation(negotiation, "default")
-                        displayedEvents = calendarAgent.getEvents("default")
+                        displayedEvents = syncManager.refreshEvents()
                     }
-                } catch (e: Exception) {
-                    // Sync failed, using cached local data
                 } finally {
                     isSyncing = false
                 }
@@ -70,7 +72,6 @@ fun AcademicCalendar(
         }
     }
 
-    // Define the semester ranges
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     val (viewStartDate, viewEndDate) = remember(today) {
         SemesterResolver.getSemesterRange(today)
@@ -86,12 +87,7 @@ fun AcademicCalendar(
         )
     }
 
-    val groupedEvents = allExpandedEvents.groupBy { event ->
-        when (event) {
-            is TimeEvent -> event.date
-            is DayEvent -> event.date
-        }
-    }
+    val groupedEvents = CalendarEventGrouper.groupEventsByDate(allExpandedEvents)
 
     selectedEventForDecomposition?.let { event ->
         TaskDecompositionDialog(
@@ -111,7 +107,7 @@ fun AcademicCalendar(
             onApplied = {
                 activeSyncNegotiation = null
                 scope.launch {
-                    displayedEvents = calendarAgent.getEvents("default")
+                    displayedEvents = syncManager.refreshEvents()
                 }
             },
             onDismiss = {
@@ -122,7 +118,6 @@ fun AcademicCalendar(
 
     Column(modifier = modifier) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-        // Sticky error banner — shown at the top when a quota/AI error occurs
             stickyHeader {
                 AnimatedErrorBanner(
                     error = errorState,
@@ -146,11 +141,8 @@ fun AcademicCalendar(
                             Spacer(Modifier.height(8.dp))
                             Button(onClick = {
                                 scope.launch {
-                                    try {
-                                        val result = authService.login()
-                                        tokenRepository.saveTokens(result.first, result.second)
+                                    if (authManager.loginAndLink()) {
                                         isGoogleLinked = true
-                                    } catch (e: Exception) {
                                     }
                                 }
                             }) {
@@ -188,14 +180,12 @@ fun AcademicCalendar(
                                 scope.launch {
                                     isSyncing = true
                                     try {
-                                        val negotiation = calendarAgent.checkSyncProposals("default")
-                                        if (negotiation.proposals.isNotEmpty()) {
+                                        val negotiation = syncManager.initiateSyncIfNeeded(true)
+                                        if (negotiation != null) {
                                             activeSyncNegotiation = negotiation
                                         } else {
-                                            calendarAgent.applySyncNegotiation(negotiation, "default")
-                                            displayedEvents = calendarAgent.getEvents("default")
+                                            displayedEvents = syncManager.refreshEvents()
                                         }
-                                    } catch (e: Exception) {
                                     } finally {
                                         isSyncing = false
                                     }
@@ -229,7 +219,7 @@ fun AcademicCalendar(
                         )
                     }
                     items(eventsOnDate) { event ->
-                        val isBreakable = event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS
+                        val isBreakable = CalendarEventGrouper.isDecomposable(event)
                         EventItemView(
                             event = event,
                             onBreakItDown = if (isBreakable) { { selectedEventForDecomposition = event } } else null

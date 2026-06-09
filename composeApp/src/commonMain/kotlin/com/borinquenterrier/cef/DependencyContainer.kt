@@ -76,23 +76,29 @@ class DependencyContainer(
 
     val pollScheduler by lazy { PollScheduler(settings, logger) }
 
-    val sourceScanner by lazy { SourceScanner(fileReader, driveService, tokenRepository, settings, logger) }
+    val directoryPreferencesManager by lazy { DirectoryPreferencesManager(settings, logger) }
+
+    val localFileScanner by lazy { LocalFileScanner(fileReader, directoryPreferencesManager, logger) }
+
+    val driveFileScanner by lazy { DriveFileScanner(driveService, tokenRepository, directoryPreferencesManager, logger) }
+
+    val sourceScanner by lazy { SourceScanner(directoryPreferencesManager, localFileScanner, driveFileScanner) }
 
     val harnessSourceProcessor by lazy { HarnessSourceProcessor(ingestionAgent, eventAgent, contextAgent, logger, bugReporter) }
 
     val agentHarness by lazy {
-        AgentHarness(
-            ingestionAgent,
-            eventAgent,
-            contextAgent,
-            calendarAgent,
-            sourceRepository,
-            pollScheduler,
-            sourceScanner,
-            harnessSourceProcessor,
-            logger,
-            bugReporter
-        )
+       AgentHarness(
+           ingestionAgent,
+           eventAgent,
+           contextAgent,
+           calendarAgent,
+           sourceRepository,
+           pollScheduler,
+           sourceScanner,
+           harnessSourceProcessor,
+           logger,
+           bugReporter
+       )
     }
 
     val googleAuthManager by lazy { GoogleAuthManager(authService, tokenRepository, logger) }

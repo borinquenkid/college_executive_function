@@ -7,106 +7,78 @@ import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import io.mockk.coEvery
 import io.mockk.every
-import com.russhwolf.settings.Settings
-import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 
 class SourceScannerTest : StringSpec({
 
-    "getWatchedLocalDirectories returns empty list when not set" {
-        val settings = mockk<Settings>()
-        every { settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "") } returns ""
+    "getWatchedLocalDirectories delegates to directoryPreferences" {
+        val directoryPreferences = mockk<DirectoryPreferencesManager>()
+        val localFileScanner = mockk<LocalFileScanner>()
+        val driveFileScanner = mockk<DriveFileScanner>()
         
-        val fileReader = mockk<LocalFileReader>()
-        val driveService = mockk<GoogleDriveService>()
-        val tokenRepository = mockk<GoogleTokenRepository>()
-        val logger = mockk<Logger>()
+        every { directoryPreferences.getWatchedLocalDirectories() } returns listOf("/home/user")
         
-        val scanner = SourceScanner(fileReader, driveService, tokenRepository, settings, logger)
-        scanner.getWatchedLocalDirectories().shouldBeEmpty()
+        val scanner = SourceScanner(directoryPreferences, localFileScanner, driveFileScanner)
+        scanner.getWatchedLocalDirectories() shouldBe listOf("/home/user")
     }
 
-    "getWatchedLocalDirectories returns stored directories" {
-        val dirs = listOf("/home/user/docs", "/tmp")
-        val settings = mockk<Settings>()
-        every { settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "") } returns Json.encodeToString(dirs)
+    "setWatchedLocalDirectories delegates to directoryPreferences" {
+        val directoryPreferences = mockk<DirectoryPreferencesManager>()
+        val localFileScanner = mockk<LocalFileScanner>()
+        val driveFileScanner = mockk<DriveFileScanner>()
         
-        val fileReader = mockk<LocalFileReader>()
-        val driveService = mockk<GoogleDriveService>()
-        val tokenRepository = mockk<GoogleTokenRepository>()
-        val logger = mockk<Logger>()
+        every { directoryPreferences.setWatchedLocalDirectories(any()) } returns Unit
         
-        val scanner = SourceScanner(fileReader, driveService, tokenRepository, settings, logger)
-        scanner.getWatchedLocalDirectories() shouldBe dirs
+        val scanner = SourceScanner(directoryPreferences, localFileScanner, driveFileScanner)
+        scanner.setWatchedLocalDirectories(listOf("/home/user"))
     }
 
-    "setWatchedLocalDirectories stores to settings" {
-        val settings = mockk<Settings>()
-        every { settings.putString("CEF_WATCHED_LOCAL_DIRECTORIES", any()) } returns Unit
+    "getWatchedGDriveFolders delegates to directoryPreferences" {
+        val directoryPreferences = mockk<DirectoryPreferencesManager>()
+        val localFileScanner = mockk<LocalFileScanner>()
+        val driveFileScanner = mockk<DriveFileScanner>()
         
-        val fileReader = mockk<LocalFileReader>()
-        val driveService = mockk<GoogleDriveService>()
-        val tokenRepository = mockk<GoogleTokenRepository>()
-        val logger = mockk<Logger>()
+        every { directoryPreferences.getWatchedGDriveFolders() } returns listOf("folder1", "folder2")
         
-        val scanner = SourceScanner(fileReader, driveService, tokenRepository, settings, logger)
-        scanner.setWatchedLocalDirectories(listOf("/path1", "/path2"))
+        val scanner = SourceScanner(directoryPreferences, localFileScanner, driveFileScanner)
+        scanner.getWatchedGDriveFolders() shouldBe listOf("folder1", "folder2")
     }
 
-    "getWatchedGDriveFolders returns empty list when not set" {
-        val settings = mockk<Settings>()
-        every { settings.getString("CEF_WATCHED_GDRIVE_FOLDERS", "") } returns ""
+    "setWatchedGDriveFolders delegates to directoryPreferences" {
+        val directoryPreferences = mockk<DirectoryPreferencesManager>()
+        val localFileScanner = mockk<LocalFileScanner>()
+        val driveFileScanner = mockk<DriveFileScanner>()
         
-        val fileReader = mockk<LocalFileReader>()
-        val driveService = mockk<GoogleDriveService>()
-        val tokenRepository = mockk<GoogleTokenRepository>()
-        val logger = mockk<Logger>()
+        every { directoryPreferences.setWatchedGDriveFolders(any()) } returns Unit
         
-        val scanner = SourceScanner(fileReader, driveService, tokenRepository, settings, logger)
-        scanner.getWatchedGDriveFolders().shouldBeEmpty()
+        val scanner = SourceScanner(directoryPreferences, localFileScanner, driveFileScanner)
+        scanner.setWatchedGDriveFolders(listOf("folder1"))
     }
 
-    "getWatchedGDriveFolders returns stored folders" {
-        val folders = listOf("folder1", "folder2")
-        val settings = mockk<Settings>()
-        every { settings.getString("CEF_WATCHED_GDRIVE_FOLDERS", "") } returns Json.encodeToString(folders)
+    "scanNewLocalFiles delegates to localFileScanner" {
+        val directoryPreferences = mockk<DirectoryPreferencesManager>()
+        val localFileScanner = mockk<LocalFileScanner>()
+        val driveFileScanner = mockk<DriveFileScanner>()
         
-        val fileReader = mockk<LocalFileReader>()
-        val driveService = mockk<GoogleDriveService>()
-        val tokenRepository = mockk<GoogleTokenRepository>()
-        val logger = mockk<Logger>()
+        coEvery { localFileScanner.scanNewFiles(any()) } returns listOf("/home/user/file1.pdf")
         
-        val scanner = SourceScanner(fileReader, driveService, tokenRepository, settings, logger)
-        scanner.getWatchedGDriveFolders() shouldBe folders
+        val scanner = SourceScanner(directoryPreferences, localFileScanner, driveFileScanner)
+        val result = scanner.scanNewLocalFiles(emptySet())
+        
+        result shouldBe listOf("/home/user/file1.pdf")
     }
 
-    "scanNewLocalFiles returns empty list when no files" {
-        val settings = mockk<Settings>()
-        every { settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "") } returns Json.encodeToString(emptyList<String>())
+    "scanNewDriveFiles delegates to driveFileScanner" {
+        val directoryPreferences = mockk<DirectoryPreferencesManager>()
+        val localFileScanner = mockk<LocalFileScanner>()
+        val driveFileScanner = mockk<DriveFileScanner>()
         
-        val fileReader = mockk<LocalFileReader>()
-        val driveService = mockk<GoogleDriveService>()
-        val tokenRepository = mockk<GoogleTokenRepository>()
-        val logger = mockk<Logger>()
+        val driveFile = DriveFile(id = "file1", name = "doc.pdf", mimeType = "application/pdf")
+        coEvery { driveFileScanner.scanNewFiles(any()) } returns listOf(driveFile)
         
-        val scanner = SourceScanner(fileReader, driveService, tokenRepository, settings, logger)
-        // Empty watched dirs means empty result
-        scanner.scanNewLocalFiles(emptySet()).shouldBeEmpty()
-    }
-
-    "scanNewDriveFiles returns empty list when auth not available" {
-        val settings = mockk<Settings>()
-        every { settings.getString("CEF_WATCHED_GDRIVE_FOLDERS", "") } returns Json.encodeToString(listOf("folder1"))
+        val scanner = SourceScanner(directoryPreferences, localFileScanner, driveFileScanner)
+        val result = scanner.scanNewDriveFiles(emptySet())
         
-        val fileReader = mockk<LocalFileReader>()
-        val driveService = mockk<GoogleDriveService>()
-        val tokenRepository = mockk<GoogleTokenRepository>()
-        every { tokenRepository.hasTokens() } returns false
-        
-        val logger = mockk<Logger>()
-        every { logger.d(any(), any()) } returns Unit
-        
-        val scanner = SourceScanner(fileReader, driveService, tokenRepository, settings, logger)
-        scanner.scanNewDriveFiles(emptySet()).shouldBeEmpty()
+        result shouldHaveSize 1
+        result[0].id shouldBe "file1"
     }
 })

@@ -7,10 +7,10 @@ import java.io.File
 
 class PdfReaderTest : FunSpec({
 
-    test("extractText should read content from calendar.pdf") {
-        val fixtureFile = File("src/commonTest/resources/calendar.pdf")
+    test("extractText should read content from sample.pdf") {
+        val fixtureFile = File("src/commonTest/resources/sample.pdf")
         if (!fixtureFile.exists()) {
-            val altPath = File("composeApp/src/commonTest/resources/calendar.pdf")
+            val altPath = File("composeApp/src/commonTest/resources/sample.pdf")
             if (!altPath.exists()) throw Exception("Fixture not found at ${fixtureFile.absolutePath}")
         }
         

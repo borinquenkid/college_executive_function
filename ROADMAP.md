@@ -14,6 +14,27 @@
 
 ---
 
+## 🆕 Planned Integration Tests & CRAP Refactorings
+
+### 1. Headless Multi-Source Ingestion Integration Test
+Create `MultiSourceIngestionIntegrationTest.kt` to headlessly ingest a dynamically generated `calendar.pdf` (wrapping the Spring 2025 semester timeline, drop dates, and holidays) alongside `syllabus_bdan250.pdf` and `syllabus_hist152.pdf`.
+* **Status**: ⏳ Planned
+* **Key Enhancements (Dynamic PDF Generation)**:
+  * Instead of committing binary PDF files to git, implement a reusable `TestPdfGenerator` helper class in `jvmTest` that uses PDFBox to dynamically generate PDF files in temporary directories on-the-fly.
+  * This allows us to generate a custom `calendar.pdf` representing the semester boundaries (Start: Jan 13, 2025; End: May 16, 2025; Drop dates: Jan 28 & Apr 3, 2025; MLK & Spring Break holidays) and verify classification and validation dynamically.
+* **Tasks**:
+  1. Implement `TestPdfGenerator` utility in `jvmTest`.
+  2. Dynamically compile a Spring 2025 academic calendar PDF and save it in a temporary file.
+  3. Load expected ground truth events from `syllabus_bdan250_expected.json` and `syllabus_hist152_expected.json`, and combine them with semester-level calendar events.
+  4. Run the end-to-end ingestion and extraction pipeline over the generated calendar PDF and the two syllabi.
+  5. Verify that the combined events accumulate correctly in the master calendar with high precision and recall, and that the syllabi do not conflict in class hours.
+
+### 2. CRAP Risk Reduction (Phase 2 & 5 follow-ups)
+* **SettingsScreen.kt Refactoring**: Extract parsing and input mapping from the 9-complexity `parseAndSave()` method and add unit tests to cover empty/corrupted configs.
+* **AgentHarness.kt Refactoring**: Extract modular sub-functions from the 23-complexity `runHarness()` method and add tests for directory errors.
+
+---
+
 ## 🆕 User-Identified Issues & UX Enhancements (Completed June 2026)
 
 These are the immediate issues identified by the user regarding source management, input validation, key interactions, copy/paste functionality, and quota error friendliness.

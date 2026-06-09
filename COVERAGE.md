@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **83.90%** (8390/10000 lines)
-- **Total Source Files**: 140
+- **Total Source Files**: 143
 
 ## Coverage by File
 
@@ -22,11 +22,13 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | ConcurrentFolderFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveFileFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | FragmentRanker.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | CalendarIdResolver.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceItemView.kt | 0.0% (0/66) | 0.0% (0/48) | 1.2% | ComposableSingletons$SourceItemViewKt, SourceItemViewKt |
 | 🔴 | RetryAfterParser.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineItem.kt | 0.0% (0/24) | 0.0% (0/4) | 0.0% | RoutineItem, RoutineItem$Companion |
 | 🔴 | GeminiErrorHandler.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | EventRangeFilter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DirectoryPreferencesManager.kt | 0.0% (0/40) | 0.0% (0/8) | 0.0% | DirectoryPreferencesManager |
 | 🔴 | SourceDeleter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveDirectoryPreferences.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -49,6 +51,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PdfReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | FilePicker.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | EventConflictDetector.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | GeminiRequestBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | QuotaExhaustionDetector.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ErrorBanner.kt | 14.8% (18/122) | 22.7% (10/44) | 27.7% | ComposableSingletons$ErrorBannerKt, ErrorBannerKt |

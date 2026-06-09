@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 140
+- **Total Files Analyzed**: 143
 - **High-Risk Files (CRAP > 30)**: 6
 
 ### Top 15 High-Risk Files
@@ -18,11 +18,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: | :---: | :---: | :---: |
 | FragmentRanker.kt | 19 | 0.0% | 380.00 | 🔴 HIGH |
 | ConcurrentFolderFetcher.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
+| EventRangeFilter.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | PreferenceSerializer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | SourceContextBuilder.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
-| GoogleRemoteCalendarRepository.kt | 30 | 95.2% | 30.10 | 🔴 HIGH |
 | LocalFileFetcher.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
+| CalendarIdResolver.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceSelector.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GeminiRequestBuilder.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -30,7 +31,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 23 | 79.6% | 27.48 | 🟡 MEDIUM |
-| GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
 
 ---
 
@@ -57,6 +57,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `fetchFromFolders` | 4 |
 | `fetchFromFolder` | 3 |
+
+### EventRangeFilter.kt (Score: 56.00 - 🔴 HIGH)
+- **Total Complexity**: 7
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `filterByDateRange` | 3 |
+| `filterBySyncStatus` | 2 |
+| `filterIncompleteBeforeDate` | 2 |
 
 ### PreferenceSerializer.kt (Score: 56.00 - 🔴 HIGH)
 - **Total Complexity**: 7
@@ -89,25 +100,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `TaskDecompositionDialog` | 6 |
 | `AcademicCalendar` | 1 |
 
-### GoogleRemoteCalendarRepository.kt (Score: 30.10 - 🔴 HIGH)
-- **Total Complexity**: 30
-- **Real Coverage**: 95.2%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearCalendar` | 6 |
-| `deleteEvent` | 4 |
-| `getCEFCalendarId` | 3 |
-| `saveEvent` | 3 |
-| `getEventsInRange` | 3 |
-| `getAllEvents` | 2 |
-| `updateEvent` | 2 |
-| `getEventsBySyncStatus` | 2 |
-| `getIncompleteEventsBefore` | 2 |
-| `getSettings` | 1 |
-| *... and 2 more* | |
-
 ### LocalFileFetcher.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
 - **Real Coverage**: 0.0%
@@ -116,6 +108,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `fetchFromDirectories` | 5 |
+
+### CalendarIdResolver.kt (Score: 30.00 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getCEFCalendarId` | 3 |
+| `resolveCalendarId` | 2 |
 
 ### SourceItemView.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -528,6 +530,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getCategoryLabel` | 3 |
 | `getDeadlineStatus` | 2 |
 
+### GoogleRemoteCalendarRepository.kt (Score: 17.03 - 🟡 MEDIUM)
+- **Total Complexity**: 17
+- **Real Coverage**: 95.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearCalendar` | 5 |
+| `deleteEvent` | 3 |
+| `getSettings` | 1 |
+| `getAvailableCalendars` | 1 |
+| `getAllEvents` | 1 |
+| `saveEvent` | 1 |
+| `updateEvent` | 1 |
+| `hardDeleteEvent` | 1 |
+| `getEventsInRange` | 1 |
+| `getEventsBySyncStatus` | 1 |
+| *... and 1 more* | |
+
 ### GoogleDriveService.kt (Score: 17.00 - 🟡 MEDIUM)
 - **Total Complexity**: 17
 - **Real Coverage**: 98.5%
@@ -778,6 +799,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `scanNewFiles` | 3 |
+
+### EventConflictDetector.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `validateNoConflict` | 2 |
+| `findConflict` | 1 |
 
 ### SourceProcessingPipeline.kt (Score: 11.10 - 🟢 LOW)
 - **Total Complexity**: 5

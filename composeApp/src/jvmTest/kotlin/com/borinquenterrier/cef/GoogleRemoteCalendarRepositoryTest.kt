@@ -45,6 +45,14 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
     beforeEach {
         clearAllMocks()
         coEvery { preferencesRepository.getPreferences() } returns StudyPreferences()
+        coEvery { idResolver.resolveCalendarId(any<String>()) } answers {
+            val id = firstArg<String>()
+            if (id == "default") cefCalId else id
+        }
+        coEvery { eventFilter.filterByDateRange(any(), any(), any()) } answers { firstArg() }
+        coEvery { eventFilter.filterBySyncStatus(any(), any()) } answers { firstArg() }
+        coEvery { eventFilter.filterIncompleteBeforeDate(any(), any()) } answers { firstArg() }
+        coEvery { conflictDetector.validateNoConflict(any(), any()) } just runs
     }
 
     // ─── getAllEvents ────────────────────────────────────────────────────────

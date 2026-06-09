@@ -14,28 +14,36 @@ object CrapIndexReporter {
 
     private val isModuleDir = !File("composeApp").exists() && File("src/commonMain").exists()
 
-    private val SRC_DIR = if (isModuleDir) {
-        File("src/commonMain/kotlin/com/borinquenterrier/cef")
-    } else {
-        File("composeApp/src/commonMain/kotlin/com/borinquenterrier/cef")
+    private val SRC_DIR = run {
+        val candidate = if (isModuleDir) {
+            File("src/commonMain/kotlin/com/borinquenterrier/cef")
+        } else {
+            File("composeApp/src/commonMain/kotlin/com/borinquenterrier/cef")
+        }
+        // Fallback: if not found, try relative to current directory
+        if (candidate.exists()) candidate else File("src/commonMain/kotlin/com/borinquenterrier/cef")
     }
 
     private val XML_REPORT = run {
-        val defaultFile = if (isModuleDir) File("build/reports/kover/report.xml") else File("composeApp/build/reports/kover/report.xml")
-        val jvmFile = if (isModuleDir) File("build/reports/kover/reportJvm.xml") else File("composeApp/build/reports/kover/reportJvm.xml")
-        if (jvmFile.exists()) jvmFile else defaultFile
+        val candidates = listOf(
+            File("composeApp/build/reports/kover/reportJvm.xml"),
+            File("build/reports/kover/reportJvm.xml"),
+            File("composeApp/build/reports/kover/report.xml"),
+            File("build/reports/kover/report.xml")
+        )
+        candidates.firstOrNull { it.exists() } ?: File("composeApp/build/reports/kover/reportJvm.xml")
     }
 
-    private val COVERAGE_MD = if (isModuleDir) {
-        File("../COVERAGE.md")
-    } else {
-        File("COVERAGE.md")
+    private val COVERAGE_MD = when {
+        isModuleDir -> File("../COVERAGE.md")
+        File("COVERAGE.md").canWrite() -> File("COVERAGE.md")
+        else -> File("../../COVERAGE.md")
     }
 
-    private val CRAP_MD = if (isModuleDir) {
-        File("../CRAP.md")
-    } else {
-        File("CRAP.md")
+    private val CRAP_MD = when {
+        isModuleDir -> File("../CRAP.md")
+        File("CRAP.md").canWrite() -> File("CRAP.md")
+        else -> File("../../CRAP.md")
     }
 
     private val COMPLEXITY_KEYWORDS = listOf(

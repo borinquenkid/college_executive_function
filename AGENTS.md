@@ -13,6 +13,17 @@ Whenever a task or feature is reported as "done" (except when specifically runni
 ```
 Confirm these three builds pass before confirming completion.
 
+### CRAP Index Verification Protocol
+To regenerate and verify the CRAP index scores in `CRAP.md`:
+```bash
+# Step 1: Generate Kover code coverage XML report
+./gradlew :composeApp:koverXmlReport -q
+
+# Step 2: Generate CRAP.md from coverage data
+./gradlew generateCrapReport -q
+```
+Both commands must complete successfully. The updated `CRAP.md` will reflect current complexity and test coverage metrics.
+
 ### UI Verification Protocol
 For UI-related changes, verify the visual state by running the relevant module (e.g., `:composeApp:jvmRun`) and performing a screen capture (e.g., using macOS `screencapture`). Layout optimizations and visual features must be physically verified on-screen before being reported as complete.
 

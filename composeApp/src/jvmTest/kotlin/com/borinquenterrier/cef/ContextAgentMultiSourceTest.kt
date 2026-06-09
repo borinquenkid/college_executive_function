@@ -25,13 +25,21 @@ class ContextAgentMultiSourceTest : FunSpec({
     lateinit var database: AppDatabase
     lateinit var mockAiService: AIService
     lateinit var sut: ContextAgent
+    lateinit var fragmentRanker: FragmentRanker
 
     beforeEach {
         driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         AppDatabase.Schema.create(driver)
         database = AppDatabase(driver)
         mockAiService = mockk<AIService>()
-        sut = ContextAgent(aiService = mockAiService, sourceRepository = SqlDelightSourceRepository(database), logger = null)
+        fragmentRanker = FragmentRanker()
+        sut = ContextAgent(
+            aiService = mockAiService,
+            sourceRepository = SqlDelightSourceRepository(database),
+            fragmentRanker = fragmentRanker,
+            contextBuilder = SourceContextBuilder(),
+            logger = null
+        )
     }
 
     afterEach {
@@ -230,18 +238,15 @@ class ContextAgentMultiSourceTest : FunSpec({
             )
         )
 
-        val ranked = sut.rankFragments(
+        val ranked = fragmentRanker.rankFragments(
             sources = listOf(mathSyllabus),
             question = "tell me about calculus",
             topK = 5
         )
 
         ranked.size shouldBe 3
-        // The fragment with the highest frequency of "calculus" should be first
         ranked[0].second.text shouldContain "Calculus is the study of change"
-        // The one with "calculus" once in passing should be second
         ranked[1].second.text shouldContain "mentions calculus once"
-        // The one with no "calculus" should be third
         ranked[2].second.text shouldContain "does not mention"
     }
 
@@ -250,12 +255,12 @@ class ContextAgentMultiSourceTest : FunSpec({
             title = "Physics Syllabus",
             category = SourceCategory.SYLLABUS,
             fragments = listOf(
-                SourceFragment(text = "the a of in to with"), // Only stop words
-                SourceFragment(text = "Thermodynamics is the study of heat and temperature.") // Significant keyword
+                SourceFragment(text = "the a of in to with"),
+                SourceFragment(text = "Thermodynamics is the study of heat and temperature.")
             )
         )
 
-        val rankedForHeat = sut.rankFragments(
+        val rankedForHeat = fragmentRanker.rankFragments(
             sources = listOf(physicsSyllabus),
             question = "the a of heat",
             topK = 5
@@ -274,7 +279,7 @@ class ContextAgentMultiSourceTest : FunSpec({
             fragments = fragments
         )
 
-        val ranked = sut.rankFragments(
+        val ranked = fragmentRanker.rankFragments(
             sources = listOf(source),
             question = "calculus",
             topK = 5
@@ -293,7 +298,7 @@ class ContextAgentMultiSourceTest : FunSpec({
             fragments = fragments
         )
 
-        val ranked = sut.rankFragments(
+        val ranked = fragmentRanker.rankFragments(
             sources = listOf(source),
             question = "the a of",
             topK = 3

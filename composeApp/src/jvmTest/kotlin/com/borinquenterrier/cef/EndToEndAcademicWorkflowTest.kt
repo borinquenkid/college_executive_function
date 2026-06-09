@@ -44,12 +44,12 @@ class EndToEndAcademicWorkflowTest : FunSpec({
         
         val sourceRepository = SqlDelightSourceRepository(container.database)
         val ingestion = IngestionAgent(
-            container.fileReader, container.docxReader, container.pdfReader, 
+            container.fileReader, container.docxReader, container.pdfReader,
             container.webReader, container.driveService, mockAi, sourceRepository
         )
         val calendar = container.calendarAgent
         val events = EventAgent(mockAi, calendar, container.database, NormalizationService(), logger = logger)
-        val context = ContextAgent(mockAi, sourceRepository, logger)
+        val context = ContextAgent(mockAi, sourceRepository, FragmentRanker(), SourceContextBuilder(), logger)
 
         // Clear existing state for a clean test run
         container.database.appDatabaseQueries.deleteAllEvents()

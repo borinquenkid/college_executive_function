@@ -168,10 +168,13 @@ class GeminiAIService(
                         responseBody.contains("limit", ignoreCase = true)
                     val isQuotaExhausted = !hasRetryHint && hasQuotaWord && hasExhaustionWord
                     if (isQuotaExhausted) {
-                        logger?.e(tag, "🚫 Daily quota exhausted for model $modelName. No point retrying until quota resets.")
+                        logger?.e(tag, "🚫 Daily quota exhausted for model $modelName. Blacklisting and trying next model...")
                         telemetryManager?.logRateLimitError()
-                        rateLimitResetTime = Clock.System.now().toEpochMilliseconds() + (12 * 60 * 60 * 1000L) // 12 hours
-                        throw Exception("QuotaExhausted: Your free-tier daily request limit has been reached. Please try again tomorrow.")
+                        modelNegotiator.blacklistModel(modelName)
+                        modelNegotiator.evictFromCache(modelName)
+                        lastError = Exception("QuotaExhausted: Daily request limit reached for model $modelName.")
+                        attempts++
+                        continue
                     }
                 }
 
@@ -201,9 +204,11 @@ class GeminiAIService(
                     )
 
                     if (delayMs > 10000L) {
-                        rateLimitResetTime = Clock.System.now().toEpochMilliseconds() + delayMs
-                        val seconds = (delayMs + 999L) / 1000L
-                        throw Exception("QuotaExhausted: Rate limit reached. Please wait $seconds seconds before trying again.")
+                        modelNegotiator.blacklistModel(modelName)
+                        modelNegotiator.evictFromCache(modelName)
+                        logger?.e(tag, "⚠️ Model $modelName returned rate limit delay of $delayMs ms. Blacklisted and evicted from cache. Trying next model...")
+                        lastError = Exception("QuotaExhausted: Rate limit reached for model $modelName. Delay: ${delayMs / 1000}s.")
+                        continue
                     }
 
                     delayFn(delayMs)
@@ -241,7 +246,11 @@ class GeminiAIService(
             logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts retry attempts. Evicted from cache and blacklisted.")
         }
 
-        throw lastError ?: Exception("Failed after $maxAttempts attempts")
+        val errorToThrow = lastError ?: Exception("Failed after $maxAttempts attempts")
+        if (errorToThrow.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
+            rateLimitResetTime = Clock.System.now().toEpochMilliseconds() + (5 * 60 * 1000L) // 5 minutes block
+        }
+        throw errorToThrow
     }
 
     internal fun resolveRetryDelay(
@@ -358,6 +367,9 @@ class GeminiAIService(
                 parseResponse = { responseText -> responseText }
             )
         } catch (e: Exception) {
+            if (e.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
+                throw e
+            }
             logger?.e(tag, "Failed to analyze document: ${e.message}")
             null
         }
@@ -375,6 +387,9 @@ class GeminiAIService(
                 parseResponse = { responseText -> parseCategorizeSourceJson(responseText) }
             )
         } catch (e: Exception) {
+            if (e.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
+                throw e
+            }
             logger?.e(tag, "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}")
             SourceCategory.OTHER
         }

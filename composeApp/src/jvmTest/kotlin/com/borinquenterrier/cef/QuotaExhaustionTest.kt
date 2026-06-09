@@ -3,6 +3,7 @@ package com.borinquenterrier.cef
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.shouldBe
 import io.ktor.client.*
 import io.ktor.client.engine.*
 import io.ktor.client.engine.mock.*
@@ -135,5 +136,88 @@ class QuotaExhaustionTest : FunSpec({
         // An RPM retry should eventually return the actual content "ok" (no "QuotaExhausted" in result)
         val result = service.generateChatResponse("hello")
         result shouldContain "ok"
+        generateCallCount shouldBe 3
+    }
+
+    test("daily quota exhaustion on first model falls back to next model and succeeds") {
+        val quotaExhaustedBody = """{"error":{"code":429,"message":"Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash","status":"RESOURCE_EXHAUSTED"}}"""
+        val twoModelsResponse = """
+            {"models":[
+                {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
+                {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
+            ]}
+        """.trimIndent()
+
+        var callCount = 0
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.contains("/models") && !request.url.encodedPath.contains(":generateContent")) {
+                respond(
+                    content = twoModelsResponse,
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, "application/json")
+                )
+            } else {
+                callCount++
+                if (request.url.encodedPath.contains("gemini-2.0-flash")) {
+                    respond(
+                        content = quotaExhaustedBody,
+                        status = HttpStatusCode.TooManyRequests,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+                } else {
+                    respond(
+                        content = """{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+                }
+            }
+        }
+
+        val service = makeService(engine)
+        val result = service.generateChatResponse("hello")
+        result shouldContain "ok"
+        callCount shouldBe 2
+    }
+
+    test("long retry delay on first model falls back to next model and succeeds") {
+        val longRetryBody = """{"error":{"code":429,"message":"Quota exceeded. Please retry in 48s.","status":"RESOURCE_EXHAUSTED"}}"""
+        val twoModelsResponse = """
+            {"models":[
+                {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
+                {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
+            ]}
+        """.trimIndent()
+
+        var callCount = 0
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.contains("/models") && !request.url.encodedPath.contains(":generateContent")) {
+                respond(
+                    content = twoModelsResponse,
+                    status = HttpStatusCode.OK,
+                    headers = headersOf(HttpHeaders.ContentType, "application/json")
+                )
+            } else {
+                callCount++
+                if (request.url.encodedPath.contains("gemini-2.0-flash")) {
+                    respond(
+                        content = longRetryBody,
+                        status = HttpStatusCode.TooManyRequests,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+                } else {
+                    respond(
+                        content = """{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
+                }
+            }
+        }
+
+        val service = makeService(engine)
+        val result = service.generateChatResponse("hello")
+        result shouldContain "ok"
+        callCount shouldBe 2
     }
 })

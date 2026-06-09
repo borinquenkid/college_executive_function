@@ -8,6 +8,9 @@ import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.json.Json
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.Dispatchers
 
 /**
  * A central container for all application services and repositories.
@@ -23,6 +26,7 @@ class DependencyContainer(
     val docxReader: DocxReader,
     val pdfReader: PdfReader
 ) {
+    private val globalScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     val httpClient by lazy {
         HttpClient {
             install(ContentNegotiation) {
@@ -91,6 +95,16 @@ class DependencyContainer(
     val driveFileProcessor by lazy { DriveFileProcessor(ingestionAgent, sourceProcessingPipeline, logger, bugReporter) }
 
     val harnessSourceProcessor by lazy { HarnessSourceProcessor(sourceProcessingPipeline, localFileProcessor, driveFileProcessor, logger) }
+
+    val sourceLoader by lazy { SourceLoader(sourceRepository, logger, globalScope) }
+
+    val sourceAdder by lazy { SourceAdder(aiService, contextAgent, logger, globalScope, { events -> /* events will be handled by EventAgent */ }) }
+
+    val sourceDeleter by lazy { SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, globalScope) }
+
+    val sourceSelector by lazy { SourceSelector() }
+
+    val sourceManager by lazy { SourceManager(sourceLoader, sourceAdder, sourceDeleter, sourceSelector, globalScope) }
 
     val agentHarness by lazy {
        AgentHarness(

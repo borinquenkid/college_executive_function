@@ -17,7 +17,7 @@ class AppController(val container: DependencyContainer) {
 
     private val navigationService = AppNavigationService()
     private val eventsService = AiEventsService()
-    private val sourceManager = SourceManager(container, scope) { events -> eventsService.addEvents(events) }
+    private val sourceManager = container.sourceManager
 
     // Chat State
     private val _chatMessages = MutableStateFlow<List<ChatMessage>>(listOf(ChatMessage("AI", "Hello! How can I help you today?")))

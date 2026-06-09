@@ -6,31 +6,27 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.mockk.mockk
 import io.mockk.coEvery
-import io.mockk.coVerify
-import kotlinx.coroutines.test.StandardTestDispatcher
-import kotlinx.coroutines.test.TestScope
-import kotlinx.coroutines.test.runTest
 
 class SourceManagerTest : FunSpec({
     test("should initialize with empty source items") {
-        val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
-        val container = mockk<DependencyContainer>()
-        val callback = mockk<(List<Event>) -> Unit>(relaxed = true)
+        val loader = mockk<SourceLoader>()
+        val adder = mockk<SourceAdder>()
+        val deleter = mockk<SourceDeleter>()
+        val selector = mockk<SourceSelector>()
         
-        val manager = SourceManager(container, testScope, callback)
+        val manager = SourceManager(loader, adder, deleter, selector, mockk())
         
         manager.sourceItems.value.shouldBeEmpty()
         manager.selectedSource.value.shouldBe(null)
     }
 
-    test("should select source") {
-        val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
-        val container = mockk<DependencyContainer>()
-        val callback = mockk<(List<Event>) -> Unit>(relaxed = true)
+    test("should select source" ) {
+        val loader = mockk<SourceLoader>()
+        val adder = mockk<SourceAdder>()
+        val deleter = mockk<SourceDeleter>()
+        val selector = SourceSelector()
         
-        val manager = SourceManager(container, testScope, callback)
+        val manager = SourceManager(loader, adder, deleter, selector, mockk())
         val source = SourceItem(
             title = "Syllabus.pdf",
             fragments = emptyList(),
@@ -43,15 +39,12 @@ class SourceManagerTest : FunSpec({
     }
 
     test("should add source to items") {
-        val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
-        val container = mockk<DependencyContainer>()
-        val logger = mockk<Logger>(relaxed = true)
-        coEvery { container.logger } returns logger
-        coEvery { container.aiService.isConfigured() } returns false
-        val callback = mockk<(List<Event>) -> Unit>(relaxed = true)
+        val loader = mockk<SourceLoader>()
+        val adder = mockk<SourceAdder>(relaxed = true)
+        val deleter = mockk<SourceDeleter>()
+        val selector = SourceSelector()
         
-        val manager = SourceManager(container, testScope, callback)
+        val manager = SourceManager(loader, adder, deleter, selector, mockk())
         val source = SourceItem(
             title = "Syllabus.pdf",
             fragments = emptyList(),
@@ -65,15 +58,12 @@ class SourceManagerTest : FunSpec({
     }
 
     test("should auto-select first source when added") {
-        val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
-        val container = mockk<DependencyContainer>()
-        val logger = mockk<Logger>(relaxed = true)
-        coEvery { container.logger } returns logger
-        coEvery { container.aiService.isConfigured() } returns false
-        val callback = mockk<(List<Event>) -> Unit>(relaxed = true)
+        val loader = mockk<SourceLoader>()
+        val adder = mockk<SourceAdder>(relaxed = true)
+        val deleter = mockk<SourceDeleter>()
+        val selector = SourceSelector()
         
-        val manager = SourceManager(container, testScope, callback)
+        val manager = SourceManager(loader, adder, deleter, selector, mockk())
         val source = SourceItem(
             title = "Syllabus.pdf",
             fragments = emptyList(),
@@ -86,15 +76,12 @@ class SourceManagerTest : FunSpec({
     }
 
     test("should not auto-select subsequent sources") {
-        val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
-        val container = mockk<DependencyContainer>()
-        val logger = mockk<Logger>(relaxed = true)
-        coEvery { container.logger } returns logger
-        coEvery { container.aiService.isConfigured() } returns false
-        val callback = mockk<(List<Event>) -> Unit>(relaxed = true)
+        val loader = mockk<SourceLoader>()
+        val adder = mockk<SourceAdder>(relaxed = true)
+        val deleter = mockk<SourceDeleter>()
+        val selector = SourceSelector()
         
-        val manager = SourceManager(container, testScope, callback)
+        val manager = SourceManager(loader, adder, deleter, selector, mockk())
         val source1 = SourceItem(
             title = "Syllabus.pdf",
             fragments = emptyList(),
@@ -114,15 +101,12 @@ class SourceManagerTest : FunSpec({
     }
 
     test("should handle clearing selection") {
-        val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
-        val container = mockk<DependencyContainer>()
-        val logger = mockk<Logger>(relaxed = true)
-        coEvery { container.logger } returns logger
-        coEvery { container.aiService.isConfigured() } returns false
-        val callback = mockk<(List<Event>) -> Unit>(relaxed = true)
+        val loader = mockk<SourceLoader>()
+        val adder = mockk<SourceAdder>()
+        val deleter = mockk<SourceDeleter>()
+        val selector = SourceSelector()
         
-        val manager = SourceManager(container, testScope, callback)
+        val manager = SourceManager(loader, adder, deleter, selector, mockk())
         val source = SourceItem(
             title = "Syllabus.pdf",
             fragments = emptyList(),

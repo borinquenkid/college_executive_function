@@ -9,8 +9,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 120
-- **High-Risk Files (CRAP > 30)**: 8
+- **Total Files Analyzed**: 124
+- **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
 
@@ -19,18 +19,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | DriveFileScanner.kt | 12 | 0.0% | 156.00 | 🔴 HIGH |
 | DirectoryPreferencesManager.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | LocalFileScanner.kt | 9 | 0.0% | 90.00 | 🔴 HIGH |
-| SourceManager.kt | 16 | 60.8% | 31.44 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
 | GeminiRequestExecutor.kt | 25 | 79.6% | 30.30 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 30 | 95.2% | 30.10 | 🔴 HIGH |
-| SourceProcessingPipeline.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
+| SourceSelector.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
 | EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
-| GeminiAIService.kt | 26 | 86.1% | 27.81 | 🟡 MEDIUM |
+| GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
 | GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
+| CollisionDetector.kt | 17 | 71.1% | 23.97 | 🟡 MEDIUM |
 
 ---
 
@@ -66,18 +66,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `scanNewFiles` | 9 |
-
-### SourceManager.kt (Score: 31.44 - 🔴 HIGH)
-- **Total Complexity**: 16
-- **Real Coverage**: 60.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `deleteSource` | 6 |
-| `loadSources` | 5 |
-| `addSource` | 4 |
-| `selectSource` | 1 |
 
 ### ContextAgent.kt (Score: 31.03 - 🔴 HIGH)
 - **Total Complexity**: 31
@@ -133,15 +121,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSettings` | 1 |
 | *... and 2 more* | |
 
-### SourceProcessingPipeline.kt (Score: 30.00 - 🟡 MEDIUM)
-- **Total Complexity**: 5
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `processSource` | 5 |
-
 ### SourceItemView.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
 - **Real Coverage**: 0.0%
@@ -150,6 +129,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `SourceItemView` | 1 |
+
+### SourceSelector.kt (Score: 30.00 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `autoSelectFirstFrom` | 2 |
+| `clearIfRemovedFrom` | 2 |
+| `selectSource` | 1 |
 
 ### GoogleCalendarSyncService.kt (Score: 29.13 - 🟡 MEDIUM)
 - **Total Complexity**: 29
@@ -186,9 +176,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `runAgentAction` | 1 |
 | *... and 6 more* | |
 
-### GeminiAIService.kt (Score: 27.81 - 🟡 MEDIUM)
+### GeminiAIService.kt (Score: 28.20 - 🟡 MEDIUM)
 - **Total Complexity**: 26
-- **Real Coverage**: 86.1%
+- **Real Coverage**: 85.2%
 
 #### Methods list:
 | Method | Complexity |
@@ -368,6 +358,24 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `overlaps` | 1 |
 | `Event.timeUntilDue` | 1 |
 | `Event.studyProgress` | 1 |
+
+### SourceDeleter.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `deleteSource` | 4 |
+
+### SourceLoader.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `loadSources` | 4 |
 
 ### RoutineScreen.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
@@ -623,15 +631,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `initiateSyncIfNeeded` | 1 |
 | `applySyncProposal` | 1 |
 
-### LocalFileProcessor.kt (Score: 12.00 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `processLocalFiles` | 3 |
-
 ### EventGenerator.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 12
 - **Real Coverage**: 100.0%
@@ -643,14 +642,23 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `expandDayEvent` | 5 |
 | `expandEvents` | 2 |
 
-### DriveFileProcessor.kt (Score: 12.00 - 🟢 LOW)
+### SourceAdder.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 3
 - **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `processDriveFiles` | 3 |
+| `addSource` | 3 |
+
+### SourceProcessingPipeline.kt (Score: 11.10 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 37.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `processSource` | 5 |
 
 ### TelemetryManager.kt (Score: 11.00 - 🟢 LOW)
 - **Total Complexity**: 11
@@ -880,17 +888,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `disconnect` | 1 |
 | `reportAuthError` | 1 |
 
-### HarnessSourceProcessor.kt (Score: 7.61 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 20.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `processSource` | 1 |
-| `processLocalFiles` | 1 |
-| `processDriveFiles` | 1 |
-
 ### OAuthExchange.kt (Score: 7.20 - 🟢 LOW)
 - **Total Complexity**: 6
 - **Real Coverage**: 67.9%
@@ -923,6 +920,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `SettingsScreen` | 1 |
 | `savePreferences` | 1 |
 | `formatCalendarError` | 1 |
+
+### SourceManager.kt (Score: 6.51 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 60.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `deleteSource` | 2 |
+| `loadSources` | 1 |
+| `addSource` | 1 |
+| `selectSource` | 1 |
 
 ### AppContent.kt (Score: 6.10 - 🟢 LOW)
 - **Total Complexity**: 6
@@ -1074,15 +1083,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `split` | 3 |
 | `process` | 2 |
 
-### NormalizationService.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 94.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `extract` | 5 |
-
 ### TaskDecompositionService.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 95.5%
@@ -1102,10 +1102,48 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `UniversalHomeLayout` | 5 |
 
+### NormalizationService.kt (Score: 5.00 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extract` | 5 |
+
+### LocalFileProcessor.kt (Score: 4.79 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 41.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `processLocalFiles` | 3 |
+
+### DriveFileProcessor.kt (Score: 4.79 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 41.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `processDriveFiles` | 3 |
+
 ### SyncProposal.kt (Score: 4.13 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 80.0%
 
+
+### HarnessSourceProcessor.kt (Score: 4.13 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 50.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `processSource` | 1 |
+| `processLocalFiles` | 1 |
+| `processDriveFiles` | 1 |
 
 ### WebSourceReader.kt (Score: 4.11 - 🟢 LOW)
 - **Total Complexity**: 4
@@ -1301,7 +1339,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ### DependencyContainer.kt (Score: 1.00 - 🟢 LOW)
 - **Total Complexity**: 1
-- **Real Coverage**: 83.1%
+- **Real Coverage**: 83.8%
 
 
 ### CheckInDialog.kt (Score: 1.00 - 🟢 LOW)

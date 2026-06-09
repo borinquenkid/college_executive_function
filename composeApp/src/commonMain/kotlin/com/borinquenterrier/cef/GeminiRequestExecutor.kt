@@ -6,7 +6,6 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import kotlinx.serialization.json.*
-import kotlinx.datetime.Clock
 
 /**
  * Handles HTTP request execution, retry policies, backoff delays, and rate-limiting resolution for Gemini models.
@@ -21,12 +20,11 @@ class GeminiRequestExecutor(
     private val delayFn: suspend (Long) -> Unit
 ) {
     private val tag = "GeminiAI"
+    private val retryService = GeminiRetryService(logger, delayFn)
 
     companion object {
-        private var rateLimitResetTime: Long = 0L
-
         fun clearRateLimitResetForTesting() {
-            rateLimitResetTime = 0L
+            GeminiRetryService.clearRateLimitResetForTesting()
         }
     }
 
@@ -48,11 +46,7 @@ class GeminiRequestExecutor(
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T {
-        val now = Clock.System.now().toEpochMilliseconds()
-        if (now < rateLimitResetTime) {
-            val remainingSeconds = ((rateLimitResetTime - now) + 999L) / 1000L
-            throw Exception("QuotaExhausted: Rate limit reached. Please wait $remainingSeconds seconds before trying again.")
-        }
+        retryService.checkRateLimitWindow()
 
         val available = modelNegotiator.getAvailableModels()
         var attempts = 0
@@ -128,12 +122,11 @@ class GeminiRequestExecutor(
                     telemetryManager?.logRateLimitError()
                     attempts++
 
-                    val delayMs: Long = resolveRetryDelay(
+                    val delayMs: Long = retryService.resolveRetryDelay(
                         status = httpResponse.status,
                         headers = httpResponse.headers,
                         body = responseBody,
-                        attempts = attempts,
-                        tag = tag
+                        attempts = attempts
                     )
 
                     if (delayMs > 10000L) {
@@ -144,7 +137,7 @@ class GeminiRequestExecutor(
                         continue
                     }
 
-                    delayFn(delayMs)
+                    retryService.wait(delayMs)
                     continue
                 }
 
@@ -169,7 +162,7 @@ class GeminiRequestExecutor(
                 logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
                 attempts++
                 val delayMs = 1000L * (1 shl (attempts - 1))
-                delayFn(delayMs)
+                retryService.wait(delayMs)
             }
         }
 
@@ -181,54 +174,8 @@ class GeminiRequestExecutor(
 
         val errorToThrow = lastError ?: Exception("Failed after $maxAttempts attempts")
         if (errorToThrow.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
-            rateLimitResetTime = Clock.System.now().toEpochMilliseconds() + (5 * 60 * 1000L) // 5 minutes block
+            retryService.activateRateLimitWindow()
         }
         throw errorToThrow
-    }
-
-    internal fun resolveRetryDelay(
-        status: HttpStatusCode,
-        headers: io.ktor.http.Headers,
-        body: String,
-        attempts: Int,
-        tag: String
-    ): Long {
-        val bodyRetryMatch = Regex("""retry in (\d+(?:\.\d+)?)\s*s""", RegexOption.IGNORE_CASE)
-            .find(body)
-        if (bodyRetryMatch != null) {
-            val seconds = bodyRetryMatch.groupValues[1].toDoubleOrNull()
-            if (seconds != null) {
-                val ms = (seconds * 1000).toLong() + 500L
-                logger?.d(tag, "⏱️ Rate-limited — server body says retry in ${seconds}s. Waiting ${ms}ms.")
-                return ms
-            }
-        }
-
-        val resetHeader = headers["x-ratelimit-reset"] ?: headers["X-RateLimit-Reset"]
-        if (resetHeader != null) {
-            val resetEpoch = resetHeader.toLongOrNull()
-            if (resetEpoch != null) {
-                val nowSeconds = Clock.System.now().toEpochMilliseconds() / 1000L
-                val waitSeconds = (resetEpoch - nowSeconds).coerceAtLeast(1L)
-                val ms = waitSeconds * 1000L + 500L
-                logger?.d(tag, "⏱️ Rate-limited — x-ratelimit-reset in ${waitSeconds}s. Waiting ${ms}ms.")
-                return ms
-            }
-        }
-
-        val retryAfter = headers["Retry-After"] ?: headers["retry-after"]
-        if (retryAfter != null) {
-            val seconds = retryAfter.toLongOrNull()
-            if (seconds != null) {
-                val ms = seconds * 1000L
-                logger?.d(tag, "⏱️ Rate-limited — Retry-After: ${seconds}s. Waiting ${ms}ms.")
-                return ms
-            }
-        }
-
-        val baseDelay = if (status == HttpStatusCode.TooManyRequests) 2000L else 1000L
-        val ms = baseDelay * (1 shl (attempts - 1))
-        logger?.d(tag, "⚠️ Transient error ($status). No server hint — exponential backoff ${ms}ms (attempt $attempts).")
-        return ms
     }
 }

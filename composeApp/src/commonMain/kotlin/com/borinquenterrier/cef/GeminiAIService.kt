@@ -89,21 +89,7 @@ class GeminiAIService(
         prompt: String,
         temperature: Double = 0.0,
         responseMimeType: String? = "application/json"
-    ): JsonObject = buildJsonObject {
-        putJsonArray("contents") {
-            addJsonObject {
-                putJsonArray("parts") {
-                    addJsonObject { put("text", prompt) }
-                }
-            }
-        }
-        putJsonObject("generationConfig") {
-            if (responseMimeType == "application/json") {
-                put("responseMimeType", responseMimeType)
-            }
-            put("temperature", temperature)
-        }
-    }
+    ): JsonObject = GeminiBodyBuilder.buildJsonRequestBody(prompt, temperature, responseMimeType)
 
     suspend fun postToModel(modelName: String, body: JsonObject): HttpResponse =
         requestExecutor.postToModel(modelName, body)
@@ -114,14 +100,6 @@ class GeminiAIService(
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T = requestExecutor.executeWithRetry(maxAttempts, tier, body, parseResponse)
-
-    internal fun resolveRetryDelay(
-        status: HttpStatusCode,
-        headers: io.ktor.http.Headers,
-        body: String,
-        attempts: Int,
-        tag: String
-    ): Long = requestExecutor.resolveRetryDelay(status, headers, body, attempts, tag)
 
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         val combinedJson = buildJsonArray {

@@ -7,7 +7,7 @@ import io.mockk.*
 import kotlinx.datetime.Clock
 
 /**
- * Unit tests for GeminiAIService.resolveRetryDelay().
+ * Unit tests for GeminiRetryService.resolveRetryDelay().
  *
  * The function resolves how long to wait before a retry after a transient API error.
  * Priority order:
@@ -18,8 +18,8 @@ import kotlinx.datetime.Clock
  */
 class RetryDelayResolutionTest : FunSpec({
 
-    // Build a GeminiAIService instance wired for unit testing
-    fun makeService() = GeminiAIService(apiKey = "test-key", delayFn = {})
+    // Build a GeminiRetryService instance wired for unit testing
+    fun makeService() = GeminiRetryService(logger = null, delayFn = {})
 
     // Helper: build a Headers object from key-value pairs
     fun headers(vararg pairs: Pair<String, String>): Headers =
@@ -38,8 +38,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = emptyHeaders,
             body = body,
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 18100L // (17.6 * 1000).toLong() + 500
     }
@@ -51,8 +50,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = emptyHeaders,
             body = body,
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 30500L
     }
@@ -64,8 +62,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = emptyHeaders,
             body = body,
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 5500L
     }
@@ -82,8 +79,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = h,
             body = "no body hint here",
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         // Should be ~20000ms + 500ms buffer, allow ±1s for execution time
         (delay >= 19500L) shouldBe true
@@ -98,8 +94,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = h,
             body = "no body hint",
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 1500L // coerceAtLeast(1) * 1000 + 500
     }
@@ -115,8 +110,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = h,
             body = "no body hint",
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 10000L
     }
@@ -128,8 +122,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = h,
             body = "no body hint",
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 5000L
     }
@@ -144,8 +137,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = emptyHeaders,
             body = "Service busy",
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 2000L
     }
@@ -156,8 +148,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = emptyHeaders,
             body = "Service busy",
-            attempts = 2,
-            tag = "test"
+            attempts = 2
         )
         delay shouldBe 4000L
     }
@@ -168,8 +159,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = emptyHeaders,
             body = "Service busy",
-            attempts = 3,
-            tag = "test"
+            attempts = 3
         )
         delay shouldBe 8000L
     }
@@ -180,8 +170,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.ServiceUnavailable,
             headers = emptyHeaders,
             body = "down",
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 1000L
     }
@@ -198,8 +187,7 @@ class RetryDelayResolutionTest : FunSpec({
             status = HttpStatusCode.TooManyRequests,
             headers = h,
             body = body,
-            attempts = 1,
-            tag = "test"
+            attempts = 1
         )
         delay shouldBe 5500L
     }

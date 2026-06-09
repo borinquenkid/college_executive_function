@@ -85,4 +85,87 @@ class IngestionAgentTest : FunSpec({
         persisted shouldNotBe null
         persisted?.category shouldBe "CALENDAR"
     }
+    test("addLocalFile throws SourceValidationException for an ICS with no events") {
+        val path = "empty.ics"
+        coEvery { fileReader.readText(path) } returns "BEGIN:VCALENDAR\nEND:VCALENDAR"
+
+        try {
+            ingestionAgent.addLocalFile(path)
+            error("Expected SourceValidationException")
+        } catch (e: SourceValidationException) {
+            // expected
+        }
+        coVerify(exactly = 0) { aiService.categorizeSource(any()) }
+    }
+
+    test("addUrl categorizes non-ICS URLs using AI service") {
+        val url = "https://example.com/class/syllabus"
+        coEvery { webReader.readTextFromUrl(url) } returns "Week 1: Introduction to algorithms."
+        coEvery { aiService.categorizeSource(any()) } returns SourceCategory.SYLLABUS
+
+        val result = ingestionAgent.addUrl(url)
+
+        result.category shouldBe SourceCategory.SYLLABUS
+        coVerify(exactly = 1) { aiService.categorizeSource(any()) }
+    }
+
+    test("addUrl returns CALENDAR category for .ics URLs and skips AI") {
+        val url = "https://cal.example.com/schedule.ics"
+        val icsContent = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            BEGIN:VEVENT
+            SUMMARY:Midterm
+            END:VEVENT
+            END:VCALENDAR
+        """.trimIndent()
+        coEvery { webReader.readTextFromUrl(url) } returns icsContent
+
+        val result = ingestionAgent.addUrl(url)
+
+        result.category shouldBe SourceCategory.CALENDAR
+        coVerify(exactly = 0) { aiService.categorizeSource(any()) }
+    }
+
+    test("addUrl throws SourceValidationException for empty ICS") {
+        val url = "https://cal.example.com/empty.ics"
+        coEvery { webReader.readTextFromUrl(url) } returns "BEGIN:VCALENDAR\nEND:VCALENDAR"
+
+        try {
+            ingestionAgent.addUrl(url)
+            error("Expected SourceValidationException")
+        } catch (e: SourceValidationException) {
+            // expected
+        }
+    }
+
+    test("addDriveFile categorizes non-ICS drive files using AI service") {
+        val driveFile = DriveFile("drive-id-1", "lecture_notes.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
+        coEvery { driveService.getFileContent(driveFile.id, driveFile.mimeType) } returns "Lecture notes content."
+        coEvery { aiService.categorizeSource(any()) } returns SourceCategory.READING_MATERIAL
+
+        val result = ingestionAgent.addDriveFile(driveFile)
+
+        result.category shouldBe SourceCategory.READING_MATERIAL
+        result.title shouldBe "lecture_notes.docx"
+        coVerify(exactly = 1) { aiService.categorizeSource(any()) }
+    }
+
+    test("addDriveFile returns CALENDAR category for ICS drive files and skips AI") {
+        val driveFile = DriveFile("drive-id-2", "holidays.ics", "text/calendar")
+        val icsContent = """
+            BEGIN:VCALENDAR
+            VERSION:2.0
+            BEGIN:VEVENT
+            SUMMARY:Holiday
+            END:VEVENT
+            END:VCALENDAR
+        """.trimIndent()
+        coEvery { driveService.getFileContent(driveFile.id, driveFile.mimeType) } returns icsContent
+
+        val result = ingestionAgent.addDriveFile(driveFile)
+
+        result.category shouldBe SourceCategory.CALENDAR
+        coVerify(exactly = 0) { aiService.categorizeSource(any()) }
+    }
 })

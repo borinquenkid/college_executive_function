@@ -120,13 +120,10 @@ class AppController(val container: DependencyContainer) {
     fun deleteSource(source: SourceItem) {
         scope.launch {
             try {
-                // Delete from DB
                 container.sourceRepository.deleteSource(source.title)
-                
-                // Physically remove associated events from local calendar db
+
+                // Remove any locally-stored events that were linked to this source by id prefix or warning
                 val existingEvents = container.localRepository.getAllEvents("default")
-                // Delete events that mention this source title in their EventSource or matches the source title (Wait, we can clean up any event with the source matching the source name, but since EventSource is an enum, wait! Can we check event.title or event details or just delete all events whose name matches or is generated from this syllabus? Wait, the AI generated events have source = EventSource.AI_GENERATED. But since we cannot differentiate which AI_GENERATED events belong to which syllabus directly without a sourceTitle column, we can do a best-effort check or just delete them by matching their description or warning, or we can simply delete all events since there's no way to link. Wait! Actually, let's delete events that mention the source title in their warnings or logs, or just clean up the source repository. Wait, since Event does not have a sourceTitle, let's look at EventEntity database or pushResolver.)
-                // Let's check: can we filter the events by matching event.title or event.warning or event.id starting with source.title? Yes, event.id or warning!
                 existingEvents.forEach { event ->
                     val id = event.id
                     if (id != null && (id.startsWith(source.title) || event.warning?.contains(source.title) == true)) {
@@ -134,13 +131,11 @@ class AppController(val container: DependencyContainer) {
                     }
                 }
 
-                // Update UI state
                 _sourceItems.value = _sourceItems.value.filter { it.title != source.title }
                 if (_selectedSource.value?.title == source.title) {
                     _selectedSource.value = _sourceItems.value.firstOrNull()
                 }
-                
-                // Refresh calendar
+
                 container.calendarAgent.synchronize("default")
             } catch (e: Exception) {
                 container.logger.e("AppController", "Failed to delete source: ${source.title}", e)

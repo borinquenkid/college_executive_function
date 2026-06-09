@@ -78,7 +78,10 @@ class DependencyContainer(
     }
     val sourceRepository by lazy { SqlDelightSourceRepository(database) }
     val ingestionAgent by lazy { IngestionAgent(fileReader, docxReader, pdfReader, webReader, driveService, aiService, sourceRepository) }
-    val fragmentRanker by lazy { FragmentRanker() }
+    val termNormalizer by lazy { TermNormalizer() }
+    val documentFrequencyCalculator by lazy { DocumentFrequencyCalculator() }
+    val tfIdfScorer by lazy { TFIDFScorer() }
+    val fragmentRanker by lazy { FragmentRanker(termNormalizer, documentFrequencyCalculator, tfIdfScorer) }
     val contextBuilder by lazy { SourceContextBuilder() }
     val contextAgent by lazy { ContextAgent(aiService, sourceRepository, fragmentRanker, contextBuilder, logger) }
     val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), preferencesRepository, logger, userPreferenceMemoryRepository) }

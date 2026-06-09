@@ -74,17 +74,22 @@ class DependencyContainer(
     val contextAgent by lazy { ContextAgent(aiService, sourceRepository, logger) }
     val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), preferencesRepository, logger, userPreferenceMemoryRepository) }
 
+    val pollScheduler by lazy { PollScheduler(settings, logger) }
+
+    val sourceScanner by lazy { SourceScanner(fileReader, driveService, tokenRepository, settings, logger) }
+
+    val harnessSourceProcessor by lazy { HarnessSourceProcessor(ingestionAgent, eventAgent, contextAgent, logger, bugReporter) }
+
     val agentHarness by lazy {
         AgentHarness(
             ingestionAgent,
             eventAgent,
             contextAgent,
             calendarAgent,
-            driveService,
-            tokenRepository,
-            fileReader,
             sourceRepository,
-            settings,
+            pollScheduler,
+            sourceScanner,
+            harnessSourceProcessor,
             logger,
             bugReporter
         )

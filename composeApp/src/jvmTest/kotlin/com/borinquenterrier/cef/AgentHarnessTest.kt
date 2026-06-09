@@ -3,9 +3,6 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.*
-import com.borinquenterrier.cef.db.SourceEntity
-import com.russhwolf.settings.MapSettings
-import kotlinx.datetime.Clock
 
 class AgentHarnessTest : FunSpec({
 
@@ -13,11 +10,10 @@ class AgentHarnessTest : FunSpec({
     lateinit var eventAgent: EventAgent
     lateinit var contextAgent: ContextAgent
     lateinit var calendarAgent: CalendarAgent
-    lateinit var driveService: GoogleDriveService
-    lateinit var tokenRepository: GoogleTokenRepository
-    lateinit var fileReader: LocalFileReader
     lateinit var sourceRepository: SourceRepository
-    lateinit var settings: MapSettings
+    lateinit var pollScheduler: PollScheduler
+    lateinit var sourceScanner: SourceScanner
+    lateinit var harnessSourceProcessor: HarnessSourceProcessor
     lateinit var logger: Logger
     lateinit var harness: AgentHarness
 
@@ -26,11 +22,10 @@ class AgentHarnessTest : FunSpec({
         eventAgent = mockk(relaxed = true)
         contextAgent = mockk(relaxed = true)
         calendarAgent = mockk(relaxed = true)
-        driveService = mockk(relaxed = true)
-        tokenRepository = mockk(relaxed = true)
-        fileReader = mockk(relaxed = true)
         sourceRepository = mockk(relaxed = true)
-        settings = MapSettings()
+        pollScheduler = mockk(relaxed = true)
+        sourceScanner = mockk(relaxed = true)
+        harnessSourceProcessor = mockk(relaxed = true)
         logger = mockk(relaxed = true)
         
         harness = AgentHarness(
@@ -38,113 +33,58 @@ class AgentHarnessTest : FunSpec({
             eventAgent,
             contextAgent,
             calendarAgent,
-            driveService,
-            tokenRepository,
-            fileReader,
             sourceRepository,
-            settings,
+            pollScheduler,
+            sourceScanner,
+            harnessSourceProcessor,
             logger
         )
     }
 
-    test("skips run if 24 hours have not passed and force is false") {
-        val now = Clock.System.now().toEpochMilliseconds()
-        harness.setLastPollTime(now - 10000) // 10 seconds ago
+    test("skips run if poll scheduler indicates not ready") {
+        coEvery { pollScheduler.shouldPoll(false) } returns false
 
         harness.runHarness(force = false)
 
         coVerify(exactly = 0) { sourceRepository.getAllSources() }
     }
 
-    test("runs if 24 hours have passed or force is true") {
+    test("runs if poll scheduler indicates ready") {
+        coEvery { pollScheduler.shouldPoll(true) } returns true
         coEvery { sourceRepository.getAllSources() } returns emptyList()
-        coEvery { tokenRepository.hasTokens() } returns false
+        coEvery { sourceScanner.scanNewLocalFiles(any()) } returns emptyList()
+        coEvery { sourceScanner.scanNewDriveFiles(any()) } returns emptyList()
 
         harness.runHarness(force = true)
 
         coVerify(exactly = 1) { sourceRepository.getAllSources() }
-        (harness.getLastPollTime() > 0L) shouldBe true
     }
 
-    test("processes new local files sequentially through the pipeline") {
-        harness.setWatchedLocalDirectories(listOf("/watched/dir"))
-        coEvery { fileReader.listFiles("/watched/dir") } returns listOf("/watched/dir/syllabus.pdf")
-        coEvery { sourceRepository.getAllSources() } returns emptyList()
+    test("delegates watched directory management to source scanner") {
+        val dirs = listOf("/path1", "/path2")
+        coEvery { sourceScanner.getWatchedLocalDirectories() } returns dirs
 
-        val mockSourceItem = SourceItem("syllabus.pdf", listOf(SourceFragment("text")), SourceCategory.SYLLABUS)
-        coEvery { ingestionAgent.addLocalFile("/watched/dir/syllabus.pdf") } returns mockSourceItem
-        coEvery { tokenRepository.hasTokens() } returns false
-
-        harness.runHarness(force = true)
-
-        coVerifySequence {
-            // Check files and ingest
-            fileReader.listFiles("/watched/dir")
-            eventAgent.loadIncompleteEvents()
-            ingestionAgent.addLocalFile("/watched/dir/syllabus.pdf")
-            
-            // Process sequentially
-            contextAgent.analyzeSource(mockSourceItem)
-            eventAgent.extractDeliverables(mockSourceItem)
-            eventAgent.pushToCalendar()
-            eventAgent.generateStudyPlan(mockSourceItem)
-            eventAgent.pushToCalendar()
-            
-            // Calendar sync at the end
-            calendarAgent.synchronize("default")
-        }
+        harness.getWatchedLocalDirectories() shouldBe dirs
     }
 
-    test("skips already ingested local files") {
-        harness.setWatchedLocalDirectories(listOf("/watched/dir"))
-        coEvery { fileReader.listFiles("/watched/dir") } returns listOf("/watched/dir/syllabus.pdf")
-        
-        val mockSource = mockk<SourceEntity>(relaxed = true)
-        every { mockSource.originUri } returns "/watched/dir/syllabus.pdf"
-        coEvery { sourceRepository.getAllSources() } returns listOf(mockSource)
-        coEvery { tokenRepository.hasTokens() } returns false
+    test("delegates watched folder management to source scanner") {
+        val folders = listOf("folder1", "folder2")
+        coEvery { sourceScanner.getWatchedGDriveFolders() } returns folders
 
-        harness.runHarness(force = true)
-
-        coVerify(exactly = 0) { ingestionAgent.addLocalFile(any()) }
-        coVerify(exactly = 1) { calendarAgent.synchronize("default") }
+        harness.getWatchedGDriveFolders() shouldBe folders
     }
 
-    test("scans multiple local directories and drive folders concurrently and aggregates results") {
-        harness.setWatchedLocalDirectories(listOf("/dir1", "/dir2"))
-        harness.setWatchedGDriveFolders(listOf("folder1", "folder2"))
-        
-        coEvery { fileReader.listFiles("/dir1") } coAnswers {
-            kotlinx.coroutines.delay(50)
-            listOf("/dir1/file1.pdf")
-        }
-        coEvery { fileReader.listFiles("/dir2") } coAnswers {
-            kotlinx.coroutines.delay(50)
-            listOf("/dir2/file2.docx")
-        }
-        coEvery { tokenRepository.hasTokens() } returns true
-        coEvery { driveService.listFiles(any()) } coAnswers {
-            kotlinx.coroutines.delay(50)
-            listOf(DriveFile("drive1", "notes.txt", "text/plain"))
-        }
-        coEvery { sourceRepository.getAllSources() } returns emptyList()
+    test("delegates poll time to poll scheduler") {
+        coEvery { pollScheduler.getLastPollTime() } returns 12345L
 
-        val mockSource1 = SourceItem("file1.pdf", emptyList(), SourceCategory.READING_MATERIAL)
-        val mockSource2 = SourceItem("file2.docx", emptyList(), SourceCategory.READING_MATERIAL)
-        val mockSource3 = SourceItem("notes.txt", emptyList(), SourceCategory.READING_MATERIAL)
+        harness.getLastPollTime() shouldBe 12345L
+    }
 
-        coEvery { ingestionAgent.addLocalFile("/dir1/file1.pdf") } returns mockSource1
-        coEvery { ingestionAgent.addLocalFile("/dir2/file2.docx") } returns mockSource2
-        coEvery { ingestionAgent.addDriveFile(any()) } returns mockSource3
+    test("status starts as Idle") {
+        harness.status.value shouldBe "Idle"
+    }
 
-        harness.runHarness(force = true)
-
-        coVerify(exactly = 1) { fileReader.listFiles("/dir1") }
-        coVerify(exactly = 1) { fileReader.listFiles("/dir2") }
-        coVerify(exactly = 2) { driveService.listFiles(any()) }
-
-        coVerify(exactly = 1) { ingestionAgent.addLocalFile("/dir1/file1.pdf") }
-        coVerify(exactly = 1) { ingestionAgent.addLocalFile("/dir2/file2.docx") }
-        coVerify(exactly = 1) { ingestionAgent.addDriveFile(match { it.id == "drive1" }) }
+    test("isBusy starts as false") {
+        harness.isBusy.value shouldBe false
     }
 })

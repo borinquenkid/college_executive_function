@@ -1,8 +1,9 @@
 # College Executive Function — Development Roadmap
 
-> **Source of truth for all planned work.** `GEMINI.md` provides mandates and architecture context.
-> Priorities are ordered by user impact × implementation readiness. Items within a phase are listed
-> highest-priority first. Each phase should be completed before beginning the next.
+> **Source of truth for all planned work.** `AGENTS.md` provides mandates and architecture context.
+> **CRITICAL PRIORITY**: High CRAP index files (complexity² × (1 - coverage)³) are the primary source of bugs.
+> Phases are ordered: (1) CRAP Remediation, (2) User-Reported Issues, (3) New Features.
+> Within phases, items are ordered by user impact × implementation readiness.
 
 ---
 
@@ -14,9 +15,117 @@
 
 ---
 
-## 🆕 Planned Work & CRAP Refactorings
+## 🔴 PRIORITY: CRAP Index Remediation (Phases 0.1 – 0.8)
 
-### 1. Custom Google Calendar Selection UI
+High CRAP scores indicate high risk of bugs. Per `AGENTS.md`, high-complexity files should be **decomposed into smaller, single-responsibility modules BEFORE adding tests** — splitting reduces complexity² sharply. See `CRAP.md` for current metrics.
+
+### Phase 0.1 — GeminiAIService.kt (CRAP 67.50 → Target < 40)
+**Highest risk.** Complexity 56, Coverage 84.6%. Contains all AI interaction logic (retry, categorization, events, chat, model negotiation).
+
+**Decomposition Plan:**
+1. Extract `RetryStrategy` + backoff logic → new `GeminiRetryService`
+2. Extract model negotiation → new `GeminiModelNegotiator`
+3. Extract JSON parsing → new `GeminiResponseParser` (partially done; complete it)
+4. Extract response builders → new `GeminiPromptBuilder`
+5. Leave `GeminiAIService` as thin facade coordinating calls
+
+**Acceptance:** CRAP < 40, each extracted module has CRAP < 15.
+
+---
+
+### Phase 0.2 — SettingsScreen.kt (CRAP 57.03 → Target < 25)
+**Second highest risk.** Complexity 35, Coverage 73.8%. UI component with heavy business logic.
+
+**Decomposition Plan:**
+1. Extract preference parsing → `SettingsPreferencesParser` (partially done; complete coverage)
+2. Extract API key validation → `ApiKeyValidator`
+3. Extract Google auth flow → `GoogleAuthSettingsFlow`
+4. Extract drive settings → `DriveSettingsPanel` (separate Composable)
+5. Leave `SettingsScreen` as pure layout + delegation
+
+**Acceptance:** CRAP < 25, UI component has 0% coverage (acceptable for pure UI), logic modules > 80% coverage.
+
+---
+
+### Phase 0.3 — AppController.kt (CRAP 30.51 → Target < 15)
+**Third priority.** Complexity 20, Coverage 70.3%. Central orchestrator; low complexity but low coverage drives risk.
+
+**Decomposition + Coverage Plan:**
+1. Extract sync logic → new `SyncOrchestrator`
+2. Extract agent polling → new `AgentPollingService`
+3. Add integration tests for state transitions
+4. Target 90%+ coverage on extracted modules
+
+**Acceptance:** CRAP < 15, coverage > 85%.
+
+---
+
+### Phase 0.4 — AcademicCalendar.kt (CRAP 34.21 → Target < 20)
+**Compose UI with logic.** Complexity 29, Coverage 81.6%.
+
+**Decomposition Plan:**
+1. Extract event filtering → `EventFilterService`
+2. Extract layout logic → separate `CalendarListPanel`, `CalendarDetailsPanel` Composables
+3. Extract event mutations → `CalendarEventMutationHandler`
+4. Add Compose UI tests for key interactions
+
+**Acceptance:** CRAP < 20, pure Composables exempt from coverage but logic modules > 80%.
+
+---
+
+### Phase 0.5 — ContextAgent.kt (CRAP 31.03 → Target < 20)
+**Logic with moderate complexity.** Complexity 31, Coverage 96.8% (already excellent).
+
+**Refactoring Plan:**
+1. Extract TF-IDF ranking → `FragmentRanker`
+2. Extract context aggregation → `ContextAggregator`
+3. Extract prompt injection → `ContextualPromptBuilder`
+
+**Acceptance:** CRAP < 20, coverage remains > 95%.
+
+---
+
+### Phase 0.6 — AiPrompts.kt (CRAP 41.30 → Target < 25)
+**Complexity 41, Coverage 94.4%** (already high coverage; pure decomposition).
+
+**Refactoring Plan:**
+1. Extract study plan constraints → `StudyPlanPromptBuilder`
+2. Extract categorization rules → `CategorizationPromptBuilder`
+3. Extract event extraction → `EventExtractionPromptBuilder`
+4. Extract chat system prompts → `ChatSystemPromptBuilder`
+5. Leave `AiPrompts` as coordinator
+
+**Acceptance:** CRAP < 25, maintain > 90% coverage.
+
+---
+
+### Phase 0.7 — CollisionResolver.kt (CRAP 41.09 → Target < 20)
+**Complexity 41, Coverage 96.3%** (excellent coverage; pure decomposition).
+
+**Refactoring Plan:**
+1. Extract scheduling algorithm → `SchedulingAlgorithm`
+2. Extract constraint validation → `ScheduleConstraintValidator`
+3. Extract collision detection → `CollisionDetector`
+
+**Acceptance:** CRAP < 20, maintain > 95% coverage.
+
+---
+
+### Phase 0.8 — AgentHarness.kt (CRAP 38.41 → Target < 20)
+**Complexity 37, Coverage 89.9%.**
+
+**Refactoring Plan:**
+1. Extract directory polling → `DirectoryPoller`
+2. Extract file ingestion orchestration → `FileIngestionOrchestrator`
+3. Extract sync coordination → `SyncCoordinator`
+
+**Acceptance:** CRAP < 20, maintain > 85% coverage.
+
+---
+
+## 🆕 Planned Work & User-Reported Issues
+
+### Phase 1 — Custom Google Calendar Selection UI
 Add ability to fetch available Google Calendars, save the selected calendar ID/name to preferences, and configure the synchronization pipeline to target the chosen calendar. This enables flexible desktop testing using specific test calendars instead of hardcoding target IDs.
 * **Status**: ⏳ Planned
 * **Tasks**:
@@ -25,7 +134,9 @@ Add ability to fetch available Google Calendars, save the selected calendar ID/n
   3. Display a dropdown menu in `SettingsScreen.kt` listing all fetched Google Calendars and saving the selected choice.
   4. Refactor `GoogleRemoteCalendarRepository.kt` to query and use the selected calendar ID from settings rather than defaulting to `"CEF Academic"`.
 
-### 2. Google Calendar, Gemini Quota, and OAuth Improvements
+---
+
+### Phase 2 — Google Calendar, Gemini Quota, and OAuth Improvements
 These are user-reported issues and feature requests targeted for the next development cycles:
 * **Target Google Calendar Creation Capability** (Feature Request)
   * **Description**: The app currently only allows picking from existing calendars retrieved from the user's Google Account. There is no option in the settings UI to create a *new* calendar.
@@ -39,7 +150,7 @@ These are user-reported issues and feature requests targeted for the next develo
 
 ---
 
-## 🆕 User-Identified Issues & UX Enhancements (Completed June 2026)
+## ✅ User-Identified Issues & UX Enhancements (Completed June 2026)
 
 These are the immediate issues identified by the user regarding source management, input validation, key interactions, copy/paste functionality, and quota error friendliness.
 
@@ -314,9 +425,50 @@ Replace silent conflict resolution during two-way sync with interactive user pro
 
 ---
 
-## 📊 CRAP Risk Reduction Plan (Merged from PLAN.md)
+## 📊 Updated CRAP Reduction Priority (June 2026)
 
-This plan outlines the strategy and completed phases to bring high-risk files (high complexity and low coverage) under control (below CRAP 30).
+Based on current CRAP.md metrics (generated 2026-06-09), the following files have been re-prioritized as the primary focus due to their high bug risk. These 8 files account for the majority of complexity-driven bugs.
+
+### Current High-Risk Files Requiring Immediate Refactoring
+
+| Priority | Phase | File | Current CRAP | Target | Complexity | Coverage | Strategy |
+|---|---|---|---|---|---|---|---|
+| **🔴 1** | **0.1** | GeminiAIService.kt | **67.50** | < 40 | 56 | 84.6% | Decompose: RetryService, ModelNegotiator, ResponseParser, PromptBuilder |
+| **🔴 2** | **0.2** | SettingsScreen.kt | **57.03** | < 25 | 35 | 73.8% | Decompose: PreferencesParser, ApiKeyValidator, AuthSettingsFlow, DriveSettingsPanel |
+| **🟠 3** | **0.6** | AiPrompts.kt | **41.30** | < 25 | 41 | 94.4% | Decompose: StudyPlanBuilder, CategorizationBuilder, EventBuilder, ChatBuilder |
+| **🟠 4** | **0.7** | CollisionResolver.kt | **41.09** | < 20 | 41 | 96.3% | Decompose: SchedulingAlgorithm, ConstraintValidator, CollisionDetector |
+| **🟠 5** | **0.8** | AgentHarness.kt | **38.41** | < 20 | 37 | 89.9% | Decompose: DirectoryPoller, IngestionOrchestrator, SyncCoordinator |
+| **🟠 6** | **0.4** | AcademicCalendar.kt | **34.21** | < 20 | 29 | 81.6% | Decompose: EventFilterService, LayoutPanels, MutationHandler; Add UI tests |
+| **🟠 7** | **0.5** | ContextAgent.kt | **31.03** | < 20 | 31 | 96.8% | Decompose: FragmentRanker, ContextAggregator, PromptBuilder |
+| **🟡 8** | **0.3** | AppController.kt | **30.51** | < 15 | 20 | 70.3% | Decompose: SyncOrchestrator, AgentPollingService; Add integration tests |
+
+### Refactoring Execution Order
+
+**Week 1: High-Impact AI Services (Phases 0.1 → 0.2)**
+- GeminiAIService: Unlock cleaner error handling, clearer prompts
+- SettingsScreen: Unlock preference management reuse
+
+**Week 2: Prompt & Algorithm Experts (Phases 0.6 → 0.7)**
+- AiPrompts: Unlock maintainable prompt engineering
+- CollisionResolver: Unlock testable scheduling logic
+
+**Week 3: Infrastructure (Phases 0.8 → 0.3)**
+- AgentHarness: Unlock reliable background operations
+- AppController: Unlock clearer orchestration
+- AcademicCalendar: Unlock composable UI patterns
+- ContextAgent: Already 96.8% coverage; quick decomposition
+
+### Success Metrics
+
+After Phase 0.8 completion:
+- ✅ All 8 files CRAP < 30
+- ✅ Each extracted module has CRAP < 15
+- ✅ Coverage increases in low-coverage files (AppController → 85%, SettingsScreen → 85%)
+- ✅ Zero new high-risk files introduced
+
+---
+
+## Historical CRAP Risk Reduction Plan (Phases 1–9, COMPLETED)
 
 ### Strategy
 Two complementary levers reduce CRAP:

@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: 0.21** — Completed DirectoryPreferencesManager decomposition
+**Current Phase: 0.22** — Completed ContextAgent decomposition
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -53,7 +53,8 @@ These phases continue the CRAP remediation strategy across file ingestion and pr
 | 0.19 | Test coverage for `PreferenceSerializer` (CRAP 56.00) | ✅ **COMPLETED** | (Phase 0.19) |
 | 0.20 | Decompose `DriveFileFetcher` (CRAP 72.00) | ✅ **COMPLETED** | 95f8ddf |
 | 0.21 | Decompose `DirectoryPreferencesManager` (CRAP 72.00) | ✅ **COMPLETED** | 4c653d0 |
-| **0.22+** | **Continue CRAP remediation (TBD)** | ⏳ **NEXT** | — |
+| 0.22 | Decompose `ContextAgent` (CRAP 31.03) | ✅ **COMPLETED** | dd5782a |
+| **0.23+** | **Continue CRAP remediation (TBD)** | ⏳ **NEXT** | — |
 
 ---
 

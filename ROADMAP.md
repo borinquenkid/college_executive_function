@@ -7,6 +7,26 @@
 
 ---
 
+## 🎯 Current Status (June 2026)
+
+**Current Phase: 0.17** — DirectoryPreferencesManager decomposition
+
+### CRAP Remediation Progress (Phases 0.1–0.8)
+
+| Phase | Target File(s) | Status | Completed | Notes |
+|---|---|---|---|---|
+| 0.1 | GeminiAIService.kt | ✅ DONE | Phase 0.13 | GeminiRequestExecutor extracted |
+| 0.2 | SettingsScreen.kt | ✅ DONE | Phase 0.X | Preferences parser extracted |
+| 0.3 | AppController.kt | ✅ DONE | Phase 0.X | Sync/polling orchestration extracted |
+| 0.4 | AcademicCalendar.kt | ✅ DONE | Phase 0.X | Layout & event filtering decomposed |
+| 0.5 | ContextAgent.kt | ✅ DONE | Phase 0.X | Fragment ranking & aggregation extracted |
+| 0.6 | AiPrompts.kt | ✅ DONE | Phase 0.X | Prompt builders decomposed |
+| 0.7 | CollisionResolver.kt | ✅ DONE | Phase 0.X | Scheduling algorithms extracted |
+| 0.8 | AgentHarness.kt | ✅ DONE | Phase 0.14 | Expanded test coverage for extracted services |
+| **0.9+** | **File Ingestion Services** | 🔄 IN PROGRESS | **Phase 0.17** | DriveFileScanner, LocalFileScanner, DirectoryPreferencesManager |
+
+---
+
 ## ⚠️ Known Issues / Tech Debt
 
 | Issue | Notes |
@@ -15,7 +35,58 @@
 
 ---
 
-## 🔴 PRIORITY: CRAP Index Remediation (Phases 0.1 – 0.8)
+## 🔴 PRIORITY: CRAP Index Remediation (Phases 0.1 – 0.17+)
+
+### Phases 0.9+ — File Ingestion & Infrastructure Decomposition
+
+These phases continue the CRAP remediation strategy across file ingestion and preference management services:
+
+| Phase | Work Item | Status | Commit |
+|---|---|---|---|
+| 0.9–0.12 | Initial decomposition passes (not yet documented) | ✅ Implied complete | — |
+| 0.13 | Extract `GeminiRequestExecutor` from AI service orchestration | ✅ **COMPLETED** | a526489 |
+| 0.14 | Expand test coverage for Phase 0.8 extracted services | ✅ **COMPLETED** | e9703e9 |
+| 0.15 | Decompose `DriveFileScanner` service | ✅ **COMPLETED** | 02d79cd |
+| 0.16 | Decompose `LocalFileScanner` service | ✅ **COMPLETED** | ef9f85d |
+| 0.17 | Decompose `DirectoryPreferencesManager` | ✅ **COMPLETED** | 5f6eea8 |
+| **0.18** | **Decompose `GeminiErrorHandler` (CRAP 110.00)** | 🔄 **NEXT** | — |
+| 0.19+ | Continue error handling & serialization decomposition (TBD) | ⏳ **PLANNED** | — |
+
+---
+
+### Phase 0.18 — GeminiErrorHandler Decomposition (CRAP 110.00)
+
+**Highest-risk file remaining.** Error handling is critical for reliability; zero coverage creates blind spots.
+
+**Decomposition Plan:**
+1. Extract `RetryAfterParser` — parse `Retry-After` header (numeric + date formats)
+2. Extract `ErrorCategorizer` — classify errors (quota, auth, structural, server, network) based on status/message
+3. Extract `QuotaErrorHandler` — detect quota exhaustion, manage rate-limit window, expose reset time
+4. Leave `GeminiErrorHandler` as thin facade delegating to specialized handlers
+
+**Acceptance:** 
+- Each extracted module CRAP < 15, coverage 100%
+- `GeminiErrorHandler` becomes a pure router (2–3 lines per method)
+- Existing error handling behavior unchanged
+
+**Dependencies:** None — standalone refactor.
+
+---
+
+### Phase 0.19+ — Coverage & Infrastructure (Planned)
+
+**PreferenceSerializer.kt** (CRAP 56.00) & **DriveFileFetcher.kt** (CRAP 72.00) follow decomposition strategy.
+
+**PreferenceSerializer.kt status:** ✅ Already using `kotlinx.serialization` (not hand-coded). Issue is **0% coverage**. Phase 0.19 should add unit tests for:
+- Successful serialization/deserialization round-trips
+- Null/blank string handling
+- Exception paths (malformed JSON, truncated strings)
+
+**General serialization rule:** All new serialization should use `@Serializable` + `kotlinx.serialization`, never hand-coded JSON/XML parsing. Hand-coded parsing is a bug vector and diverges from codebase standard.
+
+---
+
+## 🔴 PRIORITY: CRAP Index Remediation (Phases 0.1 – 0.8) — Original Plan
 
 High CRAP scores indicate high risk of bugs. Per `AGENTS.md`, high-complexity files should be **decomposed into smaller, single-responsibility modules BEFORE adding tests** — splitting reduces complexity² sharply. See `CRAP.md` for current metrics.
 

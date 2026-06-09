@@ -23,7 +23,11 @@ class GeminiRequestExecutor(
 ) {
     private val tag = "GeminiAI"
     private val requestBuilder = GeminiRequestBuilder(client, apiKey, accessToken)
-    private val errorHandler = GeminiErrorHandler(modelNegotiator, logger)
+    private val errorHandler = GeminiErrorHandler(
+        ErrorCategorizer(QuotaExhaustionDetector(), RetryAfterParser(), logger),
+        modelNegotiator,
+        logger
+    )
     private val retryService = GeminiRetryService(logger, delayFn)
 
     companion object {
@@ -59,24 +63,24 @@ class GeminiRequestExecutor(
                 val errorType = errorHandler.categorizeError(httpResponse.status, responseBody)
 
                 // Handle fatal errors
-                if (errorType == GeminiErrorHandler.ErrorType.Unauthorized ||
-                    errorType == GeminiErrorHandler.ErrorType.Forbidden
+                if (errorType == ErrorCategorizer.ErrorType.Unauthorized ||
+                    errorType == ErrorCategorizer.ErrorType.Forbidden
                 ) {
                     val msg = when (errorType) {
-                        GeminiErrorHandler.ErrorType.Unauthorized -> "401 Unauthorized: Your API Key or Access Token is invalid/expired."
-                        GeminiErrorHandler.ErrorType.Forbidden -> "403 Forbidden: Ensure the Gemini API is enabled in your Google Cloud Project."
+                        ErrorCategorizer.ErrorType.Unauthorized -> "401 Unauthorized: Your API Key or Access Token is invalid/expired."
+                        ErrorCategorizer.ErrorType.Forbidden -> "403 Forbidden: Ensure the Gemini API is enabled in your Google Cloud Project."
                         else -> "Unknown auth error"
                     }
                     logger?.e(tag, msg)
                     throw Exception(when (errorType) {
-                        GeminiErrorHandler.ErrorType.Unauthorized -> "Unauthorized"
-                        GeminiErrorHandler.ErrorType.Forbidden -> "Forbidden"
+                        ErrorCategorizer.ErrorType.Unauthorized -> "Unauthorized"
+                        ErrorCategorizer.ErrorType.Forbidden -> "Forbidden"
                         else -> "UnknownAuthError"
                     })
                 }
 
                 // Handle structural errors (model not found, unsupported modalities)
-                if (errorType is GeminiErrorHandler.ErrorType.StructuralError) {
+                if (errorType is ErrorCategorizer.ErrorType.StructuralError) {
                     errorHandler.handleStructuralError(modelName)
                     logger?.d(tag, "⚠️ Model $modelName had structural error: ${errorType.reason}. Blacklisted. Trying next model...")
                     attempts++
@@ -84,7 +88,7 @@ class GeminiRequestExecutor(
                 }
 
                 // Handle quota exhaustion
-                if (errorType == GeminiErrorHandler.ErrorType.QuotaExhausted) {
+                if (errorType == ErrorCategorizer.ErrorType.QuotaExhausted) {
                     telemetryManager?.logRateLimitError()
                     errorHandler.handleServerError(modelName)
                     logger?.e(tag, "🚫 Daily quota exhausted for model $modelName. Blacklisting and trying next model...")
@@ -94,7 +98,7 @@ class GeminiRequestExecutor(
                 }
 
                 // Handle server errors (5xx)
-                if (errorType == GeminiErrorHandler.ErrorType.TransientServerError) {
+                if (errorType == ErrorCategorizer.ErrorType.TransientServerError) {
                     telemetryManager?.logRateLimitError()
                     errorHandler.handleServerError(modelName)
                     logger?.e(tag, "⚠️ Model $modelName returned server error. Evicted and blacklisted. Trying next model...")
@@ -103,7 +107,7 @@ class GeminiRequestExecutor(
                 }
 
                 // Handle transient rate limits (429)
-                if (errorType is GeminiErrorHandler.ErrorType.TransientRateLimit) {
+                if (errorType is ErrorCategorizer.ErrorType.TransientRateLimit) {
                     telemetryManager?.logRateLimitError()
                     attempts++
 
@@ -121,7 +125,7 @@ class GeminiRequestExecutor(
                 }
 
                 // Handle other errors
-                if (errorType is GeminiErrorHandler.ErrorType.OtherError) {
+                if (errorType is ErrorCategorizer.ErrorType.OtherError) {
                     throw Exception(errorType.message)
                 }
 

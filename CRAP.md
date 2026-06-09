@@ -9,14 +9,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 131
-- **High-Risk Files (CRAP > 30)**: 7
+- **Total Files Analyzed**: 134
+- **High-Risk Files (CRAP > 30)**: 6
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| GeminiErrorHandler.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | DriveFileFetcher.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | DirectoryPreferencesManager.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | PreferenceSerializer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
@@ -31,23 +30,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 23 | 79.6% | 27.48 | 🟡 MEDIUM |
+| GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
-
-### GeminiErrorHandler.kt (Score: 110.00 - 🔴 HIGH)
-- **Total Complexity**: 10
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `extractRetryAfter` | 4 |
-| `categorizeError` | 3 |
-| `isQuotaExhausted` | 1 |
-| `handleStructuralError` | 1 |
-| `handleServerError` | 1 |
 
 ### DriveFileFetcher.kt (Score: 72.00 - 🔴 HIGH)
 - **Total Complexity**: 8
@@ -393,6 +380,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `Event.timeUntilDue` | 1 |
 | `Event.studyProgress` | 1 |
 
+### RetryAfterParser.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extractRetryAfterMs` | 4 |
+
 ### SourceDeleter.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
 - **Real Coverage**: 0.0%
@@ -694,6 +690,26 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `expandTimeEvent` | 5 |
 | `expandDayEvent` | 5 |
 | `expandEvents` | 2 |
+
+### GeminiErrorHandler.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `categorizeError` | 1 |
+| `handleStructuralError` | 1 |
+| `handleServerError` | 1 |
+
+### ErrorCategorizer.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `categorizeError` | 3 |
 
 ### SourceAdder.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -1395,6 +1411,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `FilePicker` | 1 |
+
+### QuotaExhaustionDetector.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `isQuotaExhausted` | 1 |
 
 ### RecursiveDecompositionAIService.kt (Score: 1.13 - 🟢 LOW)
 - **Total Complexity**: 1

@@ -3,11 +3,15 @@ package com.borinquenterrier.cef
 import kotlinx.datetime.LocalDate
 
 /**
- * Implementation of [RemoteCalendarRepository] using the Google Calendar REST API.
+ * Lightweight facade coordinating calendar operations.
+ * Delegates to specialized services for ID resolution, conflict detection, and filtering.
  */
 class GoogleRemoteCalendarRepository(
     private val syncService: GoogleCalendarSyncService,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesRepository,
+    private val calendarIdResolver: CalendarIdResolver,
+    private val conflictDetector: EventConflictDetector,
+    private val eventFilter: EventRangeFilter
 ) : RemoteCalendarRepository {
 
     override fun getSettings(): com.russhwolf.settings.Settings? = null
@@ -16,48 +20,24 @@ class GoogleRemoteCalendarRepository(
         syncService.listCalendars()
 
     override suspend fun getAllEvents(calendarId: String): List<Event> {
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+        val targetId = calendarIdResolver.resolveCalendarId(calendarId)
         return syncService.getEvents(targetId)
     }
 
-    /**
-     * Finds the user-configured calendar ID, or creates/finds the default calendar if it doesn't exist.
-     */
-    suspend fun getCEFCalendarId(): String {
-        val prefs = preferencesRepository.getPreferences()
-        val savedId = prefs.googleCalendarId
-        if (savedId != "default" && savedId.isNotEmpty()) {
-            return savedId
-        }
-        val targetName = prefs.googleCalendarName.ifEmpty { "CEF Academic" }
-        val calendars = syncService.listCalendars()
-        val cefCal = calendars.find { it.name == targetName }
-        return cefCal?.id ?: syncService.createCalendar(targetName)
-    }
-
     override suspend fun saveEvent(event: Event, calendarId: String) {
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
-        
-        // 1. Fetch current events for THAT specific calendar to check for overlaps
+        val targetId = calendarIdResolver.resolveCalendarId(calendarId)
         val existingEvents = syncService.getEvents(targetId)
-
-        // 2. Perform the overlap check
-        val conflict = existingEvents.find { it.id != event.id && it.overlaps(event) }
-        if (conflict != null) {
-            throw OverlapException(existingEvent = conflict, newEvent = event)
-        }
-        
-        // 3. Save if clear
+        conflictDetector.validateNoConflict(event, existingEvents)
         syncService.syncEvent(event, targetId)
     }
 
     override suspend fun updateEvent(event: Event, calendarId: String) {
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+        val targetId = calendarIdResolver.resolveCalendarId(calendarId)
         syncService.syncEvent(event, targetId)
     }
 
     override suspend fun deleteEvent(eventId: String, calendarId: String) {
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+        val targetId = calendarIdResolver.resolveCalendarId(calendarId)
         try {
             syncService.deleteEvent(targetId, eventId)
         } catch (e: GoogleApiException) {
@@ -70,7 +50,7 @@ class GoogleRemoteCalendarRepository(
     }
 
     override suspend fun clearCalendar(calendarId: String) {
-        val targetId = if (calendarId == "default") getCEFCalendarId() else calendarId
+        val targetId = calendarIdResolver.resolveCalendarId(calendarId)
         val events = syncService.getEvents(targetId)
         events.forEach { event ->
             event.id?.let { id ->
@@ -84,20 +64,17 @@ class GoogleRemoteCalendarRepository(
     }
 
     override suspend fun getEventsInRange(start: LocalDate, end: LocalDate, calendarId: String): List<Event> {
-        return getAllEvents(calendarId).filter { event ->
-            val date = when (event) {
-                is TimeEvent -> event.date
-                is DayEvent -> event.date
-            }
-            date in start..end
-        }
+        val events = getAllEvents(calendarId)
+        return eventFilter.filterByDateRange(events, start, end)
     }
 
     override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String): List<Event> {
-        return if (status == SyncStatus.SYNCED) getAllEvents(calendarId) else emptyList()
+        val events = getAllEvents(calendarId)
+        return eventFilter.filterBySyncStatus(events, status)
     }
 
     override suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String): List<Event> {
-        return getAllEvents(calendarId).filter { it.completionStatus == CompletionStatus.INCOMPLETE && it.date < date }
+        val events = getAllEvents(calendarId)
+        return eventFilter.filterIncompleteBeforeDate(events, date)
     }
 }

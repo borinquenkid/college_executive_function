@@ -46,7 +46,10 @@ class DependencyContainer(
     val preferencesRepository by lazy { PreferencesRepository(settings) }
     val userPreferenceMemoryRepository by lazy { SqlDelightUserPreferenceMemoryRepository(database) }
     val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenRepository, authService) }
-    val remoteRepository by lazy { GoogleRemoteCalendarRepository(syncService, preferencesRepository) }
+    val calendarIdResolver by lazy { CalendarIdResolver(syncService, preferencesRepository) }
+    val conflictDetector by lazy { EventConflictDetector() }
+    val eventRangeFilter by lazy { EventRangeFilter() }
+    val remoteRepository by lazy { GoogleRemoteCalendarRepository(syncService, preferencesRepository, calendarIdResolver, conflictDetector, eventRangeFilter) }
     val calendarAgent by lazy { CalendarAgent(localRepository, remoteRepository, logger, userPreferenceMemoryRepository, preferencesRepository) }
 
     val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository) }

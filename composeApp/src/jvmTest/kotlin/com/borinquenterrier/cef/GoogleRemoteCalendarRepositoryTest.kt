@@ -14,7 +14,10 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
  
     val syncService = mockk<GoogleCalendarSyncService>(relaxed = true)
     val preferencesRepository = mockk<PreferencesRepository>(relaxed = true)
-    val repo = GoogleRemoteCalendarRepository(syncService, preferencesRepository)
+    val idResolver = mockk<CalendarIdResolver>(relaxed = true)
+    val conflictDetector = mockk<EventConflictDetector>(relaxed = true)
+    val eventFilter = mockk<EventRangeFilter>(relaxed = true)
+    val repo = GoogleRemoteCalendarRepository(syncService, preferencesRepository, idResolver, conflictDetector, eventFilter)
  
     val cefCalId = "cef-calendar-id-123"
     val date = LocalDate(2026, 6, 8)
@@ -42,32 +45,6 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
     beforeEach {
         clearAllMocks()
         coEvery { preferencesRepository.getPreferences() } returns StudyPreferences()
-    }
-
-    // ─── getCEFCalendarId ────────────────────────────────────────────────────
-
-    test("getCEFCalendarId returns existing calendar ID when CEF Academic is found") {
-        coEvery { syncService.listCalendars() } returns listOf(
-            RemoteCalendarMetadata("other-id", "Primary"),
-            RemoteCalendarMetadata(cefCalId, "CEF Academic")
-        )
-
-        val result = repo.getCEFCalendarId()
-
-        result shouldBe cefCalId
-        coVerify(exactly = 0) { syncService.createCalendar(any()) }
-    }
-
-    test("getCEFCalendarId creates calendar when CEF Academic does not exist") {
-        coEvery { syncService.listCalendars() } returns listOf(
-            RemoteCalendarMetadata("other-id", "Primary")
-        )
-        coEvery { syncService.createCalendar("CEF Academic") } returns cefCalId
-
-        val result = repo.getCEFCalendarId()
-
-        result shouldBe cefCalId
-        coVerify(exactly = 1) { syncService.createCalendar("CEF Academic") }
     }
 
     // ─── getAllEvents ────────────────────────────────────────────────────────
@@ -357,47 +334,5 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         val result = repo.getIncompleteEventsBefore(LocalDate(2026, 6, 8), "default")
 
         result.shouldBeEmpty()
-    }
-
-    // ─── Custom Calendar Selection Tests ─────────────────────────────────────
-
-    test("getCEFCalendarId returns saved custom calendar ID when googleCalendarId is not default") {
-        coEvery { preferencesRepository.getPreferences() } returns StudyPreferences(
-            googleCalendarId = "custom-calendar-123",
-            googleCalendarName = "My Custom Calendar"
-        )
-
-        val result = repo.getCEFCalendarId()
-
-        result shouldBe "custom-calendar-123"
-        coVerify(exactly = 0) { syncService.listCalendars() }
-    }
-
-    test("getCEFCalendarId finds or creates custom calendar by name when googleCalendarId is default") {
-        coEvery { preferencesRepository.getPreferences() } returns StudyPreferences(
-            googleCalendarId = "default",
-            googleCalendarName = "Custom Calendar Name"
-        )
-        coEvery { syncService.listCalendars() } returns listOf(
-            RemoteCalendarMetadata("custom-id-999", "Custom Calendar Name")
-        )
-
-        val result = repo.getCEFCalendarId()
-
-        result shouldBe "custom-id-999"
-    }
-
-    test("getCEFCalendarId creates custom calendar by name when not found and ID is default") {
-        coEvery { preferencesRepository.getPreferences() } returns StudyPreferences(
-            googleCalendarId = "default",
-            googleCalendarName = "Brand New Calendar"
-        )
-        coEvery { syncService.listCalendars() } returns emptyList()
-        coEvery { syncService.createCalendar("Brand New Calendar") } returns "new-created-id"
-
-        val result = repo.getCEFCalendarId()
-
-        result shouldBe "new-created-id"
-        coVerify(exactly = 1) { syncService.createCalendar("Brand New Calendar") }
     }
 })

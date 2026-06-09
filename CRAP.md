@@ -9,16 +9,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 138
-- **High-Risk Files (CRAP > 30)**: 5
+- **Total Files Analyzed**: 140
+- **High-Risk Files (CRAP > 30)**: 6
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
+| FragmentRanker.kt | 19 | 0.0% | 380.00 | 🔴 HIGH |
 | ConcurrentFolderFetcher.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | PreferenceSerializer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
-| ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
+| SourceContextBuilder.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 30 | 95.2% | 30.10 | 🔴 HIGH |
 | LocalFileFetcher.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -30,11 +31,22 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 23 | 79.6% | 27.48 | 🟡 MEDIUM |
 | GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
-| SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
+
+### FragmentRanker.kt (Score: 380.00 - 🔴 HIGH)
+- **Total Complexity**: 19
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extractQueryTerms` | 2 |
+| `rankFragments` | 1 |
+| `calculateDocumentFrequencies` | 1 |
+| `scoreFragments` | 1 |
 
 ### ConcurrentFolderFetcher.kt (Score: 56.00 - 🔴 HIGH)
 - **Total Complexity**: 7
@@ -56,18 +68,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `deserializeDirectories` | 4 |
 | `serializeDirectories` | 3 |
 
-### ContextAgent.kt (Score: 31.03 - 🔴 HIGH)
-- **Total Complexity**: 31
-- **Real Coverage**: 96.8%
+### SourceContextBuilder.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `analyzeSource` | 4 |
-| `querySource` | 3 |
-| `getSourceMetadata` | 1 |
-| `rankFragments` | 1 |
-| `queryAllSources` | 1 |
+| `formatFragments` | 2 |
+| `buildContextBlocks` | 1 |
 
 ### AcademicCalendar.kt (Score: 30.50 - 🔴 HIGH)
 - **Total Complexity**: 26
@@ -778,6 +787,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `processSource` | 5 |
+
+### ContextAgent.kt (Score: 11.00 - 🟢 LOW)
+- **Total Complexity**: 11
+- **Real Coverage**: 96.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `analyzeSource` | 4 |
+| `querySource` | 3 |
+| `getSourceMetadata` | 1 |
+| `queryAllSources` | 1 |
 
 ### TelemetryManager.kt (Score: 11.00 - 🟢 LOW)
 - **Total Complexity**: 11

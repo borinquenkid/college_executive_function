@@ -9,16 +9,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 130
-- **High-Risk Files (CRAP > 30)**: 6
+- **Total Files Analyzed**: 131
+- **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
 | GeminiErrorHandler.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
-| DirectoryPreferencesManager.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | DriveFileFetcher.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
+| DirectoryPreferencesManager.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
+| PreferenceSerializer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 30 | 95.2% | 30.10 | 🔴 HIGH |
@@ -30,7 +31,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 23 | 79.6% | 27.48 | 🟡 MEDIUM |
-| GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
 
 ---
 
@@ -49,18 +49,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `handleStructuralError` | 1 |
 | `handleServerError` | 1 |
 
-### DirectoryPreferencesManager.kt (Score: 110.00 - 🔴 HIGH)
-- **Total Complexity**: 10
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getWatchedLocalDirectories` | 3 |
-| `getWatchedGDriveFolders` | 3 |
-| `setWatchedLocalDirectories` | 2 |
-| `setWatchedGDriveFolders` | 2 |
-
 ### DriveFileFetcher.kt (Score: 72.00 - 🔴 HIGH)
 - **Total Complexity**: 8
 - **Real Coverage**: 0.0%
@@ -70,6 +58,28 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `fetchFromFolders` | 6 |
 | `deduplicateFiles` | 2 |
+
+### DirectoryPreferencesManager.kt (Score: 72.00 - 🔴 HIGH)
+- **Total Complexity**: 8
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getWatchedLocalDirectories` | 2 |
+| `setWatchedLocalDirectories` | 2 |
+| `getWatchedGDriveFolders` | 2 |
+| `setWatchedGDriveFolders` | 2 |
+
+### PreferenceSerializer.kt (Score: 56.00 - 🔴 HIGH)
+- **Total Complexity**: 7
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `deserializeDirectories` | 4 |
+| `serializeDirectories` | 3 |
 
 ### ContextAgent.kt (Score: 31.03 - 🔴 HIGH)
 - **Total Complexity**: 31

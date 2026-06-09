@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **83.90%** (8390/10000 lines)
-- **Total Source Files**: 130
+- **Total Source Files**: 131
 
 ## Coverage by File
 
@@ -28,6 +28,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% | RoutineSetupScreenKt |
 | 🔴 | SourceAdder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveFileScanner.kt | 0.0% (0/60) | 0.0% (0/24) | 0.0% | DriveFileScanner, DriveFileScanner$scanNewFiles$2, DriveFileScanner$scanNewFiles$2$deferreds$1$1 |
+| 🔴 | PreferenceSerializer.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceLoader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | LocalFileFilter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |

@@ -80,7 +80,9 @@ class DependencyContainer(
 
     val pollScheduler by lazy { PollScheduler(settings, logger) }
 
-    val directoryPreferencesManager by lazy { DirectoryPreferencesManager(settings, logger) }
+    val preferenceSerializer by lazy { PreferenceSerializer(logger) }
+
+    val directoryPreferencesManager by lazy { DirectoryPreferencesManager(settings, preferenceSerializer, logger) }
 
     val localFileScanner by lazy { LocalFileScanner(fileReader, directoryPreferencesManager, logger) }
 

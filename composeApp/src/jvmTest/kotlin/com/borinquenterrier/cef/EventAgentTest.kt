@@ -379,23 +379,27 @@ class HeadlessLogicTest : FunSpec({
 
         val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
 
-        val event = DayEvent(
+        val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
+        val event = TimeEvent(
             id = "event1",
             title = "Missed Study Block",
             source = EventSource.AI_GENERATED,
             category = AcademicCategory.STUDY_BLOCK,
-            date = LocalDate(2026, 6, 1),
+            date = today,
+            startTime = LocalTime(9, 0),
+            endTime = LocalTime(10, 0),
             completionStatus = CompletionStatus.INCOMPLETE
         )
 
-        val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
         val conflictingEvents = (-7..3).map { offset ->
-            DayEvent(
+            TimeEvent(
                 id = "conflict-$offset",
-                title = "Conflicting Class $offset",
-                source = EventSource.CLASS,
-                category = AcademicCategory.CLASS,
-                date = today.plus(offset, kotlinx.datetime.DateTimeUnit.DAY)
+                title = "Busy Day $offset",
+                source = EventSource.MANUAL,
+                category = AcademicCategory.REGULAR,
+                date = today.plus(offset, kotlinx.datetime.DateTimeUnit.DAY),
+                startTime = LocalTime(9, 0),
+                endTime = LocalTime(21, 0)
             )
         }
 

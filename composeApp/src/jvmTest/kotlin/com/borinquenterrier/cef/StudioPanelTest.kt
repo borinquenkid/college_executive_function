@@ -61,6 +61,13 @@ class StudioPanelTest {
         
         every { mockContainer.eventAgent } returns mockEventAgent
         
+        val mockAppController = mockk<AppController>(relaxed = true)
+        every { mockContainer.appController } returns mockAppController
+        every { mockAppController.launchInScope(any()) } answers {
+            val block = firstArg<suspend kotlinx.coroutines.CoroutineScope.() -> Unit>()
+            kotlinx.coroutines.runBlocking { block(this) }
+        }
+        
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns MutableStateFlow(false)
         every { mockContainer.tokenRepository } returns tokenRepo
@@ -105,6 +112,13 @@ class StudioPanelTest {
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
         
         every { mockContainer.eventAgent } returns mockEventAgent
+        
+        val mockAppController = mockk<AppController>(relaxed = true)
+        every { mockContainer.appController } returns mockAppController
+        every { mockAppController.launchInScope(any()) } answers {
+            val block = firstArg<suspend kotlinx.coroutines.CoroutineScope.() -> Unit>()
+            kotlinx.coroutines.runBlocking { block(this) }
+        }
         
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         // Set connected/linked to true
@@ -215,6 +229,13 @@ class StudioPanelTest {
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
         
         every { mockContainer.eventAgent } returns mockEventAgent
+        
+        val mockAppController = mockk<AppController>(relaxed = true)
+        every { mockContainer.appController } returns mockAppController
+        every { mockAppController.launchInScope(any()) } answers {
+            val block = firstArg<suspend kotlinx.coroutines.CoroutineScope.() -> Unit>()
+            kotlinx.coroutines.runBlocking { block(this) }
+        }
         
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns MutableStateFlow(false)

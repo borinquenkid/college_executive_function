@@ -100,6 +100,21 @@ class AppController(val container: DependencyContainer) {
         if (_selectedSource.value == null) {
             _selectedSource.value = source
         }
+        scope.launch {
+            if (container.aiService.isConfigured()) {
+                try {
+                    val allEvents = container.aiService.generateCalendarEvents(source.fragments)
+                    addEvents(allEvents)
+                    container.contextAgent.analyzeSource(source)
+                } catch (e: Exception) {
+                    container.logger.e("AppController", "Failed to process added source: ${source.title}", e)
+                }
+            }
+        }
+    }
+
+    fun launchInScope(block: suspend CoroutineScope.() -> Unit) {
+        scope.launch { block() }
     }
 
     fun deleteSource(source: SourceItem) {

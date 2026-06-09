@@ -32,19 +32,19 @@ class EventOverlapTest : FunSpec({
         event1.overlaps(event2) shouldBe false
     }
 
-    test("DayEvent and TimeEvent on same day should overlap") {
+    test("DayEvent and TimeEvent on same day should not overlap") {
         val holiday = DayEvent(title = "Labor Day", source = EventSource.SCHOOL, category = AcademicCategory.HOLIDAY, date = date)
         val lecture = TimeEvent(title = "Math 101", source = EventSource.CLASS, date = date, startTime = LocalTime(10, 0), endTime = LocalTime(11, 0))
         
-        holiday.overlaps(lecture) shouldBe true
-        lecture.overlaps(holiday) shouldBe true
+        holiday.overlaps(lecture) shouldBe false
+        lecture.overlaps(holiday) shouldBe false
     }
 
-    test("DayEvents on same day should overlap") {
+    test("DayEvents on same day should not overlap") {
         val holiday1 = DayEvent(title = "Holiday A", source = EventSource.SCHOOL, date = date)
         val holiday2 = DayEvent(title = "Holiday B", source = EventSource.SCHOOL, date = date)
         
-        holiday1.overlaps(holiday2) shouldBe true
+        holiday1.overlaps(holiday2) shouldBe false
     }
 
     test("Events on different days should never overlap") {

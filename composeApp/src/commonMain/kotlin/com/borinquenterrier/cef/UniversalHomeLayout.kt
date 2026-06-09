@@ -22,7 +22,6 @@ fun UniversalHomeLayout(container: DependencyContainer) {
     val appController = container.appController
     val sourceItems by appController.sourceItems.collectAsState()
     val selectedSource by appController.selectedSource.collectAsState()
-    val coroutineScope = rememberCoroutineScope()
 
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
@@ -64,17 +63,6 @@ fun UniversalHomeLayout(container: DependencyContainer) {
                         onSourceSelected = { appController.selectSource(it); showSources = false },
                         onSourceAdded = { source ->
                             appController.addSource(source)
-                            coroutineScope.launch {
-                                if (container.aiService.isConfigured()) {
-                                    try {
-                                        val allEvents = container.aiService.generateCalendarEvents(source.fragments)
-                                        appController.addEvents(allEvents)
-                                        container.contextAgent.analyzeSource(source)
-                                    } catch (e: Exception) {
-                                        container.logger.e("App", "Failed to process added source: ${source.title}", e)
-                                    }
-                                }
-                            }
                         },
                         onSourceDeleted = { source ->
                             appController.deleteSource(source)

@@ -30,7 +30,7 @@ fun StudioPanel(
     container: DependencyContainer,
     onEventsGenerated: (List<Event>) -> Unit
 ) {
-    val coroutineScope = rememberCoroutineScope()
+    val appController = container.appController
     val eventAgent = container.eventAgent
 
     val isLoading by eventAgent.isLoading.collectAsState()
@@ -141,7 +141,7 @@ fun StudioPanel(
                 item {
                     Button(
                         onClick = {
-                            coroutineScope.launch {
+                            appController.launchInScope {
                                 eventAgent.generateStudyPlan(selectedSource)
                             }
                         },
@@ -192,8 +192,8 @@ fun StudioPanel(
                     item {
                         Button(
                             onClick = {
-                                coroutineScope.launch {
-                                    if (!isConnected) return@launch
+                                appController.launchInScope {
+                                    if (!isConnected) return@launchInScope
                                     eventAgent.pushToCalendar()
                                 }
                             },
@@ -214,7 +214,7 @@ fun StudioPanel(
                     item {
                         Button(
                             onClick = {
-                                coroutineScope.launch {
+                                appController.launchInScope {
                                     try {
                                         val icsContent = generateIcsString(lastGeneratedEvents)
                                         val filePath = writeIcsFile(icsContent)

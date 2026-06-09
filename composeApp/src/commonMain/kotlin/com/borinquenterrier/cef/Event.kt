@@ -92,7 +92,6 @@ data class TimeEvent(
     val recurrence: Recurrence? = null
 ) : Event {
     override fun overlaps(other: Event): Boolean {
-        if (other is DayEvent) return other.date == this.date
         if (other is TimeEvent) {
             if (other.date != this.date) return false
             // Standard overlap check: (StartA < EndB) and (EndA > StartB)
@@ -119,11 +118,7 @@ data class DayEvent(
     val recurrence: Recurrence? = null
 ) : Event {
     override fun overlaps(other: Event): Boolean {
-        val otherDate = when(other) {
-            is TimeEvent -> other.date
-            is DayEvent -> other.date
-        }
-        return this.date == otherDate
+        return false
     }
 }
 

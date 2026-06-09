@@ -142,17 +142,28 @@ class CollisionResolverTest : FunSpec({
         val existing = mutableListOf<Event>()
         for (i in 0..7) {
             val d = date.minus(i, DateTimeUnit.DAY)
-            existing.add(DayEvent(title = "Busy Day", source = EventSource.MANUAL, date = d))
+            existing.add(
+                TimeEvent(
+                    title = "Busy Day",
+                    source = EventSource.MANUAL,
+                    category = AcademicCategory.REGULAR,
+                    date = d,
+                    startTime = LocalTime(9, 0),
+                    endTime = LocalTime(21, 0)
+                )
+            )
         }
 
-        val dayEvent = DayEvent(
-            title = "Study Day",
+        val timeEvent = TimeEvent(
+            title = "Study Block",
             source = EventSource.AI_GENERATED,
             category = AcademicCategory.STUDY_BLOCK,
-            date = date
+            date = date,
+            startTime = LocalTime(9, 0),
+            endTime = LocalTime(11, 0)
         )
 
-        val result = resolver.resolve(dayEvent, existing)
+        val result = resolver.resolve(timeEvent, existing)
         result.shouldBeInstanceOf<ResolutionResult.Success>()
         val success = result as ResolutionResult.Success
         val resolved = success.resolvedEvents.first()

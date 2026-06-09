@@ -25,10 +25,10 @@ object ICalGenerator {
     fun buildAcademicCalendar(events: List<Event>): Calendar {
         val calendar = Calendar()
         
-        // Calendar Level Properties (Commented out temporarily to unblock build or let's try to add them if they work)
-        // calendar.add<PropertyContainer>(ProdId("-//BorinquenTerrier//CEF//EN"))
-        // calendar.add<PropertyContainer>(Version.V2_0)
-        // calendar.add<PropertyContainer>(Method.PUBLISH)
+        // Calendar Level Properties
+        calendar.add<PropertyContainer>(ProdId("-//BorinquenTerrier//CEF//EN"))
+        calendar.add<PropertyContainer>(Version(net.fortuna.ical4j.model.ParameterList(), "2.0"))
+        calendar.add<PropertyContainer>(Method("PUBLISH"))
 
         for (event in events) {
             when (event) {

@@ -1,11 +1,10 @@
 package com.borinquenterrier.cef
 
-import kotlinx.coroutines.async
-import kotlinx.coroutines.coroutineScope
-
 /**
- * Scans local directories concurrently and deduplicates results against existing URIs.
- * Returns only files not already ingested.
+ * Lightweight facade orchestrating local file scanning.
+ * Delegates to specialized services:
+ * - LocalFileFetcher: Concurrent directory scanning
+ * - LocalFileFilter: Deduplication and filtering
  */
 class LocalFileScanner(
     private val fileReader: LocalFileReader,
@@ -13,6 +12,8 @@ class LocalFileScanner(
     private val logger: Logger
 ) {
     private val tag = "LocalFileScanner"
+    private val fetcher = LocalFileFetcher(fileReader, logger)
+    private val filter = LocalFileFilter()
 
     suspend fun scanNewFiles(existingUris: Set<String>): List<String> {
         val watchedDirs = directoryPreferences.getWatchedLocalDirectories()
@@ -21,26 +22,9 @@ class LocalFileScanner(
             return emptyList()
         }
 
-        val newFiles = mutableListOf<String>()
-        coroutineScope {
-            val deferreds = watchedDirs.map { dir ->
-                async {
-                    try {
-                        fileReader.listFiles(dir)
-                    } catch (e: Exception) {
-                        logger.e(tag, "Failed to list local files in directory: $dir", e)
-                        emptyList()
-                    }
-                }
-            }
-            for (files in deferreds.map { it.await() }) {
-                for (file in files) {
-                    if (!existingUris.contains(file) && !newFiles.contains(file)) {
-                        newFiles.add(file)
-                    }
-                }
-            }
-        }
+        val allFiles = fetcher.fetchFromDirectories(watchedDirs)
+        val newFiles = filter.filterNewFiles(allFiles, existingUris)
+
         logger.d(tag, "Found ${newFiles.size} new local files from ${watchedDirs.size} directories")
         return newFiles
     }

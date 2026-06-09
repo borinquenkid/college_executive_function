@@ -5,13 +5,14 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **83.90%** (8390/10000 lines)
-- **Total Source Files**: 128
+- **Total Source Files**: 130
 
 ## Coverage by File
 
 | Status | File | Line Coverage | Branch Coverage | Instruction Coverage | Classes |
 | :---: | :--- | :---: | :---: | :---: | :--- |
 | 🔴 | SourceInterfaces.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | LocalFileFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | App.kt | 0.0% (0/52) | 0.0% (0/4) | 0.0% | AppKt, AppKt$App$containerState$1$1, AppKt$App$containerState$1$1$1 |
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -29,6 +30,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | DriveFileScanner.kt | 0.0% (0/60) | 0.0% (0/24) | 0.0% | DriveFileScanner, DriveFileScanner$scanNewFiles$2, DriveFileScanner$scanNewFiles$2$deferreds$1$1 |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceLoader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | LocalFileFilter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveQueryBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% | ComposableSingletons$RoutineScreenKt, RoutineScreenKt, RoutineScreenKt$RoutineScreen$1$1, RoutineScreenKt$RoutineScreen$4$1$1 |

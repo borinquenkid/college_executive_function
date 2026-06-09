@@ -9,8 +9,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 128
-- **High-Risk Files (CRAP > 30)**: 7
+- **Total Files Analyzed**: 130
+- **High-Risk Files (CRAP > 30)**: 6
 
 ### Top 15 High-Risk Files
 
@@ -18,11 +18,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: | :---: | :---: | :---: |
 | GeminiErrorHandler.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | DirectoryPreferencesManager.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
-| LocalFileScanner.kt | 9 | 0.0% | 90.00 | 🔴 HIGH |
 | DriveFileFetcher.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 30 | 95.2% | 30.10 | 🔴 HIGH |
+| LocalFileFetcher.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceSelector.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GeminiRequestBuilder.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -60,15 +60,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getWatchedGDriveFolders` | 3 |
 | `setWatchedLocalDirectories` | 2 |
 | `setWatchedGDriveFolders` | 2 |
-
-### LocalFileScanner.kt (Score: 90.00 - 🔴 HIGH)
-- **Total Complexity**: 9
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `scanNewFiles` | 9 |
 
 ### DriveFileFetcher.kt (Score: 72.00 - 🔴 HIGH)
 - **Total Complexity**: 8
@@ -122,6 +113,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getIncompleteEventsBefore` | 2 |
 | `getSettings` | 1 |
 | *... and 2 more* | |
+
+### LocalFileFetcher.kt (Score: 30.00 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `fetchFromDirectories` | 5 |
 
 ### SourceItemView.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -410,6 +410,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `loadSources` | 4 |
 
+### LocalFileFilter.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `filterNewFiles` | 2 |
+| `isSupportedFile` | 2 |
+
 ### RoutineScreen.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
 - **Real Coverage**: 0.0%
@@ -694,6 +704,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `buildQueryForFolder` | 1 |
 | `buildMimeTypeCriteria` | 1 |
 | `getSupportedMimeTypes` | 1 |
+
+### LocalFileScanner.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `scanNewFiles` | 3 |
 
 ### SourceProcessingPipeline.kt (Score: 11.10 - 🟢 LOW)
 - **Total Complexity**: 5

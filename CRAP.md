@@ -9,15 +9,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 134
-- **High-Risk Files (CRAP > 30)**: 6
+- **Total Files Analyzed**: 138
+- **High-Risk Files (CRAP > 30)**: 5
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| DriveFileFetcher.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
-| DirectoryPreferencesManager.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
+| ConcurrentFolderFetcher.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | PreferenceSerializer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
@@ -31,32 +30,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 23 | 79.6% | 27.48 | 🟡 MEDIUM |
 | GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
+| SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
 
-### DriveFileFetcher.kt (Score: 72.00 - 🔴 HIGH)
-- **Total Complexity**: 8
+### ConcurrentFolderFetcher.kt (Score: 56.00 - 🔴 HIGH)
+- **Total Complexity**: 7
 - **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `fetchFromFolders` | 6 |
-| `deduplicateFiles` | 2 |
-
-### DirectoryPreferencesManager.kt (Score: 72.00 - 🔴 HIGH)
-- **Total Complexity**: 8
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getWatchedLocalDirectories` | 2 |
-| `setWatchedLocalDirectories` | 2 |
-| `getWatchedGDriveFolders` | 2 |
-| `setWatchedGDriveFolders` | 2 |
+| `fetchFromFolders` | 4 |
+| `fetchFromFolder` | 3 |
 
 ### PreferenceSerializer.kt (Score: 56.00 - 🔴 HIGH)
 - **Total Complexity**: 7
@@ -380,6 +368,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `Event.timeUntilDue` | 1 |
 | `Event.studyProgress` | 1 |
 
+### LocalDirectoryPreferences.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getWatchedDirectories` | 2 |
+| `setWatchedDirectories` | 2 |
+
 ### RetryAfterParser.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
 - **Real Coverage**: 0.0%
@@ -389,6 +387,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `extractRetryAfterMs` | 4 |
 
+### DirectoryPreferencesManager.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getWatchedLocalDirectories` | 1 |
+| `setWatchedLocalDirectories` | 1 |
+| `getWatchedGDriveFolders` | 1 |
+| `setWatchedGDriveFolders` | 1 |
+
 ### SourceDeleter.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
 - **Real Coverage**: 0.0%
@@ -397,6 +407,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `deleteSource` | 4 |
+
+### DriveDirectoryPreferences.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getWatchedFolders` | 2 |
+| `setWatchedFolders` | 2 |
 
 ### DriveFileScanner.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
@@ -730,6 +750,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `buildQueryForFolder` | 1 |
 | `buildMimeTypeCriteria` | 1 |
 | `getSupportedMimeTypes` | 1 |
+
+### FileDuplicateFilter.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `filterDuplicates` | 2 |
+| `uriForFile` | 1 |
 
 ### LocalFileScanner.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -1097,6 +1127,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getSourceEventExtractionPrompt` | 4 |
 | `getEventCritiquePrompt` | 1 |
+
+### DriveFileFetcher.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `fetchFromFolders` | 1 |
+| `deduplicateFiles` | 1 |
 
 ### GeminiSetupPanel.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 6

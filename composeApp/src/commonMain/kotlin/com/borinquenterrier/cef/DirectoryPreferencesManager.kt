@@ -1,42 +1,29 @@
 package com.borinquenterrier.cef
 
 import com.russhwolf.settings.Settings
-import kotlinx.serialization.json.Json
 
 /**
- * Manages persistent preferences for watched directories and Google Drive folders.
- * Delegates serialization to PreferenceSerializer.
+ * Lightweight facade coordinating directory preferences across local and Google Drive sources.
+ * Delegates to specialized preference managers for local and GDrive directories.
  */
 class DirectoryPreferencesManager(
-    private val settings: Settings,
-    private val serializer: PreferenceSerializer,
-    private val logger: Logger
+    private val localPreferences: LocalDirectoryPreferences,
+    private val drivePreferences: DriveDirectoryPreferences
 ) {
-    private val tag = "DirectoryPreferencesManager"
 
     fun getWatchedLocalDirectories(): List<String> {
-        val jsonString = settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "")
-        return serializer.deserializeDirectories(jsonString) ?: emptyList()
+        return localPreferences.getWatchedDirectories()
     }
 
     fun setWatchedLocalDirectories(dirs: List<String>) {
-        val serialized = serializer.serializeDirectories(dirs)
-        if (serialized.isNotEmpty()) {
-            settings.putString("CEF_WATCHED_LOCAL_DIRECTORIES", serialized)
-            logger.d(tag, "Saved ${dirs.size} watched local directories")
-        }
+        localPreferences.setWatchedDirectories(dirs)
     }
 
     fun getWatchedGDriveFolders(): List<String> {
-        val jsonString = settings.getString("CEF_WATCHED_GDRIVE_FOLDERS", "")
-        return serializer.deserializeDirectories(jsonString) ?: emptyList()
+        return drivePreferences.getWatchedFolders()
     }
 
     fun setWatchedGDriveFolders(folders: List<String>) {
-        val serialized = serializer.serializeDirectories(folders)
-        if (serialized.isNotEmpty()) {
-            settings.putString("CEF_WATCHED_GDRIVE_FOLDERS", serialized)
-            logger.d(tag, "Saved ${folders.size} watched GDrive folders")
-        }
+        drivePreferences.setWatchedFolders(folders)
     }
 }

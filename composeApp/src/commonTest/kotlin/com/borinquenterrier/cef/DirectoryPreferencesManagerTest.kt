@@ -3,162 +3,113 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldBeEmpty
-import io.kotest.matchers.collections.shouldContainAll
 import io.mockk.mockk
 import io.mockk.every
 import io.mockk.verify
-import com.russhwolf.settings.Settings
 
 class DirectoryPreferencesManagerTest : StringSpec({
 
-    "getWatchedLocalDirectories returns stored list" {
-        val settings = mockk<Settings>()
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
+    "getWatchedLocalDirectories delegates to local preferences" {
+        val localPrefs = mockk<LocalDirectoryPreferences>()
+        val drivePrefs = mockk<DriveDirectoryPreferences>()
 
         val dirs = listOf("/home/docs", "/home/downloads")
-        val encoded = """["/home/docs","/home/downloads"]"""
-        every { settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "") } returns encoded
-        every { serializer.deserializeDirectories(encoded) } returns dirs
+        every { localPrefs.getWatchedDirectories() } returns dirs
 
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
+        val manager = DirectoryPreferencesManager(localPrefs, drivePrefs)
         val result = manager.getWatchedLocalDirectories()
 
         result shouldBe dirs
+        verify { localPrefs.getWatchedDirectories() }
     }
 
-    "getWatchedLocalDirectories returns empty for blank setting" {
-        val settings = mockk<Settings>()
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
+    "getWatchedLocalDirectories returns empty from local preferences" {
+        val localPrefs = mockk<LocalDirectoryPreferences>()
+        val drivePrefs = mockk<DriveDirectoryPreferences>()
 
-        every { settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "") } returns ""
-        every { serializer.deserializeDirectories("") } returns null
+        every { localPrefs.getWatchedDirectories() } returns emptyList()
 
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
+        val manager = DirectoryPreferencesManager(localPrefs, drivePrefs)
         val result = manager.getWatchedLocalDirectories()
 
         result.shouldBeEmpty()
     }
 
-    "setWatchedLocalDirectories stores serialized list" {
-        val settings = mockk<Settings>(relaxed = true)
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
+    "setWatchedLocalDirectories delegates to local preferences" {
+        val localPrefs = mockk<LocalDirectoryPreferences>(relaxed = true)
+        val drivePrefs = mockk<DriveDirectoryPreferences>()
 
         val dirs = listOf("/home/docs", "/home/downloads")
-        every { serializer.serializeDirectories(dirs) } returns """["/home/docs","/home/downloads"]"""
 
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
+        val manager = DirectoryPreferencesManager(localPrefs, drivePrefs)
         manager.setWatchedLocalDirectories(dirs)
 
-        verify { settings.putString("CEF_WATCHED_LOCAL_DIRECTORIES", any()) }
+        verify { localPrefs.setWatchedDirectories(dirs) }
     }
 
-    "getWatchedGDriveFolders returns stored list" {
-        val settings = mockk<Settings>()
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
+    "getWatchedGDriveFolders delegates to drive preferences" {
+        val localPrefs = mockk<LocalDirectoryPreferences>()
+        val drivePrefs = mockk<DriveDirectoryPreferences>()
 
         val folders = listOf("folder-id-1", "folder-id-2")
-        val encoded = """["folder-id-1","folder-id-2"]"""
-        every { settings.getString("CEF_WATCHED_GDRIVE_FOLDERS", "") } returns encoded
-        every { serializer.deserializeDirectories(encoded) } returns folders
+        every { drivePrefs.getWatchedFolders() } returns folders
 
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
+        val manager = DirectoryPreferencesManager(localPrefs, drivePrefs)
         val result = manager.getWatchedGDriveFolders()
 
         result shouldBe folders
+        verify { drivePrefs.getWatchedFolders() }
     }
 
-    "setWatchedGDriveFolders stores serialized list" {
-        val settings = mockk<Settings>(relaxed = true)
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
+    "setWatchedGDriveFolders delegates to drive preferences" {
+        val localPrefs = mockk<LocalDirectoryPreferences>()
+        val drivePrefs = mockk<DriveDirectoryPreferences>(relaxed = true)
 
         val folders = listOf("folder-id-1", "folder-id-2")
-        every { serializer.serializeDirectories(folders) } returns """["folder-id-1","folder-id-2"]"""
 
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
+        val manager = DirectoryPreferencesManager(localPrefs, drivePrefs)
         manager.setWatchedGDriveFolders(folders)
 
-        verify { settings.putString("CEF_WATCHED_GDRIVE_FOLDERS", any()) }
+        verify { drivePrefs.setWatchedFolders(folders) }
     }
 
-    "handles deserialization errors gracefully on local dirs" {
-        val settings = mockk<Settings>()
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
+    "handles empty local directories" {
+        val localPrefs = mockk<LocalDirectoryPreferences>()
+        val drivePrefs = mockk<DriveDirectoryPreferences>()
 
-        every { settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "") } returns "{invalid json}"
-        every { serializer.deserializeDirectories("{invalid json}") } returns null
+        every { localPrefs.getWatchedDirectories() } returns emptyList()
 
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
+        val manager = DirectoryPreferencesManager(localPrefs, drivePrefs)
         val result = manager.getWatchedLocalDirectories()
 
         result.shouldBeEmpty()
     }
 
-    "handles deserialization errors gracefully on drive folders" {
-        val settings = mockk<Settings>()
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
+    "handles empty drive folders" {
+        val localPrefs = mockk<LocalDirectoryPreferences>()
+        val drivePrefs = mockk<DriveDirectoryPreferences>()
 
-        every { settings.getString("CEF_WATCHED_GDRIVE_FOLDERS", "") } returns "corrupted[["
-        every { serializer.deserializeDirectories("corrupted[[") } returns null
+        every { drivePrefs.getWatchedFolders() } returns emptyList()
 
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
+        val manager = DirectoryPreferencesManager(localPrefs, drivePrefs)
         val result = manager.getWatchedGDriveFolders()
 
         result.shouldBeEmpty()
     }
 
-    "round-trip serialization preserves data" {
-        val settings = mockk<Settings>(relaxed = true)
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
+    "coordinates multiple settings updates" {
+        val localPrefs = mockk<LocalDirectoryPreferences>(relaxed = true)
+        val drivePrefs = mockk<DriveDirectoryPreferences>(relaxed = true)
 
-        val dirs = listOf("/path/one", "/path/two", "/path/three")
-        val encoded = """["/path/one","/path/two","/path/three"]"""
-        every { serializer.serializeDirectories(dirs) } returns encoded
-        every { serializer.deserializeDirectories(encoded) } returns dirs
+        val dirs = listOf("/path/one", "/path/two")
+        val folders = listOf("folder1", "folder2")
 
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
+        val manager = DirectoryPreferencesManager(localPrefs, drivePrefs)
         manager.setWatchedLocalDirectories(dirs)
+        manager.setWatchedGDriveFolders(folders)
 
-        every { settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "") } returns encoded
-        val newManager = DirectoryPreferencesManager(settings, serializer, logger)
-        val result = newManager.getWatchedLocalDirectories()
-
-        result shouldBe dirs
-    }
-
-    "handles single directory path" {
-        val settings = mockk<Settings>()
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
-
-        val encoded = """["/home/single"]"""
-        every { settings.getString("CEF_WATCHED_LOCAL_DIRECTORIES", "") } returns encoded
-        every { serializer.deserializeDirectories(encoded) } returns listOf("/home/single")
-
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
-        val result = manager.getWatchedLocalDirectories()
-
-        result.shouldContainAll(listOf("/home/single"))
-    }
-
-    "setWatchedLocalDirectories can clear list with empty list" {
-        val settings = mockk<Settings>(relaxed = true)
-        val logger = mockk<Logger>(relaxed = true)
-        val serializer = mockk<PreferenceSerializer>()
-
-        every { serializer.serializeDirectories(emptyList()) } returns "[]"
-
-        val manager = DirectoryPreferencesManager(settings, serializer, logger)
-        manager.setWatchedLocalDirectories(emptyList())
-
-        verify { settings.putString("CEF_WATCHED_LOCAL_DIRECTORIES", "[]") }
+        verify { localPrefs.setWatchedDirectories(dirs) }
+        verify { drivePrefs.setWatchedFolders(folders) }
     }
 })
 

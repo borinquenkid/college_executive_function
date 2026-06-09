@@ -82,7 +82,11 @@ class DependencyContainer(
 
     val preferenceSerializer by lazy { PreferenceSerializer(logger) }
 
-    val directoryPreferencesManager by lazy { DirectoryPreferencesManager(settings, preferenceSerializer, logger) }
+    val localDirectoryPreferences by lazy { LocalDirectoryPreferences(settings, preferenceSerializer, logger) }
+
+    val driveDirectoryPreferences by lazy { DriveDirectoryPreferences(settings, preferenceSerializer, logger) }
+
+    val directoryPreferencesManager by lazy { DirectoryPreferencesManager(localDirectoryPreferences, driveDirectoryPreferences) }
 
     val localFileScanner by lazy { LocalFileScanner(fileReader, directoryPreferencesManager, logger) }
 

@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **83.90%** (8390/10000 lines)
-- **Total Source Files**: 134
+- **Total Source Files**: 138
 
 ## Coverage by File
 
@@ -18,6 +18,8 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | Platform.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AdvancedSettingsPanel.kt | 0.0% (0/88) | 0.0% (0/20) | 0.0% | AdvancedSettingsPanelKt, ComposableSingletons$AdvancedSettingsPanelKt |
+| 🔴 | LocalDirectoryPreferences.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | ConcurrentFolderFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveFileFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceItemView.kt | 0.0% (0/66) | 0.0% (0/48) | 1.2% | ComposableSingletons$SourceItemViewKt, SourceItemViewKt |
 | 🔴 | RetryAfterParser.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -26,6 +28,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | GeminiErrorHandler.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DirectoryPreferencesManager.kt | 0.0% (0/40) | 0.0% (0/8) | 0.0% | DirectoryPreferencesManager |
 | 🔴 | SourceDeleter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | DriveDirectoryPreferences.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ErrorCategorizer.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% | RoutineSetupScreenKt |
 | 🔴 | SourceAdder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -37,6 +40,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DriveQueryBuilder.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% | ComposableSingletons$RoutineScreenKt, RoutineScreenKt, RoutineScreenKt$RoutineScreen$1$1, RoutineScreenKt$RoutineScreen$4$1$1 |
+| 🔴 | FileDuplicateFilter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceSelector.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceRepository.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | LocalFileScanner.kt | 0.0% (0/46) | 0.0% (0/20) | 0.0% | LocalFileScanner, LocalFileScanner$scanNewFiles$2, LocalFileScanner$scanNewFiles$2$deferreds$1$1 |

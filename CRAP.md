@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 124
+- **Total Files Analyzed**: 126
 - **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
@@ -17,20 +17,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
 | DriveFileScanner.kt | 12 | 0.0% | 156.00 | 🔴 HIGH |
+| GeminiErrorHandler.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | DirectoryPreferencesManager.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | LocalFileScanner.kt | 9 | 0.0% | 90.00 | 🔴 HIGH |
 | ContextAgent.kt | 31 | 96.8% | 31.03 | 🔴 HIGH |
 | AcademicCalendar.kt | 26 | 81.2% | 30.50 | 🔴 HIGH |
-| GeminiRequestExecutor.kt | 25 | 79.6% | 30.30 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 30 | 95.2% | 30.10 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceSelector.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
+| GeminiRequestBuilder.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
 | EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 26 | 85.2% | 28.20 | 🟡 MEDIUM |
+| GeminiRequestExecutor.kt | 23 | 79.6% | 27.48 | 🟡 MEDIUM |
 | GoogleCalendarPanel.kt | 23 | 80.3% | 27.05 | 🟡 MEDIUM |
-| SqlDelightLocalCalendarRepository.kt | 24 | 90.0% | 24.58 | 🟡 MEDIUM |
-| CollisionDetector.kt | 17 | 71.1% | 23.97 | 🟡 MEDIUM |
 
 ---
 
@@ -45,6 +45,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `scanNewFiles` | 11 |
 | `buildDriveQuery` | 1 |
+
+### GeminiErrorHandler.kt (Score: 110.00 - 🔴 HIGH)
+- **Total Complexity**: 10
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extractRetryAfter` | 4 |
+| `categorizeError` | 3 |
+| `isQuotaExhausted` | 1 |
+| `handleStructuralError` | 1 |
+| `handleServerError` | 1 |
 
 ### DirectoryPreferencesManager.kt (Score: 110.00 - 🔴 HIGH)
 - **Total Complexity**: 10
@@ -91,17 +104,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `TaskDecompositionDialog` | 6 |
 | `AcademicCalendar` | 1 |
 
-### GeminiRequestExecutor.kt (Score: 30.30 - 🔴 HIGH)
-- **Total Complexity**: 25
-- **Real Coverage**: 79.6%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `postToModel` | 3 |
-| `clearRateLimitResetForTesting` | 1 |
-| `<T> executeWithRetry` | 1 |
-
 ### GoogleRemoteCalendarRepository.kt (Score: 30.10 - 🔴 HIGH)
 - **Total Complexity**: 30
 - **Real Coverage**: 95.2%
@@ -140,6 +142,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `autoSelectFirstFrom` | 2 |
 | `clearIfRemovedFrom` | 2 |
 | `selectSource` | 1 |
+
+### GeminiRequestBuilder.kt (Score: 30.00 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `buildPostUrl` | 2 |
+| `postToModel` | 2 |
+| `hasApiKey` | 1 |
 
 ### GoogleCalendarSyncService.kt (Score: 29.13 - 🟡 MEDIUM)
 - **Total Complexity**: 29
@@ -194,6 +207,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseDecomposeTaskJson` | 1 |
 | `parseCategorizeSourceJson` | 1 |
 | *... and 6 more* | |
+
+### GeminiRequestExecutor.kt (Score: 27.48 - 🟡 MEDIUM)
+- **Total Complexity**: 23
+- **Real Coverage**: 79.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearRateLimitResetForTesting` | 1 |
+| `postToModel` | 1 |
+| `<T> executeWithRetry` | 1 |
 
 ### GoogleCalendarPanel.kt (Score: 27.05 - 🟡 MEDIUM)
 - **Total Complexity**: 23

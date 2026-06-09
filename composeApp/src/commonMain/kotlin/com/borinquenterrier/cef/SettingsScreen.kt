@@ -10,6 +10,8 @@ import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
 import androidx.compose.runtime.*
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
@@ -76,6 +78,12 @@ fun SettingsScreen(
     var maxStudyBlockStr by remember { mutableStateOf(preferences.maxStudyBlockHours.toString()) }
     var preferredBreakStr by remember { mutableStateOf(preferences.preferredBreakMinutes.toString()) }
     var shareAnonymousBugReports by remember { mutableStateOf(preferences.shareAnonymousBugReports) }
+    var googleCalendarId by remember { mutableStateOf(preferences.googleCalendarId) }
+    var googleCalendarName by remember { mutableStateOf(preferences.googleCalendarName) }
+
+    var calendars by remember { mutableStateOf<List<RemoteCalendarMetadata>>(emptyList()) }
+    var isLoadingCalendars by remember { mutableStateOf(false) }
+    var calendarLoadError by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(preferences) {
         studyStartStr = preferences.studyStartHour.toString()
@@ -87,9 +95,14 @@ fun SettingsScreen(
         maxStudyBlockStr = preferences.maxStudyBlockHours.toString()
         preferredBreakStr = preferences.preferredBreakMinutes.toString()
         shareAnonymousBugReports = preferences.shareAnonymousBugReports
+        googleCalendarId = preferences.googleCalendarId
+        googleCalendarName = preferences.googleCalendarName
     }
 
-    fun parseAndSave() {
+    fun parseAndSave(
+        newCalendarId: String = googleCalendarId,
+        newCalendarName: String = googleCalendarName
+    ) {
         val newPrefs = StudyPreferences(
             studyStartHour = studyStartStr.toIntOrNull() ?: preferences.studyStartHour,
             studyEndHour = studyEndStr.toIntOrNull() ?: preferences.studyEndHour,
@@ -99,7 +112,9 @@ fun SettingsScreen(
             dinnerEndHour = dinnerEndStr.toIntOrNull() ?: preferences.dinnerEndHour,
             maxStudyBlockHours = maxStudyBlockStr.toIntOrNull() ?: preferences.maxStudyBlockHours,
             preferredBreakMinutes = preferredBreakStr.toIntOrNull() ?: preferences.preferredBreakMinutes,
-            shareAnonymousBugReports = shareAnonymousBugReports
+            shareAnonymousBugReports = shareAnonymousBugReports,
+            googleCalendarId = newCalendarId,
+            googleCalendarName = newCalendarName
         )
         preferences = newPrefs
         scope.launch {
@@ -110,6 +125,22 @@ fun SettingsScreen(
     val isGoogleLinked = connectionState is GoogleConnectionState.Linked
     val isBusy = connectionState is GoogleConnectionState.Connecting
     val loginError = (connectionState as? GoogleConnectionState.Error)?.message
+
+    LaunchedEffect(isGoogleLinked) {
+        if (isGoogleLinked) {
+            isLoadingCalendars = true
+            calendarLoadError = null
+            try {
+                calendars = container.remoteRepository.getAvailableCalendars()
+            } catch (e: Exception) {
+                calendarLoadError = "Failed to load calendars: ${e.message}"
+            } finally {
+                isLoadingCalendars = false
+            }
+        } else {
+            calendars = emptyList()
+        }
+    }
 
     Column(
         modifier = modifier
@@ -255,6 +286,86 @@ fun SettingsScreen(
                         modifier = Modifier.fillMaxWidth()
                     ) {
                         Text("Disconnect Account")
+                    }
+                }
+
+                if (isGoogleLinked) {
+                    HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
+                    Text("Target Google Calendar", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    if (isLoadingCalendars) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            CircularProgressIndicator(modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text("Loading available calendars...", style = MaterialTheme.typography.bodySmall)
+                        }
+                    } else if (calendarLoadError != null) {
+                        Row(verticalAlignment = Alignment.CenterVertically) {
+                            Icon(Icons.Default.Error, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+                            Spacer(Modifier.width(8.dp))
+                            Text(calendarLoadError!!, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+                            TextButton(onClick = {
+                                scope.launch {
+                                    isLoadingCalendars = true
+                                    calendarLoadError = null
+                                    try {
+                                        calendars = container.remoteRepository.getAvailableCalendars()
+                                    } catch (e: Exception) {
+                                        calendarLoadError = "Failed to load: ${e.message}"
+                                    } finally {
+                                        isLoadingCalendars = false
+                                    }
+                                }
+                            }) {
+                                Text("Retry", style = MaterialTheme.typography.bodySmall)
+                            }
+                        }
+                    } else {
+                        var expanded by remember { mutableStateOf(false) }
+                        val currentDisplayName = if (googleCalendarId == "default") "CEF Academic (Default)" else googleCalendarName
+                        
+                        androidx.compose.foundation.layout.Box(modifier = Modifier.fillMaxWidth()) {
+                            OutlinedTextField(
+                                value = currentDisplayName,
+                                onValueChange = {},
+                                readOnly = true,
+                                modifier = Modifier.fillMaxWidth().testTag("settings_calendar_picker_input"),
+                                trailingIcon = {
+                                    IconButton(onClick = { expanded = true }) {
+                                        Icon(
+                                            imageVector = Icons.Default.Settings,
+                                            contentDescription = "Select Calendar"
+                                        )
+                                    }
+                                }
+                            )
+                            
+                            DropdownMenu(
+                                expanded = expanded,
+                                onDismissRequest = { expanded = false },
+                                modifier = Modifier.fillMaxWidth(0.9f).testTag("settings_calendar_dropdown_menu")
+                            ) {
+                                DropdownMenuItem(
+                                    text = { Text("CEF Academic (Default)") },
+                                    onClick = {
+                                        parseAndSave(newCalendarId = "default", newCalendarName = "CEF Academic")
+                                        expanded = false
+                                    },
+                                    modifier = Modifier.testTag("settings_calendar_option_default")
+                                )
+                                calendars.forEach { cal ->
+                                    DropdownMenuItem(
+                                        text = { Text(cal.name) },
+                                        onClick = {
+                                            parseAndSave(newCalendarId = cal.id, newCalendarName = cal.name)
+                                            expanded = false
+                                        },
+                                        modifier = Modifier.testTag("settings_calendar_option_${cal.name}")
+                                    )
+                                }
+                            }
+                        }
                     }
                 }
 

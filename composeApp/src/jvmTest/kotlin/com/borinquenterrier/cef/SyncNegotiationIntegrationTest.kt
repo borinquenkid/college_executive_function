@@ -88,7 +88,7 @@ class SyncNegotiationIntegrationTest : FunSpec({
         tokenRepo.saveTokens("mock-access", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService)
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, preferencesRepository)
         
         val unifiedRepo = CalendarAgent(
             localRepo = localRepo,

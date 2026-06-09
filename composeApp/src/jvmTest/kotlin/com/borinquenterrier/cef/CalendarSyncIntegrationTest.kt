@@ -18,6 +18,7 @@ import com.russhwolf.settings.MapSettings
 class CalendarSyncIntegrationTest : FunSpec({
 
     val date = LocalDate(2024, 9, 2)
+    val preferencesRepository = PreferencesRepository(MapSettings())
 
     /**
      * Helper to create a robust mock engine for Google API in tests.
@@ -86,7 +87,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         val httpClient = HttpClient(mockEngine) { install(ContentNegotiation) { json(kotlinx.serialization.json.Json { ignoreUnknownKeys = true }) } }
         val authService = GoogleAuthService(tokenRepo.let { MapSettings() }) // Use a fresh MapSettings for dummy auth
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService)
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, preferencesRepository)
         val unifiedRepo = CalendarAgent(localRepo, remoteRepo)
 
         unifiedRepo.synchronize()
@@ -114,7 +115,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         tokenRepo.saveTokens("mock-access", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService)
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, preferencesRepository)
         val unifiedRepo = CalendarAgent(localRepo, remoteRepo)
 
         unifiedRepo.synchronize()
@@ -132,7 +133,7 @@ class CalendarSyncIntegrationTest : FunSpec({
             respond(content = "Unauthorized", status = HttpStatusCode.Unauthorized) 
         }) { install(ContentNegotiation) { json(kotlinx.serialization.json.Json { ignoreUnknownKeys = true }) } }
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService)
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, preferencesRepository)
         val unifiedRepo = CalendarAgent(localRepo, remoteRepo)
 
         val event = DayEvent(id = "local-1", title = "New Class", source = EventSource.CLASS, date = date)
@@ -174,7 +175,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         tokenRepo.saveTokens("mock-access", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService)
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, preferencesRepository)
         val unifiedRepo = CalendarAgent(localRepo, remoteRepo)
 
         // Synchronize

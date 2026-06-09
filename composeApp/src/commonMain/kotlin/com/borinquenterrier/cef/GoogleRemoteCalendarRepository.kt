@@ -6,7 +6,8 @@ import kotlinx.datetime.LocalDate
  * Implementation of [RemoteCalendarRepository] using the Google Calendar REST API.
  */
 class GoogleRemoteCalendarRepository(
-    private val syncService: GoogleCalendarSyncService
+    private val syncService: GoogleCalendarSyncService,
+    private val preferencesRepository: PreferencesRepository
 ) : RemoteCalendarRepository {
 
     override fun getSettings(): com.russhwolf.settings.Settings? = null
@@ -20,12 +21,18 @@ class GoogleRemoteCalendarRepository(
     }
 
     /**
-     * Finds the 'CEF Academic' calendar ID, or creates it if it doesn't exist.
+     * Finds the user-configured calendar ID, or creates/finds the default calendar if it doesn't exist.
      */
     suspend fun getCEFCalendarId(): String {
+        val prefs = preferencesRepository.getPreferences()
+        val savedId = prefs.googleCalendarId
+        if (savedId != "default" && savedId.isNotEmpty()) {
+            return savedId
+        }
+        val targetName = prefs.googleCalendarName.ifEmpty { "CEF Academic" }
         val calendars = syncService.listCalendars()
-        val cefCal = calendars.find { it.name == "CEF Academic" }
-        return cefCal?.id ?: syncService.createCalendar("CEF Academic")
+        val cefCal = calendars.find { it.name == targetName }
+        return cefCal?.id ?: syncService.createCalendar(targetName)
     }
 
     override suspend fun saveEvent(event: Event, calendarId: String) {

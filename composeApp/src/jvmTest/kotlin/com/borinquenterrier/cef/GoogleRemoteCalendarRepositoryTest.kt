@@ -11,13 +11,14 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 class GoogleRemoteCalendarRepositoryTest : FunSpec({
-
+ 
     val syncService = mockk<GoogleCalendarSyncService>(relaxed = true)
-    val repo = GoogleRemoteCalendarRepository(syncService)
-
+    val preferencesRepository = mockk<PreferencesRepository>(relaxed = true)
+    val repo = GoogleRemoteCalendarRepository(syncService, preferencesRepository)
+ 
     val cefCalId = "cef-calendar-id-123"
     val date = LocalDate(2026, 6, 8)
-
+ 
     val timeEvent = TimeEvent(
         id = "evt-1",
         title = "Lecture",
@@ -28,7 +29,7 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         syncStatus = SyncStatus.SYNCED,
         category = AcademicCategory.CLASS
     )
-
+ 
     val dayEvent = DayEvent(
         id = "evt-day",
         title = "Holiday",
@@ -37,8 +38,11 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         syncStatus = SyncStatus.SYNCED,
         category = AcademicCategory.HOLIDAY
     )
-
-    beforeEach { clearAllMocks() }
+ 
+    beforeEach {
+        clearAllMocks()
+        coEvery { preferencesRepository.getPreferences() } returns StudyPreferences()
+    }
 
     // ─── getCEFCalendarId ────────────────────────────────────────────────────
 
@@ -353,5 +357,47 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         val result = repo.getIncompleteEventsBefore(LocalDate(2026, 6, 8), "default")
 
         result.shouldBeEmpty()
+    }
+
+    // ─── Custom Calendar Selection Tests ─────────────────────────────────────
+
+    test("getCEFCalendarId returns saved custom calendar ID when googleCalendarId is not default") {
+        coEvery { preferencesRepository.getPreferences() } returns StudyPreferences(
+            googleCalendarId = "custom-calendar-123",
+            googleCalendarName = "My Custom Calendar"
+        )
+
+        val result = repo.getCEFCalendarId()
+
+        result shouldBe "custom-calendar-123"
+        coVerify(exactly = 0) { syncService.listCalendars() }
+    }
+
+    test("getCEFCalendarId finds or creates custom calendar by name when googleCalendarId is default") {
+        coEvery { preferencesRepository.getPreferences() } returns StudyPreferences(
+            googleCalendarId = "default",
+            googleCalendarName = "Custom Calendar Name"
+        )
+        coEvery { syncService.listCalendars() } returns listOf(
+            RemoteCalendarMetadata("custom-id-999", "Custom Calendar Name")
+        )
+
+        val result = repo.getCEFCalendarId()
+
+        result shouldBe "custom-id-999"
+    }
+
+    test("getCEFCalendarId creates custom calendar by name when not found and ID is default") {
+        coEvery { preferencesRepository.getPreferences() } returns StudyPreferences(
+            googleCalendarId = "default",
+            googleCalendarName = "Brand New Calendar"
+        )
+        coEvery { syncService.listCalendars() } returns emptyList()
+        coEvery { syncService.createCalendar("Brand New Calendar") } returns "new-created-id"
+
+        val result = repo.getCEFCalendarId()
+
+        result shouldBe "new-created-id"
+        coVerify(exactly = 1) { syncService.createCalendar("Brand New Calendar") }
     }
 })

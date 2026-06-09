@@ -50,7 +50,8 @@ class IcsToGoogleIntegrationTest : FunSpec({
 
 
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
-        val googleRepo = GoogleRemoteCalendarRepository(syncService)
+        val preferencesRepository = PreferencesRepository(settings)
+        val googleRepo = GoogleRemoteCalendarRepository(syncService, preferencesRepository)
         val icsSource = IcsCalendarSource(icsContent)
 
         // 3. Setup AI for unified pipeline extraction

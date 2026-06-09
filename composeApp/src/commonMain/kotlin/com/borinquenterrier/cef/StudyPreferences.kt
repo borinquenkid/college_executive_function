@@ -12,5 +12,7 @@ data class StudyPreferences(
     val dinnerEndHour: Int = 19,
     val maxStudyBlockHours: Int = 2,
     val preferredBreakMinutes: Int = 30,
-    val shareAnonymousBugReports: Boolean = false
+    val shareAnonymousBugReports: Boolean = false,
+    val googleCalendarId: String = "default",
+    val googleCalendarName: String = "CEF Academic"
 )

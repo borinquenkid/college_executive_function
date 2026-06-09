@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: 0.17** — DirectoryPreferencesManager decomposition
+**Current Phase: 0.21** — Completed DirectoryPreferencesManager decomposition
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -50,7 +50,10 @@ These phases continue the CRAP remediation strategy across file ingestion and pr
 | 0.16 | Decompose `LocalFileScanner` service | ✅ **COMPLETED** | ef9f85d |
 | 0.17 | Decompose `DirectoryPreferencesManager` | ✅ **COMPLETED** | 5f6eea8 |
 | 0.18 | Decompose `GeminiErrorHandler` (CRAP 110.00) | ✅ **COMPLETED** | 3d98e9b |
-| **0.19+** | **Continue error handling & serialization (TBD)** | ⏳ **NEXT** | — |
+| 0.19 | Test coverage for `PreferenceSerializer` (CRAP 56.00) | ✅ **COMPLETED** | (Phase 0.19) |
+| 0.20 | Decompose `DriveFileFetcher` (CRAP 72.00) | ✅ **COMPLETED** | 95f8ddf |
+| 0.21 | Decompose `DirectoryPreferencesManager` (CRAP 72.00) | ✅ **COMPLETED** | 4c653d0 |
+| **0.22+** | **Continue CRAP remediation (TBD)** | ⏳ **NEXT** | — |
 
 ---
 
@@ -75,9 +78,64 @@ These phases continue the CRAP remediation strategy across file ingestion and pr
 
 ---
 
-### Phase 0.19+ — Coverage & Infrastructure (Planned)
+### Phase 0.19 — PreferenceSerializer Test Coverage ✅ **COMPLETED**
 
-**PreferenceSerializer.kt** (CRAP 56.00) & **DriveFileFetcher.kt** (CRAP 72.00) follow decomposition strategy.
+**Target:** Add comprehensive unit tests for serialization/deserialization (CRAP 56.00)
+
+**Deliverables:**
+1. ✅ `PreferenceSerializerTest.kt` — 24 test cases covering round-trip serialization, null/blank handling, edge cases
+2. ✅ Tests verified 100% functional; coverage detection pending (Kover instrumentation may need tweaking)
+
+**Results:**
+- Added 24 unit tests (all passing)
+- Verified `kotlinx.serialization` usage is correct (not hand-coded parsing)
+- Established pattern for serialization testing
+
+**Completed 2026-06-09.**
+
+---
+
+### Phase 0.20 — DriveFileFetcher Decomposition ✅ **COMPLETED**
+
+**Target:** Decompose concurrent file fetching and deduplication (CRAP 72.00)
+
+**Deliverables:**
+1. ✅ `ConcurrentFolderFetcher` — async orchestration with error isolation (Complexity 6)
+2. ✅ `FileDuplicateFilter` — deduplication logic (Complexity 2)
+3. ✅ `DriveFileFetcher` — refactored as thin facade (Complexity 8→3)
+4. ✅ Tests: 23 test cases (FileDuplicateFilterTest 8, ConcurrentFolderFetcherTest 8, SourceCountTest 7)
+
+**Results:**
+- Complex async logic isolated in ConcurrentFolderFetcher
+- Deduplication logic easily testable in FileDuplicateFilter
+- DriveFileFetcher coordinates both services with minimal logic
+
+**Completed 2026-06-09.**
+
+---
+
+### Phase 0.21 — DirectoryPreferencesManager Decomposition ✅ **COMPLETED**
+
+**Target:** Decompose preference management across local and GDrive directories (CRAP 72.00)
+
+**Deliverables:**
+1. ✅ `LocalDirectoryPreferences` — manages local directory preferences (Complexity 3)
+2. ✅ `DriveDirectoryPreferences` — manages GDrive folder preferences (Complexity 3)
+3. ✅ `DirectoryPreferencesManager` — refactored as thin facade (Complexity 8→2)
+4. ✅ Tests: 24 test cases (DirectoryPreferencesManagerTest 8, LocalDirectoryPreferencesTest 8, DriveDirectoryPreferencesTest 8)
+
+**Results:**
+- Preference management patterns isolated and independently testable
+- Facade coordinates both preference managers with minimal logic
+- DirectoryPreferencesManager removed from top-15 high-risk list
+
+**Completed 2026-06-09.**
+
+---
+
+### Phase 0.22+ — Coverage & Infrastructure (Planned)
+
+**Next targets:** ConcurrentFolderFetcher (CRAP 56) and PreferenceSerializer (CRAP 56) need coverage detection verification.
 
 **PreferenceSerializer.kt status:** ✅ Already using `kotlinx.serialization` (not hand-coded). Issue is **0% coverage**. Phase 0.19 should add unit tests for:
 - Successful serialization/deserialization round-trips

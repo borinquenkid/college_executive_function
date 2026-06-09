@@ -78,4 +78,97 @@ class EventGeneratorTest : FunSpec({
         expandedEvents shouldHaveSize 1
         (expandedEvents[0] as TimeEvent).date shouldBe LocalDate(2024, 3, 15)
     }
+    // ── DayEvent tests ────────────────────────────────────────────────────────
+
+    val mondayDayEvent = DayEvent(
+        title = "Holiday",
+        source = EventSource.SCHOOL,
+        date = LocalDate(2024, 2, 5), // A specific Monday
+        recurrence = null
+    )
+
+    test("expandEvents includes a non-recurring DayEvent that falls within the view range") {
+        val viewStart = LocalDate(2024, 2, 1)
+        val viewEnd   = LocalDate(2024, 2, 29)
+
+        val result = EventGenerator.expandEvents(listOf(mondayDayEvent), viewStart, viewEnd)
+
+        result shouldHaveSize 1
+        (result[0] as DayEvent).title shouldBe "Holiday"
+        (result[0] as DayEvent).date  shouldBe LocalDate(2024, 2, 5)
+    }
+
+    test("expandEvents excludes a non-recurring DayEvent outside the view range") {
+        val viewStart = LocalDate(2024, 3, 1)
+        val viewEnd   = LocalDate(2024, 3, 31)
+
+        val result = EventGenerator.expandEvents(listOf(mondayDayEvent), viewStart, viewEnd)
+
+        result.isEmpty() shouldBe true
+    }
+
+    test("expandEvents expands a recurring DayEvent correctly") {
+        val recurringHoliday = DayEvent(
+            title = "Recurring Holiday",
+            source = EventSource.SCHOOL,
+            date = LocalDate(2024, 1, 8),
+            recurrence = Recurrence(
+                daysOfWeek = listOf(DayOfWeek.FRIDAY),
+                startDate  = LocalDate(2024, 1, 1),
+                endDate    = LocalDate(2024, 1, 31)
+            )
+        )
+        val viewStart = LocalDate(2024, 1, 1)
+        val viewEnd   = LocalDate(2024, 1, 31)
+
+        val result = EventGenerator.expandEvents(listOf(recurringHoliday), viewStart, viewEnd)
+
+        // Fridays in Jan 2024: 5, 12, 19, 26 → 4 occurrences
+        result shouldHaveSize 4
+        result.forEach { event ->
+            (event as DayEvent).recurrence shouldBe null  // concretized; no recurrence attached
+        }
+    }
+
+    // ── TimeEvent out-of-range test ───────────────────────────────────────────
+
+    test("expandEvents excludes a non-recurring TimeEvent that falls outside the view range") {
+        val outOfRangeEvent = TimeEvent(
+            title = "Past Event",
+            source = EventSource.MANUAL,
+            startTime = startTime, endTime = endTime,
+            date = LocalDate(2023, 12, 1),
+            recurrence = null
+        )
+        val viewStart = LocalDate(2024, 1, 1)
+        val viewEnd   = LocalDate(2024, 1, 31)
+
+        val result = EventGenerator.expandEvents(listOf(outOfRangeEvent), viewStart, viewEnd)
+
+        result.isEmpty() shouldBe true
+    }
+
+    test("expandEvents handles mixed list of TimeEvents and DayEvents") {
+        val timeEv = TimeEvent(
+            title = "Lecture",
+            source = EventSource.ROUTINE,
+            startTime = startTime, endTime = endTime,
+            date = LocalDate(2024, 2, 5),
+            recurrence = null
+        )
+        val dayEv = DayEvent(
+            title = "Study Day",
+            source = EventSource.SCHOOL,
+            date = LocalDate(2024, 2, 5),
+            recurrence = null
+        )
+        val viewStart = LocalDate(2024, 2, 1)
+        val viewEnd   = LocalDate(2024, 2, 29)
+
+        val result = EventGenerator.expandEvents(listOf(timeEv, dayEv), viewStart, viewEnd)
+
+        result shouldHaveSize 2
+        result.any { it is TimeEvent && it.title == "Lecture"    } shouldBe true
+        result.any { it is DayEvent  && it.title == "Study Day"  } shouldBe true
+    }
 })

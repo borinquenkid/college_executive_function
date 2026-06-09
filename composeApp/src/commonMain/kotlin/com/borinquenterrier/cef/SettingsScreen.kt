@@ -110,18 +110,19 @@ fun SettingsScreen(
         newCalendarId: String = googleCalendarId,
         newCalendarName: String = googleCalendarName
     ) {
-        val newPrefs = StudyPreferences(
-            studyStartHour = studyStartStr.toIntOrNull() ?: preferences.studyStartHour,
-            studyEndHour = studyEndStr.toIntOrNull() ?: preferences.studyEndHour,
-            lunchStartHour = lunchStartStr.toIntOrNull() ?: preferences.lunchStartHour,
-            lunchEndHour = lunchEndStr.toIntOrNull() ?: preferences.lunchEndHour,
-            dinnerStartHour = dinnerStartStr.toIntOrNull() ?: preferences.dinnerStartHour,
-            dinnerEndHour = dinnerEndStr.toIntOrNull() ?: preferences.dinnerEndHour,
-            maxStudyBlockHours = maxStudyBlockStr.toIntOrNull() ?: preferences.maxStudyBlockHours,
-            preferredBreakMinutes = preferredBreakStr.toIntOrNull() ?: preferences.preferredBreakMinutes,
+        val newPrefs = SettingsPreferencesParser.parse(
+            studyStartStr            = studyStartStr,
+            studyEndStr              = studyEndStr,
+            lunchStartStr            = lunchStartStr,
+            lunchEndStr              = lunchEndStr,
+            dinnerStartStr           = dinnerStartStr,
+            dinnerEndStr             = dinnerEndStr,
+            maxStudyBlockStr         = maxStudyBlockStr,
+            preferredBreakStr        = preferredBreakStr,
             shareAnonymousBugReports = shareAnonymousBugReports,
-            googleCalendarId = newCalendarId,
-            googleCalendarName = newCalendarName
+            googleCalendarId         = newCalendarId,
+            googleCalendarName       = newCalendarName,
+            currentPrefs             = preferences
         )
         preferences = newPrefs
         scope.launch {

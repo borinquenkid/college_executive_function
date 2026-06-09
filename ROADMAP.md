@@ -25,9 +25,17 @@ Add ability to fetch available Google Calendars, save the selected calendar ID/n
   3. Display a dropdown menu in `SettingsScreen.kt` listing all fetched Google Calendars and saving the selected choice.
   4. Refactor `GoogleRemoteCalendarRepository.kt` to query and use the selected calendar ID from settings rather than defaulting to `"CEF Academic"`.
 
-### 2. CRAP Risk Reduction (Phase 2 & 5 follow-ups)
-* **SettingsScreen.kt Refactoring**: Extract parsing and input mapping from the 9-complexity `parseAndSave()` method and add unit tests to cover empty/corrupted configs.
-* **AgentHarness.kt Refactoring**: Extract modular sub-functions from the 23-complexity `runHarness()` method and add tests for directory errors.
+### 2. Google Calendar, Gemini Quota, and OAuth Improvements
+These are user-reported issues and feature requests targeted for the next development cycles:
+* **Target Google Calendar Creation Capability** (Feature Request)
+  * **Description**: The app currently only allows picking from existing calendars retrieved from the user's Google Account. There is no option in the settings UI to create a *new* calendar.
+  * **Proposed Solution**: Add a "Create New Calendar" button/dialog in `SettingsScreen.kt` that calls `GoogleCalendarSyncService.createCalendar(name)` to instantiate a fresh calendar directly from the app.
+* **Gemini API Daily Quota Rate Limit Issue**
+  * **Description**: Ingesting a calendar and two syllabi simultaneously frequently triggers a `QuotaExhausted: Rate limit reached` error due to multiple concurrent requests.
+  * **Proposed Solution**: Improve the Critic-Actor and Event generation loops to stagger requests, run sequential retries with exponential backoff, and notify the user with a clearer countdown.
+* **Google OAuth Stale Connection / JSON Auth Error**
+  * **Description**: On startup, if local session tokens are stale/expired, the connection shows a raw JSON authentication error. Disconnecting and reconnecting resolves it.
+  * **Proposed Solution**: Auto-detect invalid refresh tokens at startup inside `GoogleAccountFlow` and transition the status cleanly to `Unlinked` instead of throwing raw JSON error messages.
 
 ---
 
@@ -99,6 +107,8 @@ All items below have been verified against the actual codebase — not just the 
 | **Stateful User Preference Memory** | Track manual study block moves/deletions, derive implicit constraints, and inject as prompt rules and resolver filters |
 | **Sync Re-negotiation UI** | Replace silent collision resolution on remote sync with interactive user proposal diff dialog |
 | **Headless Multi-Source Ingestion Integration Test** | Ingests a dynamically compiled Spring 2025 calendar PDF alongside BDAN 250 and HIST 152 syllabi, resolving collision-free and matching ground-truth events |
+| **SettingsScreen.kt Refactoring** | Extracted `SettingsPreferencesParser` from the 9-complexity `parseAndSave()` method and added unit tests |
+| **AgentHarness.kt Refactoring** | Extracted modular sub-functions from the 23-complexity `runHarness()` method and added tests for watched directories |
 
 ---
 

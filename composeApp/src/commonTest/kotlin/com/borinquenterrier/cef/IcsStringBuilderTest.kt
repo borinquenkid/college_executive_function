@@ -51,4 +51,112 @@ class IcsStringBuilderTest : FunSpec({
         ics shouldContain "DESCRIPTION:Source: SCHOOL\\nCategory: REGULAR"
         ics shouldContain "END:VEVENT"
     }
+    test("buildIcsString includes warning in DESCRIPTION when event has a warning") {
+        val event = TimeEvent(
+            id = "warn-1",
+            title = "Ambiguous Midterm",
+            source = EventSource.AI_GENERATED,
+            date = LocalDate(2026, 10, 14),
+            startTime = LocalTime(10, 0),
+            endTime = LocalTime(12, 0),
+            warning = "Date says Monday but Oct 14 is a Wednesday"
+        )
+
+        val ics = IcsStringBuilder.buildIcsString(listOf(event))
+
+        ics shouldContain "Warning: Date says Monday but Oct 14 is a Wednesday"
+    }
+
+    test("buildIcsString uses hash-based UID when event id is null") {
+        val event = TimeEvent(
+            id = null,
+            title = "No-ID Event",
+            source = EventSource.MANUAL,
+            date = LocalDate(2026, 3, 5),
+            startTime = LocalTime(8, 0),
+            endTime = LocalTime(9, 0)
+        )
+
+        val ics = IcsStringBuilder.buildIcsString(listOf(event))
+
+        // Expect "cef-<hash>-20260305" pattern — just confirm it doesn't say "null"
+        ics shouldContain "UID:cef-"
+    }
+
+    test("buildIcsString produces minimal valid calendar for empty event list") {
+        val ics = IcsStringBuilder.buildIcsString(emptyList())
+
+        ics shouldContain "BEGIN:VCALENDAR"
+        ics shouldContain "END:VCALENDAR"
+        (ics.contains("BEGIN:VEVENT") shouldBe false)
+    }
+
+    test("buildIcsString includes RRULE for a recurring TimeEvent") {
+        val recurrence = Recurrence(
+            daysOfWeek = listOf(kotlinx.datetime.DayOfWeek.MONDAY, kotlinx.datetime.DayOfWeek.WEDNESDAY),
+            startDate  = LocalDate(2026, 1, 5),
+            endDate    = LocalDate(2026, 5, 1)
+        )
+        val event = TimeEvent(
+            id = "recurring-1",
+            title = "CS 101",
+            source = EventSource.ROUTINE,
+            date = LocalDate(2026, 1, 5),
+            startTime = LocalTime(9, 0),
+            endTime = LocalTime(10, 0),
+            recurrence = recurrence
+        )
+
+        val ics = IcsStringBuilder.buildIcsString(listOf(event))
+
+        ics shouldContain "RRULE:FREQ=WEEKLY;BYDAY=MO,WE;UNTIL=20260501"
+    }
+
+    test("buildIcsString includes RRULE for a recurring DayEvent") {
+        val recurrence = Recurrence(
+            daysOfWeek = listOf(kotlinx.datetime.DayOfWeek.FRIDAY),
+            startDate  = LocalDate(2026, 8, 1),
+            endDate    = LocalDate(2026, 12, 20)
+        )
+        val event = DayEvent(
+            id = "recurring-day-1",
+            title = "Weekly Review",
+            source = EventSource.ROUTINE,
+            date = LocalDate(2026, 8, 7),
+            recurrence = recurrence
+        )
+
+        val ics = IcsStringBuilder.buildIcsString(listOf(event))
+
+        ics shouldContain "RRULE:FREQ=WEEKLY;BYDAY=FR;UNTIL=20261220"
+    }
+
+    test("buildRecurrenceRule correctly maps all seven BYDAY abbreviations") {
+        val allDays = listOf(
+            kotlinx.datetime.DayOfWeek.MONDAY,
+            kotlinx.datetime.DayOfWeek.TUESDAY,
+            kotlinx.datetime.DayOfWeek.WEDNESDAY,
+            kotlinx.datetime.DayOfWeek.THURSDAY,
+            kotlinx.datetime.DayOfWeek.FRIDAY,
+            kotlinx.datetime.DayOfWeek.SATURDAY,
+            kotlinx.datetime.DayOfWeek.SUNDAY
+        )
+        val recurrence = Recurrence(
+            daysOfWeek = allDays,
+            startDate  = LocalDate(2026, 1, 1),
+            endDate    = LocalDate(2026, 12, 31)
+        )
+        val event = TimeEvent(
+            title = "All Days",
+            source = EventSource.ROUTINE,
+            date = LocalDate(2026, 1, 5),
+            startTime = LocalTime(8, 0),
+            endTime = LocalTime(9, 0),
+            recurrence = recurrence
+        )
+
+        val ics = IcsStringBuilder.buildIcsString(listOf(event))
+
+        ics shouldContain "BYDAY=MO,TU,WE,TH,FR,SA,SU"
+    }
 })

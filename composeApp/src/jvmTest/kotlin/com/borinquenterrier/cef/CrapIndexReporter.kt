@@ -14,6 +14,11 @@ object CrapIndexReporter {
 
     private val isModuleDir = !File("composeApp").exists() && File("src/commonMain").exists()
 
+    private val ROOT_DIR = when {
+        isModuleDir -> File("..").absoluteFile
+        else -> File("..").absoluteFile  // Go up one level from composeApp when running gradle task
+    }
+
     private val SRC_DIR = run {
         val candidate = if (isModuleDir) {
             File("src/commonMain/kotlin/com/borinquenterrier/cef")
@@ -34,17 +39,8 @@ object CrapIndexReporter {
         candidates.firstOrNull { it.exists() } ?: File("composeApp/build/reports/kover/reportJvm.xml")
     }
 
-    private val COVERAGE_MD = when {
-        isModuleDir -> File("../COVERAGE.md")
-        File("COVERAGE.md").canWrite() -> File("COVERAGE.md")
-        else -> File("../../COVERAGE.md")
-    }
-
-    private val CRAP_MD = when {
-        isModuleDir -> File("../CRAP.md")
-        File("CRAP.md").canWrite() -> File("CRAP.md")
-        else -> File("../../CRAP.md")
-    }
+    private val COVERAGE_MD = File(ROOT_DIR, "COVERAGE.md")
+    private val CRAP_MD = File(ROOT_DIR, "CRAP.md")
 
     private val COMPLEXITY_KEYWORDS = listOf(
         Regex("\\bif\\b"), Regex("\\bwhen\\b"), Regex("\\bfor\\b"), Regex("\\bwhile\\b"), Regex("\\bcatch\\b"),

@@ -56,7 +56,7 @@ class ConflictResolver(private val logger: Logger? = null) {
                                     requiresProfessorApproval = false
                                 )
                             )
-                            logger?.w(tag, "Could not reschedule ${proposed.title}")
+                            logger?.d(tag, "Could not reschedule ${proposed.title}")
                         }
                     }
                     else -> {
@@ -69,7 +69,7 @@ class ConflictResolver(private val logger: Logger? = null) {
                                 requiresProfessorApproval = true
                             )
                         )
-                        logger?.w(tag, "Cannot reschedule ${proposed.title} (${proposed.category})")
+                        logger?.d(tag, "Cannot reschedule ${proposed.title} (${proposed.category})")
                     }
                 }
             }

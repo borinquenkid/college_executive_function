@@ -100,9 +100,9 @@ class SourceManagerTest : FunSpec({
     }
 
     test("should handle clearing selection") {
-        val loader = mockk<SourceLoader>()
-        val adder = mockk<SourceAdder>()
-        val deleter = mockk<SourceDeleter>()
+        val loader = mockk<SourceLoader>(relaxed = true)
+        val adder = mockk<SourceAdder>(relaxed = true)
+        val deleter = mockk<SourceDeleter>(relaxed = true)
         val selector = SourceSelector()
 
         val manager = SourceManager(loader, adder, deleter, selector, mockk())

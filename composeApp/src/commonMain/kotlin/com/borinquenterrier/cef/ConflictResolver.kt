@@ -59,6 +59,7 @@ class ConflictResolver(private val logger: Logger? = null) {
                             logger?.d(tag, "Could not reschedule ${proposed.title}")
                         }
                     }
+
                     else -> {
                         // Immovable event (quiz, test, exam)
                         unresolved.add(
@@ -90,9 +91,9 @@ class ConflictResolver(private val logger: Logger? = null) {
      */
     private fun isMovable(event: Event): Boolean {
         return event.category in listOf(AcademicCategory.STUDY_BLOCK, AcademicCategory.REGULAR) ||
-               (event is TimeEvent && event.title.contains("HW", ignoreCase = true)) ||
-               (event is TimeEvent && event.title.contains("Homework", ignoreCase = true)) ||
-               (event is TimeEvent && event.title.contains("Assignment", ignoreCase = true))
+                (event is TimeEvent && event.title.contains("HW", ignoreCase = true)) ||
+                (event is TimeEvent && event.title.contains("Homework", ignoreCase = true)) ||
+                (event is TimeEvent && event.title.contains("Assignment", ignoreCase = true))
     }
 
     /**

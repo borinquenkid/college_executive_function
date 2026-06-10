@@ -5,19 +5,20 @@ import androidx.compose.runtime.remember
 import com.borinquenterrier.cef.db.DriverFactory
 
 actual val isDesktop: Boolean = true
-actual val isDebug: Boolean = System.getProperty("debug") != "false" && System.getenv("DEBUG") != "false"
+actual val isDebug: Boolean =
+    System.getProperty("debug") != "false" && System.getenv("DEBUG") != "false"
 actual val platformName: String = "JVM/Desktop"
 
 @Composable
 actual fun rememberModelDirectoryPath(): String {
-    return remember { 
+    return remember {
         val userDir = System.getProperty("user.dir") ?: "."
         val root = if (userDir.endsWith("composeApp")) {
             java.io.File(userDir).parentFile ?: java.io.File(userDir)
         } else {
             java.io.File(userDir)
         }
-        java.io.File(root, "models").apply { mkdirs() }.absolutePath 
+        java.io.File(root, "models").apply { mkdirs() }.absolutePath
     }
 }
 
@@ -36,7 +37,7 @@ actual fun writeLogToFile(message: String) {
         } else {
             java.io.File(userDir)
         }
-        
+
         val file = java.io.File(root, "debug_logs.txt")
         file.appendText("${java.time.LocalDateTime.now()} $message\n")
     } catch (e: Exception) {

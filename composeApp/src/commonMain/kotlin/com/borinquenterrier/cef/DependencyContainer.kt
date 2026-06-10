@@ -1,16 +1,16 @@
 package com.borinquenterrier.cef
 
-import com.russhwolf.settings.Settings
 import com.borinquenterrier.cef.db.AppDatabase
-import com.borinquenterrier.cef.db.createDatabase
 import com.borinquenterrier.cef.db.DriverFactory
+import com.borinquenterrier.cef.db.createDatabase
+import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.serialization.json.Json
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.serialization.json.Json
 
 /**
  * A central container for all application services and repositories.
@@ -49,13 +49,33 @@ class DependencyContainer(
     val calendarIdResolver by lazy { CalendarIdResolver(syncService, preferencesRepository) }
     val conflictDetector by lazy { EventConflictDetector() }
     val eventRangeFilter by lazy { EventRangeFilter() }
-    val remoteRepository by lazy { GoogleRemoteCalendarRepository(syncService, preferencesRepository, calendarIdResolver, conflictDetector, eventRangeFilter) }
-    val calendarAgent by lazy { CalendarAgent(localRepository, remoteRepository, logger, userPreferenceMemoryRepository, preferencesRepository) }
+    val remoteRepository by lazy {
+        GoogleRemoteCalendarRepository(
+            syncService,
+            preferencesRepository,
+            calendarIdResolver,
+            conflictDetector,
+            eventRangeFilter
+        )
+    }
+    val calendarAgent by lazy {
+        CalendarAgent(
+            localRepository,
+            remoteRepository,
+            logger,
+            userPreferenceMemoryRepository,
+            preferencesRepository
+        )
+    }
 
     val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository) }
 
-    val driveService: GoogleDriveService by lazy { 
-        GoogleDriveService(httpClient, tokenRepository, authService, { googleAccountFlow.reportAuthError(it) }) 
+    val driveService: GoogleDriveService by lazy {
+        GoogleDriveService(
+            httpClient,
+            tokenRepository,
+            authService,
+            { googleAccountFlow.reportAuthError(it) })
     }
 
     val webReader by lazy { WebSourceReader() }
@@ -63,8 +83,16 @@ class DependencyContainer(
     init {
         googleAccountFlow.driveService = driveService
     }
+
     val telemetryManager by lazy { TelemetryManager(settings) }
-    val bugReporter by lazy { BugReporter(httpClient, preferencesRepository, telemetryManager, logger) }
+    val bugReporter by lazy {
+        BugReporter(
+            httpClient,
+            preferencesRepository,
+            telemetryManager,
+            logger
+        )
+    }
 
     val aiService: AIService by lazy {
         GroundingGuardAIService(
@@ -77,62 +105,184 @@ class DependencyContainer(
         )
     }
     val sourceRepository by lazy { SqlDelightSourceRepository(database) }
-    val ingestionAgent by lazy { IngestionAgent(fileReader, docxReader, pdfReader, webReader, driveService, aiService, sourceRepository) }
+    val ingestionAgent by lazy {
+        IngestionAgent(
+            fileReader,
+            docxReader,
+            pdfReader,
+            webReader,
+            driveService,
+            aiService,
+            sourceRepository
+        )
+    }
     val termNormalizer by lazy { TermNormalizer() }
     val documentFrequencyCalculator by lazy { DocumentFrequencyCalculator() }
     val tfIdfScorer by lazy { TFIDFScorer() }
-    val fragmentRanker by lazy { FragmentRanker(termNormalizer, documentFrequencyCalculator, tfIdfScorer) }
+    val fragmentRanker by lazy {
+        FragmentRanker(
+            termNormalizer,
+            documentFrequencyCalculator,
+            tfIdfScorer
+        )
+    }
     val contextBuilder by lazy { SourceContextBuilder() }
-    val contextAgent by lazy { ContextAgent(aiService, sourceRepository, fragmentRanker, contextBuilder, logger) }
-    val eventAgent by lazy { EventAgent(aiService, calendarAgent, database, NormalizationService(), preferencesRepository, logger, userPreferenceMemoryRepository) }
+    val contextAgent by lazy {
+        ContextAgent(
+            aiService,
+            sourceRepository,
+            fragmentRanker,
+            contextBuilder,
+            logger
+        )
+    }
+    val eventAgent by lazy {
+        EventAgent(
+            aiService,
+            calendarAgent,
+            database,
+            NormalizationService(),
+            preferencesRepository,
+            logger,
+            userPreferenceMemoryRepository
+        )
+    }
 
     val pollScheduler by lazy { PollScheduler(settings, logger) }
 
     val preferenceSerializer by lazy { PreferenceSerializer(logger) }
 
-    val localDirectoryPreferences by lazy { LocalDirectoryPreferences(settings, preferenceSerializer, logger) }
+    val localDirectoryPreferences by lazy {
+        LocalDirectoryPreferences(
+            settings,
+            preferenceSerializer,
+            logger
+        )
+    }
 
-    val driveDirectoryPreferences by lazy { DriveDirectoryPreferences(settings, preferenceSerializer, logger) }
+    val driveDirectoryPreferences by lazy {
+        DriveDirectoryPreferences(
+            settings,
+            preferenceSerializer,
+            logger
+        )
+    }
 
-    val directoryPreferencesManager by lazy { DirectoryPreferencesManager(localDirectoryPreferences, driveDirectoryPreferences) }
+    val directoryPreferencesManager by lazy {
+        DirectoryPreferencesManager(
+            localDirectoryPreferences,
+            driveDirectoryPreferences
+        )
+    }
 
-    val localFileScanner by lazy { LocalFileScanner(fileReader, directoryPreferencesManager, logger) }
+    val localFileScanner by lazy {
+        LocalFileScanner(
+            fileReader,
+            directoryPreferencesManager,
+            logger
+        )
+    }
 
-    val driveFileScanner by lazy { DriveFileScanner(driveService, tokenRepository, directoryPreferencesManager, logger) }
+    val driveFileScanner by lazy {
+        DriveFileScanner(
+            driveService,
+            tokenRepository,
+            directoryPreferencesManager,
+            logger
+        )
+    }
 
-    val sourceScanner by lazy { SourceScanner(directoryPreferencesManager, localFileScanner, driveFileScanner) }
+    val sourceScanner by lazy {
+        SourceScanner(
+            directoryPreferencesManager,
+            localFileScanner,
+            driveFileScanner
+        )
+    }
 
-    val sourceProcessingPipeline by lazy { SourceProcessingPipeline(ingestionAgent, eventAgent, contextAgent, logger, bugReporter) }
+    val sourceProcessingPipeline by lazy {
+        SourceProcessingPipeline(
+            ingestionAgent,
+            eventAgent,
+            contextAgent,
+            logger,
+            bugReporter
+        )
+    }
 
-    val localFileProcessor by lazy { LocalFileProcessor(ingestionAgent, sourceProcessingPipeline, logger, bugReporter) }
+    val localFileProcessor by lazy {
+        LocalFileProcessor(
+            ingestionAgent,
+            sourceProcessingPipeline,
+            logger,
+            bugReporter
+        )
+    }
 
-    val driveFileProcessor by lazy { DriveFileProcessor(ingestionAgent, sourceProcessingPipeline, logger, bugReporter) }
+    val driveFileProcessor by lazy {
+        DriveFileProcessor(
+            ingestionAgent,
+            sourceProcessingPipeline,
+            logger,
+            bugReporter
+        )
+    }
 
-    val harnessSourceProcessor by lazy { HarnessSourceProcessor(sourceProcessingPipeline, localFileProcessor, driveFileProcessor, logger) }
+    val harnessSourceProcessor by lazy {
+        HarnessSourceProcessor(
+            sourceProcessingPipeline,
+            localFileProcessor,
+            driveFileProcessor,
+            logger
+        )
+    }
 
     val sourceLoader by lazy { SourceLoader(sourceRepository, logger, globalScope) }
 
-    val sourceAdder by lazy { SourceAdder(aiService, contextAgent, logger, globalScope, { events -> /* events will be handled by EventAgent */ }) }
+    val sourceAdder by lazy {
+        SourceAdder(
+            aiService,
+            contextAgent,
+            logger,
+            globalScope,
+            { events -> /* events will be handled by EventAgent */ })
+    }
 
-    val sourceDeleter by lazy { SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, globalScope) }
+    val sourceDeleter by lazy {
+        SourceDeleter(
+            sourceRepository,
+            localRepository,
+            calendarAgent,
+            logger,
+            globalScope
+        )
+    }
 
     val sourceSelector by lazy { SourceSelector() }
 
-    val sourceManager by lazy { SourceManager(sourceLoader, sourceAdder, sourceDeleter, sourceSelector, globalScope) }
+    val sourceManager by lazy {
+        SourceManager(
+            sourceLoader,
+            sourceAdder,
+            sourceDeleter,
+            sourceSelector,
+            globalScope
+        )
+    }
 
     val agentHarness by lazy {
-       AgentHarness(
-           ingestionAgent,
-           eventAgent,
-           contextAgent,
-           calendarAgent,
-           sourceRepository,
-           pollScheduler,
-           sourceScanner,
-           harnessSourceProcessor,
-           logger,
-           bugReporter
-       )
+        AgentHarness(
+            ingestionAgent,
+            eventAgent,
+            contextAgent,
+            calendarAgent,
+            sourceRepository,
+            pollScheduler,
+            sourceScanner,
+            harnessSourceProcessor,
+            logger,
+            bugReporter
+        )
     }
 
     val googleAuthManager by lazy { GoogleAuthManager(authService, tokenRepository, logger) }

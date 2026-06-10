@@ -4,9 +4,9 @@ import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.test.runTest
 
 class LocalFileScannerTest : StringSpec({
@@ -19,7 +19,10 @@ class LocalFileScannerTest : StringSpec({
         val scanner = LocalFileScanner(fileReader, preferencesManager, logger)
 
         every { preferencesManager.getWatchedLocalDirectories() } returns listOf("/home/docs")
-        coEvery { fileReader.listFiles("/home/docs") } returns listOf("/home/docs/file1.pdf", "/home/docs/file2.docx")
+        coEvery { fileReader.listFiles("/home/docs") } returns listOf(
+            "/home/docs/file1.pdf",
+            "/home/docs/file2.docx"
+        )
 
         runTest {
             val result = scanner.scanNewFiles(emptySet())
@@ -35,7 +38,10 @@ class LocalFileScannerTest : StringSpec({
         val scanner = LocalFileScanner(fileReader, preferencesManager, logger)
 
         every { preferencesManager.getWatchedLocalDirectories() } returns listOf("/home/docs")
-        coEvery { fileReader.listFiles("/home/docs") } returns listOf("/home/docs/file1.pdf", "/home/docs/file2.docx")
+        coEvery { fileReader.listFiles("/home/docs") } returns listOf(
+            "/home/docs/file1.pdf",
+            "/home/docs/file2.docx"
+        )
 
         val existingUris = setOf("/home/docs/file1.pdf")
 
@@ -83,7 +89,10 @@ class LocalFileScannerTest : StringSpec({
 
         val scanner = LocalFileScanner(fileReader, preferencesManager, logger)
 
-        every { preferencesManager.getWatchedLocalDirectories() } returns listOf("/home/docs", "/home/downloads")
+        every { preferencesManager.getWatchedLocalDirectories() } returns listOf(
+            "/home/docs",
+            "/home/downloads"
+        )
         coEvery { fileReader.listFiles("/home/docs") } returns listOf("/home/docs/file1.pdf")
         coEvery { fileReader.listFiles("/home/downloads") } returns listOf("/home/downloads/file2.docx")
 
@@ -121,7 +130,11 @@ class LocalFileScannerTest : StringSpec({
 
         val scanner = LocalFileScanner(fileReader, preferencesManager, logger)
 
-        every { preferencesManager.getWatchedLocalDirectories() } returns listOf("/path1", "/path2", "/path3")
+        every { preferencesManager.getWatchedLocalDirectories() } returns listOf(
+            "/path1",
+            "/path2",
+            "/path3"
+        )
         coEvery { fileReader.listFiles(any()) } returns listOf("/path1/file.pdf")
 
         runTest {

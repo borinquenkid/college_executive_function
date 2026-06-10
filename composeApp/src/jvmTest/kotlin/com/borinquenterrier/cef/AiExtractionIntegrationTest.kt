@@ -1,12 +1,11 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.collections.shouldNotBeEmpty
-import java.io.File
-import io.mockk.mockk
-import com.russhwolf.settings.MapSettings
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.borinquenterrier.cef.db.AppDatabase
+import com.russhwolf.settings.MapSettings
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.mockk.mockk
 import kotlin.time.Duration.Companion.milliseconds
 
 class AiExtractionIntegrationTest : FunSpec({

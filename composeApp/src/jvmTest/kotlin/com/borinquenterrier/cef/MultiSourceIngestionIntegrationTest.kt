@@ -1,15 +1,18 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.collections.shouldNotBeEmpty
-import io.mockk.mockk
-import com.russhwolf.settings.MapSettings
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.borinquenterrier.cef.db.AppDatabase
+import com.russhwolf.settings.MapSettings
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
-import kotlinx.serialization.json.*
 import kotlin.time.Duration.Companion.milliseconds
 
 class MultiSourceIngestionIntegrationTest : FunSpec({
@@ -44,6 +47,7 @@ class MultiSourceIngestionIntegrationTest : FunSpec({
                 .replace(Regex("\\s+"), " ")
                 .trim()
         }
+
         val n1 = normalize(title1)
         val n2 = normalize(title2)
         return n1.contains(n2) || n2.contains(n1)
@@ -133,7 +137,7 @@ class MultiSourceIngestionIntegrationTest : FunSpec({
 
         // 5. Extract events from each source and push to calendar
         println("EXTRACTING EVENTS AND PUSHING TO CALENDAR...")
-        
+
         // Ingest Academic Calendar events
         skipIfQuotaExhausted("extractCalendarEvents") {
             eventAgent.extractDeliverables(calendarSource)
@@ -167,15 +171,39 @@ class MultiSourceIngestionIntegrationTest : FunSpec({
 
         val bdanExpected = loadExpectedEvents(bdanExpectedFile)
         val histExpected = loadExpectedEvents(histExpectedFile)
-        
+
         val academicCalendarExpected = listOf(
-            ExpectedEvent("First Day of Classes", LocalDate(2025, 1, 13), AcademicCategory.SEMESTER_BOUND),
-            ExpectedEvent("Martin Luther King Jr. Day", LocalDate(2025, 1, 20), AcademicCategory.HOLIDAY),
-            ExpectedEvent("Last Day to Drop Course without a Grade", LocalDate(2025, 1, 28), AcademicCategory.SEMESTER_BOUND),
+            ExpectedEvent(
+                "First Day of Classes",
+                LocalDate(2025, 1, 13),
+                AcademicCategory.SEMESTER_BOUND
+            ),
+            ExpectedEvent(
+                "Martin Luther King Jr. Day",
+                LocalDate(2025, 1, 20),
+                AcademicCategory.HOLIDAY
+            ),
+            ExpectedEvent(
+                "Last Day to Drop Course without a Grade",
+                LocalDate(2025, 1, 28),
+                AcademicCategory.SEMESTER_BOUND
+            ),
             ExpectedEvent("Spring Break", LocalDate(2025, 3, 17), AcademicCategory.HOLIDAY),
-            ExpectedEvent("Last Day to Drop Course with a W", LocalDate(2025, 4, 3), AcademicCategory.SEMESTER_BOUND),
-            ExpectedEvent("Last Day of Classes", LocalDate(2025, 5, 9), AcademicCategory.SEMESTER_BOUND),
-            ExpectedEvent("Final Exams Week", LocalDate(2025, 5, 12), AcademicCategory.SEMESTER_BOUND)
+            ExpectedEvent(
+                "Last Day to Drop Course with a W",
+                LocalDate(2025, 4, 3),
+                AcademicCategory.SEMESTER_BOUND
+            ),
+            ExpectedEvent(
+                "Last Day of Classes",
+                LocalDate(2025, 5, 9),
+                AcademicCategory.SEMESTER_BOUND
+            ),
+            ExpectedEvent(
+                "Final Exams Week",
+                LocalDate(2025, 5, 12),
+                AcademicCategory.SEMESTER_BOUND
+            )
         )
 
         val aggregatedExpected = bdanExpected + histExpected + academicCalendarExpected
@@ -210,12 +238,28 @@ class MultiSourceIngestionIntegrationTest : FunSpec({
             }
         }
 
-        val recall = if (aggregatedExpected.isNotEmpty()) (matchedCount.toDouble() / aggregatedExpected.size.toDouble()) * 100.0 else 100.0
-        val dateAccuracy = if (matchedCount > 0) (dateCorrectCount.toDouble() / matchedCount.toDouble()) * 100.0 else 100.0
+        val recall =
+            if (aggregatedExpected.isNotEmpty()) (matchedCount.toDouble() / aggregatedExpected.size.toDouble()) * 100.0 else 100.0
+        val dateAccuracy =
+            if (matchedCount > 0) (dateCorrectCount.toDouble() / matchedCount.toDouble()) * 100.0 else 100.0
 
         println("-------------------------------------------------------")
-        println(String.format("Recall: %.1f%% (%d/%d)", recall, matchedCount, aggregatedExpected.size))
-        println(String.format("Date Accuracy: %.1f%% (%d/%d)", dateAccuracy, dateCorrectCount, matchedCount))
+        println(
+            String.format(
+                "Recall: %.1f%% (%d/%d)",
+                recall,
+                matchedCount,
+                aggregatedExpected.size
+            )
+        )
+        println(
+            String.format(
+                "Date Accuracy: %.1f%% (%d/%d)",
+                dateAccuracy,
+                dateCorrectCount,
+                matchedCount
+            )
+        )
         println("=======================================================\n")
 
         // Assert reasonable quality thresholds

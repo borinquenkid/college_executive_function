@@ -12,9 +12,10 @@ object IcsStringBuilder {
 
         for (event in events) {
             sb.append("BEGIN:VEVENT\r\n")
-            val uid = event.id ?: "cef-${event.hashCode()}-${event.date.year}${event.date.monthNumber}${event.date.dayOfMonth}"
+            val uid = event.id
+                ?: "cef-${event.hashCode()}-${event.date.year}${event.date.monthNumber}${event.date.dayOfMonth}"
             sb.append("UID:").append(uid).append("\r\n")
-            
+
             // Generate timestamp (DTSTAMP)
             sb.append("DTSTAMP:20260603T000000Z\r\n")
 
@@ -35,18 +36,19 @@ object IcsStringBuilder {
                     val endStr = formatDateTime(event.date, event.endTime)
                     sb.append("DTSTART:").append(startStr).append("\r\n")
                     sb.append("DTEND:").append(endStr).append("\r\n")
-                    
+
                     if (event.recurrence != null) {
                         val rule = buildRecurrenceRule(event.recurrence)
                         sb.append("RRULE:").append(rule).append("\r\n")
                     }
                 }
+
                 is DayEvent -> {
                     val startStr = formatDate(event.date)
                     val endStr = formatDate(plusDays(event.date, 1))
                     sb.append("DTSTART;VALUE=DATE:").append(startStr).append("\r\n")
                     sb.append("DTEND;VALUE=DATE:").append(endStr).append("\r\n")
-                    
+
                     if (event.recurrence != null) {
                         val rule = buildRecurrenceRule(event.recurrence)
                         sb.append("RRULE:").append(rule).append("\r\n")
@@ -59,7 +61,10 @@ object IcsStringBuilder {
         return sb.toString()
     }
 
-    private fun formatDateTime(date: kotlinx.datetime.LocalDate, time: kotlinx.datetime.LocalTime): String {
+    private fun formatDateTime(
+        date: kotlinx.datetime.LocalDate,
+        time: kotlinx.datetime.LocalTime
+    ): String {
         val y = date.year.toString().padStart(4, '0')
         val m = date.monthNumber.toString().padStart(2, '0')
         val d = date.dayOfMonth.toString().padStart(2, '0')

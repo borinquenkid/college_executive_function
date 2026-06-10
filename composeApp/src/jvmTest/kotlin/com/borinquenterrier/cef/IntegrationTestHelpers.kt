@@ -63,7 +63,8 @@ suspend fun <T> TestScope.skipIfQuotaExhausted(operationName: String, block: sus
         block()
     } catch (e: Exception) {
         if (e.message?.startsWith("QuotaExhausted") == true) {
-            val msg = "SKIPPING $operationName: Daily Gemini quota is exhausted. Test will resume after midnight PT."
+            val msg =
+                "SKIPPING $operationName: Daily Gemini quota is exhausted. Test will resume after midnight PT."
             println(msg)
             throw QuotaExhaustedException(msg)
         }

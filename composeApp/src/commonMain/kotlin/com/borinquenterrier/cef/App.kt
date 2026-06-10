@@ -29,9 +29,17 @@ fun App() {
         settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader
     ) {
         value = withContext(Dispatchers.Default) {
-            val c = DependencyContainer(settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader)
+            val c = DependencyContainer(
+                settings,
+                logger,
+                driverFactory,
+                modelBasePath,
+                fileReader,
+                docxReader,
+                pdfReader
+            )
             // Pre-trigger database initialization to ensure it happens off-thread
-            val db = c.database
+            c.database
             println("[App] Core services initialized off-thread.")
             c
         }

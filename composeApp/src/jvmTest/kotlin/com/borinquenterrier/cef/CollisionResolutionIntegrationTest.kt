@@ -1,17 +1,17 @@
 package com.borinquenterrier.cef
 
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
-import com.russhwolf.settings.MapSettings
-import io.mockk.mockk
 
 class CollisionResolutionIntegrationTest : FunSpec({
 
@@ -21,7 +21,7 @@ class CollisionResolutionIntegrationTest : FunSpec({
     fun setupTestAgent(): Pair<EventAgent, StudentCalendarRepository> {
         val database = createTestDatabase()
         val localRepo = SqlDelightLocalCalendarRepository(database)
-        
+
         // Mock token repo & auth service for remote repository
         val tokenRepo = GoogleTokenRepository(MapSettings())
         val authService = GoogleAuthService(MapSettings())
@@ -30,13 +30,19 @@ class CollisionResolutionIntegrationTest : FunSpec({
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
         val eventFilter = EventRangeFilter()
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService, preferencesRepository, idResolver, conflictDetector, eventFilter)
-        
+        val remoteRepo = GoogleRemoteCalendarRepository(
+            syncService,
+            preferencesRepository,
+            idResolver,
+            conflictDetector,
+            eventFilter
+        )
+
         // Settings with run_profile = test to bypass remote calls in testing
         val settings = MapSettings()
         settings.putString("run_profile", "test")
         val localRepoWithSettings = SqlDelightLocalCalendarRepository(database, settings)
-        
+
         val calendarAgent = CalendarAgent(localRepoWithSettings, remoteRepo)
         val eventAgent = EventAgent(
             aiService = mockk(relaxed = true),
@@ -71,14 +77,15 @@ class CollisionResolutionIntegrationTest : FunSpec({
         // Inject state
         val stateProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
         stateProp.isAccessible = true
-        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(event1, event2)
+        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(event1, event2)
 
         // ACT
         val conflicts = runBlocking { eventAgent.pushToCalendar() }
 
         // ASSERT
         conflicts shouldHaveSize 0
-        
+
         val dbEvents = runBlocking { localRepo.getAllEvents() }
         dbEvents shouldHaveSize 2
         dbEvents.find { it.title == "Clean Class A" } shouldNotBe null
@@ -125,7 +132,8 @@ class CollisionResolutionIntegrationTest : FunSpec({
 
         val stateProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
         stateProp.isAccessible = true
-        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(newClass)
+        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(newClass)
 
         // ACT: Push new class to calendar.
         // Physics Lecture (80) should bump Quantum Study (10).
@@ -138,7 +146,7 @@ class CollisionResolutionIntegrationTest : FunSpec({
 
         // ASSERT
         conflicts shouldHaveSize 0
-        
+
         val dbEvents = runBlocking { localRepo.getAllEvents() }
         dbEvents shouldHaveSize 3
 
@@ -176,14 +184,15 @@ class CollisionResolutionIntegrationTest : FunSpec({
 
         val stateProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
         stateProp.isAccessible = true
-        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(study1, study2)
+        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(study1, study2)
 
         // ACT
         val conflicts = runBlocking { eventAgent.pushToCalendar() }
 
         // ASSERT
         conflicts shouldHaveSize 0
-        
+
         val dbEvents = runBlocking { localRepo.getAllEvents() }
         dbEvents shouldHaveSize 2
 
@@ -202,9 +211,33 @@ class CollisionResolutionIntegrationTest : FunSpec({
         for (i in 0..7) {
             val d = date.minus(i, DateTimeUnit.DAY)
             // Schedule personal events filling the active hours
-            existing.add(TimeEvent(title = "Busy 9-12", source = EventSource.MANUAL, date = d, startTime = LocalTime(9, 0), endTime = LocalTime(12, 0)))
-            existing.add(TimeEvent(title = "Busy 13-17", source = EventSource.MANUAL, date = d, startTime = LocalTime(13, 0), endTime = LocalTime(17, 0)))
-            existing.add(TimeEvent(title = "Busy 19-21", source = EventSource.MANUAL, date = d, startTime = LocalTime(19, 0), endTime = LocalTime(21, 0)))
+            existing.add(
+                TimeEvent(
+                    title = "Busy 9-12",
+                    source = EventSource.MANUAL,
+                    date = d,
+                    startTime = LocalTime(9, 0),
+                    endTime = LocalTime(12, 0)
+                )
+            )
+            existing.add(
+                TimeEvent(
+                    title = "Busy 13-17",
+                    source = EventSource.MANUAL,
+                    date = d,
+                    startTime = LocalTime(13, 0),
+                    endTime = LocalTime(17, 0)
+                )
+            )
+            existing.add(
+                TimeEvent(
+                    title = "Busy 19-21",
+                    source = EventSource.MANUAL,
+                    date = d,
+                    startTime = LocalTime(19, 0),
+                    endTime = LocalTime(21, 0)
+                )
+            )
         }
 
         runBlocking {
@@ -223,17 +256,18 @@ class CollisionResolutionIntegrationTest : FunSpec({
 
         val stateProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
         stateProp.isAccessible = true
-        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(lateStudy)
+        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(lateStudy)
 
         // ACT
         val conflicts = runBlocking { eventAgent.pushToCalendar() }
 
         // ASSERT
         conflicts shouldHaveSize 0
-        
+
         val dbEvents = runBlocking { localRepo.getAllEvents() }
         val resolvedLateStudy = dbEvents.find { it.title == "Late Night Study" } as TimeEvent
-        
+
         // Should have shifted forward to a future date
         resolvedLateStudy.date shouldBe date.plus(1, DateTimeUnit.DAY)
     }

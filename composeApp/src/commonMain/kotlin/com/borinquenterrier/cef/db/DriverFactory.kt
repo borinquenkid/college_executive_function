@@ -9,7 +9,11 @@ expect class DriverFactory {
 fun createDatabase(driverFactory: DriverFactory): AppDatabase {
     val driver = driverFactory.createDriver()
     try {
-        driver.execute(null, "ALTER TABLE SourceEntity ADD COLUMN category TEXT NOT NULL DEFAULT 'OTHER'", 0)
+        driver.execute(
+            null,
+            "ALTER TABLE SourceEntity ADD COLUMN category TEXT NOT NULL DEFAULT 'OTHER'",
+            0
+        )
     } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }
@@ -24,7 +28,11 @@ fun createDatabase(driverFactory: DriverFactory): AppDatabase {
         // Column may already exist, or table might not have been created yet, ignore.
     }
     try {
-        driver.execute(null, "ALTER TABLE EventEntity ADD COLUMN completionStatus TEXT NOT NULL DEFAULT 'INCOMPLETE'", 0)
+        driver.execute(
+            null,
+            "ALTER TABLE EventEntity ADD COLUMN completionStatus TEXT NOT NULL DEFAULT 'INCOMPLETE'",
+            0
+        )
     } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }

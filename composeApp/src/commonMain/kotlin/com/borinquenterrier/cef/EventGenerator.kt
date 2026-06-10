@@ -10,7 +10,11 @@ object EventGenerator {
      * Expands a list of potentially recurring events into a list of concrete, single-day events
      * for a given date range.
      */
-    fun expandEvents(events: List<Event>, viewStartDate: LocalDate, viewEndDate: LocalDate): List<Event> {
+    fun expandEvents(
+        events: List<Event>,
+        viewStartDate: LocalDate,
+        viewEndDate: LocalDate
+    ): List<Event> {
         return events.flatMap { event ->
             when (event) {
                 is TimeEvent -> expandTimeEvent(event, viewStartDate, viewEndDate)
@@ -19,8 +23,13 @@ object EventGenerator {
         }
     }
 
-    private fun expandTimeEvent(event: TimeEvent, viewStartDate: LocalDate, viewEndDate: LocalDate): List<TimeEvent> {
-        val recurrence = event.recurrence ?: return if (event.date in viewStartDate..viewEndDate) listOf(event) else emptyList()
+    private fun expandTimeEvent(
+        event: TimeEvent,
+        viewStartDate: LocalDate,
+        viewEndDate: LocalDate
+    ): List<TimeEvent> {
+        val recurrence = event.recurrence
+            ?: return if (event.date in viewStartDate..viewEndDate) listOf(event) else emptyList()
 
         return generateSequence(viewStartDate) { it.plus(1, DateTimeUnit.DAY) }
             .takeWhile { it <= viewEndDate }
@@ -36,8 +45,13 @@ object EventGenerator {
             .toList()
     }
 
-    private fun expandDayEvent(event: DayEvent, viewStartDate: LocalDate, viewEndDate: LocalDate): List<DayEvent> {
-        val recurrence = event.recurrence ?: return if (event.date in viewStartDate..viewEndDate) listOf(event) else emptyList()
+    private fun expandDayEvent(
+        event: DayEvent,
+        viewStartDate: LocalDate,
+        viewEndDate: LocalDate
+    ): List<DayEvent> {
+        val recurrence = event.recurrence
+            ?: return if (event.date in viewStartDate..viewEndDate) listOf(event) else emptyList()
 
         return generateSequence(viewStartDate) { it.plus(1, DateTimeUnit.DAY) }
             .takeWhile { it <= viewEndDate }

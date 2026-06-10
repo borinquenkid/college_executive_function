@@ -17,7 +17,10 @@ import platform.darwin.NSObject
 actual fun FilePicker(show: Boolean, onFileSelected: (String?) -> Unit) {
     val delegate = remember {
         object : NSObject(), UIDocumentPickerDelegateProtocol {
-            override fun documentPicker(controller: UIDocumentPickerViewController, didPickDocumentsAtURLs: List<*>) {
+            override fun documentPicker(
+                controller: UIDocumentPickerViewController,
+                didPickDocumentsAtURLs: List<*>
+            ) {
                 val url = didPickDocumentsAtURLs.firstOrNull() as? NSURL
                 onFileSelected(url?.absoluteString)
             }
@@ -31,20 +34,22 @@ actual fun FilePicker(show: Boolean, onFileSelected: (String?) -> Unit) {
     LaunchedEffect(show) {
         if (show) {
             val types = listOfNotNull(
-                UTType.typeWithIdentifier("org.openxmlformats.wordprocessingml.document") 
+                UTType.typeWithIdentifier("org.openxmlformats.wordprocessingml.document")
                     ?: UTType.typeWithFilenameExtension("docx"),
                 UTTypePDF,
                 UTTypePlainText,
                 UTType.typeWithIdentifier("public.calendar")
                     ?: UTType.typeWithFilenameExtension("ics")
             )
-            
-            val picker = UIDocumentPickerViewController(forOpeningContentTypes = types, asCopy = true)
+
+            val picker =
+                UIDocumentPickerViewController(forOpeningContentTypes = types, asCopy = true)
             picker.delegate = delegate
-            
+
             val root = UIApplication.sharedApplication.keyWindow?.rootViewController
-                ?: UIApplication.sharedApplication.windows.mapNotNull { it as? UIWindow }.firstOrNull { it.isKeyWindow() }?.rootViewController
-            
+                ?: UIApplication.sharedApplication.windows.mapNotNull { it as? UIWindow }
+                    .firstOrNull { it.isKeyWindow() }?.rootViewController
+
             root?.presentViewController(picker, true, null)
         }
     }

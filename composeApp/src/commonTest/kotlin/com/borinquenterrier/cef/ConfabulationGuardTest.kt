@@ -33,7 +33,8 @@ class ConfabulationGuardTest : FunSpec({
     }
 
     test("extractSourceYears ignores non-20xx four-digit numbers") {
-        val years = GeminiAIService.extractSourceYears("Page 1234. Course code 1101. See section 3000.")
+        val years =
+            GeminiAIService.extractSourceYears("Page 1234. Course code 1101. See section 3000.")
         years.shouldBeEmpty()
     }
 

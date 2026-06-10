@@ -1,8 +1,8 @@
 package com.borinquenterrier.cef
 
+import org.w3c.dom.Element
 import java.io.File
 import javax.xml.parsers.DocumentBuilderFactory
-import org.w3c.dom.Element
 
 /**
  * Kotlin utility to calculate the CRAP (Change Risk Anti-Patterns) index
@@ -36,16 +36,30 @@ object CrapIndexReporter {
             File("composeApp/build/reports/kover/report.xml"),
             File("build/reports/kover/report.xml")
         )
-        candidates.firstOrNull { it.exists() } ?: File("composeApp/build/reports/kover/reportJvm.xml")
+        candidates.firstOrNull { it.exists() }
+            ?: File("composeApp/build/reports/kover/reportJvm.xml")
     }
 
     private val COVERAGE_MD = File(ROOT_DIR, "COVERAGE.md")
     private val CRAP_MD = File(ROOT_DIR, "CRAP.md")
 
     private val COMPLEXITY_KEYWORDS = listOf(
-        Regex("\\bif\\b"), Regex("\\bwhen\\b"), Regex("\\bfor\\b"), Regex("\\bwhile\\b"), Regex("\\bcatch\\b"),
-        Regex("\\b&&\\b"), Regex("\\b\\|\\|\\b"), Regex("\\?\\:"), Regex("\\?\\.let\\b"), Regex("\\?\\.also\\b"), Regex("\\?\\.run\\b"),
-        Regex("\\.filter\\b"), Regex("\\.map\\b"), Regex("\\.forEach\\b"), Regex("\\.any\\b"), Regex("\\.all\\b")
+        Regex("\\bif\\b"),
+        Regex("\\bwhen\\b"),
+        Regex("\\bfor\\b"),
+        Regex("\\bwhile\\b"),
+        Regex("\\bcatch\\b"),
+        Regex("\\b&&\\b"),
+        Regex("\\b\\|\\|\\b"),
+        Regex("\\?\\:"),
+        Regex("\\?\\.let\\b"),
+        Regex("\\?\\.also\\b"),
+        Regex("\\?\\.run\\b"),
+        Regex("\\.filter\\b"),
+        Regex("\\.map\\b"),
+        Regex("\\.forEach\\b"),
+        Regex("\\.any\\b"),
+        Regex("\\.all\\b")
     )
 
     data class MethodInfo(val name: String, val complexity: Int)
@@ -63,14 +77,14 @@ object CrapIndexReporter {
     ) {
         val crapIndex: Double
             get() = (complexity * complexity) * Math.pow(1 - lineCoverage, 3.0) + complexity
-        
+
         val riskStatus: String
             get() = when {
                 crapIndex > 30 -> "🔴 HIGH"
                 crapIndex > 15 -> "🟡 MEDIUM"
                 else -> "🟢 LOW"
             }
-            
+
         val coverageStatus: String
             get() = when {
                 lineCoverage >= 0.8 -> "🟢"
@@ -82,7 +96,7 @@ object CrapIndexReporter {
     @JvmStatic
     fun main(args: Array<String>) {
         println("=== Starting CRAP and Coverage Report Generation ===")
-        
+
         if (!SRC_DIR.exists()) {
             println("Error: Source directory ${SRC_DIR.absolutePath} does not exist.")
             return
@@ -133,7 +147,7 @@ object CrapIndexReporter {
 
         generateCoverageReport(metricsList)
         generateCrapReport(metricsList)
-        
+
         println("=== Finished Report Generation ===")
     }
 
@@ -181,10 +195,12 @@ object CrapIndexReporter {
                             cov.instCovered += covered
                             cov.instMissed += missed
                         }
+
                         "LINE" -> {
                             cov.lineCovered += covered
                             cov.lineMissed += missed
                         }
+
                         "BRANCH" -> {
                             cov.branchCovered += covered
                             cov.branchMissed += missed
@@ -201,7 +217,7 @@ object CrapIndexReporter {
     private fun calculateComplexity(codeText: String): Pair<List<MethodInfo>, Int> {
         val methods = mutableListOf<MethodInfo>()
         var classComplexity = 0
-        
+
         val lines = codeText.split("\n")
         var currentMethodName: String? = null
         var currentMethodText = ""
@@ -220,7 +236,12 @@ object CrapIndexReporter {
                 currentMethodText = line
                 braceCount = line.count { it == '{' } - line.count { it == '}' }
                 if (line.contains("{") && braceCount == 0) {
-                    methods.add(MethodInfo(currentMethodName, countComplexityKeywords(currentMethodText) + 1))
+                    methods.add(
+                        MethodInfo(
+                            currentMethodName,
+                            countComplexityKeywords(currentMethodText) + 1
+                        )
+                    )
                     currentMethodName = null
                 }
                 continue
@@ -230,7 +251,12 @@ object CrapIndexReporter {
                 currentMethodText += "\n$line"
                 braceCount += line.count { it == '{' } - line.count { it == '}' }
                 if (braceCount <= 0) {
-                    methods.add(MethodInfo(currentMethodName, countComplexityKeywords(currentMethodText) + 1))
+                    methods.add(
+                        MethodInfo(
+                            currentMethodName,
+                            countComplexityKeywords(currentMethodText) + 1
+                        )
+                    )
                     currentMethodName = null
                 }
             } else {
@@ -250,35 +276,57 @@ object CrapIndexReporter {
 
     private fun generateCoverageReport(metricsList: List<FileMetrics>) {
         val sorted = metricsList.sortedBy { it.lineCoverage }
-        val totalLinesCovered = metricsList.sumOf { 
+        val totalLinesCovered = metricsList.sumOf {
             val cov = parseKoverXmlReport()[it.filename]
             cov?.lineCovered ?: 0
         }
-        val totalLinesMissed = metricsList.sumOf { 
+        val totalLinesMissed = metricsList.sumOf {
             val cov = parseKoverXmlReport()[it.filename]
             cov?.lineMissed ?: 0
         }
         val totalLines = totalLinesCovered + totalLinesMissed
-        val overallLineCoverage = if (totalLines > 0) (totalLinesCovered.toDouble() / totalLines) * 100.0 else 0.0
+        val overallLineCoverage =
+            if (totalLines > 0) (totalLinesCovered.toDouble() / totalLines) * 100.0 else 0.0
 
         val sb = StringBuilder()
         sb.append("# Code Coverage Report\n\n")
         sb.append("This report displays the **actual test coverage** for all classes in `composeApp/src/commonMain/kotlin`.\n")
         sb.append("Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.\n\n")
-        
+
         sb.append("## Overall Metrics\n")
-        sb.append("- **Overall Line Coverage**: **${String.format("%.2f", overallLineCoverage)}%** ($totalLinesCovered/$totalLines lines)\n")
+        sb.append(
+            "- **Overall Line Coverage**: **${
+                String.format(
+                    "%.2f",
+                    overallLineCoverage
+                )
+            }%** ($totalLinesCovered/$totalLines lines)\n"
+        )
         sb.append("- **Total Source Files**: ${metricsList.size}\n\n")
-        
+
         sb.append("## Coverage by File\n\n")
         sb.append("| Status | File | Line Coverage | Branch Coverage | Instruction Coverage | Classes |\n")
         sb.append("| :---: | :--- | :---: | :---: | :---: | :--- |\n")
 
         for (m in sorted) {
-            val lineCovStr = "${String.format("%.1f", m.lineCoverage * 100)}% (${m.linesCoveredDetail})"
-            val branchCovStr = if (m.branchesCoveredDetail != "N/A") "${String.format("%.1f", m.branchCoverage * 100)}% (${m.branchesCoveredDetail})" else "N/A"
-            val classesStr = if (m.classes.isNotEmpty()) m.classes.distinct().joinToString(", ") else "*None*"
-            sb.append("| ${m.coverageStatus} | ${m.filename} | $lineCovStr | $branchCovStr | ${String.format("%.1f", m.instructionCoverage * 100)}% | $classesStr |\n")
+            val lineCovStr =
+                "${String.format("%.1f", m.lineCoverage * 100)}% (${m.linesCoveredDetail})"
+            val branchCovStr = if (m.branchesCoveredDetail != "N/A") "${
+                String.format(
+                    "%.1f",
+                    m.branchCoverage * 100
+                )
+            }% (${m.branchesCoveredDetail})" else "N/A"
+            val classesStr =
+                if (m.classes.isNotEmpty()) m.classes.distinct().joinToString(", ") else "*None*"
+            sb.append(
+                "| ${m.coverageStatus} | ${m.filename} | $lineCovStr | $branchCovStr | ${
+                    String.format(
+                        "%.1f",
+                        m.instructionCoverage * 100
+                    )
+                }% | $classesStr |\n"
+            )
         }
 
         COVERAGE_MD.writeText(sb.toString())
@@ -293,30 +341,44 @@ object CrapIndexReporter {
         sb.append("# Code Base CRAP Index Analysis\n\n")
         sb.append("This document evaluates the codebase using the **CRAP (Change Risk Anti-Patterns) index**.\n")
         sb.append("A higher CRAP index indicates higher risk when changing that file. A score **above 30** is considered highly risky.\n\n")
-        
+
         sb.append("## Heuristics Used\n")
         sb.append("- **Complexity**: Approximated by counting control flow branches (`if`, `when`, `for`, `while`, `catch`, logical operators `&&`/`||`, safe calls `?.let`/`?.also`/`?.run`, collection operators `filter`/`map`/`forEach`/`any`/`all`) inside all methods + 1 base complexity per method.\n")
         sb.append("- **Coverage**: Calculated exactly from Kover's XML test coverage report.\n")
         sb.append("- **Formula**: $\\text{CRAP} = \\text{Complexity}^2 \\times (1 - \\text{Coverage})^3 + \\text{Complexity}$\n\n")
-        
+
         sb.append("## Overall Summary\n")
         sb.append("- **Total Files Analyzed**: ${metricsList.size}\n")
         sb.append("- **High-Risk Files (CRAP > 30)**: ${highRiskFiles.size}\n\n")
-        
+
         sb.append("### Top 15 High-Risk Files\n\n")
         sb.append("| File | Complexity | Real Coverage | CRAP Index | Risk Status |\n")
         sb.append("| :--- | :---: | :---: | :---: | :---: |\n")
 
         for (m in sorted.take(15)) {
             val covStr = "${String.format("%.1f", m.lineCoverage * 100)}%"
-            sb.append("| ${m.filename} | ${m.complexity} | $covStr | ${String.format("%.2f", m.crapIndex)} | ${m.riskStatus} |\n")
+            sb.append(
+                "| ${m.filename} | ${m.complexity} | $covStr | ${
+                    String.format(
+                        "%.2f",
+                        m.crapIndex
+                    )
+                } | ${m.riskStatus} |\n"
+            )
         }
 
         sb.append("\n---\n\n")
         sb.append("## Detailed File Breakdown\n\n")
 
         for (m in sorted) {
-            sb.append("### ${m.filename} (Score: ${String.format("%.2f", m.crapIndex)} - ${m.riskStatus})\n")
+            sb.append(
+                "### ${m.filename} (Score: ${
+                    String.format(
+                        "%.2f",
+                        m.crapIndex
+                    )
+                } - ${m.riskStatus})\n"
+            )
             sb.append("- **Total Complexity**: ${m.complexity}\n")
             sb.append("- **Real Coverage**: ${String.format("%.1f", m.lineCoverage * 100)}%\n\n")
 

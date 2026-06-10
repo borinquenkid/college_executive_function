@@ -5,12 +5,12 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 @Serializable
 data class TelemetryStats(
@@ -57,14 +57,16 @@ class BugReporter(
                     setBody(buildJsonObject {
                         put("access_key", BuildSecrets.WEB3FORMS_ACCESS_KEY)
                         put("subject", "CEF Bug Report: $errorName")
-                        put("message", """
+                        put(
+                            "message", """
                             Error: $errorMessage
                             Platform: $platform
                             Telemetry: JSON Errors: ${stats.jsonErrors}, Rate Limit Errors: ${stats.rateLimitErrors}, Critic Passes: ${stats.criticModifiedPasses}/${stats.criticTotalPasses}
                             
                             Stack Trace:
                             $stackTrace
-                        """.trimIndent())
+                        """.trimIndent()
+                        )
                     })
                 }
                 logger.d(tag, "Bug report sent successfully.")

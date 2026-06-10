@@ -2,8 +2,9 @@ package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.ktor.http.*
-import io.mockk.*
+import io.ktor.http.Headers
+import io.ktor.http.HeadersBuilder
+import io.ktor.http.HttpStatusCode
 import kotlinx.datetime.Clock
 
 /**

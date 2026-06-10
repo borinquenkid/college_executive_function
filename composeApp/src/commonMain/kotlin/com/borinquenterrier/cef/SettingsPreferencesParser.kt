@@ -24,16 +24,17 @@ object SettingsPreferencesParser {
         googleCalendarName: String,
         currentPrefs: StudyPreferences = StudyPreferences()
     ): StudyPreferences = StudyPreferences(
-        studyStartHour          = studyStartStr.toIntOrNull()    ?: currentPrefs.studyStartHour,
-        studyEndHour            = studyEndStr.toIntOrNull()      ?: currentPrefs.studyEndHour,
-        lunchStartHour          = lunchStartStr.toIntOrNull()    ?: currentPrefs.lunchStartHour,
-        lunchEndHour            = lunchEndStr.toIntOrNull()      ?: currentPrefs.lunchEndHour,
-        dinnerStartHour         = dinnerStartStr.toIntOrNull()   ?: currentPrefs.dinnerStartHour,
-        dinnerEndHour           = dinnerEndStr.toIntOrNull()     ?: currentPrefs.dinnerEndHour,
-        maxStudyBlockHours      = maxStudyBlockStr.toIntOrNull() ?: currentPrefs.maxStudyBlockHours,
-        preferredBreakMinutes   = preferredBreakStr.toIntOrNull() ?: currentPrefs.preferredBreakMinutes,
+        studyStartHour = studyStartStr.toIntOrNull() ?: currentPrefs.studyStartHour,
+        studyEndHour = studyEndStr.toIntOrNull() ?: currentPrefs.studyEndHour,
+        lunchStartHour = lunchStartStr.toIntOrNull() ?: currentPrefs.lunchStartHour,
+        lunchEndHour = lunchEndStr.toIntOrNull() ?: currentPrefs.lunchEndHour,
+        dinnerStartHour = dinnerStartStr.toIntOrNull() ?: currentPrefs.dinnerStartHour,
+        dinnerEndHour = dinnerEndStr.toIntOrNull() ?: currentPrefs.dinnerEndHour,
+        maxStudyBlockHours = maxStudyBlockStr.toIntOrNull() ?: currentPrefs.maxStudyBlockHours,
+        preferredBreakMinutes = preferredBreakStr.toIntOrNull()
+            ?: currentPrefs.preferredBreakMinutes,
         shareAnonymousBugReports = shareAnonymousBugReports,
-        googleCalendarId        = googleCalendarId,
-        googleCalendarName      = googleCalendarName
+        googleCalendarId = googleCalendarId,
+        googleCalendarName = googleCalendarName
     )
 }

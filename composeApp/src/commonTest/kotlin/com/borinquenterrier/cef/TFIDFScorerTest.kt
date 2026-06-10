@@ -57,7 +57,8 @@ class TFIDFScorerTest : FunSpec({
 
     test("scoreDocuments weights term frequency correctly") {
         val docs = listOf(mockDoc(), mockDoc())
-        val words: List<List<String>> = listOf(listOf("python"), listOf("python", "python", "python"))
+        val words: List<List<String>> =
+            listOf(listOf("python"), listOf("python", "python", "python"))
         val queryTerms: Set<String> = setOf("python")
         val df: Map<String, Int> = mapOf("python" to 2)
 
@@ -79,7 +80,8 @@ class TFIDFScorerTest : FunSpec({
 
     test("scoreDocuments handles normalized term frequency correctly") {
         val docs = listOf(mockDoc(), mockDoc())
-        val words: List<List<String>> = listOf(listOf("text", "short"), listOf("text", "text", "text", "text", "text"))
+        val words: List<List<String>> =
+            listOf(listOf("text", "short"), listOf("text", "text", "text", "text", "text"))
         val queryTerms: Set<String> = setOf("text")
         val df: Map<String, Int> = mapOf("text" to 2)
 

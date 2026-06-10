@@ -43,7 +43,8 @@ class ContextAgent(
 
     suspend fun querySource(source: SourceItem, question: String): String {
         val metadata = getSourceMetadata(source.title) ?: ""
-        val fragments = source.fragments.joinToString("\n\n") { "Page ${it.pageNumber ?: ""}: ${it.text}" }
+        val fragments =
+            source.fragments.joinToString("\n\n") { "Page ${it.pageNumber ?: ""}: ${it.text}" }
 
         val prompt = """
             Context: This is information from the document "${source.title}".
@@ -82,7 +83,10 @@ class ContextAgent(
         val historyPairs = conversationHistory.map { it.author to it.content }
         val prompt = AiPrompts.getMultiSourceChatPrompt(sourceBlocks, historyPairs, question)
 
-        logger?.d(tag, "queryAllSources: ${sources.size} source(s), ${conversationHistory.size} history turns, using top ${topPairs.size} fragments")
+        logger?.d(
+            tag,
+            "queryAllSources: ${sources.size} source(s), ${conversationHistory.size} history turns, using top ${topPairs.size} fragments"
+        )
         return aiService.generateChatResponse(prompt)
     }
 }

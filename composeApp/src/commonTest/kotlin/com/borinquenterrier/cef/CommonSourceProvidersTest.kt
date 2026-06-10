@@ -14,7 +14,7 @@ class CommonSourceProvidersTest : FunSpec({
 
     test("LocalFileSourceProvider properties and authorization") {
         val provider = LocalFileSourceProvider(ingestionAgent, aiService)
-        
+
         provider.id shouldBe "local_file"
         provider.displayName shouldBe "File"
 

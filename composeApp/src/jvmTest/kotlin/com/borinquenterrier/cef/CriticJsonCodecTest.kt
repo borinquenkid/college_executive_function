@@ -9,7 +9,12 @@ class CriticJsonCodecTest : FunSpec({
 
     test("serializeEvents round-trips a DayEvent through parseEvents") {
         val events = listOf(
-            DayEvent(title = "Reading Response", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 2))
+            DayEvent(
+                title = "Reading Response",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 6, 2)
+            )
         )
 
         val json = CriticJsonCodec.serializeEvents(events)
@@ -44,10 +49,25 @@ class CriticJsonCodecTest : FunSpec({
 
     test("serializeEvents includes warning field only when present") {
         val withWarning = CriticJsonCodec.serializeEvents(
-            listOf(DayEvent(title = "A", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 2), warning = "Conflict"))
+            listOf(
+                DayEvent(
+                    title = "A",
+                    source = EventSource.AI_GENERATED,
+                    category = AcademicCategory.DEADLINE,
+                    date = LocalDate(2026, 6, 2),
+                    warning = "Conflict"
+                )
+            )
         )
         val withoutWarning = CriticJsonCodec.serializeEvents(
-            listOf(DayEvent(title = "B", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 2)))
+            listOf(
+                DayEvent(
+                    title = "B",
+                    source = EventSource.AI_GENERATED,
+                    category = AcademicCategory.DEADLINE,
+                    date = LocalDate(2026, 6, 2)
+                )
+            )
         )
 
         withWarning.contains("\"warning\":\"Conflict\"") shouldBe true
@@ -55,7 +75,8 @@ class CriticJsonCodecTest : FunSpec({
     }
 
     test("parseEvents extracts an array nested under an 'events' key") {
-        val json = """{"events": [{"title": "Quiz", "type": "DAY", "category": "DEADLINE", "date": "2026-06-05"}]}"""
+        val json =
+            """{"events": [{"title": "Quiz", "type": "DAY", "category": "DEADLINE", "date": "2026-06-05"}]}"""
 
         val parsed = CriticJsonCodec.parseEvents(json)
 
@@ -64,7 +85,8 @@ class CriticJsonCodecTest : FunSpec({
     }
 
     test("parseEvents strips markdown code fences before parsing") {
-        val json = "```json\n[{\"title\": \"Fenced\", \"type\": \"DAY\", \"category\": \"DEADLINE\", \"date\": \"2026-06-05\"}]\n```"
+        val json =
+            "```json\n[{\"title\": \"Fenced\", \"type\": \"DAY\", \"category\": \"DEADLINE\", \"date\": \"2026-06-05\"}]\n```"
 
         val parsed = CriticJsonCodec.parseEvents(json)
 
@@ -109,7 +131,8 @@ class CriticJsonCodecTest : FunSpec({
     }
 
     test("parseEvents falls back to default times for an unparseable TIME event") {
-        val json = """[{"title": "Bad Time", "type": "TIME", "category": "REGULAR", "date": "2026-06-02", "startTime": "not-a-time", "endTime": "also-bad"}]"""
+        val json =
+            """[{"title": "Bad Time", "type": "TIME", "category": "REGULAR", "date": "2026-06-02", "startTime": "not-a-time", "endTime": "also-bad"}]"""
 
         val parsed = CriticJsonCodec.parseEvents(json)
 
@@ -119,7 +142,8 @@ class CriticJsonCodecTest : FunSpec({
     }
 
     test("parseEvents skips malformed elements without failing the whole batch") {
-        val json = """[{"title": "Good", "type": "DAY", "category": "DEADLINE", "date": "2026-06-02"}, "not-an-object"]"""
+        val json =
+            """[{"title": "Good", "type": "DAY", "category": "DEADLINE", "date": "2026-06-02"}, "not-an-object"]"""
 
         val parsed = CriticJsonCodec.parseEvents(json)
 
@@ -128,7 +152,13 @@ class CriticJsonCodecTest : FunSpec({
     }
 
     test("serializeTasks round-trips through parseTasks") {
-        val tasks = listOf(DecomposedTask(title = "Read Ch. 1", daysBeforeDue = 5, description = "Read the intro chapter"))
+        val tasks = listOf(
+            DecomposedTask(
+                title = "Read Ch. 1",
+                daysBeforeDue = 5,
+                description = "Read the intro chapter"
+            )
+        )
 
         val json = CriticJsonCodec.serializeTasks(tasks)
         val parsed = CriticJsonCodec.parseTasks(json)
@@ -137,7 +167,8 @@ class CriticJsonCodecTest : FunSpec({
     }
 
     test("parseTasks extracts an array nested under a 'tasks' key") {
-        val json = """{"tasks": [{"title": "Outline", "daysBeforeDue": 3, "description": "Sketch the outline"}]}"""
+        val json =
+            """{"tasks": [{"title": "Outline", "daysBeforeDue": 3, "description": "Sketch the outline"}]}"""
 
         val parsed = CriticJsonCodec.parseTasks(json)
 
@@ -154,7 +185,8 @@ class CriticJsonCodecTest : FunSpec({
     }
 
     test("parseTasks leniently coerces a numeric-string daysBeforeDue value to an int") {
-        val json = """[{"title": "Lenient", "daysBeforeDue": "4", "description": "from a quoted number"}]"""
+        val json =
+            """[{"title": "Lenient", "daysBeforeDue": "4", "description": "from a quoted number"}]"""
 
         val parsed = CriticJsonCodec.parseTasks(json)
 

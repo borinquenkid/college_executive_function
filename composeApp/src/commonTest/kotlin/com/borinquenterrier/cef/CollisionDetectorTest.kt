@@ -10,7 +10,7 @@ class CollisionDetectorTest : FunSpec({
         val detector = CollisionDetector()
         val validator = ConstraintValidator()
         val date = LocalDate(2026, 6, 10)
-        
+
         // Just verify the detector can be instantiated and used
         val event = TimeEvent(
             title = "Study",
@@ -20,7 +20,7 @@ class CollisionDetectorTest : FunSpec({
             endTime = LocalTime(11, 0),
             category = AcademicCategory.STUDY_BLOCK
         )
-        
+
         val duration = event.endTime.toSecondOfDay() - event.startTime.toSecondOfDay()
         duration shouldBe 3600  // 1 hour in seconds
     }
@@ -29,14 +29,14 @@ class CollisionDetectorTest : FunSpec({
         val detector = CollisionDetector()
         val validator = ConstraintValidator()
         val date = LocalDate(2026, 6, 10)
-        
+
         val event = DayEvent(
             title = "Holiday",
             source = EventSource.MANUAL,
             date = date,
             category = AcademicCategory.HOLIDAY
         )
-        
+
         event.title shouldBe "Holiday"
         event.date shouldBe date
     }
@@ -48,7 +48,7 @@ class CollisionDetectorTest : FunSpec({
                 lunchEndHour = 13
             )
         )
-        
+
         // Slot overlapping lunch should be invalid
         val result = validator.isValidTimeSlot(
             date = LocalDate(2026, 6, 10),
@@ -57,7 +57,7 @@ class CollisionDetectorTest : FunSpec({
             priority = 10,
             existingEvents = emptyList()
         )
-        
+
         result shouldBe false
     }
 
@@ -68,7 +68,7 @@ class CollisionDetectorTest : FunSpec({
                 lunchEndHour = 13
             )
         )
-        
+
         val result = validator.isValidTimeSlot(
             date = LocalDate(2026, 6, 10),
             start = LocalTime(10, 0),
@@ -76,7 +76,7 @@ class CollisionDetectorTest : FunSpec({
             priority = 10,
             existingEvents = emptyList()
         )
-        
+
         result shouldBe true
     }
 })

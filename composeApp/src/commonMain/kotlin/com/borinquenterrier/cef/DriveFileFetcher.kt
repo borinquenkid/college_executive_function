@@ -16,7 +16,10 @@ class DriveFileFetcher(
      * @param existingUris URIs of files already in the system
      * @return Deduplicated list of new files
      */
-    suspend fun fetchFromFolders(folderIds: List<String>, existingUris: Set<String> = emptySet()): List<DriveFile> {
+    suspend fun fetchFromFolders(
+        folderIds: List<String>,
+        existingUris: Set<String> = emptySet()
+    ): List<DriveFile> {
         val allFiles = folderFetcher.fetchFromFolders(folderIds)
         return duplicateFilter.filterDuplicates(allFiles, existingUris)
     }

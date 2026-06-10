@@ -1,9 +1,9 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import kotlinx.coroutines.test.StandardTestDispatcher
 import kotlinx.coroutines.test.TestScope
 import kotlinx.datetime.LocalDate
@@ -14,7 +14,7 @@ class AiEventsServiceTest : FunSpec({
         val testDispatcher = StandardTestDispatcher()
         val testScope = TestScope(testDispatcher)
         val service = AiEventsService()
-        
+
         service.aiGeneratedEvents.value.shouldBeEmpty()
     }
 
@@ -22,7 +22,7 @@ class AiEventsServiceTest : FunSpec({
         val testDispatcher = StandardTestDispatcher()
         val testScope = TestScope(testDispatcher)
         val service = AiEventsService()
-        
+
         val event = TimeEvent(
             title = "Study Math",
             source = EventSource.AI_GENERATED,
@@ -31,9 +31,9 @@ class AiEventsServiceTest : FunSpec({
             startTime = LocalTime(9, 0),
             endTime = LocalTime(10, 30)
         )
-        
+
         service.addEvents(listOf(event))
-        
+
         service.aiGeneratedEvents.value.shouldHaveSize(1)
         service.aiGeneratedEvents.value[0].title shouldBe "Study Math"
     }
@@ -42,7 +42,7 @@ class AiEventsServiceTest : FunSpec({
         val testDispatcher = StandardTestDispatcher()
         val testScope = TestScope(testDispatcher)
         val service = AiEventsService()
-        
+
         val event1 = TimeEvent(
             title = "Study Math",
             source = EventSource.AI_GENERATED,
@@ -51,7 +51,7 @@ class AiEventsServiceTest : FunSpec({
             startTime = LocalTime(9, 0),
             endTime = LocalTime(10, 30)
         )
-        
+
         val event2 = TimeEvent(
             title = "Study Physics",
             source = EventSource.AI_GENERATED,
@@ -60,10 +60,10 @@ class AiEventsServiceTest : FunSpec({
             startTime = LocalTime(14, 0),
             endTime = LocalTime(15, 30)
         )
-        
+
         service.addEvents(listOf(event1))
         service.addEvents(listOf(event2))
-        
+
         service.aiGeneratedEvents.value.shouldHaveSize(2)
     }
 
@@ -71,7 +71,7 @@ class AiEventsServiceTest : FunSpec({
         val testDispatcher = StandardTestDispatcher()
         val testScope = TestScope(testDispatcher)
         val service = AiEventsService()
-        
+
         val event1 = TimeEvent(
             title = "Study Math",
             source = EventSource.AI_GENERATED,
@@ -80,12 +80,12 @@ class AiEventsServiceTest : FunSpec({
             startTime = LocalTime(9, 0),
             endTime = LocalTime(10, 30)
         )
-        
+
         service.addEvents(listOf(event1))
         service.aiGeneratedEvents.value.shouldHaveSize(1)
-        
+
         service.clearEvents()
-        
+
         service.aiGeneratedEvents.value.shouldBeEmpty()
     }
 
@@ -93,7 +93,7 @@ class AiEventsServiceTest : FunSpec({
         val testDispatcher = StandardTestDispatcher()
         val testScope = TestScope(testDispatcher)
         val service = AiEventsService()
-        
+
         service.aiGeneratedEvents.value.shouldBeEmpty()
         service.clearEvents()
         service.aiGeneratedEvents.value.shouldBeEmpty()

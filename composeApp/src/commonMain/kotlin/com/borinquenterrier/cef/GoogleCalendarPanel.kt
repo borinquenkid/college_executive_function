@@ -1,14 +1,41 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Error
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.DropdownMenu
+import androidx.compose.material3.DropdownMenuItem
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -72,7 +99,7 @@ fun GoogleCalendarPanel(
 
             if (!isGoogleLinked) {
                 Button(
-                    onClick = { 
+                    onClick = {
                         scope.launch { container.googleAccountFlow.connect() }
                     },
                     modifier = Modifier.fillMaxWidth(),
@@ -100,7 +127,11 @@ fun GoogleCalendarPanel(
 
             if (isGoogleLinked) {
                 HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                Text("Target Google Calendar", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
+                Text(
+                    "Target Google Calendar",
+                    style = MaterialTheme.typography.labelLarge,
+                    color = MaterialTheme.colorScheme.primary
+                )
                 Spacer(modifier = Modifier.height(4.dp))
 
                 GoogleCalendarSelector(
@@ -119,7 +150,11 @@ fun GoogleCalendarPanel(
             }
 
             if (loginError != null) {
-                Text(loginError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                Text(
+                    loginError,
+                    color = MaterialTheme.colorScheme.error,
+                    style = MaterialTheme.typography.bodySmall
+                )
             }
         }
     }
@@ -138,13 +173,13 @@ fun GoogleCalendarPanel(
                         try {
                             val newId = container.syncService.createCalendar(newCalendarNameInput)
                             onCalendarIdChange(newId, newCalendarNameInput)
-                            
+
                             try {
                                 onCalendarsRefresh()
                             } catch (e: Exception) {
                                 onCalendarLoadError(CalendarErrorFormatter.format(e))
                             }
-                            
+
                             showCreateCalendarDialog = false
                             newCalendarNameInput = ""
                         } catch (e: Exception) {
@@ -188,16 +223,27 @@ private fun GoogleCalendarSelector(
         }
     } else if (calendarLoadError != null) {
         Row(verticalAlignment = Alignment.CenterVertically) {
-            Icon(Icons.Default.Error, contentDescription = null, tint = MaterialTheme.colorScheme.error, modifier = Modifier.size(16.dp))
+            Icon(
+                Icons.Default.Error,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.error,
+                modifier = Modifier.size(16.dp)
+            )
             Spacer(Modifier.width(8.dp))
-            Text(calendarLoadError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall, modifier = Modifier.weight(1f))
+            Text(
+                calendarLoadError,
+                color = MaterialTheme.colorScheme.error,
+                style = MaterialTheme.typography.bodySmall,
+                modifier = Modifier.weight(1f)
+            )
             TextButton(onClick = onRetryLoad) {
                 Text("Retry", style = MaterialTheme.typography.bodySmall)
             }
         }
     } else {
         var expanded by remember { mutableStateOf(false) }
-        val currentDisplayName = if (googleCalendarId == "default") "CEF Academic (Default)" else googleCalendarName
+        val currentDisplayName =
+            if (googleCalendarId == "default") "CEF Academic (Default)" else googleCalendarName
 
         Column(
             verticalArrangement = Arrangement.spacedBy(4.dp),
@@ -222,7 +268,8 @@ private fun GoogleCalendarSelector(
                 DropdownMenu(
                     expanded = expanded,
                     onDismissRequest = { expanded = false },
-                    modifier = Modifier.fillMaxWidth(0.9f).testTag("settings_calendar_dropdown_menu")
+                    modifier = Modifier.fillMaxWidth(0.9f)
+                        .testTag("settings_calendar_dropdown_menu")
                 ) {
                     DropdownMenuItem(
                         text = { Text("CEF Academic (Default)") },
@@ -291,7 +338,11 @@ private fun CreateCalendarDialog(
                     enabled = !isCreating
                 )
                 if (createError != null) {
-                    Text(createError, color = MaterialTheme.colorScheme.error, style = MaterialTheme.typography.bodySmall)
+                    Text(
+                        createError,
+                        color = MaterialTheme.colorScheme.error,
+                        style = MaterialTheme.typography.bodySmall
+                    )
                 }
             }
         },
@@ -301,7 +352,10 @@ private fun CreateCalendarDialog(
                 enabled = newCalendarNameInput.isNotBlank() && !isCreating
             ) {
                 if (isCreating) {
-                    CircularProgressIndicator(modifier = Modifier.size(16.dp), color = MaterialTheme.colorScheme.onPrimary)
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(16.dp),
+                        color = MaterialTheme.colorScheme.onPrimary
+                    )
                 } else {
                     Text("Create")
                 }

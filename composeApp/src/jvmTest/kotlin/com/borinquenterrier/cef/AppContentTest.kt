@@ -1,6 +1,10 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
 import com.russhwolf.settings.MapSettings
 import io.mockk.coEvery
 import io.mockk.every
@@ -11,7 +15,11 @@ import kotlin.test.Test
 @OptIn(ExperimentalTestApi::class)
 class AppContentTest {
 
-    private fun buildMockContainer(incompleteEvents: MutableStateFlow<List<Event>> = MutableStateFlow(emptyList())): DependencyContainer {
+    private fun buildMockContainer(
+        incompleteEvents: MutableStateFlow<List<Event>> = MutableStateFlow(
+            emptyList()
+        )
+    ): DependencyContainer {
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
         val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)

@@ -19,7 +19,11 @@ class GroundingGuardAIService(
 
     override suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         val sourceText = fragments.joinToString("\n\n") { it.text }
-        return groundToSource("generateCalendarEvents", sourceText, delegate.generateCalendarEvents(fragments))
+        return groundToSource(
+            "generateCalendarEvents",
+            sourceText,
+            delegate.generateCalendarEvents(fragments)
+        )
     }
 
     override suspend fun generateStudyPlan(
@@ -34,12 +38,19 @@ class GroundingGuardAIService(
         )
     }
 
-    private fun groundToSource(caller: String, sourceText: String, events: List<Event>): List<Event> {
+    private fun groundToSource(
+        caller: String,
+        sourceText: String,
+        events: List<Event>
+    ): List<Event> {
         val sourceYears = GeminiAIService.extractSourceYears(sourceText)
         val grounded = GeminiAIService.filterToSourceYears(events, sourceYears)
         val dropped = events.size - grounded.size
         if (dropped > 0) {
-            logger?.d("GroundingGuard", "$caller: dropped $dropped confabulated event(s) outside source years $sourceYears")
+            logger?.d(
+                "GroundingGuard",
+                "$caller: dropped $dropped confabulated event(s) outside source years $sourceYears"
+            )
         }
         return grounded
     }

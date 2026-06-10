@@ -14,7 +14,7 @@ class SourceIngestionHandlerTest : FunSpec({
     val ingestionAgent = mockk<IngestionAgent>()
     val testDispatcher = UnconfinedTestDispatcher()
     val testScope = TestScope(testDispatcher)
-    
+
     val handler = SourceIngestionHandler(ingestionAgent, testScope)
 
     test("ingestLocalFile handles success flow") {

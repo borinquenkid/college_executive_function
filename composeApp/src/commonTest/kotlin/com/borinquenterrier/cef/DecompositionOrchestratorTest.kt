@@ -1,13 +1,11 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.collections.shouldNotBeEmpty
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
-import kotlinx.datetime.LocalDate
 
 class DecompositionOrchestratorTest : FunSpec({
 
@@ -59,7 +57,12 @@ class DecompositionOrchestratorTest : FunSpec({
         )
 
         coEvery { mockAi.decomposeTask(rootTitle, rootDueDate) } returns rootSubtasks
-        coEvery { mockAi.decomposeTask("Draft first essay section", "2026-12-05") } returns draftSubtasks
+        coEvery {
+            mockAi.decomposeTask(
+                "Draft first essay section",
+                "2026-12-05"
+            )
+        } returns draftSubtasks
 
         val result = runBlocking { orchestrator.decompose(rootTitle, rootDueDate) }
 

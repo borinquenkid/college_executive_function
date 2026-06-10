@@ -6,7 +6,7 @@ import com.russhwolf.settings.Settings
  * Centrally manages observability and telemetry counters across all platforms.
  */
 class TelemetryManager(private val settings: Settings) {
-    
+
     private val keyJsonErrors = "TELEMETRY_JSON_PARSING_ERRORS"
     private val keyRateLimitErrors = "TELEMETRY_RATE_LIMIT_ERRORS"
     private val keyCriticTotal = "TELEMETRY_CRITIC_TOTAL_PASSES"
@@ -32,11 +32,11 @@ class TelemetryManager(private val settings: Settings) {
     }
 
     fun getJsonErrors(): Int = settings.getInt(keyJsonErrors, 0)
-    
+
     fun getRateLimitErrors(): Int = settings.getInt(keyRateLimitErrors, 0)
-    
+
     fun getCriticTotal(): Int = settings.getInt(keyCriticTotal, 0)
-    
+
     fun getCriticModified(): Int = settings.getInt(keyCriticModified, 0)
 
     fun getCriticTriggerRate(): Double {

@@ -74,10 +74,18 @@ class FileDuplicateFilterTest : StringSpec({
     "handles complex mix of duplicates and existing" {
         val files = listOf(
             DriveFile(id = "file1", name = "a.pdf", mimeType = "application/pdf"),
-            DriveFile(id = "file1", name = "a.pdf", mimeType = "application/pdf"), // duplicate in batch
+            DriveFile(
+                id = "file1",
+                name = "a.pdf",
+                mimeType = "application/pdf"
+            ), // duplicate in batch
             DriveFile(id = "file2", name = "b.pdf", mimeType = "application/pdf"),
             DriveFile(id = "file3", name = "c.pdf", mimeType = "application/pdf"),
-            DriveFile(id = "file3", name = "c.pdf", mimeType = "application/pdf")  // duplicate in batch
+            DriveFile(
+                id = "file3",
+                name = "c.pdf",
+                mimeType = "application/pdf"
+            )  // duplicate in batch
         )
         val existingUris = setOf("google_drive://file2")
 

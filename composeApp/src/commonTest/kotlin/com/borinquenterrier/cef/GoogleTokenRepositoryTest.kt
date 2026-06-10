@@ -1,17 +1,17 @@
 package com.borinquenterrier.cef
 
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import com.russhwolf.settings.MapSettings
 
 class GoogleTokenRepositoryTest : FunSpec({
 
     test("Tokens are saved and retrieved correctly") {
         val settings = MapSettings()
         val repository = GoogleTokenRepository(settings)
-        
+
         repository.saveTokens("access-123", "refresh-456")
-        
+
         repository.getAccessToken() shouldBe "access-123"
         repository.getRefreshToken() shouldBe "refresh-456"
         repository.hasTokens() shouldBe true
@@ -20,7 +20,7 @@ class GoogleTokenRepositoryTest : FunSpec({
     test("hasTokens returns false when no tokens exist") {
         val settings = MapSettings()
         val repository = GoogleTokenRepository(settings)
-        
+
         repository.hasTokens() shouldBe false
     }
 })

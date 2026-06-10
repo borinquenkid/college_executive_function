@@ -12,17 +12,21 @@ class NormalizationService : EventExtractor {
             if (event.category == AcademicCategory.STUDY_BLOCK || event.category == AcademicCategory.CLASS) {
                 return@map event
             }
-            
+
             val title = event.title.lowercase()
             val newCategory = when {
-                title.contains("holiday") || title.contains("break") || title.contains("no class") -> 
+                title.contains("holiday") || title.contains("break") || title.contains("no class") ->
                     AcademicCategory.HOLIDAY
-                title.contains("final") || title.contains("exam") -> 
+
+                title.contains("final") || title.contains("exam") ->
                     AcademicCategory.FINALS
-                title.contains("deadline") || title.contains("last day") || title.contains("due") -> 
+
+                title.contains("deadline") || title.contains("last day") || title.contains("due") ->
                     AcademicCategory.DEADLINE
-                title.contains("semester start") || title.contains("semester end") -> 
+
+                title.contains("semester start") || title.contains("semester end") ->
                     AcademicCategory.SEMESTER_BOUND
+
                 else -> event.category
             }
 

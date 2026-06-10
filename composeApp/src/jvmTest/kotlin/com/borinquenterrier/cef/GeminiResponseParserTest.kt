@@ -28,7 +28,8 @@ class GeminiResponseParserTest : FunSpec({
     }
 
     test("parseEventsJson extracts an array nested under an 'events' key and strips code fences") {
-        val response = "```json\n{\"events\": [{\"title\": \"Midterm\", \"type\": \"DAY\", \"date\": \"2026-07-01\", \"category\": \"FINALS\"}]}\n```"
+        val response =
+            "```json\n{\"events\": [{\"title\": \"Midterm\", \"type\": \"DAY\", \"date\": \"2026-07-01\", \"category\": \"FINALS\"}]}\n```"
 
         val parsed = GeminiResponseParser.parseEventsJson(response)
 
@@ -38,7 +39,8 @@ class GeminiResponseParserTest : FunSpec({
     }
 
     test("parseEventsJson coerces explicit nulls and missing fields to their DTO defaults") {
-        val response = """[{"title": null, "type": "DAY", "date": null, "category": "BOGUS_CATEGORY"}]"""
+        val response =
+            """[{"title": null, "type": "DAY", "date": null, "category": "BOGUS_CATEGORY"}]"""
 
         val parsed = GeminiResponseParser.parseEventsJson(response)
 
@@ -49,7 +51,8 @@ class GeminiResponseParserTest : FunSpec({
     }
 
     test("parseEventsJson leniently coerces a numeric-string gradeWeight and falls back to default times on bad input") {
-        val response = """[{"title": "Final Exam", "type": "TIME", "date": "2026-08-01", "gradeWeight": "0.4", "startTime": "noon", "endTime": "later"}]"""
+        val response =
+            """[{"title": "Final Exam", "type": "TIME", "date": "2026-08-01", "gradeWeight": "0.4", "startTime": "noon", "endTime": "later"}]"""
 
         val parsed = GeminiResponseParser.parseEventsJson(response)
 
@@ -66,7 +69,8 @@ class GeminiResponseParserTest : FunSpec({
     }
 
     test("parseDecomposeTaskJson coerces a numeric-string daysBeforeDue and extracts an array nested under 'tasks'") {
-        val response = """{"tasks": [{"title": "Outline", "daysBeforeDue": "3", "description": "Draft an outline"}]}"""
+        val response =
+            """{"tasks": [{"title": "Outline", "daysBeforeDue": "3", "description": "Draft an outline"}]}"""
 
         val parsed = GeminiResponseParser.parseDecomposeTaskJson(response)
 
@@ -100,7 +104,8 @@ class GeminiResponseParserTest : FunSpec({
     }
 
     test("parseCategorizeSourceJson throws SourceValidationException when isValid is false") {
-        val json = """{"category": "syllabus", "isValid": false, "reason": "No assignments or meeting times found."}"""
+        val json =
+            """{"category": "syllabus", "isValid": false, "reason": "No assignments or meeting times found."}"""
         val ex = shouldThrow<SourceValidationException> {
             GeminiResponseParser.parseCategorizeSourceJson(json)
         }
@@ -108,7 +113,10 @@ class GeminiResponseParserTest : FunSpec({
     }
 
     test("extractSourceYears finds 4-digit years starting with 20 in free text") {
-        GeminiResponseParser.extractSourceYears("Spring 2026 syllabus, revised from Fall 2025") shouldBe setOf(2026, 2025)
+        GeminiResponseParser.extractSourceYears("Spring 2026 syllabus, revised from Fall 2025") shouldBe setOf(
+            2026,
+            2025
+        )
         GeminiResponseParser.extractSourceYears("No years here") shouldBe emptySet()
     }
 
@@ -118,7 +126,8 @@ class GeminiResponseParserTest : FunSpec({
             DayEvent(title = "B", source = EventSource.AI_GENERATED, date = LocalDate(2030, 1, 1))
         )
 
-        GeminiResponseParser.filterToSourceYears(events, setOf(2026)).map { it.title } shouldBe listOf("A")
+        GeminiResponseParser.filterToSourceYears(events, setOf(2026))
+            .map { it.title } shouldBe listOf("A")
         GeminiResponseParser.filterToSourceYears(events, emptySet()) shouldBe events
     }
 })

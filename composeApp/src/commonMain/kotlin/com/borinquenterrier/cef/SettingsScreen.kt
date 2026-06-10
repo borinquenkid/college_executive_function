@@ -1,16 +1,31 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
-import androidx.compose.foundation.verticalScroll
-import androidx.compose.foundation.rememberScrollState
 import kotlinx.coroutines.launch
 
 @Composable
@@ -23,12 +38,19 @@ fun SettingsScreen(
     val googleFlow = container.googleAccountFlow
     val connectionState by googleFlow.state.collectAsState()
 
-    var apiKey by remember { mutableStateOf(settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))) }
+    var apiKey by remember {
+        mutableStateOf(
+            settings.getString(
+                "CEF_GEMINI_API_KEY",
+                settings.getString("GEMINI_API_KEY", "")
+            )
+        )
+    }
     var showAdvanced by remember { mutableStateOf(false) }
 
     val preferencesRepository = remember { container.preferencesRepository }
     var preferences by remember { mutableStateOf(StudyPreferences()) }
-    
+
     LaunchedEffect(preferencesRepository) {
         preferences = preferencesRepository.getPreferences()
     }
@@ -176,7 +198,10 @@ fun SettingsScreen(
             onClick = { showAdvanced = !showAdvanced },
             modifier = Modifier.align(Alignment.End)
         ) {
-            Icon(if (showAdvanced) Icons.Default.Info else Icons.Default.Settings, contentDescription = null)
+            Icon(
+                if (showAdvanced) Icons.Default.Info else Icons.Default.Settings,
+                contentDescription = null
+            )
             Spacer(Modifier.width(4.dp))
             Text("Advanced")
         }
@@ -185,7 +210,7 @@ fun SettingsScreen(
             AdvancedSettingsPanel(
                 settings = settings,
                 shareAnonymousBugReports = shareAnonymousBugReports,
-                onBugReportsChange = { 
+                onBugReportsChange = {
                     shareAnonymousBugReports = it
                     savePreferences()
                 }

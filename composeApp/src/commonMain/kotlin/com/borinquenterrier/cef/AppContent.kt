@@ -69,7 +69,12 @@ fun AppContent(container: DependencyContainer) {
     Scaffold(
         topBar = {
             CenterAlignedTopAppBar(
-                title = { Text("College Executive Function", style = MaterialTheme.typography.titleMedium) },
+                title = {
+                    Text(
+                        "College Executive Function",
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                },
                 actions = {
                     IconButton(
                         onClick = { appController.navigateTo(AppScreen.Home) },
@@ -98,12 +103,20 @@ fun AppContent(container: DependencyContainer) {
                 is AppScreen.Home -> {
                     UniversalHomeLayout(container)
                 }
+
                 is AppScreen.Calendar -> {
-                    AcademicCalendar(Modifier.fillMaxSize(), aiGeneratedEvents, container.calendarAgent, container.eventAgent) { appController.navigateTo(it) }
+                    AcademicCalendar(
+                        Modifier.fillMaxSize(),
+                        aiGeneratedEvents,
+                        container.calendarAgent,
+                        container.eventAgent
+                    ) { appController.navigateTo(it) }
                 }
+
                 is AppScreen.Settings -> {
                     SettingsScreen(container, Modifier.fillMaxSize())
                 }
+
                 is AppScreen.Routine -> {
                     RoutineScreen(Modifier.fillMaxSize())
                 }

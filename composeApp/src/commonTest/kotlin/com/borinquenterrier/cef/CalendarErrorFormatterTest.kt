@@ -87,7 +87,8 @@ class CalendarErrorFormatterTest : FunSpec({
         }
 
         test("should handle API not enabled message") {
-            val error = Exception("403 Forbidden: The Calendar API has not been used in project 123456")
+            val error =
+                Exception("403 Forbidden: The Calendar API has not been used in project 123456")
             CalendarErrorFormatter.format(error) shouldBe "Access denied. Please ensure the Google Calendar API is enabled in your Google Cloud Project."
         }
 

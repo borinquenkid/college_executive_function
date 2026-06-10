@@ -30,7 +30,8 @@ class SyllabusAuditor(
             if (hasAmbiguities) {
                 root["findings"]?.jsonArray?.map { element ->
                     val obj = element.jsonObject
-                    val desc = obj["description"]?.jsonPrimitive?.content ?: "Syllabus ambiguity detected"
+                    val desc =
+                        obj["description"]?.jsonPrimitive?.content ?: "Syllabus ambiguity detected"
                     val type = obj["type"]?.jsonPrimitive?.content ?: "GENERAL"
                     "[$type] $desc"
                 } ?: emptyList()

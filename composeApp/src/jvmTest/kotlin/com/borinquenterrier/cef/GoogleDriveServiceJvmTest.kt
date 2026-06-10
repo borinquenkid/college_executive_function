@@ -4,13 +4,21 @@ import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import io.ktor.utils.io.*
-import io.mockk.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.MockRequestHandler
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.serialization.kotlinx.json.json
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
 import kotlinx.serialization.json.Json
 
 class GoogleDriveServiceJvmTest : FunSpec({
@@ -83,7 +91,8 @@ class GoogleDriveServiceJvmTest : FunSpec({
     }
 
     test("listFiles retries with refreshed token after 401 exception") {
-        val goodJson = """{"files":[{"id":"f2","name":"syllabus.pdf","mimeType":"application/pdf"}]}"""
+        val goodJson =
+            """{"files":[{"id":"f2","name":"syllabus.pdf","mimeType":"application/pdf"}]}"""
         coEvery { tokenRepository.getAccessToken() } returns "expired-token"
         coEvery { tokenRepository.getRefreshToken() } returns "refresh-token"
         coEvery { authService.refreshAccessToken("refresh-token") } returns "new-token"
@@ -93,7 +102,11 @@ class GoogleDriveServiceJvmTest : FunSpec({
         val engine = MockEngine { _ ->
             callCount++
             if (callCount == 1) throw Exception("401 Unauthorized")
-            else respond(goodJson, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            else respond(
+                goodJson,
+                HttpStatusCode.OK,
+                headersOf(HttpHeaders.ContentType, "application/json")
+            )
         }
         val client = HttpClient(engine) {
             install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
@@ -127,13 +140,18 @@ class GoogleDriveServiceJvmTest : FunSpec({
         var capturedUrl = ""
         val engine = MockEngine { request ->
             capturedUrl = request.url.toString()
-            respond("Lecture notes", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "text/plain"))
+            respond(
+                "Lecture notes",
+                HttpStatusCode.OK,
+                headersOf(HttpHeaders.ContentType, "text/plain")
+            )
         }
         val client = HttpClient(engine) {
             install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }
         }
 
-        val content = makeService(client).getFileContent("doc-id", "application/vnd.google-apps.document")
+        val content =
+            makeService(client).getFileContent("doc-id", "application/vnd.google-apps.document")
 
         content shouldBe "Lecture notes"
         capturedUrl shouldContain "/export"
@@ -144,7 +162,11 @@ class GoogleDriveServiceJvmTest : FunSpec({
         var capturedUrl = ""
         val engine = MockEngine { request ->
             capturedUrl = request.url.toString()
-            respond("PDF bytes", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/octet-stream"))
+            respond(
+                "PDF bytes",
+                HttpStatusCode.OK,
+                headersOf(HttpHeaders.ContentType, "application/octet-stream")
+            )
         }
         val client = HttpClient(engine) {
             install(ContentNegotiation) { json(Json { ignoreUnknownKeys = true }) }

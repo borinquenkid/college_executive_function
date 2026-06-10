@@ -57,7 +57,8 @@ class EventGenerationService(
         val existingScheduleText = buildScheduleContext(existingEvents)
 
         val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
-        val planEvents = aiService.generateStudyPlan(syllabusText, existingScheduleText, preferences)
+        val planEvents =
+            aiService.generateStudyPlan(syllabusText, existingScheduleText, preferences)
 
         return normalize(planEvents)
     }
@@ -74,7 +75,11 @@ class EventGenerationService(
         if (userConstraints.isNotEmpty()) {
             val formatHour = { hour: Int -> "${hour.toString().padStart(2, '0')}:00" }
             val constraintsStr = userConstraints.joinToString("\n") {
-                "- Restricted: DO NOT schedule any STUDY_BLOCK on ${it.dayOfWeek} from ${formatHour(it.startHour)} to ${formatHour(it.endHour)}"
+                "- Restricted: DO NOT schedule any STUDY_BLOCK on ${it.dayOfWeek} from ${
+                    formatHour(
+                        it.startHour
+                    )
+                } to ${formatHour(it.endHour)}"
             }
             scheduleText += "\n\nUser Preference Constraints (strictly avoid scheduling study blocks here):\n$constraintsStr"
         }
@@ -88,7 +93,8 @@ class EventGenerationService(
         // Assign deterministic IDs based on content so duplicates are recognized across generations
         return normalized.map { event ->
             if (event.id == null) {
-                val idContent = "${event.title}|${event.date}|${if (event is TimeEvent) event.startTime else ""}|${event.category}"
+                val idContent =
+                    "${event.title}|${event.date}|${if (event is TimeEvent) event.startTime else ""}|${event.category}"
                 val deterministicId = generateDeterministicId(idContent)
                 when (event) {
                     is TimeEvent -> event.copy(id = deterministicId)

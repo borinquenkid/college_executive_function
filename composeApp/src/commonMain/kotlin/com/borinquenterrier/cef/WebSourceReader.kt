@@ -29,8 +29,12 @@ class WebSourceReader {
         var text = html
 
         // 1. Remove scripts and styles content
-        text = text.replace(Regex("<script[\\s\\S]*?>[\\s\\S]*?</script>", RegexOption.IGNORE_CASE), "")
-        text = text.replace(Regex("<style[\\s\\S]*?>[\\s\\S]*?</style>", RegexOption.IGNORE_CASE), "")
+        text = text.replace(
+            Regex("<script[\\s\\S]*?>[\\s\\S]*?</script>", RegexOption.IGNORE_CASE),
+            ""
+        )
+        text =
+            text.replace(Regex("<style[\\s\\S]*?>[\\s\\S]*?</style>", RegexOption.IGNORE_CASE), "")
 
         // 2. Remove all HTML tags
         text = text.replace(Regex("<.*?>"), " ")

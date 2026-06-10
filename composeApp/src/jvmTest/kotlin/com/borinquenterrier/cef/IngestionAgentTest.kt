@@ -1,13 +1,14 @@
 package com.borinquenterrier.cef
 
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.borinquenterrier.cef.db.AppDatabase
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.*
-import com.borinquenterrier.cef.db.AppDatabase
-import com.borinquenterrier.cef.db.DriverFactory
-import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 
 class IngestionAgentTest : FunSpec({
 
@@ -59,7 +60,8 @@ class IngestionAgentTest : FunSpec({
         result.category shouldBe SourceCategory.SYLLABUS
         coVerify(exactly = 1) { aiService.categorizeSource(any()) }
 
-        val persisted = database.appDatabaseQueries.selectSourceById(result.title).executeAsOneOrNull()
+        val persisted =
+            database.appDatabaseQueries.selectSourceById(result.title).executeAsOneOrNull()
         persisted shouldNotBe null
         persisted?.category shouldBe "SYLLABUS"
     }
@@ -81,7 +83,8 @@ class IngestionAgentTest : FunSpec({
         result.category shouldBe SourceCategory.CALENDAR
         coVerify(exactly = 0) { aiService.categorizeSource(any()) }
 
-        val persisted = database.appDatabaseQueries.selectSourceById(result.title).executeAsOneOrNull()
+        val persisted =
+            database.appDatabaseQueries.selectSourceById(result.title).executeAsOneOrNull()
         persisted shouldNotBe null
         persisted?.category shouldBe "CALENDAR"
     }
@@ -140,8 +143,17 @@ class IngestionAgentTest : FunSpec({
     }
 
     test("addDriveFile categorizes non-ICS drive files using AI service") {
-        val driveFile = DriveFile("drive-id-1", "lecture_notes.docx", "application/vnd.openxmlformats-officedocument.wordprocessingml.document")
-        coEvery { driveService.getFileContent(driveFile.id, driveFile.mimeType) } returns "Lecture notes content."
+        val driveFile = DriveFile(
+            "drive-id-1",
+            "lecture_notes.docx",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+        )
+        coEvery {
+            driveService.getFileContent(
+                driveFile.id,
+                driveFile.mimeType
+            )
+        } returns "Lecture notes content."
         coEvery { aiService.categorizeSource(any()) } returns SourceCategory.READING_MATERIAL
 
         val result = ingestionAgent.addDriveFile(driveFile)

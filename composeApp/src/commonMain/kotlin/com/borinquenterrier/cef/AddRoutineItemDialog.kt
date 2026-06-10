@@ -62,7 +62,12 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
             ) {
                 Text("Add Routine Item", style = MaterialTheme.typography.headlineSmall)
 
-                TextField(value = title, onValueChange = { title = it }, label = { Text("Title") }, modifier = Modifier.fillMaxWidth())
+                TextField(
+                    value = title,
+                    onValueChange = { title = it },
+                    label = { Text("Title") },
+                    modifier = Modifier.fillMaxWidth()
+                )
 
                 Text("Repeats on:", style = MaterialTheme.typography.bodyMedium)
                 FlowRow(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
@@ -143,7 +148,10 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
     if (showDatePicker != null) {
         val isStartDate = showDatePicker == true
         val initialDate = if (isStartDate) startDate else endDate
-        val datePickerState = rememberDatePickerState(initialSelectedDateMillis = initialDate.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds())
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = initialDate.atStartOfDayIn(TimeZone.UTC)
+                .toEpochMilliseconds()
+        )
 
         DatePickerDialog(
             onDismissRequest = { showDatePicker = null },
@@ -151,7 +159,8 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                 TextButton(
                     onClick = {
                         datePickerState.selectedDateMillis?.let {
-                            val selectedDate = Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.UTC).date
+                            val selectedDate =
+                                Instant.fromEpochMilliseconds(it).toLocalDateTime(TimeZone.UTC).date
                             if (isStartDate) {
                                 startDate = selectedDate
                             } else {
@@ -195,17 +204,34 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
 }
 
 @Composable
-private fun ClickableField(value: String, label: String, onClick: () -> Unit, modifier: Modifier = Modifier) {
+private fun ClickableField(
+    value: String,
+    label: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
     Box(
         modifier = modifier
             .fillMaxWidth()
-            .border(width = 1.dp, color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f), shape = MaterialTheme.shapes.small)
+            .border(
+                width = 1.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
+                shape = MaterialTheme.shapes.small
+            )
             .clickable(onClick = onClick)
             .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
         Column {
-            Text(label, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.onSurfaceVariant)
-            Text(value, style = MaterialTheme.typography.bodyLarge, modifier = Modifier.padding(top = 4.dp))
+            Text(
+                label,
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                value,
+                style = MaterialTheme.typography.bodyLarge,
+                modifier = Modifier.padding(top = 4.dp)
+            )
         }
     }
 }
@@ -218,14 +244,21 @@ private fun TimePickerDialog(
     onDismiss: () -> Unit,
     onConfirm: (LocalTime) -> Unit
 ) {
-    val timePickerState = rememberTimePickerState(initialHour = initialTime.hour, initialMinute = initialTime.minute, is24Hour = true)
+    val timePickerState = rememberTimePickerState(
+        initialHour = initialTime.hour,
+        initialMinute = initialTime.minute,
+        is24Hour = true
+    )
 
     Dialog(onDismissRequest = onDismiss) {
         Surface(
             shape = MaterialTheme.shapes.large,
             tonalElevation = 6.dp,
         ) {
-            Column(modifier = Modifier.padding(24.dp), horizontalAlignment = Alignment.CenterHorizontally) {
+            Column(
+                modifier = Modifier.padding(24.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.labelMedium,
@@ -239,7 +272,14 @@ private fun TimePickerDialog(
                     TextButton(onClick = onDismiss) {
                         Text("Cancel")
                     }
-                    TextButton(onClick = { onConfirm(LocalTime(timePickerState.hour, timePickerState.minute)) }) {
+                    TextButton(onClick = {
+                        onConfirm(
+                            LocalTime(
+                                timePickerState.hour,
+                                timePickerState.minute
+                            )
+                        )
+                    }) {
                         Text("OK")
                     }
                 }

@@ -67,17 +67,27 @@ interface StudentCalendarRepository {
     /**
      * Retrieves events for a specific date range from a specific calendar.
      */
-    suspend fun getEventsInRange(start: LocalDate, end: LocalDate, calendarId: String = "default"): List<Event>
+    suspend fun getEventsInRange(
+        start: LocalDate,
+        end: LocalDate,
+        calendarId: String = "default"
+    ): List<Event>
 
     /**
      * Retrieves events by their synchronization status.
      */
-    suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String = "default"): List<Event>
+    suspend fun getEventsBySyncStatus(
+        status: SyncStatus,
+        calendarId: String = "default"
+    ): List<Event>
 
     /**
      * Retrieves incomplete events before the specified date.
      */
-    suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String = "default"): List<Event>
+    suspend fun getIncompleteEventsBefore(
+        date: LocalDate,
+        calendarId: String = "default"
+    ): List<Event>
 }
 
 /**
@@ -99,5 +109,5 @@ interface RemoteCalendarRepository : StudentCalendarRepository {
 /**
  * Exception thrown when a new event overlaps with an existing event in the repository.
  */
-class OverlapException(val existingEvent: Event, val newEvent: Event) : 
+class OverlapException(val existingEvent: Event, val newEvent: Event) :
     Exception("Overlap detected between '${existingEvent.title}' and '${newEvent.title}'")

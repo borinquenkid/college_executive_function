@@ -55,7 +55,8 @@ class EventBuilderTest : StringSpec({
 
     "getEventCritiquePrompt should compare events against source text" {
         val sourceText = "Midterm exam on October 15, 10:00 AM"
-        val eventsJson = """[{"title":"Midterm","date":"2024-10-15","startTime":"10:00","category":"FINALS"}]"""
+        val eventsJson =
+            """[{"title":"Midterm","date":"2024-10-15","startTime":"10:00","category":"FINALS"}]"""
         val result = EventBuilder.getEventCritiquePrompt(sourceText, eventsJson)
 
         result.shouldContain("Source Document")

@@ -3,7 +3,10 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -30,22 +33,22 @@ class AppControllerTest : FunSpec({
 
     beforeEach {
         sourceRepository = mockk(relaxed = true)
-        localRepository  = mockk(relaxed = true)
-        calendarAgent    = mockk(relaxed = true)
-        aiService        = mockk(relaxed = true)
-        contextAgent     = mockk(relaxed = true)
-        logger           = mockk(relaxed = true)
+        localRepository = mockk(relaxed = true)
+        calendarAgent = mockk(relaxed = true)
+        aiService = mockk(relaxed = true)
+        contextAgent = mockk(relaxed = true)
+        logger = mockk(relaxed = true)
 
         container = mockk(relaxed = true)
         every { container.sourceRepository } returns sourceRepository
-        every { container.localRepository  } returns localRepository
-        every { container.calendarAgent    } returns calendarAgent
-        every { container.aiService        } returns aiService
-        every { container.contextAgent     } returns contextAgent
-        every { container.logger           } returns logger
+        every { container.localRepository } returns localRepository
+        every { container.calendarAgent } returns calendarAgent
+        every { container.aiService } returns aiService
+        every { container.contextAgent } returns contextAgent
+        every { container.logger } returns logger
 
         // loadSources is called from init; stub to return empty
-        coEvery { sourceRepository.getAllSources()              } returns emptyList()
+        coEvery { sourceRepository.getAllSources() } returns emptyList()
         coEvery { sourceRepository.getFragmentsForSource(any()) } returns emptyList()
 
         controller = AppController(container)
@@ -97,7 +100,7 @@ class AppControllerTest : FunSpec({
     }
 
     test("addSource does not overwrite selectedSource when one already exists") {
-        val first  = SourceItem("first.txt",  emptyList(), SourceCategory.SYLLABUS)
+        val first = SourceItem("first.txt", emptyList(), SourceCategory.SYLLABUS)
         val second = SourceItem("second.txt", emptyList(), SourceCategory.READING_MATERIAL)
         every { aiService.isConfigured() } returns false
 
@@ -128,15 +131,20 @@ class AppControllerTest : FunSpec({
         every { aiService.isConfigured() } returns false
 
         val matchingEvent = makeEvent("cs101_syllabus_midterm", id = "cs101_syllabus_midterm")
-        val otherEvent    = makeEvent("unrelated_event",        id = "unrelated_event")
+        val otherEvent = makeEvent("unrelated_event", id = "unrelated_event")
         coEvery { localRepository.getAllEvents(any()) } returns listOf(matchingEvent, otherEvent)
 
         controller.addSource(source)
         controller.deleteSource(source)
         kotlinx.coroutines.delay(300)
 
-        coVerify(exactly = 1) { localRepository.hardDeleteEvent("cs101_syllabus_midterm", "default") }
-        coVerify(exactly = 0) { localRepository.hardDeleteEvent("unrelated_event",        "default") }
+        coVerify(exactly = 1) {
+            localRepository.hardDeleteEvent(
+                "cs101_syllabus_midterm",
+                "default"
+            )
+        }
+        coVerify(exactly = 0) { localRepository.hardDeleteEvent("unrelated_event", "default") }
     }
 
     test("deleteSource calls calendarAgent.synchronize after cleanup") {

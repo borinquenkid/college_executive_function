@@ -93,9 +93,12 @@ class IcsStringBuilderTest : FunSpec({
 
     test("buildIcsString includes RRULE for a recurring TimeEvent") {
         val recurrence = Recurrence(
-            daysOfWeek = listOf(kotlinx.datetime.DayOfWeek.MONDAY, kotlinx.datetime.DayOfWeek.WEDNESDAY),
-            startDate  = LocalDate(2026, 1, 5),
-            endDate    = LocalDate(2026, 5, 1)
+            daysOfWeek = listOf(
+                kotlinx.datetime.DayOfWeek.MONDAY,
+                kotlinx.datetime.DayOfWeek.WEDNESDAY
+            ),
+            startDate = LocalDate(2026, 1, 5),
+            endDate = LocalDate(2026, 5, 1)
         )
         val event = TimeEvent(
             id = "recurring-1",
@@ -115,8 +118,8 @@ class IcsStringBuilderTest : FunSpec({
     test("buildIcsString includes RRULE for a recurring DayEvent") {
         val recurrence = Recurrence(
             daysOfWeek = listOf(kotlinx.datetime.DayOfWeek.FRIDAY),
-            startDate  = LocalDate(2026, 8, 1),
-            endDate    = LocalDate(2026, 12, 20)
+            startDate = LocalDate(2026, 8, 1),
+            endDate = LocalDate(2026, 12, 20)
         )
         val event = DayEvent(
             id = "recurring-day-1",
@@ -143,8 +146,8 @@ class IcsStringBuilderTest : FunSpec({
         )
         val recurrence = Recurrence(
             daysOfWeek = allDays,
-            startDate  = LocalDate(2026, 1, 1),
-            endDate    = LocalDate(2026, 12, 31)
+            startDate = LocalDate(2026, 1, 1),
+            endDate = LocalDate(2026, 12, 31)
         )
         val event = TimeEvent(
             title = "All Days",

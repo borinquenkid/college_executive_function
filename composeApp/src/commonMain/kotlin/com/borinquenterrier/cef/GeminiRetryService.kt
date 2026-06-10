@@ -1,6 +1,6 @@
 package com.borinquenterrier.cef
 
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 import kotlinx.datetime.Clock
 
 /**
@@ -48,7 +48,10 @@ class GeminiRetryService(
             val seconds = bodyRetryMatch.groupValues[1].toDoubleOrNull()
             if (seconds != null) {
                 val ms = (seconds * 1000).toLong() + 500L
-                logger?.d(tag, "⏱️ Rate-limited — server body says retry in ${seconds}s. Waiting ${ms}ms.")
+                logger?.d(
+                    tag,
+                    "⏱️ Rate-limited — server body says retry in ${seconds}s. Waiting ${ms}ms."
+                )
                 return ms
             }
         }
@@ -61,7 +64,10 @@ class GeminiRetryService(
                 val nowSeconds = Clock.System.now().toEpochMilliseconds() / 1000L
                 val waitSeconds = (resetEpoch - nowSeconds).coerceAtLeast(1L)
                 val ms = waitSeconds * 1000L + 500L
-                logger?.d(tag, "⏱️ Rate-limited — x-ratelimit-reset in ${waitSeconds}s. Waiting ${ms}ms.")
+                logger?.d(
+                    tag,
+                    "⏱️ Rate-limited — x-ratelimit-reset in ${waitSeconds}s. Waiting ${ms}ms."
+                )
                 return ms
             }
         }
@@ -80,7 +86,10 @@ class GeminiRetryService(
         // Exponential backoff fallback
         val baseDelay = if (status == HttpStatusCode.TooManyRequests) 2000L else 1000L
         val ms = baseDelay * (1 shl (attempts - 1))
-        logger?.d(tag, "⚠️ Transient error ($status). No server hint — exponential backoff ${ms}ms (attempt $attempts).")
+        logger?.d(
+            tag,
+            "⚠️ Transient error ($status). No server hint — exponential backoff ${ms}ms (attempt $attempts)."
+        )
         return ms
     }
 

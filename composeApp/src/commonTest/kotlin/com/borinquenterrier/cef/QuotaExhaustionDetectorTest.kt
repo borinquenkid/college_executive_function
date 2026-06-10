@@ -51,7 +51,8 @@ class QuotaExhaustionDetectorTest : StringSpec({
     }
 
     "handles complex quota messages" {
-        val body = "Error 429: Daily quota for model gemini-pro exhausted. Next reset: 2025-12-31T23:59:59Z"
+        val body =
+            "Error 429: Daily quota for model gemini-pro exhausted. Next reset: 2025-12-31T23:59:59Z"
         detector.isQuotaExhausted(body) shouldBe true
     }
 })

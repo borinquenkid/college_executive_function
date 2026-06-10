@@ -2,7 +2,6 @@ package com.borinquenterrier.cef
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
 
 /**
  * A record representing a part of source material (PDF page, DOCX paragraph, or ICS event).

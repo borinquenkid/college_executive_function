@@ -1,12 +1,12 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.StringSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.collections.shouldBeEmpty
-import io.mockk.mockk
-import io.mockk.every
-import io.mockk.verify
 import com.russhwolf.settings.Settings
+import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.matchers.shouldBe
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 
 class DriveDirectoryPreferencesTest : StringSpec({
     val settings = mockk<Settings>()

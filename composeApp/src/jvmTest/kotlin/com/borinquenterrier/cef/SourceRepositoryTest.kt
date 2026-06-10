@@ -1,11 +1,10 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.borinquenterrier.cef.db.AppDatabase
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
 
 class SourceRepositoryTest : FunSpec({
 
@@ -25,7 +24,11 @@ class SourceRepositoryTest : FunSpec({
     }
 
     test("saveSource inserts source and fragments successfully") {
-        val fragment = SourceFragment(text = "Line 1 of syllabus", pageNumber = 1, sectionTitle = "Introduction")
+        val fragment = SourceFragment(
+            text = "Line 1 of syllabus",
+            pageNumber = 1,
+            sectionTitle = "Introduction"
+        )
         val sourceItem = SourceItem(
             title = "syllabus.pdf",
             fragments = listOf(fragment),
@@ -62,7 +65,11 @@ class SourceRepositoryTest : FunSpec({
     }
 
     test("deleteSource removes source and fragments cascade") {
-        val fragment = SourceFragment(text = "Line 1 of syllabus", pageNumber = 1, sectionTitle = "Introduction")
+        val fragment = SourceFragment(
+            text = "Line 1 of syllabus",
+            pageNumber = 1,
+            sectionTitle = "Introduction"
+        )
         val sourceItem = SourceItem(
             title = "syllabus.pdf",
             fragments = listOf(fragment),

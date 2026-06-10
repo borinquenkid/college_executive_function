@@ -1,6 +1,10 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onAllNodesWithTag
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk

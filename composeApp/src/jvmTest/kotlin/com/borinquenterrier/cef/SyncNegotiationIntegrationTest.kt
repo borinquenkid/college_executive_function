@@ -1,8 +1,9 @@
 package com.borinquenterrier.cef
 
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
@@ -12,10 +13,8 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import com.russhwolf.settings.MapSettings
 
 class SyncNegotiationIntegrationTest : FunSpec({
 
@@ -32,6 +31,7 @@ class SyncNegotiationIntegrationTest : FunSpec({
                         headers = headersOf(HttpHeaders.ContentType, "application/json")
                     )
                 }
+
                 path.endsWith("/events") -> {
                     respond(
                         content = eventsJson,
@@ -39,8 +39,13 @@ class SyncNegotiationIntegrationTest : FunSpec({
                         headers = headersOf(HttpHeaders.ContentType, "application/json")
                     )
                 }
+
                 else -> {
-                    respond(content = """{"id": "mock-id"}""", status = HttpStatusCode.OK, headers = headersOf(HttpHeaders.ContentType, "application/json"))
+                    respond(
+                        content = """{"id": "mock-id"}""",
+                        status = HttpStatusCode.OK,
+                        headers = headersOf(HttpHeaders.ContentType, "application/json")
+                    )
                 }
             }
         }
@@ -50,9 +55,14 @@ class SyncNegotiationIntegrationTest : FunSpec({
         val localRepo = SqlDelightLocalCalendarRepository(createTestDatabase())
         val settings = MapSettings()
         val preferencesRepository = PreferencesRepository(settings)
-        
+
         // Save user study preferences: 9:00 to 17:00 study hours
-        preferencesRepository.savePreferences(StudyPreferences(studyStartHour = 9, studyEndHour = 17))
+        preferencesRepository.savePreferences(
+            StudyPreferences(
+                studyStartHour = 9,
+                studyEndHour = 17
+            )
+        )
 
         // Save a local study block from 10:00 to 11:00 on Thursday (date = 2026-10-01)
         val studyBlock = TimeEvent(
@@ -83,7 +93,13 @@ class SyncNegotiationIntegrationTest : FunSpec({
         """.trimIndent()
 
         val mockEngine = createGoogleMockEngine(eventsJson)
-        val httpClient = HttpClient(mockEngine) { install(ContentNegotiation) { json(kotlinx.serialization.json.Json { ignoreUnknownKeys = true }) } }
+        val httpClient = HttpClient(mockEngine) {
+            install(ContentNegotiation) {
+                json(kotlinx.serialization.json.Json {
+                    ignoreUnknownKeys = true
+                })
+            }
+        }
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-access", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
@@ -91,8 +107,14 @@ class SyncNegotiationIntegrationTest : FunSpec({
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
         val eventFilter = EventRangeFilter()
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService, preferencesRepository, idResolver, conflictDetector, eventFilter)
-        
+        val remoteRepo = GoogleRemoteCalendarRepository(
+            syncService,
+            preferencesRepository,
+            idResolver,
+            conflictDetector,
+            eventFilter
+        )
+
         val unifiedRepo = CalendarAgent(
             localRepo = localRepo,
             remoteRepo = remoteRepo,
@@ -103,11 +125,11 @@ class SyncNegotiationIntegrationTest : FunSpec({
         // Check for proposals
         val negotiation = unifiedRepo.checkSyncProposals()
         negotiation.proposals shouldHaveSize 1
-        
+
         val proposal = negotiation.proposals.first()
         proposal.shouldBeInstanceOf<SyncProposal.StudyBlockShift>()
         proposal.originalEvent.id shouldBe "study-1"
-        
+
         // Since 9:30 to 10:30 is taken by the exam, and study start is 9:00, 
         // the proposed event should shift outside of that range (e.g. 10:30 or later)
         val proposed = proposal.proposedEvent as TimeEvent
@@ -120,11 +142,11 @@ class SyncNegotiationIntegrationTest : FunSpec({
         // Verify local database now has both the exam and the shifted study block
         val allEvents = localRepo.getAllEvents()
         allEvents shouldHaveSize 2
-        
+
         val dbStudy = allEvents.find { it.id == "study-1" } as TimeEvent
         dbStudy.startTime shouldBe LocalTime(10, 30)
         dbStudy.endTime shouldBe LocalTime(11, 30)
-        
+
         val dbExam = allEvents.find { it.id == "exam-1" } as TimeEvent
         dbExam.title shouldBe "Midterm Exam"
     }

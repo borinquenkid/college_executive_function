@@ -1,14 +1,13 @@
 package com.borinquenterrier.cef
 
+
+import android.content.Context
+import android.util.Log
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
 import com.borinquenterrier.cef.db.DriverFactory
-
-
-import android.util.Log
 import com.borinquenterrier.college_executive_function.BuildConfig
-import android.content.Context
 
 object AndroidAppContext {
     var applicationContext: Context? = null

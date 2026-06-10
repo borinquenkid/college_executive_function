@@ -1,8 +1,8 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
-import com.russhwolf.settings.Settings
 import com.borinquenterrier.cef.db.AppDatabase
+import com.russhwolf.settings.Settings
 
 interface AIService {
     fun isConfigured(): Boolean
@@ -13,6 +13,7 @@ interface AIService {
         existingSchedule: String = "",
         preferences: StudyPreferences = StudyPreferences()
     ): List<Event>
+
     suspend fun analyzeDocument(text: String): String?
     suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask>
     suspend fun categorizeSource(text: String): SourceCategory
@@ -31,6 +32,7 @@ expect class RealAIService(
         existingSchedule: String,
         preferences: StudyPreferences
     ): List<Event>
+
     override suspend fun analyzeDocument(text: String): String?
     override suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask>
     override suspend fun categorizeSource(text: String): SourceCategory

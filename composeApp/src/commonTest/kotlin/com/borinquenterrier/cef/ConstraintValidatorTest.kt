@@ -17,7 +17,7 @@ class ConstraintValidatorTest : FunSpec({
         )
         val validator = ConstraintValidator(prefs)
         val date = LocalDate(2026, 6, 10)
-        
+
         val result = validator.isValidTimeSlot(
             date = date,
             start = LocalTime(10, 0),
@@ -25,7 +25,7 @@ class ConstraintValidatorTest : FunSpec({
             priority = 10,
             existingEvents = emptyList()
         )
-        
+
         result shouldBe true
     }
 
@@ -40,7 +40,7 @@ class ConstraintValidatorTest : FunSpec({
         )
         val validator = ConstraintValidator(prefs)
         val date = LocalDate(2026, 6, 10)
-        
+
         val result = validator.isValidTimeSlot(
             date = date,
             start = LocalTime(8, 0),
@@ -48,7 +48,7 @@ class ConstraintValidatorTest : FunSpec({
             priority = 10,
             existingEvents = emptyList()
         )
-        
+
         result shouldBe false
     }
 
@@ -63,7 +63,7 @@ class ConstraintValidatorTest : FunSpec({
         )
         val validator = ConstraintValidator(prefs)
         val date = LocalDate(2026, 6, 10)
-        
+
         val result = validator.isValidTimeSlot(
             date = date,
             start = LocalTime(12, 30),
@@ -71,7 +71,7 @@ class ConstraintValidatorTest : FunSpec({
             priority = 10,
             existingEvents = emptyList()
         )
-        
+
         result shouldBe false
     }
 
@@ -86,7 +86,7 @@ class ConstraintValidatorTest : FunSpec({
         )
         val validator = ConstraintValidator(prefs)
         val date = LocalDate(2026, 6, 10)
-        
+
         val result = validator.isValidTimeSlot(
             date = date,
             start = LocalTime(17, 30),
@@ -94,7 +94,7 @@ class ConstraintValidatorTest : FunSpec({
             priority = 10,
             existingEvents = emptyList()
         )
-        
+
         result shouldBe false
     }
 
@@ -109,9 +109,10 @@ class ConstraintValidatorTest : FunSpec({
             endTime = LocalTime(11, 0),
             category = AcademicCategory.FINALS
         )
-        
-        val available = validator.isDayAvailable(date, priority = event.priority - 10, listOf(event))
-        
+
+        val available =
+            validator.isDayAvailable(date, priority = event.priority - 10, listOf(event))
+
         available shouldBe false
     }
 
@@ -126,9 +127,10 @@ class ConstraintValidatorTest : FunSpec({
             endTime = LocalTime(11, 0),
             category = AcademicCategory.STUDY_BLOCK
         )
-        
-        val available = validator.isDayAvailable(date, priority = event.priority + 10, listOf(event))
-        
+
+        val available =
+            validator.isDayAvailable(date, priority = event.priority + 10, listOf(event))
+
         available shouldBe true
     }
 })

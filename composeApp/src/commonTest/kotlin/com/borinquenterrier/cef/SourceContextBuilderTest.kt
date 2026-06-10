@@ -16,7 +16,8 @@ class SourceContextBuilderTest : FunSpec({
     test("buildContextBlocks groups fragments by source") {
         val fragment1 = SourceFragment("content 1", 1)
         val fragment2 = SourceFragment("content 2", 2)
-        val source = SourceItem("test_source", listOf(fragment1, fragment2), SourceCategory.SYLLABUS)
+        val source =
+            SourceItem("test_source", listOf(fragment1, fragment2), SourceCategory.SYLLABUS)
         val pairs = listOf(source to fragment1, source to fragment2)
 
         val result = builder.buildContextBlocks(pairs) { null }
@@ -29,8 +30,10 @@ class SourceContextBuilderTest : FunSpec({
         val syllabusFragment = SourceFragment("syllabus content", 1)
         val readingFragment = SourceFragment("reading content", 1)
 
-        val syllabusSource = SourceItem("syllabus", listOf(syllabusFragment), SourceCategory.SYLLABUS)
-        val readingSource = SourceItem("reading", listOf(readingFragment), SourceCategory.READING_MATERIAL)
+        val syllabusSource =
+            SourceItem("syllabus", listOf(syllabusFragment), SourceCategory.SYLLABUS)
+        val readingSource =
+            SourceItem("reading", listOf(readingFragment), SourceCategory.READING_MATERIAL)
 
         val pairs = listOf(
             readingSource to readingFragment,

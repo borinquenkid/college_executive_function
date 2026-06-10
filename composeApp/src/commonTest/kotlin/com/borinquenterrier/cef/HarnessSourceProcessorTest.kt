@@ -1,10 +1,8 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.StringSpec
-import io.mockk.mockk
 import io.mockk.coEvery
-import io.mockk.coVerify
-import io.mockk.every
+import io.mockk.mockk
 
 class HarnessSourceProcessorTest : StringSpec({
 
@@ -14,7 +12,8 @@ class HarnessSourceProcessorTest : StringSpec({
         val driveFileProcessor = mockk<DriveFileProcessor>()
         val logger = mockk<Logger>()
 
-        val processor = HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
+        val processor =
+            HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
 
         val source = mockk<SourceItem>(relaxed = true)
         coEvery { pipeline.processSource(source) } returns Unit
@@ -28,7 +27,8 @@ class HarnessSourceProcessorTest : StringSpec({
         val driveFileProcessor = mockk<DriveFileProcessor>()
         val logger = mockk<Logger>()
 
-        val processor = HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
+        val processor =
+            HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
 
         val files = listOf("/home/doc1.pdf", "/home/doc2.pdf")
         var statusCalls = 0
@@ -45,7 +45,8 @@ class HarnessSourceProcessorTest : StringSpec({
         val driveFileProcessor = mockk<DriveFileProcessor>()
         val logger = mockk<Logger>()
 
-        val processor = HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
+        val processor =
+            HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
 
         val driveFile1 = mockk<DriveFile>(relaxed = true)
         val driveFile2 = mockk<DriveFile>(relaxed = true)

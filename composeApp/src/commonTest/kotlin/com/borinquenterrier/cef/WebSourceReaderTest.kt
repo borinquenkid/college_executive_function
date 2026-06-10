@@ -31,7 +31,8 @@ class WebSourceReaderTest : FunSpec({
     }
 
     test("should clean HTML with correct script and style removal") {
-        val html = "<html><body><script>alert('Hello World!');</script><style>body { background-color: blue; }</style></body></html>"
+        val html =
+            "<html><body><script>alert('Hello World!');</script><style>body { background-color: blue; }</style></body></html>"
         val expected = "" // Because both script and style are removed, and body has no direct text
 
         val reader = WebSourceReader()

@@ -2,7 +2,9 @@ package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 
 class AgentHarnessTest : FunSpec({
 
@@ -27,7 +29,7 @@ class AgentHarnessTest : FunSpec({
         sourceScanner = mockk(relaxed = true)
         harnessSourceProcessor = mockk(relaxed = true)
         logger = mockk(relaxed = true)
-        
+
         harness = AgentHarness(
             ingestionAgent,
             eventAgent,

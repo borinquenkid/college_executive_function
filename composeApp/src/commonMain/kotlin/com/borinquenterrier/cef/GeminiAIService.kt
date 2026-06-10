@@ -1,18 +1,14 @@
 package com.borinquenterrier.cef
 
-import io.ktor.client.*
-import io.ktor.client.call.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
-import kotlinx.datetime.LocalDate
-import kotlinx.datetime.LocalTime
-import kotlinx.datetime.Clock
 import com.borinquenterrier.cef.db.AppDatabase
+import io.ktor.client.HttpClient
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.client.statement.HttpResponse
+import io.ktor.serialization.kotlinx.json.json
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.buildJsonArray
 
 /**
  * Common implementation for interacting with the Google Gemini API.
@@ -31,8 +27,8 @@ class GeminiAIService(
     private val telemetryManager = settings?.let { TelemetryManager(it) }
     private val client = customClient ?: HttpClient {
         install(ContentNegotiation) {
-            json(Json { 
-                ignoreUnknownKeys = true 
+            json(Json {
+                ignoreUnknownKeys = true
                 coerceInputValues = true
             })
         }
@@ -59,8 +55,8 @@ class GeminiAIService(
     enum class TaskTier { HEAVY, LIGHT }
 
     companion object {
-        private val json = Json { 
-            ignoreUnknownKeys = true 
+        private val json = Json {
+            ignoreUnknownKeys = true
             isLenient = true
         }
 
@@ -70,7 +66,10 @@ class GeminiAIService(
         fun filterToSourceYears(events: List<Event>, sourceYears: Set<Int>): List<Event> =
             GeminiResponseParser.filterToSourceYears(events, sourceYears)
 
-        fun parseEventsJson(responseText: String, telemetry: TelemetryManager? = null): List<Event> =
+        fun parseEventsJson(
+            responseText: String,
+            telemetry: TelemetryManager? = null
+        ): List<Event> =
             GeminiResponseParser.parseEventsJson(responseText, telemetry)
 
         internal fun parseDecomposeTaskJson(responseText: String): List<DecomposedTask> =
@@ -107,7 +106,11 @@ class GeminiAIService(
                 add(Json.parseToJsonElement(fragment.toJson()))
             }
         }.toString()
-        return generateCalendarEventsFromPrompt(AiPrompts.getSourceEventExtractionPrompt(combinedJson))
+        return generateCalendarEventsFromPrompt(
+            AiPrompts.getSourceEventExtractionPrompt(
+                combinedJson
+            )
+        )
     }
 
     suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
@@ -165,7 +168,12 @@ class GeminiAIService(
             executeWithRetry(
                 maxAttempts = 3,
                 tier = TaskTier.HEAVY,
-                body = { _ -> buildGeminiBody(AiPrompts.getDocumentIntelligencePrompt(text), responseMimeType = null) },
+                body = { _ ->
+                    buildGeminiBody(
+                        AiPrompts.getDocumentIntelligencePrompt(text),
+                        responseMimeType = null
+                    )
+                },
                 parseResponse = { responseText -> responseText }
             )
         } catch (e: Exception) {
@@ -192,7 +200,10 @@ class GeminiAIService(
             if (e.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
                 throw e
             }
-            logger?.e(tag, "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}")
+            logger?.e(
+                tag,
+                "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}"
+            )
             SourceCategory.OTHER
         }
     }

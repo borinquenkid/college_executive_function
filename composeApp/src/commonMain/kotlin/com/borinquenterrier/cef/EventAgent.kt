@@ -1,12 +1,12 @@
 package com.borinquenterrier.cef
 
+import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
-import com.borinquenterrier.cef.db.AppDatabase
 
 /**
  * Typed error states surfaced from [EventAgent] to the UI.
@@ -35,8 +35,19 @@ class EventAgent(
     private val tag = "EventAgent"
 
     private val syllabusAuditor = SyllabusAuditor(aiService, logger)
-    private val pushResolver = CalendarPushResolver(repository, preferencesRepository, userPreferenceMemoryRepository, logger)
-    private val generationService = EventGenerationService(aiService, normalizationService, syllabusAuditor, preferencesRepository, userPreferenceMemoryRepository)
+    private val pushResolver = CalendarPushResolver(
+        repository,
+        preferencesRepository,
+        userPreferenceMemoryRepository,
+        logger
+    )
+    private val generationService = EventGenerationService(
+        aiService,
+        normalizationService,
+        syllabusAuditor,
+        preferencesRepository,
+        userPreferenceMemoryRepository
+    )
     private val decompositionService = TaskDecompositionService(aiService, repository)
 
     private val _isLoading = MutableStateFlow(false)
@@ -55,16 +66,24 @@ class EventAgent(
     val decompositionTarget: StateFlow<Event?> = _decompositionTarget.asStateFlow()
 
     private val _errorState = MutableStateFlow<AgentError?>(null)
+
     /** Non-null when an error requiring user attention has occurred. Call [clearError] to dismiss. */
     val errorState: StateFlow<AgentError?> = _errorState.asStateFlow()
 
-    private val _unresolvedConflicts = MutableStateFlow<List<ConflictResolver.UnresolvedConflict>>(emptyList())
+    private val _unresolvedConflicts =
+        MutableStateFlow<List<ConflictResolver.UnresolvedConflict>>(emptyList())
+
     /** Conflicts requiring professor approval (quiz, test, exam conflicts). */
-    val unresolvedConflicts: StateFlow<List<ConflictResolver.UnresolvedConflict>> = _unresolvedConflicts.asStateFlow()
+    val unresolvedConflicts: StateFlow<List<ConflictResolver.UnresolvedConflict>> =
+        _unresolvedConflicts.asStateFlow()
 
-    fun clearError() { _errorState.value = null }
+    fun clearError() {
+        _errorState.value = null
+    }
 
-    fun clearUnresolvedConflicts() { _unresolvedConflicts.value = emptyList() }
+    fun clearUnresolvedConflicts() {
+        _unresolvedConflicts.value = emptyList()
+    }
 
     fun updateStatus(message: String) {
         _statusMessage.value = message
@@ -105,7 +124,12 @@ class EventAgent(
      * Updates [event]'s [CompletionStatus], persists it, refreshes the incomplete-events
      * list, and optionally triggers a background sync (errors from which are ignored).
      */
-    private suspend fun updateCompletionStatus(event: Event, status: CompletionStatus, statusMessage: String, triggerSync: Boolean = false) {
+    private suspend fun updateCompletionStatus(
+        event: Event,
+        status: CompletionStatus,
+        statusMessage: String,
+        triggerSync: Boolean = false
+    ) {
         val updated = event.withCompletionStatus(status)
         repository.updateEvent(updated, "default")
         _statusMessage.value = statusMessage
@@ -165,7 +189,10 @@ class EventAgent(
             // Capture unresolved conflicts (those requiring professor approval)
             if (outcome.unresolvableConflicts.isNotEmpty()) {
                 _unresolvedConflicts.value = outcome.unresolvableConflicts
-                logger?.d(tag, "Found ${outcome.unresolvableConflicts.size} unresolvable conflicts requiring professor approval")
+                logger?.d(
+                    tag,
+                    "Found ${outcome.unresolvableConflicts.size} unresolvable conflicts requiring professor approval"
+                )
             }
 
             if (conflicts.isEmpty() && outcome.unresolvableConflicts.isEmpty()) {
@@ -173,12 +200,14 @@ class EventAgent(
                 _lastGeneratedEvents.value = emptyList()
             } else {
                 val unresolvableCount = outcome.unresolvableConflicts.size
-                _statusMessage.value = "Synced ${outcome.successCount} events. $unresolvableCount require professor contact, ${conflicts.size} other conflicts."
+                _statusMessage.value =
+                    "Synced ${outcome.successCount} events. $unresolvableCount require professor contact, ${conflicts.size} other conflicts."
                 _lastGeneratedEvents.value = conflicts
             }
         } catch (e: CalendarNotFoundException) {
             logger?.e(tag, "Calendar not found during sync", e)
-            _statusMessage.value = e.message ?: "Calendar is no longer accessible. Please re-link your calendar."
+            _statusMessage.value =
+                e.message ?: "Calendar is no longer accessible. Please re-link your calendar."
             _errorState.value = AgentError.GenericError(e.message ?: "Calendar sync failed")
         } catch (e: Exception) {
             logger?.e(tag, "Error pushing to calendar", e)
@@ -239,7 +268,12 @@ class EventAgent(
 
     suspend fun markEventCompleted(event: Event) {
         runAgentAction("Failed to mark event completed") {
-            updateCompletionStatus(event, CompletionStatus.COMPLETED, "Marked '${event.title}' as completed.", triggerSync = true)
+            updateCompletionStatus(
+                event,
+                CompletionStatus.COMPLETED,
+                "Marked '${event.title}' as completed.",
+                triggerSync = true
+            )
         }
     }
 

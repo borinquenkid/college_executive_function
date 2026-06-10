@@ -11,7 +11,8 @@ class SyncNegotiator(
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
     private val preferencesRepository: PreferencesRepository? = null
 ) {
-    private val studyBlockShiftResolver = StudyBlockShiftResolver(userPreferenceMemoryRepository, preferencesRepository)
+    private val studyBlockShiftResolver =
+        StudyBlockShiftResolver(userPreferenceMemoryRepository, preferencesRepository)
 
     suspend fun buildNegotiation(calendarId: String): SyncNegotiation {
         // First push local additions and deletions to Remote so Remote is updated
@@ -32,9 +33,11 @@ class SyncNegotiator(
 
         val deletedLocalIds = findDeletedLocalIds(localEvents, remoteEvents)
 
-        val proposedBaseCalendar = buildProposedBaseCalendar(localEvents, remoteUpdates, deletedLocalIds)
+        val proposedBaseCalendar =
+            buildProposedBaseCalendar(localEvents, remoteUpdates, deletedLocalIds)
 
-        val shiftProposals = studyBlockShiftResolver.resolveShifts(localEvents, proposedBaseCalendar)
+        val shiftProposals =
+            studyBlockShiftResolver.resolveShifts(localEvents, proposedBaseCalendar)
 
         return SyncNegotiation(
             proposals = directConflicts + shiftProposals,
@@ -105,7 +108,8 @@ class SyncNegotiator(
         remoteUpdates: List<Event>,
         deletedLocalIds: List<String>
     ): List<Event> {
-        val nonStudyBlocks = localEvents.filter { it.category != AcademicCategory.STUDY_BLOCK && it.id !in deletedLocalIds }
+        val nonStudyBlocks =
+            localEvents.filter { it.category != AcademicCategory.STUDY_BLOCK && it.id !in deletedLocalIds }
         val updatedNonStudyBlocks = nonStudyBlocks.map { local ->
             remoteUpdates.find { it.id == local.id } ?: local
         }

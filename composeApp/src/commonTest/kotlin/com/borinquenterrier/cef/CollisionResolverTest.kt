@@ -1,12 +1,12 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.kotest.matchers.collections.shouldHaveSize
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 
@@ -100,9 +100,11 @@ class CollisionResolverTest : FunSpec({
         result.shouldBeInstanceOf<ResolutionResult.Success>()
         val success = result as ResolutionResult.Success
         success.resolvedEvents shouldHaveSize 2
-        
-        val classEvent = success.resolvedEvents.find { it.category == AcademicCategory.CLASS } as TimeEvent
-        val studyEvent = success.resolvedEvents.find { it.category == AcademicCategory.STUDY_BLOCK } as TimeEvent
+
+        val classEvent =
+            success.resolvedEvents.find { it.category == AcademicCategory.CLASS } as TimeEvent
+        val studyEvent =
+            success.resolvedEvents.find { it.category == AcademicCategory.STUDY_BLOCK } as TimeEvent
 
         classEvent.startTime shouldBe LocalTime(10, 0) // Kept original time
         studyEvent.startTime shouldBe LocalTime(9, 0) // Shifted to next available slot

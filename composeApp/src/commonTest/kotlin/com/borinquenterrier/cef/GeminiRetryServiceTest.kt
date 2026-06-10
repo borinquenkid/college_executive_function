@@ -3,8 +3,6 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
-import io.mockk.verify
-import kotlinx.serialization.json.buildJsonObject
 
 class GeminiRetryServiceTest : StringSpec({
 

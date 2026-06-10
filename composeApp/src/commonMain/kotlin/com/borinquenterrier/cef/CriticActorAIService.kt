@@ -16,12 +16,20 @@ class CriticActorAIService(
             firstPass = firstPass,
             serialize = CriticJsonCodec::serializeEvents,
             parse = { CriticJsonCodec.parseEvents(it, logger) },
-            buildPrompt = { currentJson -> AiPrompts.getEventCritiquePrompt(sourceText, currentJson) }
+            buildPrompt = { currentJson ->
+                AiPrompts.getEventCritiquePrompt(
+                    sourceText,
+                    currentJson
+                )
+            }
         )
 
         val modified = areEventListsDifferent(firstPass, refined)
         telemetryManager?.logCriticPass(modified)
-        logger?.d("CriticActor", "Critique loop finished. Event count: ${firstPass.size} -> ${refined.size} (modified=$modified)")
+        logger?.d(
+            "CriticActor",
+            "Critique loop finished. Event count: ${firstPass.size} -> ${refined.size} (modified=$modified)"
+        )
         return refined
     }
 
@@ -38,12 +46,20 @@ class CriticActorAIService(
             firstPass = firstPass,
             serialize = CriticJsonCodec::serializeEvents,
             parse = { CriticJsonCodec.parseEvents(it, logger) },
-            buildPrompt = { currentJson -> AiPrompts.getEventCritiquePrompt(syllabusText, currentJson) }
+            buildPrompt = { currentJson ->
+                AiPrompts.getEventCritiquePrompt(
+                    syllabusText,
+                    currentJson
+                )
+            }
         )
 
         val modified = areEventListsDifferent(firstPass, refined)
         telemetryManager?.logCriticPass(modified)
-        logger?.d("CriticActor", "Study plan critique loop finished. Event count: ${firstPass.size} -> ${refined.size} (modified=$modified)")
+        logger?.d(
+            "CriticActor",
+            "Study plan critique loop finished. Event count: ${firstPass.size} -> ${refined.size} (modified=$modified)"
+        )
         return refined
     }
 
@@ -54,7 +70,10 @@ class CriticActorAIService(
         parse: (String) -> List<T>,
         buildPrompt: (currentJson: String) -> String
     ): List<T> {
-        logger?.d("CriticActor", "First-pass $logLabel count: ${firstPass.size}. Entering critique loop...")
+        logger?.d(
+            "CriticActor",
+            "First-pass $logLabel count: ${firstPass.size}. Entering critique loop..."
+        )
 
         var current = firstPass
         val visitedStates = mutableSetOf<String>()
@@ -69,7 +88,10 @@ class CriticActorAIService(
                 val critiqueResponse = delegate.generateChatResponse(buildPrompt(currentJson))
 
                 if (critiqueResponse.isBlank() || critiqueResponse.startsWith("Error:")) {
-                    logger?.e("CriticActor", "Iteration $iteration $logLabel critique returned an error, exiting loop with last successful state")
+                    logger?.e(
+                        "CriticActor",
+                        "Iteration $iteration $logLabel critique returned an error, exiting loop with last successful state"
+                    )
                     break
                 }
 
@@ -77,18 +99,31 @@ class CriticActorAIService(
                 val correctedJson = serialize(corrected)
                 if (visitedStates.contains(correctedJson)) {
                     if (correctedJson == currentJson) {
-                        logger?.d("CriticActor", "Iteration $iteration: State converged. Exiting critique loop.")
+                        logger?.d(
+                            "CriticActor",
+                            "Iteration $iteration: State converged. Exiting critique loop."
+                        )
                     } else {
-                        logger?.i("CriticActor", "Iteration $iteration: Cycle detected in refinement graph! Exiting critique loop.")
+                        logger?.i(
+                            "CriticActor",
+                            "Iteration $iteration: Cycle detected in refinement graph! Exiting critique loop."
+                        )
                     }
                     break
                 }
 
-                logger?.d("CriticActor", "Iteration $iteration: $logLabel refined (size ${current.size} -> ${corrected.size}).")
+                logger?.d(
+                    "CriticActor",
+                    "Iteration $iteration: $logLabel refined (size ${current.size} -> ${corrected.size})."
+                )
                 current = corrected
                 visitedStates.add(correctedJson)
             } catch (e: Exception) {
-                logger?.e("CriticActor", "Iteration $iteration critique failed, exiting loop with last successful state", e)
+                logger?.e(
+                    "CriticActor",
+                    "Iteration $iteration critique failed, exiting loop with last successful state",
+                    e
+                )
                 break
             }
             iteration++
@@ -102,14 +137,15 @@ class CriticActorAIService(
         if (firstPass.isBlank() || firstPass.startsWith("Error:")) return firstPass
 
         // If the prompt is a critique prompt itself, do not critique it (prevent infinite recursion!)
-        if (prompt.contains("You are a strict data auditor") || 
-            prompt.contains("You are a factual critique") || 
-            prompt.contains("You are an executive function coach and quality auditor")) {
+        if (prompt.contains("You are a strict data auditor") ||
+            prompt.contains("You are a factual critique") ||
+            prompt.contains("You are an executive function coach and quality auditor")
+        ) {
             return firstPass
         }
 
         logger?.d("CriticActor", "First-pass chat response generated. Launching critique pass...")
-        
+
         try {
             val critiquePrompt = AiPrompts.getChatCritiquePrompt(prompt, firstPass)
             val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
@@ -130,10 +166,19 @@ class CriticActorAIService(
             firstPass = firstPass,
             serialize = CriticJsonCodec::serializeTasks,
             parse = { CriticJsonCodec.parseTasks(it, logger) },
-            buildPrompt = { currentJson -> AiPrompts.getDecompositionCritiquePrompt(taskTitle, dueDate, currentJson) }
+            buildPrompt = { currentJson ->
+                AiPrompts.getDecompositionCritiquePrompt(
+                    taskTitle,
+                    dueDate,
+                    currentJson
+                )
+            }
         )
 
-        logger?.d("CriticActor", "Decomposition critique loop finished. Task count: ${firstPass.size} -> ${refined.size}")
+        logger?.d(
+            "CriticActor",
+            "Decomposition critique loop finished. Task count: ${firstPass.size} -> ${refined.size}"
+        )
         return refined
     }
 

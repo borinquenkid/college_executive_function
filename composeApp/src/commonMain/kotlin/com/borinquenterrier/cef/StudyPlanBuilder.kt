@@ -52,8 +52,20 @@ object StudyPlanBuilder {
             - EXAMS: Exam Times do NOT coincide with Class Times (extended time accommodations take students out of standard class periods).
             - COLLISIONS: Study/Work Times cannot collide with Exam Times, Class Times, or ANY existing events on the schedule. If a study/work task collides, move it to the latest available time BEFORE the deadline.
             - HOLIDAYS: Classes do not meet on holidays; these periods are completely available for study, work, and breaks.
-            - WORKING HOURS: Do not schedule ANY work or study before ${formatHour(preferences.studyStartHour)} or after ${formatHour(preferences.studyEndHour)}.
-            - DAILY BREAKS: You must leave a continuous block open for lunch every day from ${formatHour(preferences.lunchStartHour)} to ${formatHour(preferences.lunchEndHour)}, and a separate continuous block open in the late afternoon/evening for exercise and dinner from ${formatHour(preferences.dinnerStartHour)} to ${formatHour(preferences.dinnerEndHour)}. Do not schedule study during these times.
+            - WORKING HOURS: Do not schedule ANY work or study before ${formatHour(preferences.studyStartHour)} or after ${
+            formatHour(
+                preferences.studyEndHour
+            )
+        }.
+            - DAILY BREAKS: You must leave a continuous block open for lunch every day from ${
+            formatHour(
+                preferences.lunchStartHour
+            )
+        } to ${formatHour(preferences.lunchEndHour)}, and a separate continuous block open in the late afternoon/evening for exercise and dinner from ${
+            formatHour(
+                preferences.dinnerStartHour
+            )
+        } to ${formatHour(preferences.dinnerEndHour)}. Do not schedule study during these times.
             - STUDY BLOCKS: The maximum duration of a single STUDY_BLOCK should be ${preferences.maxStudyBlockHours} hours, with a preferred break of at least ${preferences.preferredBreakMinutes} minutes between study blocks.
             - PROACTIVE STUDY TIME ALLOCATION: Allocate STUDY_BLOCKs based on the deliverable's weight (extracted in "gradeWeight"). Allocate more preparation hours for higher-weighted deliverables (e.g., suggest 3-4 study blocks for a 30% final exam, but only 1 block or none for a 2% quiz).
             
@@ -70,7 +82,11 @@ object StudyPlanBuilder {
         """.trimIndent()
     }
 
-    fun getTaskDecompositionPrompt(taskTitle: String, dueDate: String, context: String = ""): String {
+    fun getTaskDecompositionPrompt(
+        taskTitle: String,
+        dueDate: String,
+        context: String = ""
+    ): String {
         return """
             You are an Executive Function Coach. Your goal is to help a student break down a large,
             intimidating assignment ("$taskTitle" due on $dueDate) into smaller, manageable, and
@@ -97,7 +113,11 @@ object StudyPlanBuilder {
         """.trimIndent()
     }
 
-    fun getDecompositionCritiquePrompt(taskTitle: String, dueDate: String, tasksJson: String): String {
+    fun getDecompositionCritiquePrompt(
+        taskTitle: String,
+        dueDate: String,
+        tasksJson: String
+    ): String {
         return """
             You are an executive function coach and quality auditor.
             

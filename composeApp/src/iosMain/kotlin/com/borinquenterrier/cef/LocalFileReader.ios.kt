@@ -2,26 +2,27 @@ package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
+import kotlinx.cinterop.ExperimentalForeignApi
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import platform.Foundation.NSData
-import platform.Foundation.NSUTF8StringEncoding
-import platform.Foundation.NSURL
+import platform.Foundation.NSFileManager
 import platform.Foundation.NSString
+import platform.Foundation.NSURL
+import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.create
 import platform.Foundation.dataWithContentsOfURL
-import platform.Foundation.NSFileManager
-import kotlinx.cinterop.ExperimentalForeignApi
 
 actual class LocalFileReader {
     actual suspend fun readText(path: String): String = withContext(Dispatchers.Default) {
         try {
             val url = NSURL(string = path) ?: return@withContext "Invalid file path: $path"
-            
+
             // startAccessingSecurityScopedResource is required for some iOS URLs (like those from iCloud)
             val success = url.startAccessingSecurityScopedResource()
             try {
-                val data = NSData.dataWithContentsOfURL(url) ?: return@withContext "Could not read data from $path"
+                val data = NSData.dataWithContentsOfURL(url)
+                    ?: return@withContext "Could not read data from $path"
                 val text = NSString.create(data = data, encoding = NSUTF8StringEncoding)
                 text?.toString() ?: "Could not decode text from $path"
             } finally {

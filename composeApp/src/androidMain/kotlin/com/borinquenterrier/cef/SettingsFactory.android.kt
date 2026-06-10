@@ -10,5 +10,12 @@ import com.russhwolf.settings.SharedPreferencesSettings
 @Composable
 actual fun rememberSettings(): Settings {
     val context: Context = LocalContext.current
-    return remember { SharedPreferencesSettings(context.getSharedPreferences("app_settings", Context.MODE_PRIVATE)) }
+    return remember {
+        SharedPreferencesSettings(
+            context.getSharedPreferences(
+                "app_settings",
+                Context.MODE_PRIVATE
+            )
+        )
+    }
 }

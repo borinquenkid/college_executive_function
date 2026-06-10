@@ -2,14 +2,8 @@ package com.borinquenterrier.cef
 
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Component
-import net.fortuna.ical4j.model.Property
 import net.fortuna.ical4j.model.component.VEvent
-import net.fortuna.ical4j.model.property.DtEnd
-import net.fortuna.ical4j.model.property.DtStart
 import java.io.StringReader
-import java.time.format.DateTimeFormatter
-import java.time.temporal.Temporal
-import kotlinx.datetime.*
 
 /**
  * JVM-specific implementation of a Calendar Source that reads from an .ics string.

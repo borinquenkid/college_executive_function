@@ -1,7 +1,14 @@
 package com.borinquenterrier.cef
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonElement
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.addJsonObject
+import kotlinx.serialization.json.buildJsonArray
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.put
 
 @Serializable
 private data class RawCriticEvent(
@@ -68,16 +75,28 @@ object CriticJsonCodec {
     private fun parseEventFromJson(element: JsonElement, logger: Logger?): Event? {
         return try {
             val raw = json.decodeFromJsonElement(RawCriticEvent.serializer(), element)
-            val category = try { AcademicCategory.valueOf(raw.category) }
-                           catch (e: Exception) { AcademicCategory.REGULAR }
-            val date = try { kotlinx.datetime.LocalDate.parse(raw.date) }
-                       catch (e: Exception) { kotlinx.datetime.LocalDate(2024, 1, 1) }
+            val category = try {
+                AcademicCategory.valueOf(raw.category)
+            } catch (e: Exception) {
+                AcademicCategory.REGULAR
+            }
+            val date = try {
+                kotlinx.datetime.LocalDate.parse(raw.date)
+            } catch (e: Exception) {
+                kotlinx.datetime.LocalDate(2024, 1, 1)
+            }
 
             if (raw.type == "TIME") {
-                val start = try { kotlinx.datetime.LocalTime.parse(raw.startTime) }
-                            catch (e: Exception) { kotlinx.datetime.LocalTime(9, 0) }
-                val end = try { kotlinx.datetime.LocalTime.parse(raw.endTime) }
-                          catch (e: Exception) { kotlinx.datetime.LocalTime(10, 0) }
+                val start = try {
+                    kotlinx.datetime.LocalTime.parse(raw.startTime)
+                } catch (e: Exception) {
+                    kotlinx.datetime.LocalTime(9, 0)
+                }
+                val end = try {
+                    kotlinx.datetime.LocalTime.parse(raw.endTime)
+                } catch (e: Exception) {
+                    kotlinx.datetime.LocalTime(10, 0)
+                }
                 TimeEvent(
                     title = raw.title, source = EventSource.AI_GENERATED, category = category,
                     date = date, startTime = start, endTime = end, warning = raw.warning

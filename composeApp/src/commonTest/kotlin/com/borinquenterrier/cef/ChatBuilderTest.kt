@@ -7,7 +7,11 @@ import io.kotest.matchers.string.shouldNotBeBlank
 class ChatBuilderTest : StringSpec({
 
     "getMultiSourceChatPrompt should handle empty source blocks" {
-        val result = ChatBuilder.getMultiSourceChatPrompt(emptyList(), emptyList(), "What's the grading scale?")
+        val result = ChatBuilder.getMultiSourceChatPrompt(
+            emptyList(),
+            emptyList(),
+            "What's the grading scale?"
+        )
 
         result.shouldContain("No course materials are loaded yet")
         result.shouldNotBeBlank()
@@ -15,9 +19,15 @@ class ChatBuilderTest : StringSpec({
 
     "getMultiSourceChatPrompt should include source blocks with metadata" {
         val sources = listOf(
-            SourceContextBlock("CS101 Syllabus", "SYLLABUS", "Final 30%, Quizzes 20%", "Course content here")
+            SourceContextBlock(
+                "CS101 Syllabus",
+                "SYLLABUS",
+                "Final 30%, Quizzes 20%",
+                "Course content here"
+            )
         )
-        val result = ChatBuilder.getMultiSourceChatPrompt(sources, emptyList(), "When is the final?")
+        val result =
+            ChatBuilder.getMultiSourceChatPrompt(sources, emptyList(), "When is the final?")
 
         result.shouldContain("CS101 Syllabus")
         result.shouldContain("SYLLABUS")

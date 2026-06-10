@@ -2,7 +2,6 @@ package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
-import io.kotest.matchers.collections.shouldBeEmpty
 
 class TermNormalizerTest : FunSpec({
     val normalizer = TermNormalizer()

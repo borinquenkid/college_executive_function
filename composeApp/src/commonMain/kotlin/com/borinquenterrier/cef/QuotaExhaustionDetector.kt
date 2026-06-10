@@ -13,8 +13,8 @@ class QuotaExhaustionDetector {
         val hasRetryHint = errorBody.contains("retry in", ignoreCase = true)
         val hasQuotaWord = errorBody.contains("quota", ignoreCase = true)
         val hasExhaustionWord = errorBody.contains("exhausted", ignoreCase = true) ||
-            errorBody.contains("exceeded", ignoreCase = true) ||
-            errorBody.contains("limit", ignoreCase = true)
+                errorBody.contains("exceeded", ignoreCase = true) ||
+                errorBody.contains("limit", ignoreCase = true)
         return !hasRetryHint && hasQuotaWord && hasExhaustionWord
     }
 }

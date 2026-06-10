@@ -2,21 +2,21 @@ package com.borinquenterrier.cef
 
 import io.ktor.client.HttpClient
 import io.ktor.client.call.body
-import io.ktor.client.request.get
-import io.ktor.client.request.post
 import io.ktor.client.request.delete
-import io.ktor.client.request.setBody
+import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
-import io.ktor.client.statement.bodyAsText
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import kotlinx.serialization.Serializable
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.Instant
+import kotlinx.serialization.Serializable
 
 /**
  * Google Calendar API Event model for serialization.
@@ -39,7 +39,7 @@ data class GoogleEventDateTime(
 /**
  * Custom exception for Google API failures.
  */
-class GoogleApiException(val statusCode: Int, val responseBody: String) : 
+class GoogleApiException(val statusCode: Int, val responseBody: String) :
     Exception("Google API Error ($statusCode): $responseBody")
 
 /**
@@ -60,7 +60,8 @@ class GoogleCalendarSyncService(
     }
 
     private suspend fun <T> withToken(block: suspend (String) -> T): T {
-        val currentToken = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
+        val currentToken =
+            tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
         return try {
             block(currentToken)
         } catch (e: GoogleApiException) {
@@ -105,34 +106,36 @@ class GoogleCalendarSyncService(
     /**
      * Synchronizes a CEF Event with a specific Google Calendar using the REST API.
      */
-    suspend fun syncEvent(event: Event, calendarId: String = "primary"): String = withToken { token ->
-        val googleEvent = when (event) {
-            is TimeEvent -> {
-                val startStr = "${event.date}T${event.startTime}:00Z" 
-                val endStr = "${event.date}T${event.endTime}:00Z" 
-                GoogleEvent(
-                    summary = event.title,
-                    start = GoogleEventDateTime(dateTime = startStr),
-                    end = GoogleEventDateTime(dateTime = endStr)
-                )
-            }
-            is DayEvent -> {
-                GoogleEvent(
-                    summary = event.title,
-                    start = GoogleEventDateTime(date = event.date.toString()),
-                    end = GoogleEventDateTime(date = event.date.toString())
-                )
-            }
-        }
+    suspend fun syncEvent(event: Event, calendarId: String = "primary"): String =
+        withToken { token ->
+            val googleEvent = when (event) {
+                is TimeEvent -> {
+                    val startStr = "${event.date}T${event.startTime}:00Z"
+                    val endStr = "${event.date}T${event.endTime}:00Z"
+                    GoogleEvent(
+                        summary = event.title,
+                        start = GoogleEventDateTime(dateTime = startStr),
+                        end = GoogleEventDateTime(dateTime = endStr)
+                    )
+                }
 
-        val response = httpClient.post("$baseUrl/calendars/$calendarId/events") {
-            header("Authorization", "Bearer $token")
-            contentType(ContentType.Application.Json)
-            setBody(googleEvent)
+                is DayEvent -> {
+                    GoogleEvent(
+                        summary = event.title,
+                        start = GoogleEventDateTime(date = event.date.toString()),
+                        end = GoogleEventDateTime(date = event.date.toString())
+                    )
+                }
+            }
+
+            val response = httpClient.post("$baseUrl/calendars/$calendarId/events") {
+                header("Authorization", "Bearer $token")
+                contentType(ContentType.Application.Json)
+                setBody(googleEvent)
+            }
+            ensureSuccess(response)
+            response.bodyAsText()
         }
-        ensureSuccess(response)
-        response.bodyAsText()
-    }
 
     /**
      * Deletes an event from a specific Google Calendar.
@@ -144,7 +147,10 @@ class GoogleCalendarSyncService(
         ensureSuccess(response)
     }
 
-    private suspend fun fetchEventsPage(calendarId: String, pageToken: String?): GoogleCalendarEventsResponse = withToken { token ->
+    private suspend fun fetchEventsPage(
+        calendarId: String,
+        pageToken: String?
+    ): GoogleCalendarEventsResponse = withToken { token ->
         val response = httpClient.get("$baseUrl/calendars/$calendarId/events") {
             header("Authorization", "Bearer $token")
             pageToken?.let { parameter("pageToken", it) }
@@ -159,13 +165,13 @@ class GoogleCalendarSyncService(
     suspend fun getEvents(calendarId: String = "primary"): List<Event> {
         val allEvents = mutableListOf<Event>()
         var pageToken: String? = null
-        
+
         do {
             val responsePage = fetchEventsPage(calendarId, pageToken)
             allEvents.addAll(responsePage.items.map { item ->
                 val start = item.start
                 val end = item.end
-                
+
                 val updatedAt = item.updated?.let {
                     try {
                         Instant.parse(it).toEpochMilliseconds()
@@ -178,7 +184,7 @@ class GoogleCalendarSyncService(
                     // Handle various RFC3339 formats (Z, +HH:MM, or none)
                     val cleanStart = start.dateTime.take(16) // "YYYY-MM-DDTHH:MM"
                     val cleanEnd = end.dateTime.take(16)
-                    
+
                     TimeEvent(
                         id = item.id,
                         title = item.summary ?: "Untitled Event",
@@ -200,7 +206,7 @@ class GoogleCalendarSyncService(
             })
             pageToken = responsePage.nextPageToken
         } while (pageToken != null)
-        
+
         return allEvents
     }
 }

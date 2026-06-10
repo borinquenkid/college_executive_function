@@ -1,9 +1,9 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.StringSpec
-import io.mockk.mockk
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.mockk
 
 class SourceDeleterTest : StringSpec({
 
@@ -13,7 +13,8 @@ class SourceDeleterTest : StringSpec({
         val calendarAgent = mockk<CalendarAgent>()
         val logger = mockk<Logger>()
 
-        val deleter = SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
+        val deleter =
+            SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
 
         val source = mockk<SourceItem>(relaxed = true) { every { title } returns "Calculus" }
         coEvery { sourceRepository.deleteSource("Calculus") } returns Unit
@@ -29,7 +30,8 @@ class SourceDeleterTest : StringSpec({
         val calendarAgent = mockk<CalendarAgent>()
         val logger = mockk<Logger>()
 
-        val deleter = SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
+        val deleter =
+            SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
 
         val source = mockk<SourceItem>(relaxed = true) { every { title } returns "Physics" }
         val event1 = mockk<Event>(relaxed = true) { every { id } returns "Physics-hw1" }
@@ -49,7 +51,8 @@ class SourceDeleterTest : StringSpec({
         val calendarAgent = mockk<CalendarAgent>()
         val logger = mockk<Logger>()
 
-        val deleter = SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
+        val deleter =
+            SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
 
         val source = mockk<SourceItem>(relaxed = true) { every { title } returns "Math" }
         coEvery { sourceRepository.deleteSource("Math") } throws Exception("DB error")

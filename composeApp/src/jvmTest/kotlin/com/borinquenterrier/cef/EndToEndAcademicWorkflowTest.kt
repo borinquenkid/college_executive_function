@@ -1,12 +1,12 @@
 package com.borinquenterrier.cef
 
+import com.borinquenterrier.cef.db.DriverFactory
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import com.russhwolf.settings.MapSettings
-import com.borinquenterrier.cef.db.DriverFactory
-import kotlinx.coroutines.flow.first
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.mockk
+import io.mockk.slot
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -25,13 +25,13 @@ class EndToEndAcademicWorkflowTest : FunSpec({
         val settings = MapSettings()
         // Force 'test' profile to use Mock Calendar logic
         settings.putString("run_profile", "test")
-        
+
         val logger = Logger(settings)
         val driverFactory = DriverFactory()
-        
+
         // Mock AIService for deterministic results
         val mockAi = mockk<AIService>(relaxed = true)
-        
+
         val container = DependencyContainer(
             settings = settings,
             logger = logger,
@@ -41,15 +41,22 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             docxReader = mockk(relaxed = true),
             pdfReader = mockk(relaxed = true)
         )
-        
+
         val sourceRepository = SqlDelightSourceRepository(container.database)
         val ingestion = IngestionAgent(
             container.fileReader, container.docxReader, container.pdfReader,
             container.webReader, container.driveService, mockAi, sourceRepository
         )
         val calendar = container.calendarAgent
-        val events = EventAgent(mockAi, calendar, container.database, NormalizationService(), logger = logger)
-        val context = ContextAgent(mockAi, sourceRepository, FragmentRanker(), SourceContextBuilder(), logger)
+        val events = EventAgent(
+            mockAi,
+            calendar,
+            container.database,
+            NormalizationService(),
+            logger = logger
+        )
+        val context =
+            ContextAgent(mockAi, sourceRepository, FragmentRanker(), SourceContextBuilder(), logger)
 
         // Clear existing state for a clean test run
         container.database.appDatabaseQueries.deleteAllEvents()
@@ -66,7 +73,7 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             END:VEVENT
             END:VCALENDAR
         """.trimIndent()
-        
+
         coEvery { container.fileReader.readText("academic_cal.ics") } returns icsContent
         val holidayEvent = DayEvent(
             title = "Labor Day Holiday",
@@ -75,10 +82,10 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             date = LocalDate(2026, 9, 7)
         )
         coEvery { mockAi.generateCalendarEvents(any()) } returns listOf(holidayEvent)
-        
+
         val calItem = ingestion.addLocalFile("academic_cal.ics")
         calItem.fragments.size shouldBe 1
-        
+
         // Save to calendar
         calendar.saveEvent(holidayEvent)
 
@@ -92,11 +99,11 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             endTime = LocalTime(12, 0)
         )
         coEvery { mockAi.generateCalendarEvents(any()) } returns listOf(midtermEvent)
-        
+
         val syllabusItem = SourceItem("Syllabus.pdf", listOf(SourceFragment("Midterm Oct 14 10am")))
         events.extractDeliverables(syllabusItem)
         events.lastGeneratedEvents.value.size shouldBe 1
-        
+
         // --- 4. STEP 3: ACCEPT EXAM INTO CALENDAR ---
         // This is a critical step: the user must "Accept" (push) the deliverables
         // so they exist in the repository context for the Study Plan generator.
@@ -106,7 +113,7 @@ class EndToEndAcademicWorkflowTest : FunSpec({
         // --- 5. STEP 4: PERFORM CONTEXT ANALYSIS ---
         coEvery { mockAi.analyzeDocument(any()) } returns "{\"late_policy\": \"10% per day\"}"
         context.analyzeSource(syllabusItem)
-        
+
         context.getSourceMetadata("Syllabus.pdf")?.contains("10%") shouldBe true
 
         // --- 6. STEP 5: GENERATE STUDY PLAN ---
@@ -120,12 +127,14 @@ class EndToEndAcademicWorkflowTest : FunSpec({
         )
         // Verify that existing schedule (holiday + midterm) is passed to the AI
         val capturedSchedule = slot<String>()
-        coEvery { mockAi.generateStudyPlan(any(), capture(capturedSchedule)) } returns listOf(studyBlock)
-        
+        coEvery { mockAi.generateStudyPlan(any(), capture(capturedSchedule)) } returns listOf(
+            studyBlock
+        )
+
         events.generateStudyPlan(syllabusItem)
-        
+
         println("CAPTURED SCHEDULE: ${capturedSchedule.captured}")
-        
+
         capturedSchedule.captured.contains("Labor Day") shouldBe true
         capturedSchedule.captured.contains("Midterm Exam") shouldBe true
         events.lastGeneratedEvents.value.size shouldBe 1

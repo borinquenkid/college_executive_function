@@ -1,10 +1,14 @@
 package com.borinquenterrier.cef
 
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpMethod
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import io.ktor.http.*
-import io.ktor.utils.io.*
+import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
@@ -16,7 +20,7 @@ class OAuthExchangeTest {
         val mockEngine = MockEngine { request ->
             assertEquals("https://oauth2.googleapis.com/token", request.url.toString())
             assertEquals(HttpMethod.Post, request.method)
-            
+
             respond(
                 content = ByteReadChannel("""{"access_token":"mock-token","expires_in":3600}"""),
                 status = HttpStatusCode.OK,

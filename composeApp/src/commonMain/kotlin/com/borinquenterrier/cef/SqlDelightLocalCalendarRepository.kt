@@ -5,8 +5,6 @@ import com.russhwolf.settings.Settings
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.encodeToString
-import kotlinx.serialization.decodeFromString
 
 class SqlDelightLocalCalendarRepository(
     private val database: AppDatabase,
@@ -26,7 +24,7 @@ class SqlDelightLocalCalendarRepository(
     }
 
     override suspend fun saveEvent(event: Event, calendarId: String) {
-                // 1. Perform overlap check locally
+        // 1. Perform overlap check locally
         val existingEvents = getAllEvents(calendarId)
         val conflict = existingEvents.find { it.id != event.id && it.overlaps(event) }
         if (conflict != null) {
@@ -44,11 +42,13 @@ class SqlDelightLocalCalendarRepository(
         }
 
         database.appDatabaseQueries.insertEvent(
-            id = event.id ?: "${kotlinx.datetime.Clock.System.now().toEpochMilliseconds()}-${(1000..9999).random()}",
+            id = event.id ?: "${
+                kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+            }-${(1000..9999).random()}",
             title = event.title,
             source = event.source.name,
             category = event.category.name,
-            date = when(event) {
+            date = when (event) {
                 is TimeEvent -> event.date.toString()
                 is DayEvent -> event.date.toString()
             },
@@ -74,19 +74,29 @@ class SqlDelightLocalCalendarRepository(
         database.appDatabaseQueries.deleteEvent(eventId)
     }
 
-    override suspend fun getEventsInRange(start: LocalDate, end: LocalDate, calendarId: String): List<Event> {
+    override suspend fun getEventsInRange(
+        start: LocalDate,
+        end: LocalDate,
+        calendarId: String
+    ): List<Event> {
         return database.appDatabaseQueries.selectEventsInRange(start.toString(), end.toString())
             .executeAsList()
             .map { mapEntityToEvent(it) }
     }
 
-    override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String): List<Event> {
+    override suspend fun getEventsBySyncStatus(
+        status: SyncStatus,
+        calendarId: String
+    ): List<Event> {
         return database.appDatabaseQueries.selectBySyncStatus(status.name)
             .executeAsList()
             .map { mapEntityToEvent(it) }
     }
 
-    override suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String): List<Event> {
+    override suspend fun getIncompleteEventsBefore(
+        date: LocalDate,
+        calendarId: String
+    ): List<Event> {
         return database.appDatabaseQueries.selectIncompleteBeforeDate(date.toString())
             .executeAsList()
             .map { mapEntityToEvent(it) }

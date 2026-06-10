@@ -1,21 +1,47 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.foundation.ExperimentalFoundationApi
-import androidx.compose.foundation.background
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.heightIn
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.CloudCircle
-import androidx.compose.material.icons.filled.Sync
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.LinearProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedButton
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
-import kotlinx.datetime.*
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
+import kotlinx.datetime.todayIn
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -32,7 +58,7 @@ fun AcademicCalendar(
     val routineRepository = remember { RoutineRepository(settings) }
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
     val authService = remember(settings) { GoogleAuthService(settings) }
-    
+
     // Delegate business logic to extracted services
     val authManager = remember(authService, tokenRepository, logger) {
         GoogleAuthManager(authService, tokenRepository, logger)
@@ -40,7 +66,7 @@ fun AcademicCalendar(
     val syncManager = remember(calendarAgent, logger) {
         CalendarSyncManager(calendarAgent, logger)
     }
-    
+
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
     var displayedEvents by remember { mutableStateOf(emptyList<Event>()) }
     var isGoogleLinked by remember { mutableStateOf(authManager.isLinked()) }
@@ -85,15 +111,16 @@ fun AcademicCalendar(
         SemesterResolver.getSemesterRange(today)
     }
 
-    val allExpandedEvents = remember(aiGeneratedEvents, routineEvents, displayedEvents, viewStartDate, viewEndDate) {
-        EventDisplayPipeline.getExpandedAndFilteredEvents(
-            routineEvents = routineEvents,
-            aiGeneratedEvents = aiGeneratedEvents,
-            displayedEvents = displayedEvents,
-            startDate = viewStartDate,
-            endDate = viewEndDate
-        )
-    }
+    val allExpandedEvents =
+        remember(aiGeneratedEvents, routineEvents, displayedEvents, viewStartDate, viewEndDate) {
+            EventDisplayPipeline.getExpandedAndFilteredEvents(
+                routineEvents = routineEvents,
+                aiGeneratedEvents = aiGeneratedEvents,
+                displayedEvents = displayedEvents,
+                startDate = viewStartDate,
+                endDate = viewEndDate
+            )
+        }
 
     val groupedEvents = CalendarEventGrouper.groupEventsByDate(allExpandedEvents)
 
@@ -199,7 +226,11 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
         text = {
             Column(verticalArrangement = Arrangement.spacedBy(4.dp)) {
                 Text(event.title, style = MaterialTheme.typography.titleMedium)
-                Text("Due: ${event.date}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                Text(
+                    "Due: ${event.date}",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.outline
+                )
 
                 if (decomposedTasks.isEmpty()) {
                     Spacer(Modifier.height(4.dp))
@@ -257,7 +288,11 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
                 }
 
                 if (statusMessage.isNotBlank() && statusMessage != "Select a source and an action.") {
-                    Text(statusMessage, style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.outline)
+                    Text(
+                        statusMessage,
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.outline
+                    )
                 }
             }
         },
@@ -273,7 +308,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
     val borderColor = remember(event.category, event.source) {
         EventPresenter.getEventBorderColor(event.category, event.source)
     }
-    
+
     val categoryLabel = remember(event.category, event.source) {
         EventPresenter.getCategoryLabel(event.category, event.source)
     }
@@ -290,10 +325,16 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                 horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = androidx.compose.ui.Alignment.CenterVertically
             ) {
-                Text(categoryLabel, style = MaterialTheme.typography.labelSmall, color = borderColor)
+                Text(
+                    categoryLabel,
+                    style = MaterialTheme.typography.labelSmall,
+                    color = borderColor
+                )
                 if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
-                    val daysUntil = Clock.System.todayIn(TimeZone.currentSystemDefault()).daysUntil(event.date)
-                    val chipText = remember(daysUntil) { EventPresenter.getDeadlineChipText(daysUntil) }
+                    val daysUntil =
+                        Clock.System.todayIn(TimeZone.currentSystemDefault()).daysUntil(event.date)
+                    val chipText =
+                        remember(daysUntil) { EventPresenter.getDeadlineChipText(daysUntil) }
                     val status = remember(daysUntil) { EventPresenter.getDeadlineStatus(daysUntil) }
                     val chipColor = when (status) {
                         EventPresenter.DeadlineStatus.OVERDUE -> MaterialTheme.colorScheme.errorContainer
@@ -305,7 +346,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                         EventPresenter.DeadlineStatus.DUE_TODAY -> MaterialTheme.colorScheme.onTertiaryContainer
                         EventPresenter.DeadlineStatus.FUTURE -> MaterialTheme.colorScheme.onSecondaryContainer
                     }
-                    
+
                     Surface(
                         color = chipColor,
                         shape = MaterialTheme.shapes.small,
@@ -326,6 +367,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                     Text(event.title, style = MaterialTheme.typography.titleMedium)
                     Text("From ${event.startTime} to ${event.endTime}")
                 }
+
                 is DayEvent -> {
                     Text(event.title, style = MaterialTheme.typography.titleMedium)
                     Text("All day")

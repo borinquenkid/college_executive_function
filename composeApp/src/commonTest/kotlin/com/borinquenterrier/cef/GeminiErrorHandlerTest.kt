@@ -47,9 +47,12 @@ class GeminiErrorHandlerTest : StringSpec({
         val logger = mockk<Logger>(relaxed = true)
         val handler = GeminiErrorHandler(categorizer, modelNegotiator, logger)
 
-        val result = handler.categorizeError(io.ktor.http.HttpStatusCode.NotFound, "Model not found")
+        val result =
+            handler.categorizeError(io.ktor.http.HttpStatusCode.NotFound, "Model not found")
 
-        result as? ErrorCategorizer.ErrorType.StructuralError shouldBe ErrorCategorizer.ErrorType.StructuralError("Model not found (404)")
+        result as? ErrorCategorizer.ErrorType.StructuralError shouldBe ErrorCategorizer.ErrorType.StructuralError(
+            "Model not found (404)"
+        )
     }
 
     "categorizeError detects quota exhausted" {
@@ -81,7 +84,9 @@ class GeminiErrorHandlerTest : StringSpec({
         val body = "Please retry after 5 seconds"
         val result = handler.categorizeError(io.ktor.http.HttpStatusCode.TooManyRequests, body)
 
-        result as? ErrorCategorizer.ErrorType.TransientRateLimit shouldBe ErrorCategorizer.ErrorType.TransientRateLimit(5000L)
+        result as? ErrorCategorizer.ErrorType.TransientRateLimit shouldBe ErrorCategorizer.ErrorType.TransientRateLimit(
+            5000L
+        )
     }
 
     "handleStructuralError blacklists model" {

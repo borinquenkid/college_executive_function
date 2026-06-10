@@ -1,7 +1,6 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 
 class AiPromptsTest : FunSpec({
@@ -30,25 +29,29 @@ class AiPromptsTest : FunSpec({
 
     test("verify other prompts generated correctly") {
         val text = "dummy content"
-        
+
         AiPrompts.getSourceEventExtractionPrompt(text) shouldContain "dummy content"
-        
-        AiPrompts.getTaskDecompositionPrompt("Title", "2026-06-08", text) shouldContain "dummy content"
+
+        AiPrompts.getTaskDecompositionPrompt(
+            "Title",
+            "2026-06-08",
+            text
+        ) shouldContain "dummy content"
         AiPrompts.getTaskDecompositionPrompt("Title", "2026-06-08", text) shouldContain "Title"
-        
+
         AiPrompts.getDocumentIntelligencePrompt(text) shouldContain "dummy content"
-        
+
         AiPrompts.getSourceCategorizationPrompt(text) shouldContain "dummy content"
-        
+
         AiPrompts.getEventCritiquePrompt("Source", "Events") shouldContain "Source"
         AiPrompts.getEventCritiquePrompt("Source", "Events") shouldContain "Events"
-        
+
         AiPrompts.getChatCritiquePrompt("Prompt", "Response") shouldContain "Prompt"
         AiPrompts.getChatCritiquePrompt("Prompt", "Response") shouldContain "Response"
-        
+
         AiPrompts.getDecompositionCritiquePrompt("Title", "Date", "Tasks") shouldContain "Title"
         AiPrompts.getDecompositionCritiquePrompt("Title", "Date", "Tasks") shouldContain "Tasks"
-        
+
         AiPrompts.getSyllabusAuditPrompt(text) shouldContain "dummy content"
     }
 })

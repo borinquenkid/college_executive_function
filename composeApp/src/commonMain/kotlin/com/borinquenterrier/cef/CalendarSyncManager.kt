@@ -1,7 +1,5 @@
 package com.borinquenterrier.cef
 
-import kotlinx.coroutines.CoroutineScope
-
 /**
  * Manages Google Calendar synchronization logic and state.
  * Handles checking for sync proposals, applying negotiations, and error handling.

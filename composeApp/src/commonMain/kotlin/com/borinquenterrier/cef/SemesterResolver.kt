@@ -20,9 +20,11 @@ object SemesterResolver {
             isFirstSemester -> {
                 LocalDate(currentYear, 8, 1) to LocalDate(currentYear, 12, 31)
             }
+
             isSecondSemester -> {
                 LocalDate(currentYear, 1, 1) to LocalDate(currentYear, 5, 31)
             }
+
             else -> {
                 today to today.plus(30, DateTimeUnit.DAY)
             }

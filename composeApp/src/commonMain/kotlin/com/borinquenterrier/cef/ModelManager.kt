@@ -1,18 +1,18 @@
 package com.borinquenterrier.cef
 
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import io.ktor.utils.io.*
+import io.ktor.client.HttpClient
+import io.ktor.client.request.prepareGet
+import io.ktor.client.statement.bodyAsChannel
+import io.ktor.http.contentLength
+import io.ktor.http.isSuccess
+import io.ktor.utils.io.ByteReadChannel
+import io.ktor.utils.io.readRemaining
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.IO
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
-import kotlinx.coroutines.withContext
 import kotlinx.io.readByteArray
-import okio.FileSystem
 import okio.Path.Companion.toPath
 
 class ModelManager(
@@ -21,7 +21,8 @@ class ModelManager(
     private val logger: Logger? = null
 ) {
     private val tag = "ModelManager"
-    private val modelUrl = "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf"
+    private val modelUrl =
+        "https://huggingface.co/unsloth/Qwen3.5-9B-GGUF/resolve/main/Qwen3.5-9B-Q4_K_M.gguf"
     private val modelFileName = "Qwen3.5-9B-Q4_K_M.gguf"
 
     fun getModelFile(): okio.Path {
@@ -39,7 +40,7 @@ class ModelManager(
     suspend fun downloadModel(): Flow<DownloadProgress> = flow {
         val destination = getModelFile()
         val fileSystem = getFileSystem()
-        
+
         // Ensure directory exists
         val parent = destination.parent
         if (parent != null && !fileSystem.exists(parent)) {
@@ -52,7 +53,7 @@ class ModelManager(
             if (!response.status.isSuccess()) {
                 throw Exception("Failed to download model: ${response.status}")
             }
-            
+
             val channel: ByteReadChannel = response.bodyAsChannel()
             val contentLength = response.contentLength() ?: -1L
             var totalBytesRead = 0L
@@ -75,7 +76,7 @@ class ModelManager(
                 }
             }
         }
-        
+
         logger?.d(tag, "Download complete")
         emit(DownloadProgress(1f, true))
     }.flowOn(Dispatchers.IO)

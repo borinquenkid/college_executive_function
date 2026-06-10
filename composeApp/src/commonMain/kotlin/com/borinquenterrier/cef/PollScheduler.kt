@@ -28,10 +28,10 @@ class PollScheduler(
      */
     fun shouldPoll(force: Boolean = false): Boolean {
         if (force) return true
-        
+
         val now = Clock.System.now().toEpochMilliseconds()
         val lastPoll = getLastPollTime()
-        
+
         if (now - lastPoll < twentyFourHoursMs) {
             logger.d(tag, "24 hours have not passed since last poll. Skipping.")
             return false

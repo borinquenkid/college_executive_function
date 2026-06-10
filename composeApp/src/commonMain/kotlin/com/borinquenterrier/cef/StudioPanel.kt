@@ -1,31 +1,53 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material.icons.filled.Warning
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
-import com.russhwolf.settings.Settings
-import kotlinx.coroutines.launch
-import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
-import kotlinx.datetime.plus
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 
 @Composable
 fun StudioPanel(
-    modifier: Modifier = Modifier, 
-    selectedSource: SourceItem?, 
+    modifier: Modifier = Modifier,
+    selectedSource: SourceItem?,
     calendarAgent: CalendarAgent,
     container: DependencyContainer,
     onEventsGenerated: (List<Event>) -> Unit
@@ -48,15 +70,15 @@ fun StudioPanel(
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     val next7DaysRange = today..today.plus(7, DateTimeUnit.DAY)
     val next30DaysRange = today..today.plus(30, DateTimeUnit.DAY)
-    
-    val dueIn7Days = eventsList.filter { 
-        (it.category == AcademicCategory.DEADLINE || it.category == AcademicCategory.FINALS) && 
-        it.date in next7DaysRange
+
+    val dueIn7Days = eventsList.filter {
+        (it.category == AcademicCategory.DEADLINE || it.category == AcademicCategory.FINALS) &&
+                it.date in next7DaysRange
     }
-    
-    val dueIn30Days = eventsList.filter { 
-        (it.category == AcademicCategory.DEADLINE || it.category == AcademicCategory.FINALS) && 
-        it.date in next30DaysRange
+
+    val dueIn30Days = eventsList.filter {
+        (it.category == AcademicCategory.DEADLINE || it.category == AcademicCategory.FINALS) &&
+                it.date in next30DaysRange
     }
 
     // Push events back to parent when they are generated in the flow
@@ -74,7 +96,11 @@ fun StudioPanel(
             .testTag("studio_panel"),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text("Studio", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 4.dp))
+        Text(
+            "Studio",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
 
         AnimatedErrorBanner(
             error = errorState,
@@ -145,17 +171,26 @@ fun StudioPanel(
                                 eventAgent.generateStudyPlan(selectedSource)
                             }
                         },
-                        modifier = Modifier.fillMaxWidth().height(48.dp).testTag("process_syllabus_button"),
+                        modifier = Modifier.fillMaxWidth().height(48.dp)
+                            .testTag("process_syllabus_button"),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(0.dp),
                         enabled = !isLoading
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
-                            Icon(Icons.Default.AutoAwesome, contentDescription = null, modifier = Modifier.size(18.dp))
+                            Icon(
+                                Icons.Default.AutoAwesome,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
                             Spacer(Modifier.width(8.dp))
-                            Text("Process Syllabus & Plan Study", style = MaterialTheme.typography.labelLarge)
+                            Text(
+                                "Process Syllabus & Plan Study",
+                                style = MaterialTheme.typography.labelLarge
+                            )
                         }
-                    }                }
+                    }
+                }
 
                 if (lastGeneratedEvents.isNotEmpty()) {
                     item {
@@ -167,23 +202,36 @@ fun StudioPanel(
                         item {
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
-                                modifier = Modifier.fillMaxWidth().testTag("source_discrepancies_card")
+                                modifier = Modifier.fillMaxWidth()
+                                    .testTag("source_discrepancies_card")
                             ) {
                                 Column(modifier = Modifier.padding(8.dp)) {
                                     Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(Icons.Default.Warning, contentDescription = null, tint = MaterialTheme.colorScheme.error)
+                                        Icon(
+                                            Icons.Default.Warning,
+                                            contentDescription = null,
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
                                         Spacer(Modifier.width(8.dp))
-                                        Text("Source Discrepancies Found", style = MaterialTheme.typography.titleSmall, color = MaterialTheme.colorScheme.error)
+                                        Text(
+                                            "Source Discrepancies Found",
+                                            style = MaterialTheme.typography.titleSmall,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
                                     }
                                     eventsWithWarnings.forEach { event ->
-                                        Text("- ${event.title}: ${event.warning}", style = MaterialTheme.typography.bodySmall, color = MaterialTheme.colorScheme.error)
+                                        Text(
+                                            "- ${event.title}: ${event.warning}",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
                                     }
                                 }
                             }
                         }
                     }
 
-                    val hasConflicts = lastGeneratedEvents.any { event -> 
+                    val hasConflicts = lastGeneratedEvents.any { event ->
                         // Logic to detect if this event was already rejected 
                         // (In this pass, if it's still in the list after a sync attempt, it's a conflict)
                         statusMessage.contains("conflicts need review")
@@ -204,8 +252,8 @@ fun StudioPanel(
                             enabled = !isLoading && isConnected
                         ) {
                             Text(
-                                if (hasConflicts) "Force Sync Remaining" 
-                                else if (isConnected) "Push to Google Calendar" 
+                                if (hasConflicts) "Force Sync Remaining"
+                                else if (isConnected) "Push to Google Calendar"
                                 else "Connect to Google to Push"
                             )
                         }
@@ -224,7 +272,8 @@ fun StudioPanel(
                                     }
                                 }
                             },
-                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp).testTag("export_ics_button"),
+                            modifier = Modifier.fillMaxWidth().padding(vertical = 4.dp)
+                                .testTag("export_ics_button"),
                             colors = ButtonDefaults.buttonColors(
                                 containerColor = MaterialTheme.colorScheme.secondary
                             ),
@@ -244,19 +293,25 @@ fun StudioPanel(
                             )
                         }
                     }
-                    
+
                     items(lastGeneratedEvents) { event ->
                         Card(modifier = Modifier.fillMaxWidth()) {
                             Column(modifier = Modifier.padding(8.dp)) {
                                 Text(event.title, style = MaterialTheme.typography.bodyMedium)
-                                Text(event.date.toString(), style = MaterialTheme.typography.bodySmall)
+                                Text(
+                                    event.date.toString(),
+                                    style = MaterialTheme.typography.bodySmall
+                                )
                             }
                         }
                     }
                 }
             }
         } else {
-            Text("Select a source to get started.", modifier = Modifier.testTag("no_source_placeholder"))
+            Text(
+                "Select a source to get started.",
+                modifier = Modifier.testTag("no_source_placeholder")
+            )
         }
 
         Box(
@@ -266,7 +321,11 @@ fun StudioPanel(
             if (isLoading) {
                 CircularProgressIndicator(modifier = Modifier.testTag("studio_loading_indicator"))
             } else {
-                Text(statusMessage, style = MaterialTheme.typography.bodySmall, modifier = Modifier.testTag("status_message_text"))
+                Text(
+                    statusMessage,
+                    style = MaterialTheme.typography.bodySmall,
+                    modifier = Modifier.testTag("status_message_text")
+                )
             }
         }
     }

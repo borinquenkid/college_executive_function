@@ -2,12 +2,8 @@ package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
-import io.mockk.coEvery
 import io.ktor.client.*
-import io.ktor.http.HttpStatusCode
-import kotlinx.serialization.json.buildJsonObject
-import kotlinx.serialization.json.put
+import io.mockk.mockk
 
 class GeminiRequestBuilderTest : StringSpec({
 

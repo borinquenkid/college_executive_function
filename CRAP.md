@@ -9,14 +9,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 147
-- **High-Risk Files (CRAP > 30)**: 8
+- **Total Files Analyzed**: 149
+- **High-Risk Files (CRAP > 30)**: 12
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
+| ConflictResolver.kt | 14 | 0.0% | 210.00 | 🔴 HIGH |
 | AcademicCalendarComponents.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
+| ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | ConcurrentFolderFetcher.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | TermNormalizer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | EventRangeFilter.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
@@ -24,17 +26,27 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | TFIDFScorer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | FragmentRanker.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | SourceContextBuilder.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
+| EventAgent.kt | 34 | 99.1% | 34.00 | 🔴 HIGH |
+| GeminiRequestExecutor.kt | 25 | 79.6% | 30.30 | 🔴 HIGH |
 | LocalFileFetcher.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | CalendarIdResolver.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| SourceSelector.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| GeminiRequestBuilder.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| GoogleCalendarSyncService.kt | 29 | 94.6% | 29.13 | 🟡 MEDIUM |
-| EventAgent.kt | 29 | 99.1% | 29.00 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
+
+### ConflictResolver.kt (Score: 210.00 - 🔴 HIGH)
+- **Total Complexity**: 14
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `resolveConflicts` | 6 |
+| `rescheduleEarlier` | 6 |
+| `findConflict` | 1 |
+| `isMovable` | 1 |
 
 ### AcademicCalendarComponents.kt (Score: 110.00 - 🔴 HIGH)
 - **Total Complexity**: 10
@@ -46,6 +58,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `GoogleLinkPrompt` | 1 |
 | `AcademicCalendarHeader` | 1 |
 | `EventListContent` | 1 |
+
+### ConflictResolutionUI.kt (Score: 72.00 - 🔴 HIGH)
+- **Total Complexity**: 8
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `ConflictItem` | 2 |
+| `ConflictResolutionDialog` | 1 |
+| `ConflictResolutionBanner` | 1 |
 
 ### ConcurrentFolderFetcher.kt (Score: 56.00 - 🔴 HIGH)
 - **Total Complexity**: 7
@@ -117,6 +140,36 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `formatFragments` | 2 |
 | `buildContextBlocks` | 1 |
 
+### EventAgent.kt (Score: 34.00 - 🔴 HIGH)
+- **Total Complexity**: 34
+- **Real Coverage**: 99.1%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `pushToCalendar` | 8 |
+| `acceptDecomposition` | 3 |
+| `rescheduleEvent` | 3 |
+| `generateStudyPlan` | 2 |
+| `loadIncompleteEvents` | 2 |
+| `clearError` | 1 |
+| `clearUnresolvedConflicts` | 1 |
+| `updateStatus` | 1 |
+| `Exception.isQuotaError` | 1 |
+| `runAgentAction` | 1 |
+| *... and 7 more* | |
+
+### GeminiRequestExecutor.kt (Score: 30.30 - 🔴 HIGH)
+- **Total Complexity**: 25
+- **Real Coverage**: 79.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearRateLimitResetForTesting` | 1 |
+| `postToModel` | 1 |
+| `<T> executeWithRetry` | 1 |
+
 ### LocalFileFetcher.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
 - **Real Coverage**: 0.0%
@@ -179,39 +232,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `listCalendars` | 3 |
 | `ensureSuccess` | 2 |
 | `syncEvent` | 2 |
-| `fetchEventsPage` | 2 |
 | `createCalendar` | 1 |
 | `deleteEvent` | 1 |
-
-### EventAgent.kt (Score: 29.00 - 🟡 MEDIUM)
-- **Total Complexity**: 29
-- **Real Coverage**: 99.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `pushToCalendar` | 4 |
-| `updateCompletionStatus` | 3 |
-| `acceptDecomposition` | 3 |
-| `rescheduleEvent` | 3 |
-| `generateStudyPlan` | 2 |
-| `loadIncompleteEvents` | 2 |
-| `clearError` | 1 |
-| `updateStatus` | 1 |
-| `Exception.isQuotaError` | 1 |
-| `runAgentAction` | 1 |
-| *... and 6 more* | |
-
-### GeminiRequestExecutor.kt (Score: 28.88 - 🟡 MEDIUM)
-- **Total Complexity**: 24
-- **Real Coverage**: 79.6%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearRateLimitResetForTesting` | 1 |
-| `postToModel` | 1 |
-| `<T> executeWithRetry` | 1 |
+| `fetchEventsPage` | 1 |
 
 ### GeminiAIService.kt (Score: 28.20 - 🟡 MEDIUM)
 - **Total Complexity**: 26
@@ -243,6 +266,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `GoogleCalendarSelector` | 1 |
 | `CreateCalendarDialog` | 1 |
 
+### AcademicCalendar.kt (Score: 25.22 - 🟡 MEDIUM)
+- **Total Complexity**: 22
+- **Real Coverage**: 81.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `EventItemView` | 7 |
+| `TaskDecompositionDialog` | 6 |
+| `AcademicCalendar` | 1 |
+
 ### SqlDelightLocalCalendarRepository.kt (Score: 24.58 - 🟡 MEDIUM)
 - **Total Complexity**: 24
 - **Real Coverage**: 90.0%
@@ -254,12 +288,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `mapEntityToEvent` | 4 |
 | `getAllEvents` | 3 |
 | `saveEvent` | 2 |
-| `getEventsInRange` | 2 |
-| `getEventsBySyncStatus` | 2 |
-| `getIncompleteEventsBefore` | 2 |
 | `getSettings` | 1 |
 | `deleteEvent` | 1 |
 | `hardDeleteEvent` | 1 |
+| `getEventsInRange` | 1 |
+| `getEventsBySyncStatus` | 1 |
+| `getIncompleteEventsBefore` | 1 |
 
 ### CollisionDetector.kt (Score: 23.97 - 🟡 MEDIUM)
 - **Total Complexity**: 17
@@ -314,21 +348,29 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseCategorizeSourceJson` | 4 |
 | `extractSourceYears` | 2 |
 | `parseEventsJson` | 2 |
-| `parseClockTime` | 2 |
 | `parseDecomposeTaskJson` | 2 |
 | `extractJsonArray` | 2 |
+| `parseClockTime` | 1 |
 | `stripCodeFences` | 1 |
 
-### AcademicCalendar.kt (Score: 22.66 - 🟡 MEDIUM)
-- **Total Complexity**: 20
-- **Real Coverage**: 81.2%
+### GoogleRemoteCalendarRepository.kt (Score: 22.05 - 🟡 MEDIUM)
+- **Total Complexity**: 22
+- **Real Coverage**: 95.2%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `EventItemView` | 7 |
-| `TaskDecompositionDialog` | 6 |
-| `AcademicCalendar` | 1 |
+| `clearCalendar` | 5 |
+| `deleteEvent` | 3 |
+| `getAllEvents` | 2 |
+| `saveEvent` | 2 |
+| `updateEvent` | 2 |
+| `mapCalendarException` | 2 |
+| `getSettings` | 1 |
+| `getAvailableCalendars` | 1 |
+| `hardDeleteEvent` | 1 |
+| `getEventsInRange` | 1 |
+| *... and 2 more* | |
 
 ### SyncNegotiator.kt (Score: 22.03 - 🟡 MEDIUM)
 - **Total Complexity**: 22
@@ -342,6 +384,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findRemoteUpdatesAndConflicts` | 1 |
 | `findDeletedLocalIds` | 1 |
 | `buildProposedBaseCalendar` | 1 |
+
+### CalendarPushResolver.kt (Score: 21.05 - 🟡 MEDIUM)
+- **Total Complexity**: 21
+- **Real Coverage**: 95.1%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `buildResolver` | 3 |
+| `resolveAndPush` | 1 |
+| `resolveAndReschedule` | 1 |
+| `resolveConflicts` | 1 |
+| `persistResolvedEvents` | 1 |
 
 ### CriticJsonCodec.kt (Score: 21.02 - 🟡 MEDIUM)
 - **Total Complexity**: 21
@@ -457,6 +512,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getWatchedFolders` | 2 |
 | `setWatchedFolders` | 2 |
 
+### ErrorCategorizer.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `categorizeError` | 4 |
+
 ### DriveFileScanner.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
 - **Real Coverage**: 0.0%
@@ -507,6 +571,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceById` | 1 |
 | `deleteSource` | 1 |
 
+### EventGenerationService.kt (Score: 19.71 - 🟡 MEDIUM)
+- **Total Complexity**: 19
+- **Real Coverage**: 87.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extractDeliverables` | 6 |
+| `normalize` | 6 |
+| `buildScheduleContext` | 4 |
+| `generateStudyPlan` | 2 |
+| `generateDeterministicId` | 1 |
+
 ### CalendarAgent.kt (Score: 18.24 - 🟡 MEDIUM)
 - **Total Complexity**: 18
 - **Real Coverage**: 90.9%
@@ -542,8 +619,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `formatHour` | 3 |
-| `getTaskDecompositionPrompt` | 2 |
 | `getSyllabusStudyPlanPrompt` | 1 |
+| `getTaskDecompositionPrompt` | 1 |
 | `getDecompositionCritiquePrompt` | 1 |
 
 ### EventPresenter.kt (Score: 18.00 - 🟡 MEDIUM)
@@ -557,25 +634,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getDeadlineChipText` | 4 |
 | `getCategoryLabel` | 3 |
 | `getDeadlineStatus` | 2 |
-
-### GoogleRemoteCalendarRepository.kt (Score: 17.03 - 🟡 MEDIUM)
-- **Total Complexity**: 17
-- **Real Coverage**: 95.2%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearCalendar` | 5 |
-| `deleteEvent` | 3 |
-| `getSettings` | 1 |
-| `getAvailableCalendars` | 1 |
-| `getAllEvents` | 1 |
-| `saveEvent` | 1 |
-| `updateEvent` | 1 |
-| `hardDeleteEvent` | 1 |
-| `getEventsInRange` | 1 |
-| `getEventsBySyncStatus` | 1 |
-| *... and 1 more* | |
 
 ### GoogleDriveService.kt (Score: 17.00 - 🟡 MEDIUM)
 - **Total Complexity**: 17
@@ -620,19 +678,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `shiftEvent` | 1 |
 | `findNextAvailableSlot` | 1 |
 
-### CalendarPushResolver.kt (Score: 16.03 - 🟡 MEDIUM)
-- **Total Complexity**: 16
-- **Real Coverage**: 95.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `resolveConflicts` | 5 |
-| `persistResolvedEvents` | 4 |
-| `resolveAndReschedule` | 3 |
-| `buildResolver` | 3 |
-| `resolveAndPush` | 1 |
-
 ### GeminiRetryService.kt (Score: 16.00 - 🟡 MEDIUM)
 - **Total Complexity**: 16
 - **Real Coverage**: 100.0%
@@ -676,21 +721,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `resolveShifts` | 10 |
+| `resolveShifts` | 1 |
 | `findCollidingEvent` | 1 |
 | `hasShifted` | 1 |
-
-### EventGenerationService.kt (Score: 14.38 - 🟢 LOW)
-- **Total Complexity**: 14
-- **Real Coverage**: 87.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `extractDeliverables` | 6 |
-| `buildScheduleContext` | 4 |
-| `generateStudyPlan` | 2 |
-| `normalize` | 2 |
 
 ### DecompositionOrchestrator.kt (Score: 13.10 - 🟢 LOW)
 - **Total Complexity**: 12
@@ -765,9 +798,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `expandTimeEvent` | 5 |
-| `expandDayEvent` | 5 |
-| `expandEvents` | 2 |
+| `expandEvents` | 1 |
+| `expandTimeEvent` | 1 |
+| `expandDayEvent` | 1 |
 
 ### GeminiErrorHandler.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -779,15 +812,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `categorizeError` | 1 |
 | `handleStructuralError` | 1 |
 | `handleServerError` | 1 |
-
-### ErrorCategorizer.kt (Score: 12.00 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `categorizeError` | 3 |
 
 ### SourceAdder.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -962,10 +986,10 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `resolveCategory` | 3 |
 | `addLocalFile` | 2 |
 | `addUrl` | 2 |
 | `addDriveFile` | 2 |
+| `resolveCategory` | 1 |
 | `persistSource` | 1 |
 
 ### Logger.kt (Score: 9.27 - 🟢 LOW)
@@ -1299,8 +1323,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `applyDecomposition` | 4 |
 | `decompose` | 1 |
+| `applyDecomposition` | 1 |
 
 ### UniversalHomeLayout.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5
@@ -1389,9 +1413,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `groundToSource` | 2 |
 | `generateCalendarEvents` | 1 |
 | `generateStudyPlan` | 1 |
+| `groundToSource` | 1 |
 
 ### KotlinxSerialization.kt (Score: 4.00 - 🟢 LOW)
 - **Total Complexity**: 4

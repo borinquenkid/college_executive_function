@@ -28,8 +28,10 @@ class FragmentRanker(
             termNormalizer.tokenizeFragment(fragment.text)
         }
 
-        val documentFrequencies = dfCalculator.calculateDocumentFrequencies(queryTerms, documentWords)
-        val scoredPairs = tfIdfScorer.scoreDocuments(allPairs, documentWords, queryTerms, documentFrequencies)
+        val documentFrequencies =
+            dfCalculator.calculateDocumentFrequencies(queryTerms, documentWords)
+        val scoredPairs =
+            tfIdfScorer.scoreDocuments(allPairs, documentWords, queryTerms, documentFrequencies)
 
         return scoredPairs
             .sortedWith(compareByDescending<Pair<Pair<SourceItem, SourceFragment>, Double>> { it.second }

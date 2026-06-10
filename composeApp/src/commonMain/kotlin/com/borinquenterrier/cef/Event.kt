@@ -145,7 +145,11 @@ fun Event.studyProgress(
         return 0f
     }
     val start = studyPlanStart?.let {
-        try { LocalDate.parse(it) } catch (e: Exception) { null }
+        try {
+            LocalDate.parse(it)
+        } catch (e: Exception) {
+            null
+        }
     } ?: date.minus(7, DateTimeUnit.DAY)
 
     val totalDays = start.daysUntil(date)

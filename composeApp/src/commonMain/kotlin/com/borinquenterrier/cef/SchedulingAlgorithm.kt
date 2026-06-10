@@ -22,7 +22,13 @@ class SchedulingAlgorithm(
         val colliding = existingEvents.filter { it.overlaps(event) }
         val isValid = when (event) {
             is DayEvent -> true
-            is TimeEvent -> validator.isValidTimeSlot(event.date, event.startTime, event.endTime, event.priority, existingEvents)
+            is TimeEvent -> validator.isValidTimeSlot(
+                event.date,
+                event.startTime,
+                event.endTime,
+                event.priority,
+                existingEvents
+            )
         }
 
         if (colliding.isEmpty() && isValid) {
@@ -68,7 +74,7 @@ class SchedulingAlgorithm(
     ): ResolutionResult {
         val shifted = findNextAvailableSlot(event, existingEvents, skipCurrent = true)
             ?: return ResolutionResult.Conflict(event)
-        
+
         return resolve(shifted, existingEvents, depth)
     }
 
@@ -79,7 +85,7 @@ class SchedulingAlgorithm(
     ): ResolutionResult {
         val shifted = findNextAvailableSlot(event, existingEvents, skipCurrent = true)
             ?: return ResolutionResult.Conflict(event)
-        
+
         return resolve(shifted, existingEvents, depth + 1)
     }
 

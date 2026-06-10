@@ -1,9 +1,12 @@
 package com.borinquenterrier.cef
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonArray
+import kotlinx.serialization.json.JsonObject
+import kotlinx.serialization.json.jsonArray
 
 @Serializable
 private data class RawGeminiEvent(
@@ -100,7 +103,11 @@ object GeminiResponseParser {
     }
 
     /** Parses an "HH:mm" string, falling back to [default] (and logging telemetry) on failure. */
-    private fun parseClockTime(value: String, default: LocalTime, telemetry: TelemetryManager?): LocalTime =
+    private fun parseClockTime(
+        value: String,
+        default: LocalTime,
+        telemetry: TelemetryManager?
+    ): LocalTime =
         try {
             val parts = value.split(":")
             LocalTime(parts[0].toInt(), parts[1].toInt())

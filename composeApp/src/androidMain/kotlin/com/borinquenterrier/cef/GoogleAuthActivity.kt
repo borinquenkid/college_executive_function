@@ -1,7 +1,6 @@
 package com.borinquenterrier.cef
 
 import android.app.Activity
-import android.content.Context
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -15,7 +14,6 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withContext
 
 object GoogleAuthCallback {
     var pendingDeferred: CompletableDeferred<Pair<String, String?>>? = null
@@ -25,7 +23,7 @@ class GoogleAuthActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        
+
         // This is a transparent activity just to launch the Google Sign In Intent
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
@@ -36,7 +34,7 @@ class GoogleAuthActivity : ComponentActivity() {
             .build()
 
         val googleSignInClient = GoogleSignIn.getClient(this, gso)
-        
+
         // Ensure we start with a clean slate to avoid stale session issues
         googleSignInClient.signOut().addOnCompleteListener {
             startActivityForResult(googleSignInClient.signInIntent, 1001)
@@ -52,8 +50,13 @@ class GoogleAuthActivity : ComponentActivity() {
                 if (account != null && account.account != null) {
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            val scopes = "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
-                            val token = GoogleAuthUtil.getToken(this@GoogleAuthActivity, account.account!!, scopes)
+                            val scopes =
+                                "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
+                            val token = GoogleAuthUtil.getToken(
+                                this@GoogleAuthActivity,
+                                account.account!!,
+                                scopes
+                            )
                             GoogleAuthCallback.pendingDeferred?.complete(Pair(token, null))
                             finish()
                         } catch (e: com.google.android.gms.auth.UserRecoverableAuthException) {
@@ -86,8 +89,13 @@ class GoogleAuthActivity : ComponentActivity() {
                 if (account != null && account.account != null) {
                     CoroutineScope(Dispatchers.IO).launch {
                         try {
-                            val scopes = "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
-                            val token = GoogleAuthUtil.getToken(this@GoogleAuthActivity, account.account!!, scopes)
+                            val scopes =
+                                "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
+                            val token = GoogleAuthUtil.getToken(
+                                this@GoogleAuthActivity,
+                                account.account!!,
+                                scopes
+                            )
                             GoogleAuthCallback.pendingDeferred?.complete(Pair(token, null))
                         } catch (e: Exception) {
                             GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)

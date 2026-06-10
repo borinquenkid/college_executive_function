@@ -38,24 +38,33 @@ class GoogleDriveService(
     private val baseUrl = "https://www.googleapis.com/drive/v3"
 
     private suspend fun <T> withToken(block: suspend (String) -> T): T {
-        val currentToken = tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
-        logger?.d("GoogleDriveService", "Attempting request with token: ${currentToken.take(10)}...")
-        
+        val currentToken =
+            tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
+        logger?.d(
+            "GoogleDriveService",
+            "Attempting request with token: ${currentToken.take(10)}..."
+        )
+
         return try {
             block(currentToken)
         } catch (e: Exception) {
-            val isUnauthorized = e.message?.contains("401") == true || e.message?.contains("Unauthorized") == true
+            val isUnauthorized =
+                e.message?.contains("401") == true || e.message?.contains("Unauthorized") == true
             if (isUnauthorized) {
                 logger?.d("GoogleDriveService", "Received 401, attempting token refresh.")
                 val refreshToken = tokenRepository.getRefreshToken() ?: run {
                     onAuthError?.invoke("Session expired. Please reconnect.")
                     throw Exception("No refresh token available for 401 recovery")
                 }
-                
+
                 try {
-                    val newToken = authService.refreshAccessToken(refreshToken) ?: throw Exception("Token refresh failed")
-                    logger?.d("GoogleDriveService", "Successfully refreshed token: ${newToken.take(10)}...")
-                    
+                    val newToken = authService.refreshAccessToken(refreshToken)
+                        ?: throw Exception("Token refresh failed")
+                    logger?.d(
+                        "GoogleDriveService",
+                        "Successfully refreshed token: ${newToken.take(10)}..."
+                    )
+
                     tokenRepository.saveTokens(newToken, refreshToken)
                     block(newToken)
                 } catch (refreshError: Exception) {
@@ -96,18 +105,21 @@ class GoogleDriveService(
      * Optionally filters by [query] (e.g., "mimeType = 'application/pdf'").
      */
     suspend fun listFiles(query: String? = null): List<DriveFile> = withToken { token ->
-        logger?.d("GoogleDriveService", "Attempting listFiles with Authorization: Bearer ${token.take(10)}...")
+        logger?.d(
+            "GoogleDriveService",
+            "Attempting listFiles with Authorization: Bearer ${token.take(10)}..."
+        )
         val response = httpClient.get("$baseUrl/files") {
             header("Authorization", "Bearer $token")
             query?.let { parameter("q", it) }
         }
-        
+
         if (!response.status.isSuccess()) {
             val errorBody = response.bodyAsText()
             logger?.e("GoogleDriveService", "Drive API error: $errorBody")
             throw Exception("Google Drive API Error (${response.status}): $errorBody")
         }
-        
+
         response.body<DriveFileListResponse>().files
     }
 

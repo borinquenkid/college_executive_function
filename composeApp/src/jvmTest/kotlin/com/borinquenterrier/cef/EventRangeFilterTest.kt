@@ -68,7 +68,8 @@ class EventRangeFilterTest : FunSpec({
     }
 
     test("filterByDateRange handles empty event list") {
-        val result = filter.filterByDateRange(emptyList(), LocalDate(2024, 1, 1), LocalDate(2024, 1, 31))
+        val result =
+            filter.filterByDateRange(emptyList(), LocalDate(2024, 1, 1), LocalDate(2024, 1, 31))
 
         result.shouldBeEmpty()
     }

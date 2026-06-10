@@ -9,13 +9,16 @@ class SourceScanner(
     private val localFileScanner: LocalFileScanner,
     private val driveFileScanner: DriveFileScanner
 ) {
-    fun getWatchedLocalDirectories(): List<String> = directoryPreferences.getWatchedLocalDirectories()
+    fun getWatchedLocalDirectories(): List<String> =
+        directoryPreferences.getWatchedLocalDirectories()
 
-    fun setWatchedLocalDirectories(dirs: List<String>) = directoryPreferences.setWatchedLocalDirectories(dirs)
+    fun setWatchedLocalDirectories(dirs: List<String>) =
+        directoryPreferences.setWatchedLocalDirectories(dirs)
 
     fun getWatchedGDriveFolders(): List<String> = directoryPreferences.getWatchedGDriveFolders()
 
-    fun setWatchedGDriveFolders(folders: List<String>) = directoryPreferences.setWatchedGDriveFolders(folders)
+    fun setWatchedGDriveFolders(folders: List<String>) =
+        directoryPreferences.setWatchedGDriveFolders(folders)
 
     suspend fun scanNewLocalFiles(existingUris: Set<String>): List<String> =
         localFileScanner.scanNewFiles(existingUris)

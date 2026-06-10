@@ -55,19 +55,19 @@ class EventProgressTest : FunSpec({
             date = LocalDate(2026, 6, 10),
             studyPlanStart = "2026-06-05"
         )
-        
+
         // Before start: 0f
         event.studyProgress(LocalDate(2026, 6, 4)) shouldBe 0f
-        
+
         // On start: 0f
         event.studyProgress(LocalDate(2026, 6, 5)) shouldBe 0f
-        
+
         // Midpoint: 2 days elapsed of 5 total days = 0.4f
         event.studyProgress(LocalDate(2026, 6, 7)) shouldBe 0.4f
-        
+
         // On due date: 1f
         event.studyProgress(LocalDate(2026, 6, 10)) shouldBe 1f
-        
+
         // After due date: 1f
         event.studyProgress(LocalDate(2026, 6, 12)) shouldBe 1f
     }
@@ -80,17 +80,17 @@ class EventProgressTest : FunSpec({
             date = LocalDate(2026, 6, 10),
             studyPlanStart = null
         )
-        
+
         // Fallback start is 2026-06-03
         // Before start: 0f
         event.studyProgress(LocalDate(2026, 6, 2)) shouldBe 0f
-        
+
         // Midpoint: 3.5 days elapsed? Let's check exactly 2026-06-03 is 0f
         event.studyProgress(LocalDate(2026, 6, 3)) shouldBe 0f
-        
+
         // 2026-06-07: 4 days elapsed of 7 total days
         event.studyProgress(LocalDate(2026, 6, 7)) shouldBe (4f / 7f)
-        
+
         // On due date: 1f
         event.studyProgress(LocalDate(2026, 6, 10)) shouldBe 1f
     }

@@ -41,6 +41,7 @@ class GoogleTokenRepository(private val settings: Settings) {
     fun getRefreshToken(): String? = settings.getString(refreshTokenKey, "")
         .takeIf { it.isNotEmpty() }
 }
+
 /**
  * Platform-specific service to handle the OAuth2 flow.
  */

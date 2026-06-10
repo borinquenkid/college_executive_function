@@ -1,11 +1,11 @@
 package com.borinquenterrier.cef
 
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.borinquenterrier.cef.db.AppDatabase
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.mockk.mockk
-import com.russhwolf.settings.MapSettings
-import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.datetime.LocalTime
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -64,8 +64,10 @@ class AiSchedulingIntegrationTest : FunSpec({
 
         var studyBlockCount = 0
         events.forEach { event ->
-            println("- [${event.category}] ${event.title} on ${event.date} " +
-                if (event is TimeEvent) "from ${event.startTime} to ${event.endTime}" else "(All Day)")
+            println(
+                "- [${event.category}] ${event.title} on ${event.date} " +
+                        if (event is TimeEvent) "from ${event.startTime} to ${event.endTime}" else "(All Day)"
+            )
 
             if (event is TimeEvent) {
                 val startLimit = LocalTime(9, 0)

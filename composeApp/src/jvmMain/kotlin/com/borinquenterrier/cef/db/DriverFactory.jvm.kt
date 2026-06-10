@@ -8,13 +8,13 @@ actual class DriverFactory {
     actual fun createDriver(): SqlDriver {
         val databaseFile = File(System.getProperty("user.home"), ".cef/cef.db")
         val exists = databaseFile.exists()
-        
+
         if (!databaseFile.parentFile.exists()) {
             databaseFile.parentFile.mkdirs()
         }
-        
+
         val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databaseFile.absolutePath}")
-        
+
         try {
             if (!exists) {
                 AppDatabase.Schema.create(driver)
@@ -26,7 +26,7 @@ actual class DriverFactory {
         } catch (e: Exception) {
             // If create fails because tables already exist, it's fine (using IF NOT EXISTS in .sq)
         }
-        
+
         return driver
     }
 }

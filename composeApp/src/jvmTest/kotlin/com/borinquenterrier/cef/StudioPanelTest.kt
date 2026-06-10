@@ -1,7 +1,11 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.ui.test.*
-import io.kotest.matchers.shouldBe
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsNotEnabled
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.runComposeUiTest
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -19,9 +23,9 @@ class StudioPanelTest {
         val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
-        
+
         every { mockContainer.eventAgent } returns mockEventAgent
-        
+
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns MutableStateFlow(false)
         every { mockContainer.tokenRepository } returns tokenRepo
@@ -58,16 +62,16 @@ class StudioPanelTest {
         val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
-        
+
         every { mockContainer.eventAgent } returns mockEventAgent
-        
+
         val mockAppController = mockk<AppController>(relaxed = true)
         every { mockContainer.appController } returns mockAppController
         every { mockAppController.launchInScope(any()) } answers {
             val block = firstArg<suspend kotlinx.coroutines.CoroutineScope.() -> Unit>()
             kotlinx.coroutines.runBlocking { block(this) }
         }
-        
+
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns MutableStateFlow(false)
         every { mockContainer.tokenRepository } returns tokenRepo
@@ -110,16 +114,16 @@ class StudioPanelTest {
         val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
-        
+
         every { mockContainer.eventAgent } returns mockEventAgent
-        
+
         val mockAppController = mockk<AppController>(relaxed = true)
         every { mockContainer.appController } returns mockAppController
         every { mockAppController.launchInScope(any()) } answers {
             val block = firstArg<suspend kotlinx.coroutines.CoroutineScope.() -> Unit>()
             kotlinx.coroutines.runBlocking { block(this) }
         }
-        
+
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         // Set connected/linked to true
         every { tokenRepo.isLinked } returns MutableStateFlow(true)
@@ -183,9 +187,9 @@ class StudioPanelTest {
         val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
-        
+
         every { mockContainer.eventAgent } returns mockEventAgent
-        
+
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns MutableStateFlow(false)
         every { mockContainer.tokenRepository } returns tokenRepo
@@ -227,16 +231,16 @@ class StudioPanelTest {
         val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
-        
+
         every { mockContainer.eventAgent } returns mockEventAgent
-        
+
         val mockAppController = mockk<AppController>(relaxed = true)
         every { mockContainer.appController } returns mockAppController
         every { mockAppController.launchInScope(any()) } answers {
             val block = firstArg<suspend kotlinx.coroutines.CoroutineScope.() -> Unit>()
             kotlinx.coroutines.runBlocking { block(this) }
         }
-        
+
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns MutableStateFlow(false)
         every { mockContainer.tokenRepository } returns tokenRepo

@@ -1,9 +1,9 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.StringSpec
-import io.mockk.mockk
 import io.mockk.coEvery
 import io.mockk.every
+import io.mockk.mockk
 
 class DriveFileProcessorTest : StringSpec({
 

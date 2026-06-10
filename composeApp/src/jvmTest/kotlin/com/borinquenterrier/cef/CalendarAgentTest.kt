@@ -1,14 +1,19 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.collections.shouldHaveSize
-import io.kotest.matchers.types.shouldBeInstanceOf
+import com.russhwolf.settings.MapSettings
 import io.kotest.assertions.throwables.shouldThrow
-import io.mockk.*
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import com.russhwolf.settings.MapSettings
 
 class CalendarAgentTest : FunSpec({
 
@@ -131,10 +136,18 @@ class CalendarAgentTest : FunSpec({
 
         calendarAgent.updateEvent(movedStudyBlock, "default")
 
-        coVerify(exactly = 1) { userPreferenceMemoryRepository.logOverride(OverrideAction.MOVE, studyBlockEvent) }
+        coVerify(exactly = 1) {
+            userPreferenceMemoryRepository.logOverride(
+                OverrideAction.MOVE,
+                studyBlockEvent
+            )
+        }
         coVerify(exactly = 1) { remoteRepo.saveEvent(movedStudyBlock, "default") }
         coVerify(exactly = 1) {
-            localRepo.updateEvent(match { it.id == "event-2" && it.syncStatus == SyncStatus.SYNCED }, "default")
+            localRepo.updateEvent(
+                match { it.id == "event-2" && it.syncStatus == SyncStatus.SYNCED },
+                "default"
+            )
         }
     }
 
@@ -146,7 +159,12 @@ class CalendarAgentTest : FunSpec({
 
         calendarAgent.deleteEvent("event-2", "default")
 
-        coVerify(exactly = 1) { userPreferenceMemoryRepository.logOverride(OverrideAction.DELETE, studyBlockEvent) }
+        coVerify(exactly = 1) {
+            userPreferenceMemoryRepository.logOverride(
+                OverrideAction.DELETE,
+                studyBlockEvent
+            )
+        }
         coVerify(exactly = 1) { localRepo.deleteEvent("event-2", "default") }
         coVerify(exactly = 1) { remoteRepo.deleteEvent("event-2", "default") }
         coVerify(exactly = 1) { localRepo.hardDeleteEvent("event-2", "default") }
@@ -166,14 +184,35 @@ class CalendarAgentTest : FunSpec({
 
     test("checkSyncProposals should handle pushLocalChanges and detect deleted/conflicting events") {
         // Mock pushLocalChanges details
-        val deletedLocalEvent = timeEvent.copy(id = "deleted-1", syncStatus = SyncStatus.DELETED_LOCALLY)
+        val deletedLocalEvent =
+            timeEvent.copy(id = "deleted-1", syncStatus = SyncStatus.DELETED_LOCALLY)
         val localOnlyEvent = timeEvent.copy(id = "local-only", syncStatus = SyncStatus.LOCAL_ONLY)
-        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.DELETED_LOCALLY, "default") } returns listOf(deletedLocalEvent)
-        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, "default") } returns listOf(localOnlyEvent)
+        coEvery {
+            localRepo.getEventsBySyncStatus(
+                SyncStatus.DELETED_LOCALLY,
+                "default"
+            )
+        } returns listOf(deletedLocalEvent)
+        coEvery {
+            localRepo.getEventsBySyncStatus(
+                SyncStatus.LOCAL_ONLY,
+                "default"
+            )
+        } returns listOf(localOnlyEvent)
 
         // Mock events for checkSyncProposals main logic
-        val conflictingLocal = timeEvent.copy(id = "conflict-1", title = "Local Title", syncStatus = SyncStatus.SYNCED, updatedAt = 100L)
-        val conflictingRemote = timeEvent.copy(id = "conflict-1", title = "Remote Title", syncStatus = SyncStatus.SYNCED, updatedAt = 200L)
+        val conflictingLocal = timeEvent.copy(
+            id = "conflict-1",
+            title = "Local Title",
+            syncStatus = SyncStatus.SYNCED,
+            updatedAt = 100L
+        )
+        val conflictingRemote = timeEvent.copy(
+            id = "conflict-1",
+            title = "Remote Title",
+            syncStatus = SyncStatus.SYNCED,
+            updatedAt = 200L
+        )
         coEvery { localRepo.getAllEvents("default") } returns listOf(conflictingLocal)
         coEvery { remoteRepo.getAllEvents("default") } returns listOf(conflictingRemote)
 
@@ -245,7 +284,8 @@ class CalendarAgentTest : FunSpec({
     }
 
     test("applySyncNegotiation should perform local deletion and upserts remote events") {
-        val localEvent = studyBlockEvent.copy(id = "deleted-remote-id", syncStatus = SyncStatus.SYNCED)
+        val localEvent =
+            studyBlockEvent.copy(id = "deleted-remote-id", syncStatus = SyncStatus.SYNCED)
         coEvery { localRepo.getAllEvents("default") } returns listOf(localEvent)
         coEvery { localRepo.hardDeleteEvent(any(), any()) } just runs
         coEvery { localRepo.updateEvent(any(), any()) } just runs
@@ -259,15 +299,25 @@ class CalendarAgentTest : FunSpec({
 
         calendarAgent.applySyncNegotiation(negotiation, "default")
 
-        coVerify(exactly = 1) { userPreferenceMemoryRepository.logOverride(OverrideAction.DELETE, localEvent) }
+        coVerify(exactly = 1) {
+            userPreferenceMemoryRepository.logOverride(
+                OverrideAction.DELETE,
+                localEvent
+            )
+        }
         coVerify(exactly = 1) { localRepo.hardDeleteEvent("deleted-remote-id", "default") }
         coVerify(exactly = 1) {
-            localRepo.updateEvent(match { it.id == "new-remote" && it.syncStatus == SyncStatus.SYNCED }, "default")
+            localRepo.updateEvent(
+                match { it.id == "new-remote" && it.syncStatus == SyncStatus.SYNCED },
+                "default"
+            )
         }
     }
 
     test("getIncompleteEventsBefore should delegate to localRepo") {
-        coEvery { localRepo.getIncompleteEventsBefore(date, "default") } returns listOf(studyBlockEvent)
+        coEvery { localRepo.getIncompleteEventsBefore(date, "default") } returns listOf(
+            studyBlockEvent
+        )
 
         val result = calendarAgent.getIncompleteEventsBefore(date, "default")
 

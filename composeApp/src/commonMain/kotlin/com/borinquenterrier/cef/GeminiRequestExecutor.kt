@@ -1,9 +1,10 @@
 package com.borinquenterrier.cef
 
-import io.ktor.client.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import kotlinx.serialization.json.*
+import io.ktor.client.HttpClient
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.JsonObject
 
 /**
  * Lightweight facade orchestrating Gemini API request execution with retry logic.
@@ -61,9 +62,13 @@ class GeminiRequestExecutor(
 
                 // Handle success immediately (2xx status codes)
                 if (httpResponse.status.isSuccess()) {
-                    val geminiResponse = Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(responseBody)
-                    val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                        ?: throw Exception("Empty response from AI")
+                    val geminiResponse =
+                        Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(
+                            responseBody
+                        )
+                    val responseText =
+                        geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                            ?: throw Exception("Empty response from AI")
                     return parseResponse(responseText)
                 }
 
@@ -80,17 +85,22 @@ class GeminiRequestExecutor(
                         else -> "Unknown auth error"
                     }
                     logger?.e(tag, msg)
-                    throw Exception(when (errorType) {
-                        ErrorCategorizer.ErrorType.Unauthorized -> "Unauthorized"
-                        ErrorCategorizer.ErrorType.Forbidden -> "Forbidden"
-                        else -> "UnknownAuthError"
-                    })
+                    throw Exception(
+                        when (errorType) {
+                            ErrorCategorizer.ErrorType.Unauthorized -> "Unauthorized"
+                            ErrorCategorizer.ErrorType.Forbidden -> "Forbidden"
+                            else -> "UnknownAuthError"
+                        }
+                    )
                 }
 
                 // Handle structural errors (model not found, unsupported modalities)
                 if (errorType is ErrorCategorizer.ErrorType.StructuralError) {
                     errorHandler.handleStructuralError(modelName)
-                    logger?.d(tag, "⚠️ Model $modelName had structural error: ${errorType.reason}. Blacklisted. Trying next model...")
+                    logger?.d(
+                        tag,
+                        "⚠️ Model $modelName had structural error: ${errorType.reason}. Blacklisted. Trying next model..."
+                    )
                     attempts++
                     continue
                 }
@@ -99,8 +109,12 @@ class GeminiRequestExecutor(
                 if (errorType == ErrorCategorizer.ErrorType.QuotaExhausted) {
                     telemetryManager?.logRateLimitError()
                     errorHandler.handleServerError(modelName)
-                    logger?.e(tag, "🚫 Daily quota exhausted for model $modelName. Blacklisting and trying next model...")
-                    lastError = Exception("QuotaExhausted: Daily request limit reached for model $modelName.")
+                    logger?.e(
+                        tag,
+                        "🚫 Daily quota exhausted for model $modelName. Blacklisting and trying next model..."
+                    )
+                    lastError =
+                        Exception("QuotaExhausted: Daily request limit reached for model $modelName.")
                     attempts++
                     continue
                 }
@@ -109,7 +123,10 @@ class GeminiRequestExecutor(
                 if (errorType == ErrorCategorizer.ErrorType.TransientServerError) {
                     telemetryManager?.logRateLimitError()
                     errorHandler.handleServerError(modelName)
-                    logger?.e(tag, "⚠️ Model $modelName returned server error. Evicted and blacklisted. Trying next model...")
+                    logger?.e(
+                        tag,
+                        "⚠️ Model $modelName returned server error. Evicted and blacklisted. Trying next model..."
+                    )
                     attempts++
                     continue
                 }
@@ -123,8 +140,12 @@ class GeminiRequestExecutor(
                     if (delayMs > 10000L) {
                         modelNegotiator.blacklistModel(modelName)
                         modelNegotiator.evictFromCache(modelName)
-                        logger?.e(tag, "⚠️ Model $modelName rate limit delay ${delayMs}ms too long. Blacklisted. Trying next model...")
-                        lastError = Exception("QuotaExhausted: Rate limit reached for model $modelName. Delay: ${delayMs / 1000}s.")
+                        logger?.e(
+                            tag,
+                            "⚠️ Model $modelName rate limit delay ${delayMs}ms too long. Blacklisted. Trying next model..."
+                        )
+                        lastError =
+                            Exception("QuotaExhausted: Rate limit reached for model $modelName. Delay: ${delayMs / 1000}s.")
                         continue
                     }
 
@@ -147,7 +168,11 @@ class GeminiRequestExecutor(
                 throw Exception("Unexpected response status: ${httpResponse.status}")
 
             } catch (e: Exception) {
-                if (e.message?.let { it.contains("Unauthorized") || it.contains("Forbidden") || it.contains("QuotaExhausted") } == true) {
+                if (e.message?.let {
+                        it.contains("Unauthorized") || it.contains("Forbidden") || it.contains(
+                            "QuotaExhausted"
+                        )
+                    } == true) {
                     throw e
                 }
 
@@ -162,7 +187,10 @@ class GeminiRequestExecutor(
         if (lastNegotiatedModel != null) {
             modelNegotiator.blacklistModel(lastNegotiatedModel)
             modelNegotiator.evictFromCache(lastNegotiatedModel)
-            logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts. Evicted and blacklisted.")
+            logger?.e(
+                tag,
+                "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts. Evicted and blacklisted."
+            )
         }
 
         val errorToThrow = lastError ?: Exception("Failed after $maxAttempts attempts")

@@ -2,8 +2,8 @@ package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.mockk
 import io.ktor.http.HttpStatusCode
+import io.mockk.mockk
 
 class ErrorCategorizerTest : StringSpec({
     val quotaDetector = QuotaExhaustionDetector()
@@ -63,7 +63,8 @@ class ErrorCategorizerTest : StringSpec({
     }
 
     "rejects success status with critical error (defensive check)" {
-        val result = categorizer.categorizeError(HttpStatusCode.OK, "Unexpected success with error body")
+        val result =
+            categorizer.categorizeError(HttpStatusCode.OK, "Unexpected success with error body")
         result as? ErrorCategorizer.ErrorType.OtherError shouldBe ErrorCategorizer.ErrorType.OtherError(
             "Critical: Success status reached error categorizer. This indicates a bug in request handling."
         )
@@ -85,7 +86,8 @@ class ErrorCategorizerTest : StringSpec({
 
     "correctly delegates retry parsing to parser" {
         val bodyWithCustomDelay = "retry after 123 seconds"
-        val result = categorizer.categorizeError(HttpStatusCode.TooManyRequests, bodyWithCustomDelay)
+        val result =
+            categorizer.categorizeError(HttpStatusCode.TooManyRequests, bodyWithCustomDelay)
         result shouldBe ErrorCategorizer.ErrorType.TransientRateLimit(123000L)
     }
 })

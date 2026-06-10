@@ -1,12 +1,12 @@
 package com.borinquenterrier.cef
 
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldNotBeEmpty
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.kotest.matchers.shouldNotBe
 import kotlinx.datetime.LocalDate
 import java.io.File
-import com.russhwolf.settings.MapSettings
 import kotlin.time.Duration.Companion.milliseconds
 
 /**
@@ -66,21 +66,21 @@ class MultiFormatAiIntegrationTest : FunSpec({
         val hasFinalExam = events.any { e ->
             val d = dateOf(e)
             d == LocalDate(2026, 5, 4) &&
-                (e.category == AcademicCategory.FINALS || e.category == AcademicCategory.DEADLINE)
+                    (e.category == AcademicCategory.FINALS || e.category == AcademicCategory.DEADLINE)
         }
         hasFinalExam shouldNotBe false
 
         // A unit test must appear — "2/9 TEST Test One"
         val hasTestOne = events.any { e ->
             dateOf(e) == LocalDate(2026, 2, 9) &&
-                (e.category == AcademicCategory.FINALS || e.category == AcademicCategory.DEADLINE || e.category == AcademicCategory.REGULAR)
+                    (e.category == AcademicCategory.FINALS || e.category == AcademicCategory.DEADLINE || e.category == AcademicCategory.REGULAR)
         }
         hasTestOne shouldNotBe false
 
         // MLK Jr. Day holiday must appear — explicitly listed as "1/19 No Class – MLK Jr. Day"
         val hasMLKDay = events.any { e ->
             dateOf(e) == LocalDate(2026, 1, 19) &&
-                (e.category == AcademicCategory.HOLIDAY || e.category == AcademicCategory.REGULAR)
+                    (e.category == AcademicCategory.HOLIDAY || e.category == AcademicCategory.REGULAR)
         }
         hasMLKDay shouldNotBe false
 

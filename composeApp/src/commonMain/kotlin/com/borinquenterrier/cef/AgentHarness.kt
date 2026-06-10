@@ -35,15 +35,17 @@ class AgentHarness(
 
     fun getWatchedLocalDirectories(): List<String> = sourceScanner.getWatchedLocalDirectories()
 
-    fun setWatchedLocalDirectories(dirs: List<String>) = sourceScanner.setWatchedLocalDirectories(dirs)
+    fun setWatchedLocalDirectories(dirs: List<String>) =
+        sourceScanner.setWatchedLocalDirectories(dirs)
 
     fun getWatchedGDriveFolders(): List<String> = sourceScanner.getWatchedGDriveFolders()
 
-    fun setWatchedGDriveFolders(folders: List<String>) = sourceScanner.setWatchedGDriveFolders(folders)
+    fun setWatchedGDriveFolders(folders: List<String>) =
+        sourceScanner.setWatchedGDriveFolders(folders)
 
     suspend fun runHarness(force: Boolean = false) {
         if (!pollScheduler.shouldPoll(force)) return
-        
+
         if (_isBusy.value) {
             logger.d(tag, "AgentHarness is already running. Skipping.")
             return
@@ -59,7 +61,10 @@ class AgentHarness(
 
             val newLocalFiles = sourceScanner.scanNewLocalFiles(existingUris)
             val newDriveFiles = sourceScanner.scanNewDriveFiles(existingUris)
-            logger.d(tag, "Found ${newLocalFiles.size} new local files and ${newDriveFiles.size} new GDrive files.")
+            logger.d(
+                tag,
+                "Found ${newLocalFiles.size} new local files and ${newDriveFiles.size} new GDrive files."
+            )
 
             eventAgent.loadIncompleteEvents()
             sourceProcessor.processLocalFiles(newLocalFiles) { status -> _status.value = status }

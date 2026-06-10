@@ -1,11 +1,11 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.borinquenterrier.cef.db.AppDatabase
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
 import kotlinx.datetime.Clock
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -61,7 +61,7 @@ class UserPreferenceMemoryRepositoryTest : FunSpec({
         )
 
         repository.logOverride(OverrideAction.DELETE, testEvent)
-        
+
         // Wait a millisecond to make sure log timestamp is older than prune time
         val pruneTime = Clock.System.now().toEpochMilliseconds() + 10
 

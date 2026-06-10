@@ -2,8 +2,8 @@ package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
-import com.russhwolf.settings.Settings
 import com.borinquenterrier.cef.db.AppDatabase
+import com.russhwolf.settings.Settings
 
 /**
  * Android Implementation of AIService using Gemini.
@@ -13,14 +13,16 @@ actual class RealAIService actual constructor(
     private val logger: Logger,
     private val database: AppDatabase?
 ) : AIService {
-    
+
     actual override fun isConfigured(): Boolean {
-        val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
+        val apiKey =
+            settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
         return apiKey.isNotBlank()
     }
 
     private fun getGeminiService(): GeminiAIService {
-        val apiKey = settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
+        val apiKey =
+            settings.getString("CEF_GEMINI_API_KEY", settings.getString("GEMINI_API_KEY", ""))
         return GeminiAIService(
             apiKey = apiKey,
             logger = logger,
@@ -49,7 +51,10 @@ actual class RealAIService actual constructor(
         return getGeminiService().analyzeDocument(text)
     }
 
-    actual override suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
+    actual override suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String
+    ): List<DecomposedTask> {
         return getGeminiService().decomposeTask(taskTitle, dueDate)
     }
 
@@ -65,7 +70,7 @@ actual fun rememberAIService(): AIService {
     val driverFactory = rememberDriverFactory()
     val database = remember(driverFactory) { AppDatabase(driverFactory.createDriver()) }
 
-    return remember(settings, logger, database) { 
+    return remember(settings, logger, database) {
         CriticActorAIService(
             RecursiveDecompositionAIService(RealAIService(settings, logger, database)),
             logger

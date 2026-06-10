@@ -1,12 +1,16 @@
 package com.borinquenterrier.cef
 
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import kotlinx.serialization.json.put
 import java.io.File
 import java.net.URI
 import java.net.http.HttpClient
 import java.net.http.HttpRequest
 import java.net.http.HttpResponse
 import java.time.Duration
-import kotlinx.serialization.json.*
 
 /**
  * Local Test Generator Utility.
@@ -41,7 +45,8 @@ object LocalTestGenerator {
 
     private fun findTestFile(relativeDir: String, testFileName: String): File? {
         for (testBaseDir in TEST_DIRS) {
-            val testTargetDir = if (relativeDir.isEmpty()) testBaseDir else File(testBaseDir, relativeDir)
+            val testTargetDir =
+                if (relativeDir.isEmpty()) testBaseDir else File(testBaseDir, relativeDir)
             val file = File(testTargetDir, testFileName)
             if (file.exists()) {
                 return file
@@ -49,9 +54,10 @@ object LocalTestGenerator {
         }
         return null
     }
-    
+
     private const val OLLAMA_URL = "http://localhost:11434/api/generate"
-    private const val DEFAULT_MODEL = "qwen2.5-coder:3b" // Optimized for coding, lightweight for 16GB RAM
+    private const val DEFAULT_MODEL =
+        "qwen2.5-coder:3b" // Optimized for coding, lightweight for 16GB RAM
 
     @JvmStatic
     fun main(args: Array<String>) {
@@ -72,7 +78,8 @@ object LocalTestGenerator {
 
         // Collect all source files across directories
         val allSrcFiles = codeDirs.flatMap { dir ->
-            dir.listFiles { file -> file.isFile && file.name.endsWith(".kt") }?.toList() ?: emptyList()
+            dir.listFiles { file -> file.isFile && file.name.endsWith(".kt") }?.toList()
+                ?: emptyList()
         }
         println("Found ${allSrcFiles.size} Kotlin source files across all directories.")
 
@@ -81,7 +88,8 @@ object LocalTestGenerator {
 
         if (args.isNotEmpty()) {
             selection = args[0]
-            targetFileArg = if (args.size > 1) args.slice(1 until args.size).joinToString(" ") else null
+            targetFileArg =
+                if (args.size > 1) args.slice(1 until args.size).joinToString(" ") else null
             println("Arguments provided - Selection: $selection, Target: $targetFileArg")
         } else {
             println("\nChoose mode:")
@@ -100,9 +108,9 @@ object LocalTestGenerator {
                     print("Enter the Kotlin source filename or path (e.g. NormalizationService.kt): ")
                     System.`in`.bufferedReader().readLine()?.trim() ?: ""
                 }
-                val file = allSrcFiles.find { 
-                    it.name.equals(filename, ignoreCase = true) || 
-                    it.relativeTo(SRC_DIR).path.equals(filename, ignoreCase = true)
+                val file = allSrcFiles.find {
+                    it.name.equals(filename, ignoreCase = true) ||
+                            it.relativeTo(SRC_DIR).path.equals(filename, ignoreCase = true)
                 }
                 if (file != null) {
                     processFile(file, modelName)
@@ -110,17 +118,20 @@ object LocalTestGenerator {
                     println("Error: File '$filename' not found.")
                 }
             }
+
             "3" -> {
                 println("Starting full auto-generation...")
                 // 2) Iterate through the code directories
                 for (dir in codeDirs) {
                     println("\nProcessing directory: ${dir.relativeTo(BASE_DIR).path}")
-                    val files = dir.listFiles { file -> file.isFile && file.name.endsWith(".kt") } ?: emptyArray()
+                    val files = dir.listFiles { file -> file.isFile && file.name.endsWith(".kt") }
+                        ?: emptyArray()
                     for (file in files) {
                         processFile(file, modelName)
                     }
                 }
             }
+
             else -> println("Invalid selection: $selection")
         }
     }
@@ -151,21 +162,30 @@ object LocalTestGenerator {
 
     private fun dryRun(codeDirs: List<File>) {
         println("\n--- Codebase Test Coverage Status ---")
-        println(String.format("%-45s | %-12s | %-15s | %-15s", "File", "Test Exists", "Public Methods", "Missing Tests"))
+        println(
+            String.format(
+                "%-45s | %-12s | %-15s | %-15s",
+                "File",
+                "Test Exists",
+                "Public Methods",
+                "Missing Tests"
+            )
+        )
         println("-".repeat(95))
 
         for (dir in codeDirs) {
             val relativeDir = dir.relativeTo(SRC_DIR).path
-            val files = dir.listFiles { file -> file.isFile && file.name.endsWith(".kt") } ?: emptyArray()
+            val files =
+                dir.listFiles { file -> file.isFile && file.name.endsWith(".kt") } ?: emptyArray()
 
             for (file in files) {
                 val baseName = file.name.substringBeforeLast(".")
                 val testFile = findTestFile(relativeDir, "${baseName}Test.kt")
                 val testExists = if (testFile != null) "Yes 🟢" else "No 🔴"
-                
+
                 val codeText = file.readText()
                 val publicMethods = extractPublicMethods(codeText)
-                
+
                 val missingCount = if (testFile != null) {
                     val testText = testFile.readText()
                     val existingTests = extractExistingTests(testText)
@@ -175,8 +195,17 @@ object LocalTestGenerator {
                     publicMethods.size.toString()
                 }
 
-                val displayName = if (relativeDir.isEmpty()) file.name else "$relativeDir/${file.name}"
-                println(String.format("%-45s | %-12s | %-15s | %-15s", displayName, testExists, publicMethods.size.toString(), missingCount))
+                val displayName =
+                    if (relativeDir.isEmpty()) file.name else "$relativeDir/${file.name}"
+                println(
+                    String.format(
+                        "%-45s | %-12s | %-15s | %-15s",
+                        displayName,
+                        testExists,
+                        publicMethods.size.toString(),
+                        missingCount
+                    )
+                )
             }
         }
     }
@@ -184,13 +213,16 @@ object LocalTestGenerator {
     private fun processFile(sourceFile: File, modelName: String) {
         val baseName = sourceFile.name.substringBeforeLast(".")
         val relativeDir = sourceFile.parentFile.relativeTo(SRC_DIR).path
-        val testFile = findTestFile(relativeDir, "${baseName}Test.kt") 
-            ?: File(if (relativeDir.isEmpty()) TEST_DIRS[0] else File(TEST_DIRS[0], relativeDir), "${baseName}Test.kt")
-        
+        val testFile = findTestFile(relativeDir, "${baseName}Test.kt")
+            ?: File(
+                if (relativeDir.isEmpty()) TEST_DIRS[0] else File(TEST_DIRS[0], relativeDir),
+                "${baseName}Test.kt"
+            )
+
         println("\nProcessing source file: ${sourceFile.relativeTo(SRC_DIR).path}")
         val codeText = sourceFile.readText()
         val publicMethods = extractPublicMethods(codeText)
-        
+
         if (publicMethods.isEmpty()) {
             println("  -> No public methods found to test. Skipping.")
             return
@@ -198,7 +230,13 @@ object LocalTestGenerator {
 
         // 4) If it does not exist create an empty file
         if (!testFile.exists()) {
-            println("  -> Test file does not exist. Creating empty file: ${testFile.relativeTo(BASE_DIR).path}")
+            println(
+                "  -> Test file does not exist. Creating empty file: ${
+                    testFile.relativeTo(
+                        BASE_DIR
+                    ).path
+                }"
+            )
             testFile.parentFile.mkdirs()
             testFile.createNewFile()
         }
@@ -217,7 +255,13 @@ object LocalTestGenerator {
             return
         }
 
-        println("  -> Discovered ${missingMethods.size} missing test(s) for methods: ${missingMethods.joinToString(", ")}")
+        println(
+            "  -> Discovered ${missingMethods.size} missing test(s) for methods: ${
+                missingMethods.joinToString(
+                    ", "
+                )
+            }"
+        )
         println("  -> Querying local LLM to generate tests...")
 
         val prompt = buildPromptForMissingTests(codeText, missingMethods, baseName)
@@ -261,7 +305,8 @@ object LocalTestGenerator {
 
     private fun extractPackageName(sourceText: String): String {
         val packageLine = sourceText.split("\n").find { it.trim().startsWith("package ") }
-        return packageLine?.trim()?.substringAfter("package ")?.substringBefore(";")?.trim() ?: "com.borinquenterrier.cef"
+        return packageLine?.trim()?.substringAfter("package ")?.substringBefore(";")?.trim()
+            ?: "com.borinquenterrier.cef"
     }
 
     private fun extractPublicMethods(codeText: String): List<String> {
@@ -269,10 +314,16 @@ object LocalTestGenerator {
         val lines = codeText.split("\n")
         for (line in lines) {
             val stripped = line.trim()
-            if (stripped.startsWith("//") || stripped.startsWith("*") || stripped.startsWith("/*") || stripped.startsWith("import ") || stripped.startsWith("package ")) {
+            if (stripped.startsWith("//") || stripped.startsWith("*") || stripped.startsWith("/*") || stripped.startsWith(
+                    "import "
+                ) || stripped.startsWith("package ")
+            ) {
                 continue
             }
-            if (stripped.contains("fun ") && !stripped.contains("private ") && !stripped.contains("internal ") && !stripped.contains("protected ")) {
+            if (stripped.contains("fun ") && !stripped.contains("private ") && !stripped.contains("internal ") && !stripped.contains(
+                    "protected "
+                )
+            ) {
                 val funIdx = stripped.indexOf("fun ")
                 if (funIdx != -1) {
                     val afterFun = stripped.substring(funIdx + 4).trim()
@@ -313,7 +364,10 @@ object LocalTestGenerator {
         return tests.distinct()
     }
 
-    private fun findMissingMethods(methods: List<String>, existingTests: List<String>): List<String> {
+    private fun findMissingMethods(
+        methods: List<String>,
+        existingTests: List<String>
+    ): List<String> {
         val missing = mutableListOf<String>()
         for (method in methods) {
             val normalizedMethod = method.lowercase()
@@ -328,7 +382,11 @@ object LocalTestGenerator {
         return missing
     }
 
-    private fun buildPromptForMissingTests(classCode: String, missingMethods: List<String>, className: String): String {
+    private fun buildPromptForMissingTests(
+        classCode: String,
+        missingMethods: List<String>,
+        className: String
+    ): String {
         return """
             You are a senior Kotlin developer. Your task is to write Kotest unit tests for the missing methods of the class/file `$className`.
             
@@ -409,7 +467,7 @@ object LocalTestGenerator {
     private fun extractKotlinCode(response: String): String {
         val startBlock = "```kotlin"
         val endBlock = "```"
-        
+
         if (response.contains(startBlock)) {
             return response.substringAfter(startBlock).substringBefore(endBlock).trim()
         }
@@ -419,7 +477,13 @@ object LocalTestGenerator {
         return response.trim()
     }
 
-    private fun writeTestsToFile(testFile: File, sourceFile: File, baseName: String, newTestsCode: String, llmImports: List<String>) {
+    private fun writeTestsToFile(
+        testFile: File,
+        sourceFile: File,
+        baseName: String,
+        newTestsCode: String,
+        llmImports: List<String>
+    ) {
         val originalText = testFile.readText().trim()
         val packageName = extractPackageName(sourceFile.readText())
 
@@ -465,7 +529,12 @@ object LocalTestGenerator {
         existingImports.addAll(standardImports)
         for (imp in llmImports) {
             var trimmed = imp.trim()
-            if (trimmed.contains("javaparser") || trimmed.contains("expectFailure") || trimmed.contains("expectThrow") || trimmed.contains("assertSame") || trimmed.contains("assertNotNull") || trimmed.contains("TemporaryFolder") || trimmed.contains("junit") || trimmed.contains("com.mockk")) {
+            if (trimmed.contains("javaparser") || trimmed.contains("expectFailure") || trimmed.contains(
+                    "expectThrow"
+                ) || trimmed.contains("assertSame") || trimmed.contains("assertNotNull") || trimmed.contains(
+                    "TemporaryFolder"
+                ) || trimmed.contains("junit") || trimmed.contains("com.mockk")
+            ) {
                 continue
             }
             if (trimmed.startsWith("import kotest.")) {
@@ -474,7 +543,8 @@ object LocalTestGenerator {
             if (trimmed.startsWith("import ")) {
                 existingImports.add(trimmed)
             } else if (trimmed.isNotEmpty()) {
-                val prefix = if (trimmed.startsWith("kotest.")) "io.kotest." + trimmed.substring(7) else trimmed
+                val prefix =
+                    if (trimmed.startsWith("kotest.")) "io.kotest." + trimmed.substring(7) else trimmed
                 existingImports.add("import $prefix")
             }
         }
@@ -496,7 +566,7 @@ object LocalTestGenerator {
             val lines = originalText.split("\n")
             val packageIndex = lines.indexOfFirst { it.trim().startsWith("package ") }
             val classIndex = lines.indexOfFirst { it.contains("class ") }
-            
+
             val restOfClass = if (classIndex != -1) {
                 lines.subList(classIndex, lines.size).joinToString("\n")
             } else {
@@ -518,7 +588,8 @@ object LocalTestGenerator {
                 restOfClass + "\n\n" + cleanTestsCode
             }
 
-            val packageLine = if (packageIndex != -1) lines[packageIndex] else "package $packageName"
+            val packageLine =
+                if (packageIndex != -1) lines[packageIndex] else "package $packageName"
 
             val updatedFileText = """
                 $packageLine

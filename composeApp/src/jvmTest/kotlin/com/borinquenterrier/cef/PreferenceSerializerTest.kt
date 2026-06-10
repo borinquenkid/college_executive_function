@@ -1,8 +1,8 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldContainExactly
+import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import io.mockk.verify
 

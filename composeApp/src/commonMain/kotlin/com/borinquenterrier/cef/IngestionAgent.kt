@@ -3,7 +3,6 @@ package com.borinquenterrier.cef
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.datetime.Clock
 
 /**
  * Handles the logic for adding and processing different types of sources.
@@ -33,8 +32,10 @@ class IngestionAgent(
             val fileName = path.substringAfterLast("/").substringAfterLast("\\")
             val fragments = when {
                 fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
-                fileName.lowercase().endsWith(".pdf")  -> pdfReader.readSource(path)
-                fileName.lowercase().endsWith(".ics")  -> IcsCalendarSource(fileReader.readText(path)).readSource()
+                fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
+                fileName.lowercase()
+                    .endsWith(".ics") -> IcsCalendarSource(fileReader.readText(path)).readSource()
+
                 else -> SourceProcessor.process(fileReader.readText(path))
             }
             val isIcs = fileName.lowercase().endsWith(".ics")
@@ -52,7 +53,7 @@ class IngestionAgent(
             val rawContent = webReader.readTextFromUrl(url)
             val isIcs = url.lowercase().endsWith(".ics")
             val fragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
-                            else SourceProcessor.process(rawContent)
+            else SourceProcessor.process(rawContent)
             val sourceItem = SourceItem(url, fragments, resolveCategory(isIcs, fragments))
             persistSource(sourceItem, url)
             sourceItem
@@ -67,7 +68,7 @@ class IngestionAgent(
             val rawContent = driveService.getFileContent(file.id, file.mimeType)
             val isIcs = file.name.lowercase().endsWith(".ics")
             val fragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
-                            else SourceProcessor.process(rawContent)
+            else SourceProcessor.process(rawContent)
             val sourceItem = SourceItem(file.name, fragments, resolveCategory(isIcs, fragments))
             persistSource(sourceItem, "google_drive://${file.id}")
             sourceItem
@@ -81,7 +82,10 @@ class IngestionAgent(
      * ICS sources are always [SourceCategory.CALENDAR] (and must be non-empty).
      * All other sources are categorized by the AI service.
      */
-    private suspend fun resolveCategory(isIcs: Boolean, fragments: List<SourceFragment>): SourceCategory {
+    private suspend fun resolveCategory(
+        isIcs: Boolean,
+        fragments: List<SourceFragment>
+    ): SourceCategory {
         return if (isIcs) {
             if (fragments.isEmpty()) throw SourceValidationException(
                 "Calendar must contain at least one day-long event, deadline, or holiday."

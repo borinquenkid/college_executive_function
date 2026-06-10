@@ -2,14 +2,17 @@ package com.borinquenterrier.cef
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.shouldBe
-import io.ktor.client.*
-import io.ktor.client.engine.*
-import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
+import io.kotest.matchers.string.shouldContain
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.HttpClientEngine
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.serialization.kotlinx.json.json
 
 /**
  * Unit tests verifying that the quota exhaustion fast-fail works correctly.
@@ -69,7 +72,8 @@ class QuotaExhaustionTest : FunSpec({
     // -------------------------------------------------------------------------
 
     test("'quota exhausted' body throws QuotaExhausted immediately") {
-        val body = """{"error":{"code":429,"message":"Resource has been exhausted (e.g. check quota).","status":"RESOURCE_EXHAUSTED"}}"""
+        val body =
+            """{"error":{"code":429,"message":"Resource has been exhausted (e.g. check quota).","status":"RESOURCE_EXHAUSTED"}}"""
         val service = makeService(mockEngine(HttpStatusCode.TooManyRequests, body))
 
         val ex = shouldThrow<Exception> {
@@ -79,7 +83,8 @@ class QuotaExhaustionTest : FunSpec({
     }
 
     test("'quota exceeded' body throws QuotaExhausted immediately") {
-        val body = """{"error":{"message":"You have exceeded your daily quota for the Gemini API."}}"""
+        val body =
+            """{"error":{"message":"You have exceeded your daily quota for the Gemini API."}}"""
         val service = makeService(mockEngine(HttpStatusCode.TooManyRequests, body))
 
         val ex = shouldThrow<Exception> {
@@ -140,7 +145,8 @@ class QuotaExhaustionTest : FunSpec({
     }
 
     test("daily quota exhaustion on first model falls back to next model and succeeds") {
-        val quotaExhaustedBody = """{"error":{"code":429,"message":"Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash","status":"RESOURCE_EXHAUSTED"}}"""
+        val quotaExhaustedBody =
+            """{"error":{"code":429,"message":"Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash","status":"RESOURCE_EXHAUSTED"}}"""
         val twoModelsResponse = """
             {"models":[
                 {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
@@ -181,7 +187,8 @@ class QuotaExhaustionTest : FunSpec({
     }
 
     test("long retry delay on first model falls back to next model and succeeds") {
-        val longRetryBody = """{"error":{"code":429,"message":"Quota exceeded. Please retry in 48s.","status":"RESOURCE_EXHAUSTED"}}"""
+        val longRetryBody =
+            """{"error":{"code":429,"message":"Quota exceeded. Please retry in 48s.","status":"RESOURCE_EXHAUSTED"}}"""
         val twoModelsResponse = """
             {"models":[
                 {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},

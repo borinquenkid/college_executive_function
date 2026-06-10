@@ -1,16 +1,21 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import io.mockk.*
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.json.Json
 import com.borinquenterrier.cef.db.AppDatabase
 import com.borinquenterrier.cef.db.AppDatabaseQueries
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.serialization.kotlinx.json.json
+import io.mockk.clearAllMocks
+import io.mockk.every
+import io.mockk.mockk
+import io.mockk.verify
 
 class GeminiModelNegotiatorTest : FunSpec({
 
@@ -30,13 +35,24 @@ class GeminiModelNegotiatorTest : FunSpec({
         ModelInfo("models/gemini-2.5-flash-lite", listOf("generateContent")),
         ModelInfo("models/gemini-2.0-flash-lite", listOf("generateContent")),
         ModelInfo("models/gemini-2.0-flash-001", listOf("generateContent")),
-        ModelInfo("models/gemini-2.5-flash-preview-tts", listOf("generateContent")), // text-to-speech, should filter out
-        ModelInfo("models/gemini-2.5-pro-image", listOf("generateContent")), // image, should filter out
-        ModelInfo("models/gemini-robotics-er", listOf("generateContent")) // robotics, should filter out
+        ModelInfo(
+            "models/gemini-2.5-flash-preview-tts",
+            listOf("generateContent")
+        ), // text-to-speech, should filter out
+        ModelInfo(
+            "models/gemini-2.5-pro-image",
+            listOf("generateContent")
+        ), // image, should filter out
+        ModelInfo(
+            "models/gemini-robotics-er",
+            listOf("generateContent")
+        ) // robotics, should filter out
     )
 
     test("negotiateBestModel respects HEAVY task tier preferences") {
-        every { mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull() } returns null
+        every {
+            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+        } returns null
 
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
@@ -47,16 +63,19 @@ class GeminiModelNegotiatorTest : FunSpec({
         )
 
         // HEAVY prefers: gemini-2.5-flash, gemini-2.0-flash, gemini-2.5-flash-lite, gemini-2.0-flash-lite
-        val selected = negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
+        val selected =
+            negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.5-flash"
-        
-        verify(exactly = 1) { 
-            mockQueries.insertModel("preferred_gemini_model", "gemini-2.5-flash", any()) 
+
+        verify(exactly = 1) {
+            mockQueries.insertModel("preferred_gemini_model", "gemini-2.5-flash", any())
         }
     }
 
     test("negotiateBestModel respects LIGHT task tier preferences") {
-        every { mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull() } returns null
+        every {
+            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+        } returns null
 
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
@@ -67,16 +86,19 @@ class GeminiModelNegotiatorTest : FunSpec({
         )
 
         // LIGHT prefers: gemini-2.5-flash-lite, gemini-2.0-flash-lite, gemini-2.0-flash, gemini-2.5-flash
-        val selected = negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.LIGHT)
+        val selected =
+            negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.LIGHT)
         selected shouldBe "gemini-2.5-flash-lite"
-        
-        verify(exactly = 1) { 
-            mockQueries.insertModel("preferred_gemini_model", "gemini-2.5-flash-lite", any()) 
+
+        verify(exactly = 1) {
+            mockQueries.insertModel("preferred_gemini_model", "gemini-2.5-flash-lite", any())
         }
     }
 
     test("negotiateBestModel filters out non-text/unsupported models") {
-        every { mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull() } returns null
+        every {
+            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+        } returns null
 
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
@@ -92,12 +114,15 @@ class GeminiModelNegotiatorTest : FunSpec({
             ModelInfo("models/gemini-2.5-pro-image", listOf("generateContent"))
         )
 
-        val selected = negotiator.negotiateBestModel(unsupportedList, GeminiAIService.TaskTier.HEAVY)
+        val selected =
+            negotiator.negotiateBestModel(unsupportedList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.0-flash" // fallback default
     }
 
     test("negotiateBestModel uses cached model from database if not blacklisted") {
-        every { mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull() } returns "gemini-2.0-flash"
+        every {
+            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+        } returns "gemini-2.0-flash"
 
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
@@ -107,15 +132,18 @@ class GeminiModelNegotiatorTest : FunSpec({
             logger = null
         )
 
-        val selected = negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
+        val selected =
+            negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.0-flash"
-        
+
         // Should not negotiate or save since it used the cache
         verify(exactly = 0) { mockQueries.insertModel(any(), any(), any()) }
     }
 
     test("negotiateBestModel ignores cached model if it is blacklisted") {
-        every { mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull() } returns "gemini-2.5-flash"
+        every {
+            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+        } returns "gemini-2.5-flash"
 
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
@@ -129,11 +157,12 @@ class GeminiModelNegotiatorTest : FunSpec({
         negotiator.blacklistModel("gemini-2.5-flash")
 
         // Should ignore cache, select next best available non-blacklisted model (gemini-2.0-flash), and save it
-        val selected = negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
+        val selected =
+            negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.0-flash"
-        
-        verify(exactly = 1) { 
-            mockQueries.insertModel("preferred_gemini_model", "gemini-2.0-flash", any()) 
+
+        verify(exactly = 1) {
+            mockQueries.insertModel("preferred_gemini_model", "gemini-2.0-flash", any())
         }
     }
 

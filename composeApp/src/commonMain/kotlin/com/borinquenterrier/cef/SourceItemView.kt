@@ -25,7 +25,8 @@ fun SourceItemView(
     onClick: () -> Unit,
     onDelete: () -> Unit
 ) {
-    val backgroundColor = if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
+    val backgroundColor =
+        if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
     Row(
         modifier = Modifier
             .fillMaxWidth()

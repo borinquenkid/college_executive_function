@@ -1,15 +1,15 @@
 package com.borinquenterrier.cef
 
+import app.cash.sqldelight.db.SqlDriver
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.borinquenterrier.cef.db.AppDatabase
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.string.shouldContain
-import io.kotest.matchers.shouldBe
-import com.borinquenterrier.cef.db.AppDatabase
-import app.cash.sqldelight.db.SqlDriver
-import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 
 /**
  * Unit tests for [ContextAgent.queryAllSources] and [AiPrompts.getMultiSourceChatPrompt].
@@ -50,18 +50,18 @@ class ContextAgentMultiSourceTest : FunSpec({
 
     fun makeSource(title: String, category: SourceCategory, text: String) =
         SourceItem(
-            title     = title,
+            title = title,
             fragments = listOf(SourceFragment(text = text)),
-            category  = category
+            category = category
         )
 
     // ── tests ─────────────────────────────────────────────────────────────────
 
     test("queryAllSources returns guard message when no sources are loaded") {
         val result = sut.queryAllSources(
-            sources             = emptyList(),
+            sources = emptyList(),
             conversationHistory = emptyList(),
-            question            = "What is the grading policy?"
+            question = "What is the grading policy?"
         )
         result shouldContain "No sources are loaded yet"
     }
@@ -71,15 +71,15 @@ class ContextAgentMultiSourceTest : FunSpec({
         coEvery { mockAiService.generateChatResponse(capture(promptSlot)) } returns "Mocked response"
 
         val sources = listOf(
-            makeSource("MATH 101 Syllabus", SourceCategory.SYLLABUS,        "Final exam is worth 40%."),
-            makeSource("Week 1 Notes",      SourceCategory.LECTURE_NOTES,   "Introduction to calculus."),
-            makeSource("Lab 1 Manual",      SourceCategory.LAB_MANUAL,      "Titration procedure steps.")
+            makeSource("MATH 101 Syllabus", SourceCategory.SYLLABUS, "Final exam is worth 40%."),
+            makeSource("Week 1 Notes", SourceCategory.LECTURE_NOTES, "Introduction to calculus."),
+            makeSource("Lab 1 Manual", SourceCategory.LAB_MANUAL, "Titration procedure steps.")
         )
 
         sut.queryAllSources(
-            sources             = sources,
+            sources = sources,
             conversationHistory = emptyList(),
-            question            = "What topics are covered?"
+            question = "What topics are covered?"
         )
 
         val prompt = promptSlot.captured
@@ -96,25 +96,25 @@ class ContextAgentMultiSourceTest : FunSpec({
 
         // Deliberately supply in reverse priority order
         val sources = listOf(
-            makeSource("Extra Reading",   SourceCategory.READING_MATERIAL, "Chapter 3 text."),
-            makeSource("Misc Notes",      SourceCategory.OTHER,            "Random notes."),
-            makeSource("Course Syllabus", SourceCategory.SYLLABUS,         "Grading: A=90%.")
+            makeSource("Extra Reading", SourceCategory.READING_MATERIAL, "Chapter 3 text."),
+            makeSource("Misc Notes", SourceCategory.OTHER, "Random notes."),
+            makeSource("Course Syllabus", SourceCategory.SYLLABUS, "Grading: A=90%.")
         )
 
         sut.queryAllSources(
-            sources             = sources,
+            sources = sources,
             conversationHistory = emptyList(),
-            question            = "What is an A?"
+            question = "What is an A?"
         )
 
         val prompt = promptSlot.captured
         val syllabusPos = prompt.indexOf("Course Syllabus")
-        val readingPos  = prompt.indexOf("Extra Reading")
-        val otherPos    = prompt.indexOf("Misc Notes")
+        val readingPos = prompt.indexOf("Extra Reading")
+        val otherPos = prompt.indexOf("Misc Notes")
 
         // SYLLABUS must appear before READING_MATERIAL, which must appear before OTHER
         (syllabusPos < readingPos) shouldBe true
-        (readingPos  < otherPos)   shouldBe true
+        (readingPos < otherPos) shouldBe true
     }
 
     test("queryAllSources threads conversation history into the prompt") {
@@ -123,14 +123,14 @@ class ContextAgentMultiSourceTest : FunSpec({
 
         val history = listOf(
             ChatMessage("User", "What is the late policy?"),
-            ChatMessage("AI",   "Assignments lose 10% per day late."),
+            ChatMessage("AI", "Assignments lose 10% per day late."),
             ChatMessage("User", "What about exams?")
         )
 
         sut.queryAllSources(
-            sources             = listOf(makeSource("Syllabus", SourceCategory.SYLLABUS, "Policies…")),
+            sources = listOf(makeSource("Syllabus", SourceCategory.SYLLABUS, "Policies…")),
             conversationHistory = history,
-            question            = "And group projects?"
+            question = "And group projects?"
         )
 
         val prompt = promptSlot.captured
@@ -148,9 +148,9 @@ class ContextAgentMultiSourceTest : FunSpec({
         }
 
         sut.queryAllSources(
-            sources             = sources,
+            sources = sources,
             conversationHistory = emptyList(),
-            question            = "Summarise everything"
+            question = "Summarise everything"
         )
 
         coVerify(exactly = 1) { mockAiService.generateChatResponse(any()) }
@@ -158,19 +158,19 @@ class ContextAgentMultiSourceTest : FunSpec({
 
     test("AiPrompts.getMultiSourceChatPrompt includes category label and truncates long content") {
         val longText = "x".repeat(10_000)
-        val blocks   = listOf(
+        val blocks = listOf(
             SourceContextBlock(
-                title        = "Big Doc",
-                category     = "SYLLABUS",
-                metadata     = null,
+                title = "Big Doc",
+                category = "SYLLABUS",
+                metadata = null,
                 fragmentText = longText
             )
         )
 
         val prompt = AiPrompts.getMultiSourceChatPrompt(
-            sourceBlocks        = blocks,
+            sourceBlocks = blocks,
             conversationHistory = emptyList(),
-            question            = "Anything?"
+            question = "Anything?"
         )
 
         prompt shouldContain "Big Doc"
@@ -184,14 +184,14 @@ class ContextAgentMultiSourceTest : FunSpec({
 
         val sources = listOf(
             makeSource("Alpha", SourceCategory.LECTURE_NOTES, "A"),
-            makeSource("Beta",  SourceCategory.LECTURE_NOTES, "B"),
+            makeSource("Beta", SourceCategory.LECTURE_NOTES, "B"),
             makeSource("Gamma", SourceCategory.LECTURE_NOTES, "C")
         )
 
         sut.queryAllSources(
-            sources             = sources,
+            sources = sources,
             conversationHistory = emptyList(),
-            question            = "q"
+            question = "q"
         )
 
         val prompt = promptSlot.captured
@@ -206,21 +206,21 @@ class ContextAgentMultiSourceTest : FunSpec({
 
         // Pre-populate DB with metadata for the source
         database.appDatabaseQueries.insertSource(
-            id        = "CS101 Syllabus",
-            title     = "CS101 Syllabus",
+            id = "CS101 Syllabus",
+            title = "CS101 Syllabus",
             originUri = null,
-            type      = "TEXT",
-            category  = "SYLLABUS",
-            metadata  = """{"grading_scale":"Final 40%, Midterm 30%, HW 30%"}""",
+            type = "TEXT",
+            category = "SYLLABUS",
+            metadata = """{"grading_scale":"Final 40%, Midterm 30%, HW 30%"}""",
             updatedAt = 0L
         )
 
         val sources = listOf(makeSource("CS101 Syllabus", SourceCategory.SYLLABUS, "..."))
 
         sut.queryAllSources(
-            sources             = sources,
+            sources = sources,
             conversationHistory = emptyList(),
-            question            = "How is the final weighted?"
+            question = "How is the final weighted?"
         )
 
         val prompt = promptSlot.captured

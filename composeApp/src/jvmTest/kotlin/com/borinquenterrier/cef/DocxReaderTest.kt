@@ -14,11 +14,11 @@ class DocxReaderTest : FunSpec({
             val altPath = File("composeApp/src/commonTest/resources/calendar.docx")
             if (!altPath.exists()) throw Exception("Fixture not found at ${fixtureFile.absolutePath}")
         }
-        
+
         val reader = DocxReader()
         val parts = reader.readSource(fixtureFile.absolutePath)
         println("Extracted ${parts.size} parts")
-        
+
         val fullText = parts.joinToString(" ") { it.text }
         fullText shouldContain "MATH 101"
         fullText shouldContain "2026"

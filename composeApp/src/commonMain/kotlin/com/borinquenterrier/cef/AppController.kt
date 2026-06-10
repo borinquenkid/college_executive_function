@@ -1,12 +1,12 @@
 package com.borinquenterrier.cef
 
-import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Lightweight facade coordinating navigation, AI events, sources, and chat state.
@@ -20,7 +20,14 @@ class AppController(val container: DependencyContainer) {
     private val sourceManager = container.sourceManager
 
     // Chat State
-    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(listOf(ChatMessage("AI", "Hello! How can I help you today?")))
+    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(
+        listOf(
+            ChatMessage(
+                "AI",
+                "Hello! How can I help you today?"
+            )
+        )
+    )
     val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages.asStateFlow()
 
     // Listeners for platform-specific UI (like native iOS)

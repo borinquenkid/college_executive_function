@@ -1,6 +1,6 @@
 package com.borinquenterrier.cef
 
-class JsPlatform: Platform {
+class JsPlatform : Platform {
     override val name: String = "Web with Kotlin/JS"
 }
 

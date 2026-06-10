@@ -1,13 +1,15 @@
 package com.borinquenterrier.cef
 
-import io.ktor.client.*
-import io.ktor.client.request.*
-import io.ktor.client.statement.*
-import io.ktor.http.*
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.*
-import kotlinx.datetime.Clock
 import com.borinquenterrier.cef.db.AppDatabase
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
+import io.ktor.client.request.header
+import io.ktor.client.statement.HttpResponse
+import io.ktor.client.statement.bodyAsText
+import io.ktor.http.isSuccess
+import kotlinx.datetime.Clock
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.json.Json
 
 class GeminiModelNegotiator(
     private val apiKey: String?,
@@ -40,8 +42,8 @@ class GeminiModelNegotiator(
         )
     }
 
-    private val json = Json { 
-        ignoreUnknownKeys = true 
+    private val json = Json {
+        ignoreUnknownKeys = true
         isLenient = true
     }
 
@@ -61,14 +63,14 @@ class GeminiModelNegotiator(
     suspend fun getAvailableModels(): List<ModelInfo> {
         val url = "https://generativelanguage.googleapis.com/v1beta/models"
         val authUrl = if (apiKey != null) "$url?key=$apiKey" else url
-        
+
         return try {
             val response: HttpResponse = client.get(authUrl) {
                 if (apiKey == null && accessToken != null) {
                     header("Authorization", "Bearer $accessToken")
                 }
             }
-            
+
             if (!response.status.isSuccess()) {
                 val body = response.bodyAsText()
                 logger?.e(tag, "Failed to get available models: ${response.status}. Body: $body")
@@ -88,40 +90,49 @@ class GeminiModelNegotiator(
         tier: GeminiAIService.TaskTier = GeminiAIService.TaskTier.HEAVY
     ): String {
         val currentTime = Clock.System.now().toEpochMilliseconds()
-        
-        val cachedModel = database?.appDatabaseQueries?.getSelectedModel(PREFERRED_MODEL_KEY)?.executeAsOneOrNull()
+
+        val cachedModel = database?.appDatabaseQueries?.getSelectedModel(PREFERRED_MODEL_KEY)
+            ?.executeAsOneOrNull()
         if (cachedModel != null) {
             val expiry = blacklistedModels[cachedModel]
             if (expiry == null || currentTime > expiry) {
                 logger?.d(tag, "Using cached model from database: $cachedModel")
                 return cachedModel
             } else {
-                logger?.d(tag, "Cached model $cachedModel is currently blacklisted. Re-negotiating...")
+                logger?.d(
+                    tag,
+                    "Cached model $cachedModel is currently blacklisted. Re-negotiating..."
+                )
             }
         }
 
-        val generationCapable = available.filter { it.supportedGenerationMethods.contains("generateContent") }
+        val generationCapable =
+            available.filter { it.supportedGenerationMethods.contains("generateContent") }
         val names = generationCapable.map { it.name.removePrefix("models/") }
-        
+
         logger?.d(tag, "Negotiation Step - Available names: ${names.joinToString(", ")}")
 
         val textCapableNames = names.filter { name ->
             val expiry = blacklistedModels[name]
             val notBlacklisted = expiry == null || currentTime > expiry
             val isTextCapable = !name.contains("tts") &&
-                !name.contains("-image") &&
-                !name.contains("-audio") &&
-                !name.contains("robotics") &&
-                !name.contains("lyria") &&
-                !name.contains("deep-research") &&
-                !name.contains("computer-use") &&
-                !name.contains("nano-banana")
+                    !name.contains("-image") &&
+                    !name.contains("-audio") &&
+                    !name.contains("robotics") &&
+                    !name.contains("lyria") &&
+                    !name.contains("deep-research") &&
+                    !name.contains("computer-use") &&
+                    !name.contains("nano-banana")
             notBlacklisted && isTextCapable
         }
 
-        logger?.d(tag, "Negotiating best model. Available: ${names.size}, Text-capable & non-blacklisted: ${textCapableNames.size}")
+        logger?.d(
+            tag,
+            "Negotiating best model. Available: ${names.size}, Text-capable & non-blacklisted: ${textCapableNames.size}"
+        )
 
-        val preferences = if (tier == GeminiAIService.TaskTier.HEAVY) HEAVY_PREFERENCES else LIGHT_PREFERENCES
+        val preferences =
+            if (tier == GeminiAIService.TaskTier.HEAVY) HEAVY_PREFERENCES else LIGHT_PREFERENCES
 
         logger?.d(tag, "Task tier: $tier — preference order: ${preferences.joinToString(", ")}")
 

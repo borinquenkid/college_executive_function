@@ -2,7 +2,9 @@ package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.datetime.LocalDate
 
 class CriticActorAIServiceTest : FunSpec({
@@ -29,11 +31,21 @@ class CriticActorAIServiceTest : FunSpec({
 
     test("performs critique pass and returns refined events") {
         val firstPassEvents = listOf(
-            DayEvent(title = "Valid Assignment", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 2)),
-            DayEvent(title = "Hallucinated Quiz", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 3))
+            DayEvent(
+                title = "Valid Assignment",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 6, 2)
+            ),
+            DayEvent(
+                title = "Hallucinated Quiz",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 6, 3)
+            )
         )
         coEvery { delegate.generateCalendarEvents(any()) } returns firstPassEvents
-        
+
         val critiqueResponseJson = """
             [
               {
@@ -51,7 +63,7 @@ class CriticActorAIServiceTest : FunSpec({
         result.size shouldBe 1
         result[0].title shouldBe "Valid Assignment"
         result[0].date shouldBe LocalDate(2026, 6, 2)
-        
+
         coVerify(exactly = 1) { delegate.generateCalendarEvents(any()) }
         coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
@@ -68,11 +80,21 @@ class CriticActorAIServiceTest : FunSpec({
 
     test("performs study plan critique pass and returns refined events") {
         val firstPassEvents = listOf(
-            DayEvent(title = "Study Block 1", source = EventSource.AI_GENERATED, category = AcademicCategory.STUDY_BLOCK, date = LocalDate(2026, 6, 2)),
-            DayEvent(title = "Study Block 2", source = EventSource.AI_GENERATED, category = AcademicCategory.STUDY_BLOCK, date = LocalDate(2026, 6, 3))
+            DayEvent(
+                title = "Study Block 1",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.STUDY_BLOCK,
+                date = LocalDate(2026, 6, 2)
+            ),
+            DayEvent(
+                title = "Study Block 2",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.STUDY_BLOCK,
+                date = LocalDate(2026, 6, 3)
+            )
         )
         coEvery { delegate.generateStudyPlan(any(), any()) } returns firstPassEvents
-        
+
         val critiqueResponseJson = """
             [
               {
@@ -90,7 +112,7 @@ class CriticActorAIServiceTest : FunSpec({
         result.size shouldBe 1
         result[0].title shouldBe "Study Block 1"
         result[0].date shouldBe LocalDate(2026, 6, 2)
-        
+
         coVerify(exactly = 1) { delegate.generateStudyPlan(any(), any()) }
         coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
@@ -122,10 +144,14 @@ class CriticActorAIServiceTest : FunSpec({
     test("performs task decomposition critique pass and returns refined tasks") {
         val firstPassTasks = listOf(
             DecomposedTask(title = "Read intro", daysBeforeDue = 5, description = "Read chapter 1"),
-            DecomposedTask(title = "Write code", daysBeforeDue = 2, description = "Write all the code in 10 hours")
+            DecomposedTask(
+                title = "Write code",
+                daysBeforeDue = 2,
+                description = "Write all the code in 10 hours"
+            )
         )
         coEvery { delegate.decomposeTask(any(), any()) } returns firstPassTasks
-        
+
         val critiqueResponseJson = """
             [
               {
@@ -153,17 +179,22 @@ class CriticActorAIServiceTest : FunSpec({
         result[0].title shouldBe "Read intro"
         result[1].title shouldBe "Write skeleton code"
         result[2].title shouldBe "Implement detail logic"
-        
+
         coVerify(exactly = 1) { delegate.decomposeTask(any(), any()) }
         coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
 
     test("stops critique loop at maxIterations when output does not converge") {
         val firstPassEvents = listOf(
-            DayEvent(title = "Task", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 2))
+            DayEvent(
+                title = "Task",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 6, 2)
+            )
         )
         coEvery { delegate.generateCalendarEvents(any()) } returns firstPassEvents
-        
+
         var counter = 1
         coEvery { delegate.generateChatResponse(any()) } answers {
             """
@@ -187,10 +218,15 @@ class CriticActorAIServiceTest : FunSpec({
 
     test("detects and breaks on multi-turn oscillation cycles") {
         val firstPassEvents = listOf(
-            DayEvent(title = "Task", source = EventSource.AI_GENERATED, category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 2))
+            DayEvent(
+                title = "Task",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 6, 2)
+            )
         )
         coEvery { delegate.generateCalendarEvents(any()) } returns firstPassEvents
-        
+
         val stateBJson = """
             [
               {
@@ -212,7 +248,7 @@ class CriticActorAIServiceTest : FunSpec({
               }
             ]
         """.trimIndent()
-        
+
         var callCount = 0
         coEvery { delegate.generateChatResponse(any()) } answers {
             callCount++

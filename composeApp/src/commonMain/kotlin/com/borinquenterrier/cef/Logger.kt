@@ -6,10 +6,10 @@ import com.russhwolf.settings.Settings
  * Simple Logger utility that respect a "DEBUG_MODE" setting.
  */
 class Logger(private val settings: Settings) {
-    
+
     private val debugModeKey = "DEBUG_MODE"
     private var logFile: String? = null
-    
+
     fun isDebugEnabled(): Boolean = settings.getBoolean(debugModeKey, isDebug)
 
     fun d(tag: String, message: String) {

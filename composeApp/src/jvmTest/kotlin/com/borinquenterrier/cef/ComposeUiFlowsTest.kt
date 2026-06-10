@@ -1,13 +1,17 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.onNodeWithTag
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.runComposeUiTest
 import com.russhwolf.settings.MapSettings
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
-import io.mockk.every
 import io.mockk.coEvery
-import io.mockk.mockk
 import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
@@ -53,10 +57,10 @@ class ComposeUiFlowsTest {
         every { mockContainer.contextAgent } returns mockContextAgent
 
         val appController = AppController(mockContainer)
-        
+
         // Mock queryAllSources to return a specific reply
-        coEvery { 
-            mockContextAgent.queryAllSources(any(), any(), "Hello AI") 
+        coEvery {
+            mockContextAgent.queryAllSources(any(), any(), "Hello AI")
         } returns "This is the mocked response"
 
         setContent {
@@ -66,7 +70,7 @@ class ComposeUiFlowsTest {
         // Verify elements exist
         val inputField = onNodeWithTag("chat_input_field")
         val sendButton = onNodeWithTag("chat_send_button")
-        
+
         inputField.assertExists()
         sendButton.assertExists()
 
@@ -90,7 +94,7 @@ class ComposeUiFlowsTest {
     @Test
     fun testTaskDecompositionDialogStateProgression() = runComposeUiTest {
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
-        
+
         val decomposedTasksFlow = MutableStateFlow<List<DecomposedTask>>(emptyList())
         val isLoadingFlow = MutableStateFlow(false)
         val statusMessageFlow = MutableStateFlow("")
@@ -227,10 +231,10 @@ class ComposeUiFlowsTest {
     fun testAcademicCalendarRendering() = runComposeUiTest {
         val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
-        
+
         val errorStateFlow = MutableStateFlow<AgentError?>(null)
         every { mockEventAgent.errorState } returns errorStateFlow
-        
+
         // Mock getEvents to return a list of events
         val testEvents = listOf(
             DayEvent(
@@ -249,7 +253,7 @@ class ComposeUiFlowsTest {
             )
         )
         coEvery { mockCalendarAgent.getEvents(any()) } returns testEvents
-        
+
         var navigatedScreen: AppScreen? = null
         val onNavigate: (AppScreen) -> Unit = { navigatedScreen = it }
 
@@ -283,7 +287,7 @@ class ComposeUiFlowsTest {
         val preferencesRepository = PreferencesRepository(settings)
         every { mockContainer.settings } returns settings
         every { mockContainer.preferencesRepository } returns preferencesRepository
-        
+
         val mockGoogleFlow = mockk<GoogleAccountFlow>(relaxed = true)
         every { mockGoogleFlow.state } returns MutableStateFlow(GoogleConnectionState.Linked)
         every { mockContainer.googleAccountFlow } returns mockGoogleFlow
@@ -322,7 +326,8 @@ class ComposeUiFlowsTest {
             val jsonStr = settings.getString("STUDY_PREFERENCES", "")
             if (jsonStr.isBlank()) return@waitUntil false
             try {
-                val prefs = kotlinx.serialization.json.Json.decodeFromString<StudyPreferences>(jsonStr)
+                val prefs =
+                    kotlinx.serialization.json.Json.decodeFromString<StudyPreferences>(jsonStr)
                 prefs.googleCalendarId == "new-cal-123"
             } catch (e: Exception) {
                 false

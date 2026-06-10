@@ -1,8 +1,8 @@
 package com.borinquenterrier.cef
 
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
-import com.russhwolf.settings.MapSettings
 
 class TelemetryManagerTest : FunSpec({
 

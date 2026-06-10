@@ -1,9 +1,18 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.runtime.Composable
-import androidx.compose.ui.test.*
+import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.hasSetTextAction
+import androidx.compose.ui.test.hasText
+import androidx.compose.ui.test.onNodeWithText
+import androidx.compose.ui.test.performClick
+import androidx.compose.ui.test.performTextInput
+import androidx.compose.ui.test.runComposeUiTest
 import io.kotest.matchers.shouldBe
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
+import io.mockk.mockk
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)
@@ -13,13 +22,14 @@ class CommonSourceProvidersUiTest {
     fun testLocalFileSourceProviderSelectorUI() = runComposeUiTest {
         val mockIngestionAgent = mockk<IngestionAgent>(relaxed = true)
         val mockAiService = mockk<AIService>(relaxed = true)
-        
+
         var addedSource: SourceItem? = null
         var dismissed = false
 
-        val mockFilePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit = { onFileSelected ->
-            onFileSelected("mock/path/syllabus.pdf")
-        }
+        val mockFilePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit =
+            { onFileSelected ->
+                onFileSelected("mock/path/syllabus.pdf")
+            }
 
         val provider = LocalFileSourceProvider(
             ingestionAgent = mockIngestionAgent,
@@ -49,12 +59,13 @@ class CommonSourceProvidersUiTest {
     fun testLocalFileSourceProviderSelectorUIDismiss() = runComposeUiTest {
         val mockIngestionAgent = mockk<IngestionAgent>(relaxed = true)
         val mockAiService = mockk<AIService>(relaxed = true)
-        
+
         var dismissed = false
 
-        val mockFilePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit = { onFileSelected ->
-            onFileSelected(null)
-        }
+        val mockFilePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit =
+            { onFileSelected ->
+                onFileSelected(null)
+            }
 
         val provider = LocalFileSourceProvider(
             ingestionAgent = mockIngestionAgent,
@@ -112,7 +123,8 @@ class CommonSourceProvidersUiTest {
 
         every { mockTokenRepository.getAccessToken() } returns null
 
-        val provider = GoogleDriveSourceProvider(mockIngestionAgent, mockDriveService, mockTokenRepository)
+        val provider =
+            GoogleDriveSourceProvider(mockIngestionAgent, mockDriveService, mockTokenRepository)
         var dismissed = false
 
         setContent {
@@ -143,7 +155,8 @@ class CommonSourceProvidersUiTest {
         val expectedSource = SourceItem("SyllabusDrive.pdf", emptyList())
         coEvery { mockIngestionAgent.addDriveFile(driveFile) } returns expectedSource
 
-        val provider = GoogleDriveSourceProvider(mockIngestionAgent, mockDriveService, mockTokenRepository)
+        val provider =
+            GoogleDriveSourceProvider(mockIngestionAgent, mockDriveService, mockTokenRepository)
         var addedSource: SourceItem? = null
 
         setContent {
@@ -155,7 +168,7 @@ class CommonSourceProvidersUiTest {
 
         // Wait for files to load in DrivePickerDialog and click the file
         onNodeWithText("Select from Google Drive").assertExists()
-        
+
         waitUntil(timeoutMillis = 5000L) {
             try {
                 onNodeWithText("SyllabusDrive.pdf").assertExists()

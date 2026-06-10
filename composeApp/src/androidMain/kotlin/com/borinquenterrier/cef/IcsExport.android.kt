@@ -12,8 +12,9 @@ actual fun generateIcsString(events: List<Event>): String {
 }
 
 actual fun writeIcsFile(content: String): String {
-    val context = AndroidAppContext.applicationContext ?: throw Exception("Android context not initialized")
-    
+    val context =
+        AndroidAppContext.applicationContext ?: throw Exception("Android context not initialized")
+
     if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
         val resolver = context.contentResolver
         val contentValues = ContentValues().apply {
@@ -29,9 +30,10 @@ actual fun writeIcsFile(content: String): String {
             return "Saved to Downloads/academic_calendar.ics"
         }
     }
-    
+
     // Fallback for older versions
-    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+    val downloadsDir =
+        Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
     if (!downloadsDir.exists()) {
         downloadsDir.mkdirs()
     }

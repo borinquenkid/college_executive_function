@@ -28,7 +28,7 @@ class GoogleDriveServiceTest : FunSpec({
         val httpClient = HttpClient(mockEngine) {
             install(ContentNegotiation) { json() }
         }
-        
+
         val tokenRepo = mockk<GoogleTokenRepository>()
         val authService = mockk<GoogleAuthService>()
         every { tokenRepo.getAccessToken() } returns "mock-token"
@@ -38,7 +38,7 @@ class GoogleDriveServiceTest : FunSpec({
 
         files.size shouldBe 1
         files.first().name shouldBe "Syllabus.pdf"
-        
+
         val request = mockEngine.requestHistory.first()
         request.url.toString() shouldBe "https://www.googleapis.com/drive/v3/files"
         request.headers["Authorization"] shouldBe "Bearer mock-token"
@@ -55,7 +55,7 @@ class GoogleDriveServiceTest : FunSpec({
         val httpClient = HttpClient(mockEngine) {
             install(ContentNegotiation) { json() }
         }
-        
+
         val tokenRepo = mockk<GoogleTokenRepository>()
         val authService = mockk<GoogleAuthService>()
         every { tokenRepo.getAccessToken() } returns "mock-token"
@@ -64,7 +64,7 @@ class GoogleDriveServiceTest : FunSpec({
         val content = service.getFileContent("doc-123", "application/vnd.google-apps.document")
 
         content shouldBe "Exported Text"
-        
+
         val request = mockEngine.requestHistory.first()
         request.url.toString() shouldBe "https://www.googleapis.com/drive/v3/files/doc-123/export?mimeType=text%2Fplain"
     }

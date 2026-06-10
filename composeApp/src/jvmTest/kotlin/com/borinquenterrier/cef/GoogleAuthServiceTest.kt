@@ -1,11 +1,11 @@
 package com.borinquenterrier.cef
 
+import com.russhwolf.settings.MapSettings
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import com.russhwolf.settings.MapSettings
-import io.kotest.assertions.throwables.shouldThrow
 import java.io.File
 import java.nio.file.Files
 
@@ -19,7 +19,7 @@ class GoogleAuthServiceTest : FunSpec({
         System.clearProperty("GOOGLE_CLIENT_SECRET")
         System.clearProperty("CEF_GOOGLE_CLIENT_SECRET_PATH")
         System.setProperty("CEF_BYPASS_BUILD_SECRETS", "true")
-        
+
         // Setup isolated temp credentials dir
         tempCredentialsDir = Files.createTempDirectory("cef-test-credentials").toFile()
         System.setProperty("CEF_CREDENTIALS_DIR", tempCredentialsDir.absolutePath)
@@ -40,7 +40,7 @@ class GoogleAuthServiceTest : FunSpec({
             System.clearProperty("GOOGLE_CLIENT_ID")
             System.clearProperty("GOOGLE_CLIENT_SECRET")
             System.setProperty("CEF_BYPASS_BUILD_SECRETS", "false")
-            
+
             // Backup the real .env if it exists so loadEnvFile() doesn't find it
             val envFile = File(".env")
             val backupFile = File(".env.bak")
@@ -75,13 +75,13 @@ class GoogleAuthServiceTest : FunSpec({
         try {
             // Set CEF_GOOGLE_CLIENT_SECRET_PATH to a non-existent file path to force failure
             System.setProperty("CEF_GOOGLE_CLIENT_SECRET_PATH", "non_existent_file.json")
-            
+
             val authService = GoogleAuthService(MapSettings())
-            
+
             val exception = shouldThrow<IllegalStateException> {
                 authService.buildFlow()
             }
-            
+
             exception.message shouldBe "Google Client ID/Secret not found in environment variables or .env file, and client_secret.json not found at non_existent_file.json. Please configure it."
         } finally {
             // Restore .env

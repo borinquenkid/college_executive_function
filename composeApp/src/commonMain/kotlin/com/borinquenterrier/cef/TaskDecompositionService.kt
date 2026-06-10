@@ -20,7 +20,11 @@ class TaskDecompositionService(
      * each [tasks] step as a STUDY_BLOCK event, skipping any that collide. Returns the
      * number of steps successfully added.
      */
-    suspend fun applyDecomposition(target: Event, tasks: List<DecomposedTask>, calendarId: String): Int {
+    suspend fun applyDecomposition(
+        target: Event,
+        tasks: List<DecomposedTask>,
+        calendarId: String
+    ): Int {
         val earliestTaskDate = tasks.minOfOrNull {
             target.date.minus(it.daysBeforeDue, DateTimeUnit.DAY)
         }

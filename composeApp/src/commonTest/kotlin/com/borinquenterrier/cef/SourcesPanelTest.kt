@@ -13,7 +13,8 @@ class SourcesPanelTest : FunSpec({
         )
         var updatedSources = initialSources
 
-        val newSource = SourceItem("New Document", SourceProcessor.process("This is a new document"))
+        val newSource =
+            SourceItem("New Document", SourceProcessor.process("This is a new document"))
 
         // Simulate the onSourceAdded callback
         val onSourceAdded = { source: SourceItem ->

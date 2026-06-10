@@ -1,29 +1,50 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Link
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.TextField
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.unit.dp
 import androidx.compose.ui.input.key.Key
+import androidx.compose.ui.input.key.KeyEventType
 import androidx.compose.ui.input.key.key
 import androidx.compose.ui.input.key.onKeyEvent
 import androidx.compose.ui.input.key.type
-import androidx.compose.ui.input.key.KeyEventType
-import kotlinx.coroutines.launch
+import androidx.compose.ui.unit.dp
 
 class LocalFileSourceProvider(
     private val ingestionAgent: IngestionAgent,
     private val aiService: AIService,
-    private val filePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit = { onFileSelected -> FilePicker(show = true, onFileSelected = onFileSelected) }
+    private val filePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit = { onFileSelected ->
+        FilePicker(
+            show = true,
+            onFileSelected = onFileSelected
+        )
+    }
 ) : SourceProvider {
     override val id = "local_file"
     override val displayName = "File"
@@ -34,7 +55,8 @@ class LocalFileSourceProvider(
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
-        val handler = remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
+        val handler =
+            remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var hasTriggered by remember { mutableStateOf(false) }
         var isIngesting by remember { mutableStateOf(false) }
 
@@ -77,7 +99,8 @@ class UrlSourceProvider(
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
-        val handler = remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
+        val handler =
+            remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var url by remember { mutableStateOf("") }
         var isIngesting by remember { mutableStateOf(false) }
 
@@ -149,7 +172,8 @@ class GoogleDriveSourceProvider(
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val accessToken = tokenRepository.getAccessToken()
         val scope = rememberCoroutineScope()
-        val handler = remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
+        val handler =
+            remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var isIngesting by remember { mutableStateOf(false) }
 
         if (isIngesting) {
@@ -163,8 +187,8 @@ class GoogleDriveSourceProvider(
                 title = { Text("Google Account Required") },
                 text = { Text("Please link your Google account in Settings to use Drive.") },
                 confirmButton = {
-                    TextButton(onClick = onDismiss) { 
-                        Text("OK") 
+                    TextButton(onClick = onDismiss) {
+                        Text("OK")
                     }
                 }
             )

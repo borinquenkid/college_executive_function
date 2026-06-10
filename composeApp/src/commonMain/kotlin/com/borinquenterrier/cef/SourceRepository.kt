@@ -1,7 +1,7 @@
 package com.borinquenterrier.cef
 
-import com.borinquenterrier.cef.db.SourceEntity
 import com.borinquenterrier.cef.db.FragmentEntity
+import com.borinquenterrier.cef.db.SourceEntity
 
 interface SourceRepository {
     suspend fun saveSource(sourceItem: SourceItem, originUri: String?)

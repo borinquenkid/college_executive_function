@@ -1,6 +1,6 @@
 package com.borinquenterrier.cef
 
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
 
 /**
  * Facade for error handling from Gemini API responses.

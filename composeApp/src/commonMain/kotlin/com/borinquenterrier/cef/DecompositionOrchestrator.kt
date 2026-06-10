@@ -1,9 +1,9 @@
 package com.borinquenterrier.cef
 
-import kotlinx.datetime.LocalDate
 import kotlinx.datetime.DateTimeUnit
-import kotlinx.datetime.minus
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.daysUntil
+import kotlinx.datetime.minus
 
 sealed interface WorkUnit {
     val title: String
@@ -66,7 +66,7 @@ class DecompositionOrchestrator(
 
                 for (sub in subTasks) {
                     val subDueDate = calculateSubDueDate(current.dueDate, sub.daysBeforeDue)
-                    
+
                     if (current.depth + 1 < maxDepth && isComplex(sub)) {
                         queue.add(
                             WorkUnit.SubTask(
@@ -105,7 +105,17 @@ class DecompositionOrchestrator(
     private fun isComplex(task: DecomposedTask): Boolean {
         val words = task.title.lowercase().split(" ")
         if (words.size < 3) return false
-        val complexKeywords = listOf("draft", "write", "research", "outline", "design", "implement", "build", "analyze", "review")
+        val complexKeywords = listOf(
+            "draft",
+            "write",
+            "research",
+            "outline",
+            "design",
+            "implement",
+            "build",
+            "analyze",
+            "review"
+        )
         return task.daysBeforeDue > 1 || words.any { it in complexKeywords }
     }
 

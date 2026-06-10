@@ -1,7 +1,6 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.FlowRow
@@ -11,7 +10,6 @@ import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.AssistChip
-import androidx.compose.material3.Button
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -41,18 +39,33 @@ fun SourcesPanel(
             .border(1.dp, MaterialTheme.colorScheme.outlineVariant),
         verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        Text("Sources", style = MaterialTheme.typography.titleMedium, modifier = Modifier.padding(horizontal = 4.dp))
-        
+        Text(
+            "Sources",
+            style = MaterialTheme.typography.titleMedium,
+            modifier = Modifier.padding(horizontal = 4.dp)
+        )
+
         FlowRow(
-            horizontalArrangement = Arrangement.spacedBy(4.dp), 
+            horizontalArrangement = Arrangement.spacedBy(4.dp),
             modifier = Modifier.fillMaxWidth().padding(horizontal = 4.dp)
         ) {
             providers.forEach { provider ->
                 AssistChip(
                     onClick = { activeProviderId = provider.id },
                     enabled = provider.isAuthorized(),
-                    label = { Text(provider.displayName, style = MaterialTheme.typography.labelSmall) },
-                    leadingIcon = { Icon(provider.icon, contentDescription = null, modifier = Modifier.size(16.dp)) }
+                    label = {
+                        Text(
+                            provider.displayName,
+                            style = MaterialTheme.typography.labelSmall
+                        )
+                    },
+                    leadingIcon = {
+                        Icon(
+                            provider.icon,
+                            contentDescription = null,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
                 )
             }
         }

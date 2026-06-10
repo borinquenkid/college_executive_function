@@ -1,11 +1,13 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import java.io.File
-import kotlinx.serialization.json.*
 import com.russhwolf.settings.MapSettings
+import io.kotest.core.spec.style.FunSpec
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.jsonArray
+import kotlinx.serialization.json.jsonObject
+import kotlinx.serialization.json.jsonPrimitive
+import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 class SyllabusEvaluationSuite : FunSpec({
@@ -65,7 +67,15 @@ class SyllabusEvaluationSuite : FunSpec({
         println("\n=======================================================")
         println("             SYLLABUS EVALUATION RESULTS")
         println("=======================================================")
-        println(String.format("%-30s | %-10s | %-10s | %-15s", "Syllabus File", "Recall", "Matched", "Date Accuracy"))
+        println(
+            String.format(
+                "%-30s | %-10s | %-10s | %-15s",
+                "Syllabus File",
+                "Recall",
+                "Matched",
+                "Date Accuracy"
+            )
+        )
         println("-------------------------------------------------------------------------------------")
 
         testCases.forEach { (pdfName, expectedJsonName) ->
@@ -79,7 +89,8 @@ class SyllabusEvaluationSuite : FunSpec({
                 File("src/commonTest/resources/$expectedJsonName"),
                 File("composeApp/src/commonTest/resources/$expectedJsonName"),
                 File("../composeApp/src/commonTest/resources/$expectedJsonName")
-            ).find { it.exists() } ?: throw Exception("Expected JSON file not found: $expectedJsonName")
+            ).find { it.exists() }
+                ?: throw Exception("Expected JSON file not found: $expectedJsonName")
 
             val rawParts = PdfReader().readSource(pdfFile.absolutePath)
             val fullText = rawParts.joinToString("\n\n") { it.text }
@@ -116,10 +127,21 @@ class SyllabusEvaluationSuite : FunSpec({
                 }
             }
 
-            val recall = if (expectedEvents.isNotEmpty()) (matchedCount.toDouble() / expectedEvents.size.toDouble()) * 100.0 else 100.0
-            val dateAccuracy = if (matchedCount > 0) (dateCorrectCount.toDouble() / matchedCount.toDouble()) * 100.0 else 100.0
+            val recall =
+                if (expectedEvents.isNotEmpty()) (matchedCount.toDouble() / expectedEvents.size.toDouble()) * 100.0 else 100.0
+            val dateAccuracy =
+                if (matchedCount > 0) (dateCorrectCount.toDouble() / matchedCount.toDouble()) * 100.0 else 100.0
 
-            println(String.format("%-30s | %8.1f%% | %4d/%-5d | %13.1f%%", pdfName, recall, matchedCount, expectedEvents.size, dateAccuracy))
+            println(
+                String.format(
+                    "%-30s | %8.1f%% | %4d/%-5d | %13.1f%%",
+                    pdfName,
+                    recall,
+                    matchedCount,
+                    expectedEvents.size,
+                    dateAccuracy
+                )
+            )
         }
         println("=======================================================\n")
     }

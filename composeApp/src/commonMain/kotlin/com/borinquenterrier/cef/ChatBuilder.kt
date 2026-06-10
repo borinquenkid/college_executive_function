@@ -37,9 +37,10 @@ object ChatBuilder {
         val historySection = if (conversationHistory.isEmpty()) {
             "(No prior messages)"
         } else {
-            conversationHistory.takeLast(MAX_HISTORY_TURNS).joinToString("\n") { (author, content) ->
-                "${if (author == "User") "Student" else "Assistant"}: $content"
-            }
+            conversationHistory.takeLast(MAX_HISTORY_TURNS)
+                .joinToString("\n") { (author, content) ->
+                    "${if (author == "User") "Student" else "Assistant"}: $content"
+                }
         }
 
         return """

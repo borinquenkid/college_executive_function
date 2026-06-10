@@ -14,7 +14,8 @@ class SourceContextBuilder {
         sourceMetadataFetcher: suspend (String) -> String?
     ): List<SourceContextBlock> {
         val groupedBySource = topFragmentPairs.groupBy { it.first }
-        val sortedSourcesWithFragments = groupedBySource.keys.sortedBy { categoryPriority[it.category] ?: 5 }
+        val sortedSourcesWithFragments =
+            groupedBySource.keys.sortedBy { categoryPriority[it.category] ?: 5 }
 
         return sortedSourcesWithFragments.map { source ->
             val metadata = sourceMetadataFetcher(source.title)

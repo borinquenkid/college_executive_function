@@ -1,8 +1,8 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 import java.io.File
 
 class LocalFileReaderTest : FunSpec({
@@ -16,12 +16,13 @@ class LocalFileReaderTest : FunSpec({
         val actualContent = reader.readText(tempFile.absolutePath)
 
         actualContent shouldBe expectedContent
-        
+
         tempFile.delete()
     }
 
     test("listFiles should return paths of all files in a directory") {
-        val tempDir = File(System.getProperty("java.io.tmpdir"), "test_dir_${System.currentTimeMillis()}")
+        val tempDir =
+            File(System.getProperty("java.io.tmpdir"), "test_dir_${System.currentTimeMillis()}")
         tempDir.mkdirs()
 
         val file1 = File(tempDir, "file1.txt").apply { writeText("content1") }

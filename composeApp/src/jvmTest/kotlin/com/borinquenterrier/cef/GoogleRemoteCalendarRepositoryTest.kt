@@ -2,26 +2,37 @@ package com.borinquenterrier.cef
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
-import io.mockk.*
+import io.mockk.clearAllMocks
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.just
+import io.mockk.mockk
+import io.mockk.runs
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 class GoogleRemoteCalendarRepositoryTest : FunSpec({
- 
+
     val syncService = mockk<GoogleCalendarSyncService>(relaxed = true)
     val preferencesRepository = mockk<PreferencesRepository>(relaxed = true)
     val idResolver = mockk<CalendarIdResolver>(relaxed = true)
     val conflictDetector = mockk<EventConflictDetector>(relaxed = true)
     val eventFilter = mockk<EventRangeFilter>(relaxed = true)
-    val repo = GoogleRemoteCalendarRepository(syncService, preferencesRepository, idResolver, conflictDetector, eventFilter)
- 
+    val repo = GoogleRemoteCalendarRepository(
+        syncService,
+        preferencesRepository,
+        idResolver,
+        conflictDetector,
+        eventFilter
+    )
+
     val cefCalId = "cef-calendar-id-123"
     val date = LocalDate(2026, 6, 8)
- 
+
     val timeEvent = TimeEvent(
         id = "evt-1",
         title = "Lecture",
@@ -32,7 +43,7 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         syncStatus = SyncStatus.SYNCED,
         category = AcademicCategory.CLASS
     )
- 
+
     val dayEvent = DayEvent(
         id = "evt-day",
         title = "Holiday",
@@ -41,7 +52,7 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         syncStatus = SyncStatus.SYNCED,
         category = AcademicCategory.HOLIDAY
     )
- 
+
     beforeEach {
         clearAllMocks()
         coEvery { preferencesRepository.getPreferences() } returns StudyPreferences()
@@ -164,7 +175,10 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         coEvery { syncService.listCalendars() } returns listOf(
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
-        coEvery { syncService.deleteEvent(any(), any()) } throws GoogleApiException(500, "Internal Server Error")
+        coEvery { syncService.deleteEvent(any(), any()) } throws GoogleApiException(
+            500,
+            "Internal Server Error"
+        )
 
         shouldThrow<GoogleApiException> {
             repo.deleteEvent("evt-1", "default")
@@ -188,7 +202,8 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
 
     test("clearCalendar deletes all events in the calendar") {
         val e1 = timeEvent.copy(id = "id-1")
-        val e2 = timeEvent.copy(id = "id-2", startTime = LocalTime(11, 0), endTime = LocalTime(12, 0))
+        val e2 =
+            timeEvent.copy(id = "id-2", startTime = LocalTime(11, 0), endTime = LocalTime(12, 0))
         coEvery { syncService.listCalendars() } returns listOf(
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
@@ -207,7 +222,10 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
         coEvery { syncService.getEvents(cefCalId) } returns listOf(e1)
-        coEvery { syncService.deleteEvent(cefCalId, "gone-id") } throws GoogleApiException(410, "Gone")
+        coEvery { syncService.deleteEvent(cefCalId, "gone-id") } throws GoogleApiException(
+            410,
+            "Gone"
+        )
 
         // Should NOT throw
         repo.clearCalendar("default")
@@ -321,7 +339,11 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         coEvery { syncService.listCalendars() } returns listOf(
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
-        coEvery { syncService.getEvents(cefCalId) } returns listOf(pastIncomplete, futureIncomplete, pastComplete)
+        coEvery { syncService.getEvents(cefCalId) } returns listOf(
+            pastIncomplete,
+            futureIncomplete,
+            pastComplete
+        )
 
         val result = repo.getIncompleteEventsBefore(LocalDate(2026, 6, 8), "default")
 

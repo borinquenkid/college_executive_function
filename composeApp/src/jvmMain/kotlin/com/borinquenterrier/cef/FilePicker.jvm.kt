@@ -10,10 +10,10 @@ actual fun FilePicker(show: Boolean, onFileSelected: (String?) -> Unit) {
     LaunchedEffect(show) {
         if (show) {
             val fileDialog = FileDialog(null as Frame?, "Select a File", FileDialog.LOAD)
-            fileDialog.setFilenameFilter { _, name -> 
+            fileDialog.setFilenameFilter { _, name ->
                 val lower = name.lowercase()
-                lower.endsWith(".ics") || lower.endsWith(".pdf") || 
-                lower.endsWith(".docx") || lower.endsWith(".txt") || lower.endsWith(".gdoc")
+                lower.endsWith(".ics") || lower.endsWith(".pdf") ||
+                        lower.endsWith(".docx") || lower.endsWith(".txt") || lower.endsWith(".gdoc")
             }
             fileDialog.isVisible = true
             val directory = fileDialog.directory

@@ -1,5 +1,6 @@
 package com.borinquenterrier.cef
 
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -8,8 +9,9 @@ import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.HttpStatusCode
 import io.ktor.serialization.kotlinx.json.json
-import io.mockk.*
-import io.kotest.assertions.nondeterministic.eventually
+import io.mockk.coEvery
+import io.mockk.every
+import io.mockk.mockk
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 
@@ -24,12 +26,15 @@ class BugReporterTest : FunSpec({
         }
 
         val mockPreferencesRepository = mockk<PreferencesRepository>()
-        coEvery { mockPreferencesRepository.getPreferences() } returns StudyPreferences(shareAnonymousBugReports = false)
+        coEvery { mockPreferencesRepository.getPreferences() } returns StudyPreferences(
+            shareAnonymousBugReports = false
+        )
 
         val telemetryManager = mockk<TelemetryManager>(relaxed = true)
         val logger = mockk<Logger>(relaxed = true)
 
-        val bugReporter = BugReporter(httpClient, mockPreferencesRepository, telemetryManager, logger)
+        val bugReporter =
+            BugReporter(httpClient, mockPreferencesRepository, telemetryManager, logger)
         bugReporter.reportError(Exception("Test Exception"), "Test Context")
 
         // Give the launched coroutine a chance to run, then confirm it stays at 0
@@ -47,7 +52,9 @@ class BugReporterTest : FunSpec({
         }
 
         val mockPreferencesRepository = mockk<PreferencesRepository>()
-        coEvery { mockPreferencesRepository.getPreferences() } returns StudyPreferences(shareAnonymousBugReports = true)
+        coEvery { mockPreferencesRepository.getPreferences() } returns StudyPreferences(
+            shareAnonymousBugReports = true
+        )
 
         val telemetryManager = mockk<TelemetryManager>(relaxed = true)
         every { telemetryManager.getJsonErrors() } returns 2
@@ -57,7 +64,8 @@ class BugReporterTest : FunSpec({
 
         val logger = mockk<Logger>(relaxed = true)
 
-        val bugReporter = BugReporter(httpClient, mockPreferencesRepository, telemetryManager, logger)
+        val bugReporter =
+            BugReporter(httpClient, mockPreferencesRepository, telemetryManager, logger)
         bugReporter.reportError(Exception("Test Exception"), "Test Context")
 
         // Poll instead of a fixed delay: the report is sent on a background coroutine,

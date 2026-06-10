@@ -1,8 +1,8 @@
 package com.borinquenterrier.cef
 
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 
@@ -49,22 +49,43 @@ class CollisionDetector(
         skipCurrent: Boolean
     ): TimeEvent? {
         val durationSeconds = event.endTime.toSecondOfDay() - event.startTime.toSecondOfDay()
-        
+
         // 1. Try different slots on the same day first
-        val sameDaySlot = findTimeSlotOnDay(event.date, durationSeconds, event, existingEvents, validator, skipCurrent)
+        val sameDaySlot = findTimeSlotOnDay(
+            event.date,
+            durationSeconds,
+            event,
+            existingEvents,
+            validator,
+            skipCurrent
+        )
         if (sameDaySlot != null) return sameDaySlot
 
         // 2. Search backward day-by-day (up to 7 days)
         for (i in 1..7) {
             val candidateDate = event.date.minus(i, DateTimeUnit.DAY)
-            val slot = findTimeSlotOnDay(candidateDate, durationSeconds, event, existingEvents, validator, skipCurrent = false)
+            val slot = findTimeSlotOnDay(
+                candidateDate,
+                durationSeconds,
+                event,
+                existingEvents,
+                validator,
+                skipCurrent = false
+            )
             if (slot != null) return slot
         }
 
         // 3. Search forward day-by-day (up to 3 days)
         for (i in 1..3) {
             val candidateDate = event.date.plus(i, DateTimeUnit.DAY)
-            val slot = findTimeSlotOnDay(candidateDate, durationSeconds, event, existingEvents, validator, skipCurrent = false)
+            val slot = findTimeSlotOnDay(
+                candidateDate,
+                durationSeconds,
+                event,
+                existingEvents,
+                validator,
+                skipCurrent = false
+            )
             if (slot != null) {
                 return slot.copy(warning = "Study block scheduled late/after deadline")
             }
@@ -95,7 +116,14 @@ class CollisionDetector(
                 continue
             }
 
-            if (validator.isValidTimeSlot(date, candidateStart, candidateEnd, originalEvent.priority, existingEvents)) {
+            if (validator.isValidTimeSlot(
+                    date,
+                    candidateStart,
+                    candidateEnd,
+                    originalEvent.priority,
+                    existingEvents
+                )
+            ) {
                 return originalEvent.copy(
                     date = date,
                     startTime = candidateStart,

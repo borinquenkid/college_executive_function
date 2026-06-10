@@ -47,7 +47,8 @@ class FragmentRankerTest : StringSpec({
         val source1 = SourceItem("java_book", frags1, SourceCategory.SYLLABUS)
         val source2 = SourceItem("python_book", frags2, SourceCategory.READING_MATERIAL)
 
-        val result = ranker.rankFragments(listOf(source1, source2), "programming language", topK = 5)
+        val result =
+            ranker.rankFragments(listOf(source1, source2), "programming language", topK = 5)
 
         result.shouldHaveSize(2)
     }

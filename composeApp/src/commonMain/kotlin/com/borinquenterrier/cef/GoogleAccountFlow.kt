@@ -20,18 +20,18 @@ class GoogleAccountFlow(
 
     suspend fun connect() {
         if (_state.value is GoogleConnectionState.Connecting) return
-        
+
         _state.value = GoogleConnectionState.Connecting
         try {
             println("[GoogleAccountFlow] Transition: Unlinked -> Connecting")
             val result = authService.login()
-            
+
             println("[GoogleAccountFlow] Saving tokens...")
             tokenRepository.saveTokens(result.first, result.second)
-            
+
             println("[GoogleAccountFlow] Validating Drive access...")
             val isValid = driveService.validateConnection(result.first)
-            
+
             if (isValid) {
                 println("[GoogleAccountFlow] Transition: Connecting -> Linked")
                 _state.value = GoogleConnectionState.Linked
@@ -55,7 +55,7 @@ class GoogleAccountFlow(
         tokenRepository.clearTokens()
         _state.value = GoogleConnectionState.Unlinked
     }
-    
+
     /**
      * Call this when a background operation (like listFiles) fails due to auth.
      */

@@ -1,7 +1,5 @@
 package com.borinquenterrier.cef
 
-import com.russhwolf.settings.Settings
-
 /**
  * Lightweight facade coordinating directory preferences across local and Google Drive sources.
  * Delegates to specialized preference managers for local and GDrive directories.

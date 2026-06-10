@@ -3,14 +3,19 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.ktor.client.*
-import io.ktor.client.engine.mock.*
-import io.ktor.client.plugins.contentnegotiation.*
-import io.ktor.http.*
-import io.ktor.serialization.kotlinx.json.*
-import kotlinx.serialization.json.*
-import kotlinx.coroutines.runBlocking
-import io.mockk.*
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
+import io.ktor.http.ContentType
+import io.ktor.http.HttpHeaders
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import io.ktor.http.isSuccess
+import io.ktor.serialization.kotlinx.json.json
+import io.mockk.mockk
+import kotlinx.serialization.json.Json
+import kotlinx.serialization.json.encodeToJsonElement
 
 class GeminiModelNegotiationTest : FunSpec({
 
@@ -59,22 +64,28 @@ class GeminiModelNegotiationTest : FunSpec({
                     respond(
                         content = modelsJson,
                         status = HttpStatusCode.OK,
-                        headers = headersOf(HttpHeaders.ContentType, ContentType.Application.Json.toString())
+                        headers = headersOf(
+                            HttpHeaders.ContentType,
+                            ContentType.Application.Json.toString()
+                        )
                     )
                 }
+
                 request.url.encodedPath.contains("generateContent") -> {
                     attemptCount++
                     val modelName = request.url.encodedPath
                         .substringAfter("/models/")
                         .substringBefore(":generateContent")
                     val (status, body) = onGenerateContent(attemptCount, modelName)
-                    val contentType = if (status.isSuccess()) ContentType.Application.Json else ContentType.Text.Plain
+                    val contentType =
+                        if (status.isSuccess()) ContentType.Application.Json else ContentType.Text.Plain
                     respond(
                         content = body,
                         status = status,
                         headers = headersOf(HttpHeaders.ContentType, contentType.toString())
                     )
                 }
+
                 else -> error("Unhandled request: ${request.url}")
             }
         }
@@ -95,7 +106,11 @@ class GeminiModelNegotiationTest : FunSpec({
         }
 
         val logger = mockk<Logger>(relaxed = true)
-        val geminiService = GeminiAIService(apiKey = "fake-key", logger = logger, customClient = client, delayFn = {})
+        val geminiService = GeminiAIService(
+            apiKey = "fake-key",
+            logger = logger,
+            customClient = client,
+            delayFn = {})
 
         val events = geminiService.generateCalendarEvents(listOf(SourceFragment("test content")))
         events shouldNotBe null
@@ -112,16 +127,22 @@ class GeminiModelNegotiationTest : FunSpec({
                     flashAttempts++
                     HttpStatusCode.NotFound to "Not Found"
                 }
+
                 modelName.contains("pro") -> {
                     proAttempts++
                     HttpStatusCode.OK to successJson("[]")
                 }
+
                 else -> HttpStatusCode.OK to successJson("[]")
             }
         }
 
         val logger = mockk<Logger>(relaxed = true)
-        val geminiService = GeminiAIService(apiKey = "fake-key", logger = logger, customClient = client, delayFn = {})
+        val geminiService = GeminiAIService(
+            apiKey = "fake-key",
+            logger = logger,
+            customClient = client,
+            delayFn = {})
 
         val events = geminiService.generateCalendarEvents(listOf(SourceFragment("test content")))
         events shouldNotBe null
@@ -141,7 +162,11 @@ class GeminiModelNegotiationTest : FunSpec({
         }
 
         val logger = mockk<Logger>(relaxed = true)
-        val geminiService = GeminiAIService(apiKey = "fake-key", logger = logger, customClient = client, delayFn = {})
+        val geminiService = GeminiAIService(
+            apiKey = "fake-key",
+            logger = logger,
+            customClient = client,
+            delayFn = {})
 
         val tasks = geminiService.decomposeTask("Final Exam", "2025-12-15")
         tasks.size shouldBe 1
@@ -156,13 +181,22 @@ class GeminiModelNegotiationTest : FunSpec({
 
         val (client, _) = makeMockClient { _, modelName ->
             when {
-                modelName.contains("flash") -> { flashAttempts++; HttpStatusCode.NotFound to "Not Found" }
-                else -> { proAttempts++; HttpStatusCode.OK to successJson(tasksJson) }
+                modelName.contains("flash") -> {
+                    flashAttempts++; HttpStatusCode.NotFound to "Not Found"
+                }
+
+                else -> {
+                    proAttempts++; HttpStatusCode.OK to successJson(tasksJson)
+                }
             }
         }
 
         val logger = mockk<Logger>(relaxed = true)
-        val geminiService = GeminiAIService(apiKey = "fake-key", logger = logger, customClient = client, delayFn = {})
+        val geminiService = GeminiAIService(
+            apiKey = "fake-key",
+            logger = logger,
+            customClient = client,
+            delayFn = {})
 
         val tasks = geminiService.decomposeTask("Research Paper", "2025-11-01")
         tasks.size shouldBe 1
@@ -182,7 +216,11 @@ class GeminiModelNegotiationTest : FunSpec({
         }
 
         val logger = mockk<Logger>(relaxed = true)
-        val geminiService = GeminiAIService(apiKey = "fake-key", logger = logger, customClient = client, delayFn = {})
+        val geminiService = GeminiAIService(
+            apiKey = "fake-key",
+            logger = logger,
+            customClient = client,
+            delayFn = {})
 
         val category = geminiService.categorizeSource("This course is worth 30% midterm...")
         category shouldBe SourceCategory.SYLLABUS
@@ -195,7 +233,11 @@ class GeminiModelNegotiationTest : FunSpec({
         }
 
         val logger = mockk<Logger>(relaxed = true)
-        val geminiService = GeminiAIService(apiKey = "fake-key", logger = logger, customClient = client, delayFn = {})
+        val geminiService = GeminiAIService(
+            apiKey = "fake-key",
+            logger = logger,
+            customClient = client,
+            delayFn = {})
 
         val category = geminiService.categorizeSource("some text")
         category shouldBe SourceCategory.OTHER

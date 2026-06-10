@@ -9,7 +9,8 @@ class StudyPlanBuilderTest : StringSpec({
     "getSyllabusStudyPlanPrompt should include study preferences constraints" {
         val preferences = StudyPreferences(studyStartHour = 8, studyEndHour = 22)
         val syllabusText = "Exam on Dec 15"
-        val result = StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, preferences = preferences)
+        val result =
+            StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, preferences = preferences)
 
         result.shouldContain("STUDY_BLOCK")
         result.shouldContain("proactively suggest")
@@ -37,7 +38,8 @@ class StudyPlanBuilderTest : StringSpec({
 
     "getSyllabusStudyPlanPrompt should say 'None' when no existing schedule provided" {
         val syllabusText = "Quiz on next Friday"
-        val result = StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule = "")
+        val result =
+            StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule = "")
 
         result.shouldContain("None")
     }
@@ -65,7 +67,8 @@ class StudyPlanBuilderTest : StringSpec({
     "getDecompositionCritiquePrompt should validate sub-tasks" {
         val taskTitle = "Final Project"
         val dueDate = "2024-05-20"
-        val tasksJson = """[{"title":"Research","daysBeforeDue":10,"description":"Gather sources"}]"""
+        val tasksJson =
+            """[{"title":"Research","daysBeforeDue":10,"description":"Gather sources"}]"""
         val result = StudyPlanBuilder.getDecompositionCritiquePrompt(taskTitle, dueDate, tasksJson)
 
         result.shouldContain("executive function coach")

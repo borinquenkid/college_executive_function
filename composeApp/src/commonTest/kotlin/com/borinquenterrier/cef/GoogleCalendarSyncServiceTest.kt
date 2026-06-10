@@ -1,39 +1,21 @@
 package com.borinquenterrier.cef
 
-                import com.russhwolf.settings.MapSettings
-import io.kotest.assertions.throwables.shouldThrowAny
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.nulls.shouldNotBeNull
 import io.kotest.matchers.shouldBe
-import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
-import io.ktor.client.call.body
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.request.delete
-import io.ktor.client.request.get
-import io.ktor.client.request.header
-import io.ktor.client.request.parameter
-import io.ktor.client.request.post
-import io.ktor.client.request.setBody
-import io.ktor.client.statement.HttpResponse
-import io.ktor.client.statement.bodyAsText
-import io.ktor.http.ContentType
 import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
-import io.ktor.http.contentType
 import io.ktor.http.headersOf
-import io.ktor.http.isSuccess
 import io.ktor.serialization.kotlinx.json.json
-import io.mockk.*
-import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.serialization.Serializable
 
-                class GoogleCalendarSyncServiceTest : FunSpec({
+class GoogleCalendarSyncServiceTest : FunSpec({
 
     test("syncEvent maps correctly and sends POST request to Google API with calendarId") {
         val mockEngine = MockEngine { request ->
@@ -49,12 +31,12 @@ import kotlinx.serialization.Serializable
                 json()
             }
         }
-        
+
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
         val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
-        
+
         val event = TimeEvent(
             title = "Test Event",
             source = EventSource.MANUAL,
@@ -95,7 +77,7 @@ import kotlinx.serialization.Serializable
                 json()
             }
         }
-        
+
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
@@ -105,7 +87,7 @@ import kotlinx.serialization.Serializable
         events.size shouldBe 1
         events.first().title shouldBe "Existing Event"
         (events.first() as TimeEvent).date shouldBe LocalDate(2025, 1, 1)
-        
+
         val request = mockEngine.requestHistory.first()
         request.url.toString() shouldBe "https://www.googleapis.com/calendar/v3/calendars/school-cal/events"
     }
@@ -131,7 +113,7 @@ import kotlinx.serialization.Serializable
                 json()
             }
         }
-        
+
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
@@ -141,7 +123,7 @@ import kotlinx.serialization.Serializable
         calendars.size shouldBe 2
         calendars[0].id shouldBe "cal-1"
         calendars[1].name shouldBe "School"
-        
+
         val request = mockEngine.requestHistory.first()
         request.url.toString() shouldBe "https://www.googleapis.com/calendar/v3/users/me/calendarList"
     }
@@ -190,7 +172,7 @@ import kotlinx.serialization.Serializable
                 json()
             }
         }
-        
+
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
@@ -200,7 +182,7 @@ import kotlinx.serialization.Serializable
         events.size shouldBe 2
         events[0].title shouldBe "Page 1 Event"
         events[1].title shouldBe "Page 2 Event"
-        
+
         mockEngine.requestHistory.size shouldBe 2
         mockEngine.requestHistory[0].url.parameters["pageToken"] shouldBe null
         mockEngine.requestHistory[1].url.parameters["pageToken"] shouldBe "page-2"
@@ -220,7 +202,7 @@ import kotlinx.serialization.Serializable
                 json()
             }
         }
-        
+
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())
@@ -248,7 +230,7 @@ import kotlinx.serialization.Serializable
                 json()
             }
         }
-        
+
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
         val authService = GoogleAuthService(MapSettings())

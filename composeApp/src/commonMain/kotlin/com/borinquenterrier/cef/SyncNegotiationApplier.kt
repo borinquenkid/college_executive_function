@@ -71,7 +71,10 @@ class SyncNegotiationApplier(
                         remoteRepo.saveEvent(shifted, calendarId)
                         localRepo.updateEvent(shifted.withSyncStatus(SyncStatus.SYNCED), calendarId)
                     } catch (e: Exception) {
-                        localRepo.updateEvent(shifted.withSyncStatus(SyncStatus.LOCAL_ONLY), calendarId)
+                        localRepo.updateEvent(
+                            shifted.withSyncStatus(SyncStatus.LOCAL_ONLY),
+                            calendarId
+                        )
                     }
                 } else {
                     localRepo.updateEvent(shifted, calendarId)

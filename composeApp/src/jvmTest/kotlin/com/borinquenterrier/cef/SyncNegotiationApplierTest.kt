@@ -1,9 +1,10 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import io.mockk.*
 import com.russhwolf.settings.MapSettings
+import io.kotest.core.spec.style.FunSpec
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -36,10 +37,10 @@ class SyncNegotiationApplierTest : FunSpec({
     )
 
     beforeEach {
-        localRepo       = mockk(relaxed = true)
-        remoteRepo      = mockk(relaxed = true)
-        logger          = mockk(relaxed = true)
-        prefMemoryRepo  = mockk(relaxed = true)
+        localRepo = mockk(relaxed = true)
+        remoteRepo = mockk(relaxed = true)
+        logger = mockk(relaxed = true)
+        prefMemoryRepo = mockk(relaxed = true)
     }
 
     // ── applyDeletedLocalEvents ───────────────────────────────────────────────
@@ -50,9 +51,9 @@ class SyncNegotiationApplierTest : FunSpec({
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger, prefMemoryRepo)
         val negotiation = SyncNegotiation(
-            proposals          = emptyList(),
+            proposals = emptyList(),
             remoteEventsToSync = emptyList(),
-            deletedLocalIds    = listOf("exam-1")
+            deletedLocalIds = listOf("exam-1")
         )
 
         applier.apply(negotiation, "default")
@@ -66,9 +67,9 @@ class SyncNegotiationApplierTest : FunSpec({
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger, prefMemoryRepo)
         val negotiation = SyncNegotiation(
-            proposals          = emptyList(),
+            proposals = emptyList(),
             remoteEventsToSync = emptyList(),
-            deletedLocalIds    = listOf("sb-1")
+            deletedLocalIds = listOf("sb-1")
         )
 
         applier.apply(negotiation, "default")
@@ -83,9 +84,9 @@ class SyncNegotiationApplierTest : FunSpec({
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger, prefMemoryRepo)
         val negotiation = SyncNegotiation(
-            proposals          = emptyList(),
+            proposals = emptyList(),
             remoteEventsToSync = emptyList(),
-            deletedLocalIds    = listOf("exam-2")
+            deletedLocalIds = listOf("exam-2")
         )
 
         applier.apply(negotiation, "default")
@@ -101,28 +102,37 @@ class SyncNegotiationApplierTest : FunSpec({
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger)
         val negotiation = SyncNegotiation(
-            proposals          = emptyList(),
+            proposals = emptyList(),
             remoteEventsToSync = listOf(remote),
-            deletedLocalIds    = emptyList()
+            deletedLocalIds = emptyList()
         )
 
         applier.apply(negotiation, "default")
 
-        coVerify(exactly = 1) { localRepo.updateEvent(match { it.id == "r-1" && it.syncStatus == SyncStatus.SYNCED }, "default") }
+        coVerify(exactly = 1) {
+            localRepo.updateEvent(
+                match { it.id == "r-1" && it.syncStatus == SyncStatus.SYNCED },
+                "default"
+            )
+        }
     }
 
     test("apply logs MOVE override when a STUDY_BLOCK is moved remotely") {
-        val localSb  = makeTimeEvent("sb-2", category = AcademicCategory.STUDY_BLOCK, updatedAt = 1L,
-            date = LocalDate(2026, 9, 1))
-        val remoteSb = makeTimeEvent("sb-2", category = AcademicCategory.STUDY_BLOCK, updatedAt = 2L,
-            date = LocalDate(2026, 9, 3))  // different date → MOVE
+        val localSb = makeTimeEvent(
+            "sb-2", category = AcademicCategory.STUDY_BLOCK, updatedAt = 1L,
+            date = LocalDate(2026, 9, 1)
+        )
+        val remoteSb = makeTimeEvent(
+            "sb-2", category = AcademicCategory.STUDY_BLOCK, updatedAt = 2L,
+            date = LocalDate(2026, 9, 3)
+        )  // different date → MOVE
         coEvery { localRepo.getAllEvents(any()) } returns listOf(localSb)
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger, prefMemoryRepo)
         val negotiation = SyncNegotiation(
-            proposals          = emptyList(),
+            proposals = emptyList(),
             remoteEventsToSync = listOf(remoteSb),
-            deletedLocalIds    = emptyList()
+            deletedLocalIds = emptyList()
         )
 
         applier.apply(negotiation, "default")
@@ -137,13 +147,13 @@ class SyncNegotiationApplierTest : FunSpec({
         val proposed = makeTimeEvent("sb-3", date = LocalDate(2026, 9, 2))  // different date
         val collider = makeTimeEvent("col-1")
         coEvery { localRepo.getAllEvents(any()) } returns emptyList()
-        coEvery { localRepo.getSettings()       } returns testSettings
+        coEvery { localRepo.getSettings() } returns testSettings
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger)
         val negotiation = SyncNegotiation(
-            proposals          = listOf(SyncProposal.StudyBlockShift(original, proposed, collider)),
+            proposals = listOf(SyncProposal.StudyBlockShift(original, proposed, collider)),
             remoteEventsToSync = emptyList(),
-            deletedLocalIds    = emptyList()
+            deletedLocalIds = emptyList()
         )
 
         applier.apply(negotiation, "default")
@@ -159,19 +169,24 @@ class SyncNegotiationApplierTest : FunSpec({
         val proposed = makeTimeEvent("sb-4", date = LocalDate(2026, 9, 2))
         val collider = makeTimeEvent("col-2")
         coEvery { localRepo.getAllEvents(any()) } returns emptyList()
-        coEvery { localRepo.getSettings()       } returns liveSettings
+        coEvery { localRepo.getSettings() } returns liveSettings
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger)
         val negotiation = SyncNegotiation(
-            proposals          = listOf(SyncProposal.StudyBlockShift(original, proposed, collider)),
+            proposals = listOf(SyncProposal.StudyBlockShift(original, proposed, collider)),
             remoteEventsToSync = emptyList(),
-            deletedLocalIds    = emptyList()
+            deletedLocalIds = emptyList()
         )
 
         applier.apply(negotiation, "default")
 
         coVerify(exactly = 1) { remoteRepo.saveEvent(match { it.id == "sb-4" }, "default") }
-        coVerify(exactly = 1) { localRepo.updateEvent(match { it.id == "sb-4" && it.syncStatus == SyncStatus.SYNCED }, "default") }
+        coVerify(exactly = 1) {
+            localRepo.updateEvent(
+                match { it.id == "sb-4" && it.syncStatus == SyncStatus.SYNCED },
+                "default"
+            )
+        }
     }
 
     test("apply marks study block LOCAL_ONLY when remote save fails") {
@@ -179,31 +194,36 @@ class SyncNegotiationApplierTest : FunSpec({
         val proposed = makeTimeEvent("sb-5", date = LocalDate(2026, 9, 2))
         val collider = makeTimeEvent("col-3")
         coEvery { localRepo.getAllEvents(any()) } returns emptyList()
-        coEvery { localRepo.getSettings()       } returns liveSettings
+        coEvery { localRepo.getSettings() } returns liveSettings
         coEvery { remoteRepo.saveEvent(any(), any()) } throws RuntimeException("network error")
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger)
         val negotiation = SyncNegotiation(
-            proposals          = listOf(SyncProposal.StudyBlockShift(original, proposed, collider)),
+            proposals = listOf(SyncProposal.StudyBlockShift(original, proposed, collider)),
             remoteEventsToSync = emptyList(),
-            deletedLocalIds    = emptyList()
+            deletedLocalIds = emptyList()
         )
 
         applier.apply(negotiation, "default")
 
-        coVerify(exactly = 1) { localRepo.updateEvent(match { it.id == "sb-5" && it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
+        coVerify(exactly = 1) {
+            localRepo.updateEvent(
+                match { it.id == "sb-5" && it.syncStatus == SyncStatus.LOCAL_ONLY },
+                "default"
+            )
+        }
     }
 
     test("apply skips proposal when proposed and original events are identical") {
-        val event    = makeTimeEvent("sb-6")
+        val event = makeTimeEvent("sb-6")
         val collider = makeTimeEvent("col-4")
         coEvery { localRepo.getAllEvents(any()) } returns emptyList()
 
         val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger)
         val negotiation = SyncNegotiation(
-            proposals          = listOf(SyncProposal.StudyBlockShift(event, event, collider)), // same!
+            proposals = listOf(SyncProposal.StudyBlockShift(event, event, collider)), // same!
             remoteEventsToSync = emptyList(),
-            deletedLocalIds    = emptyList()
+            deletedLocalIds = emptyList()
         )
 
         applier.apply(negotiation, "default")

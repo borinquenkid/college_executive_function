@@ -76,17 +76,27 @@ class GoogleRemoteCalendarRepository(
         }
     }
 
-    override suspend fun getEventsInRange(start: LocalDate, end: LocalDate, calendarId: String): List<Event> {
+    override suspend fun getEventsInRange(
+        start: LocalDate,
+        end: LocalDate,
+        calendarId: String
+    ): List<Event> {
         val events = getAllEvents(calendarId)
         return eventFilter.filterByDateRange(events, start, end)
     }
 
-    override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String): List<Event> {
+    override suspend fun getEventsBySyncStatus(
+        status: SyncStatus,
+        calendarId: String
+    ): List<Event> {
         val events = getAllEvents(calendarId)
         return eventFilter.filterBySyncStatus(events, status)
     }
 
-    override suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String): List<Event> {
+    override suspend fun getIncompleteEventsBefore(
+        date: LocalDate,
+        calendarId: String
+    ): List<Event> {
         val events = getAllEvents(calendarId)
         return eventFilter.filterIncompleteBeforeDate(events, date)
     }
@@ -100,13 +110,15 @@ class GoogleRemoteCalendarRepository(
             404 -> CalendarNotFoundException(
                 calendarId = calendarId,
                 message = "Calendar '$calendarId' no longer exists or has been deleted on Google Calendar. " +
-                          "Please re-link your calendar or use a different calendar."
+                        "Please re-link your calendar or use a different calendar."
             )
+
             403 -> CalendarNotFoundException(
                 calendarId = calendarId,
                 message = "No longer have access to calendar '$calendarId'. " +
-                          "The calendar owner may have revoked your access."
+                        "The calendar owner may have revoked your access."
             )
+
             else -> e
         }
     }

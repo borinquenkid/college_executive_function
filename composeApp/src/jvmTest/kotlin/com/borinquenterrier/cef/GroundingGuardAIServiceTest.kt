@@ -3,7 +3,9 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
-import io.mockk.*
+import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.mockk
 import kotlinx.datetime.LocalDate
 
 /**
@@ -35,10 +37,14 @@ class GroundingGuardAIServiceTest : FunSpec({
     )
 
     test("generateCalendarEvents drops events whose year never appears in the source, no matter how the delegate produced them") {
-        val fragments = listOf(SourceFragment("Spring 2026 reading list. No other dates mentioned."))
+        val fragments =
+            listOf(SourceFragment("Spring 2026 reading list. No other dates mentioned."))
         coEvery { delegate.generateCalendarEvents(any()) } returns listOf(
             dayEvent(2026, title = "Reading Response"),
-            dayEvent(2099, title = "Class Meeting") // confabulated — 2099 appears nowhere in the source
+            dayEvent(
+                2099,
+                title = "Class Meeting"
+            ) // confabulated — 2099 appears nowhere in the source
         )
 
         val result = guard.generateCalendarEvents(fragments)
@@ -58,7 +64,8 @@ class GroundingGuardAIServiceTest : FunSpec({
     }
 
     test("generateStudyPlan drops events whose year never appears in the source — closes the gap that produced academic_calendar.ics") {
-        val syllabusText = "PRINTED BY: Acme Publishing. No part of this book may be reproduced. DO NOT COPY."
+        val syllabusText =
+            "PRINTED BY: Acme Publishing. No part of this book may be reproduced. DO NOT COPY."
         coEvery { delegate.generateStudyPlan(any(), any(), any()) } returns listOf(
             dayEvent(2026, 9, 1, "Class Meeting"),
             dayEvent(2026, 9, 3, "Class Meeting"),

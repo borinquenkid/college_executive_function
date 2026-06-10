@@ -89,18 +89,18 @@ class EventGeneratorTest : FunSpec({
 
     test("expandEvents includes a non-recurring DayEvent that falls within the view range") {
         val viewStart = LocalDate(2024, 2, 1)
-        val viewEnd   = LocalDate(2024, 2, 29)
+        val viewEnd = LocalDate(2024, 2, 29)
 
         val result = EventGenerator.expandEvents(listOf(mondayDayEvent), viewStart, viewEnd)
 
         result shouldHaveSize 1
         (result[0] as DayEvent).title shouldBe "Holiday"
-        (result[0] as DayEvent).date  shouldBe LocalDate(2024, 2, 5)
+        (result[0] as DayEvent).date shouldBe LocalDate(2024, 2, 5)
     }
 
     test("expandEvents excludes a non-recurring DayEvent outside the view range") {
         val viewStart = LocalDate(2024, 3, 1)
-        val viewEnd   = LocalDate(2024, 3, 31)
+        val viewEnd = LocalDate(2024, 3, 31)
 
         val result = EventGenerator.expandEvents(listOf(mondayDayEvent), viewStart, viewEnd)
 
@@ -114,12 +114,12 @@ class EventGeneratorTest : FunSpec({
             date = LocalDate(2024, 1, 8),
             recurrence = Recurrence(
                 daysOfWeek = listOf(DayOfWeek.FRIDAY),
-                startDate  = LocalDate(2024, 1, 1),
-                endDate    = LocalDate(2024, 1, 31)
+                startDate = LocalDate(2024, 1, 1),
+                endDate = LocalDate(2024, 1, 31)
             )
         )
         val viewStart = LocalDate(2024, 1, 1)
-        val viewEnd   = LocalDate(2024, 1, 31)
+        val viewEnd = LocalDate(2024, 1, 31)
 
         val result = EventGenerator.expandEvents(listOf(recurringHoliday), viewStart, viewEnd)
 
@@ -141,7 +141,7 @@ class EventGeneratorTest : FunSpec({
             recurrence = null
         )
         val viewStart = LocalDate(2024, 1, 1)
-        val viewEnd   = LocalDate(2024, 1, 31)
+        val viewEnd = LocalDate(2024, 1, 31)
 
         val result = EventGenerator.expandEvents(listOf(outOfRangeEvent), viewStart, viewEnd)
 
@@ -163,12 +163,12 @@ class EventGeneratorTest : FunSpec({
             recurrence = null
         )
         val viewStart = LocalDate(2024, 2, 1)
-        val viewEnd   = LocalDate(2024, 2, 29)
+        val viewEnd = LocalDate(2024, 2, 29)
 
         val result = EventGenerator.expandEvents(listOf(timeEv, dayEv), viewStart, viewEnd)
 
         result shouldHaveSize 2
-        result.any { it is TimeEvent && it.title == "Lecture"    } shouldBe true
-        result.any { it is DayEvent  && it.title == "Study Day"  } shouldBe true
+        result.any { it is TimeEvent && it.title == "Lecture" } shouldBe true
+        result.any { it is DayEvent && it.title == "Study Day" } shouldBe true
     }
 })

@@ -1,10 +1,23 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material3.Icon
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
@@ -35,7 +48,10 @@ fun StudyPreferencesPanel(
             containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f)
         )
     ) {
-        Column(modifier = Modifier.padding(16.dp), verticalArrangement = Arrangement.spacedBy(16.dp)) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = Icons.Default.Settings,
@@ -56,11 +72,18 @@ fun StudyPreferencesPanel(
             HorizontalDivider()
 
             // Working Hours Window
-            Text("Daily Study Window", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Daily Study Window",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedTextField(
                     value = studyStartStr,
-                    onValueChange = { 
+                    onValueChange = {
                         val filtered = it.filter { c -> c.isDigit() }
                         onStudyStartChange(filtered)
                     },
@@ -70,7 +93,7 @@ fun StudyPreferencesPanel(
                 )
                 OutlinedTextField(
                     value = studyEndStr,
-                    onValueChange = { 
+                    onValueChange = {
                         val filtered = it.filter { c -> c.isDigit() }
                         onStudyEndChange(filtered)
                     },
@@ -83,11 +106,18 @@ fun StudyPreferencesPanel(
             HorizontalDivider()
 
             // Lunch Break
-            Text("Lunch Break", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Lunch Break",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedTextField(
                     value = lunchStartStr,
-                    onValueChange = { 
+                    onValueChange = {
                         val filtered = it.filter { c -> c.isDigit() }
                         onLunchStartChange(filtered)
                     },
@@ -97,7 +127,7 @@ fun StudyPreferencesPanel(
                 )
                 OutlinedTextField(
                     value = lunchEndStr,
-                    onValueChange = { 
+                    onValueChange = {
                         val filtered = it.filter { c -> c.isDigit() }
                         onLunchEndChange(filtered)
                     },
@@ -110,11 +140,18 @@ fun StudyPreferencesPanel(
             HorizontalDivider()
 
             // Dinner Break
-            Text("Dinner Break", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Dinner Break",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedTextField(
                     value = dinnerStartStr,
-                    onValueChange = { 
+                    onValueChange = {
                         val filtered = it.filter { c -> c.isDigit() }
                         onDinnerStartChange(filtered)
                     },
@@ -124,7 +161,7 @@ fun StudyPreferencesPanel(
                 )
                 OutlinedTextField(
                     value = dinnerEndStr,
-                    onValueChange = { 
+                    onValueChange = {
                         val filtered = it.filter { c -> c.isDigit() }
                         onDinnerEndChange(filtered)
                     },
@@ -137,11 +174,18 @@ fun StudyPreferencesPanel(
             HorizontalDivider()
 
             // Study Block & Break Preferences
-            Text("Study Blocks & Breaks", style = MaterialTheme.typography.labelLarge, color = MaterialTheme.colorScheme.primary)
-            Row(modifier = Modifier.fillMaxWidth(), horizontalArrangement = Arrangement.spacedBy(12.dp)) {
+            Text(
+                "Study Blocks & Breaks",
+                style = MaterialTheme.typography.labelLarge,
+                color = MaterialTheme.colorScheme.primary
+            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 OutlinedTextField(
                     value = maxStudyBlockStr,
-                    onValueChange = { 
+                    onValueChange = {
                         val filtered = it.filter { c -> c.isDigit() || c == '.' }
                         onMaxStudyBlockChange(filtered)
                     },
@@ -151,7 +195,7 @@ fun StudyPreferencesPanel(
                 )
                 OutlinedTextField(
                     value = preferredBreakStr,
-                    onValueChange = { 
+                    onValueChange = {
                         val filtered = it.filter { c -> c.isDigit() }
                         onPreferredBreakChange(filtered)
                     },

@@ -6,12 +6,11 @@ import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import java.io.StringReader
 import net.fortuna.ical4j.data.CalendarBuilder
 import net.fortuna.ical4j.model.Component
 import net.fortuna.ical4j.model.component.VEvent
 import net.fortuna.ical4j.model.property.Uid
-import net.fortuna.ical4j.model.property.Description
+import java.io.StringReader
 
 class ICalGeneratorTest : FunSpec({
 
@@ -37,7 +36,7 @@ class ICalGeneratorTest : FunSpec({
 
         val calendar = ICalGenerator.buildAcademicCalendar(events)
         calendar shouldNotBe null
-        
+
         val icsString = ICalGenerator.calendarToString(calendar)
         icsString shouldNotBe null
         println("Generated ICS:\n$icsString")
@@ -52,22 +51,22 @@ class ICalGeneratorTest : FunSpec({
 
         val event1 = parsedEvents.find { it.summary.value == "CS 101 Lecture" }
         event1 shouldNotBe null
-        
+
         val uidOpt1 = event1?.uid as? java.util.Optional<*>
         val uid1 = if (uidOpt1 != null && uidOpt1.isPresent) uidOpt1.get() as? Uid else null
         uid1?.value shouldBe "event-1"
-        
+
         val desc1 = event1?.description
         desc1?.value shouldContain "Source: CLASS"
         desc1?.value shouldContain "Category: CLASS"
 
         val event2 = parsedEvents.find { it.summary.value == "Math Assignment Due" }
         event2 shouldNotBe null
-        
+
         val uidOpt2 = event2?.uid as? java.util.Optional<*>
         val uid2 = if (uidOpt2 != null && uidOpt2.isPresent) uidOpt2.get() as? Uid else null
         uid2?.value shouldBe "event-2"
-        
+
         val desc2 = event2?.description
         desc2?.value shouldContain "Source: SCHOOL"
         desc2?.value shouldContain "Category: DEADLINE"

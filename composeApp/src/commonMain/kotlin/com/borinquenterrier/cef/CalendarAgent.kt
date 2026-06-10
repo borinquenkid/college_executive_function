@@ -16,8 +16,10 @@ class CalendarAgent(
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
     private val preferencesRepository: PreferencesRepository? = null
 ) {
-    private val negotiator = SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository)
-    private val negotiationApplier = SyncNegotiationApplier(localRepo, remoteRepo, logger, userPreferenceMemoryRepository)
+    private val negotiator =
+        SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository)
+    private val negotiationApplier =
+        SyncNegotiationApplier(localRepo, remoteRepo, logger, userPreferenceMemoryRepository)
 
     /**
      * Retrieves the consolidated list of events.
@@ -52,7 +54,8 @@ class CalendarAgent(
     suspend fun updateEvent(event: Event, calendarId: String = "default") {
         val original = localRepo.getAllEvents(calendarId).find { it.id == event.id }
         if (original != null && original.category == AcademicCategory.STUDY_BLOCK) {
-            val hasMoved = original.date != event.date || (original is TimeEvent && event is TimeEvent && (original.startTime != event.startTime || original.endTime != event.endTime))
+            val hasMoved =
+                original.date != event.date || (original is TimeEvent && event is TimeEvent && (original.startTime != event.startTime || original.endTime != event.endTime))
             if (hasMoved) {
                 userPreferenceMemoryRepository?.logOverride(OverrideAction.MOVE, original)
             }
@@ -121,7 +124,10 @@ class CalendarAgent(
     /**
      * Retrieves incomplete events before a given date.
      */
-    suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String = "default"): List<Event> {
+    suspend fun getIncompleteEventsBefore(
+        date: LocalDate,
+        calendarId: String = "default"
+    ): List<Event> {
         return localRepo.getIncompleteEventsBefore(date, calendarId)
     }
 

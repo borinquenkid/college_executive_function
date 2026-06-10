@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
-import io.ktor.http.*
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.isSuccess
 
 /**
  * Categorizes HTTP errors from Gemini API into semantic error types.
@@ -26,7 +27,10 @@ class ErrorCategorizer(
     fun categorizeError(status: HttpStatusCode, body: String): ErrorType {
         // Success responses should never reach error categorization
         if (status.isSuccess()) {
-            logger?.e(tag, "CRITICAL: categorizeError called with success status ${status.value}. Success responses must be handled before error categorization.")
+            logger?.e(
+                tag,
+                "CRITICAL: categorizeError called with success status ${status.value}. Success responses must be handled before error categorization."
+            )
             return ErrorType.OtherError("Critical: Success status reached error categorizer. This indicates a bug in request handling.")
         }
 
@@ -37,14 +41,20 @@ class ErrorCategorizer(
                 logger?.d(tag, "Model not found - marking as structural error")
                 ErrorType.StructuralError("Model not found (404)")
             }
+
             status == HttpStatusCode.BadRequest && body.contains("response modalities") -> {
-                logger?.d(tag, "Model does not support text responses - marking as structural error")
+                logger?.d(
+                    tag,
+                    "Model does not support text responses - marking as structural error"
+                )
                 ErrorType.StructuralError("Response modalities not supported")
             }
+
             status == HttpStatusCode.ServiceUnavailable || status.value >= 500 -> {
                 logger?.d(tag, "Server error ${status.value} - transient")
                 ErrorType.TransientServerError
             }
+
             status == HttpStatusCode.TooManyRequests -> {
                 if (quotaDetector.isQuotaExhausted(body)) {
                     logger?.e(tag, "Daily quota exhausted")
@@ -55,13 +65,21 @@ class ErrorCategorizer(
                     ErrorType.TransientRateLimit(delayMs)
                 }
             }
+
             !status.isSuccess() -> {
                 logger?.e(tag, "Unexpected status ${status.value}: $body")
                 ErrorType.OtherError("API Error (${status.value}): $body")
             }
+
             else -> {
                 logger?.e(tag, "Categorization fell through. Status: ${status.value}, Body: $body")
-                ErrorType.OtherError("Unknown error. Status: ${status.value}, Response: ${body.take(200)}")
+                ErrorType.OtherError(
+                    "Unknown error. Status: ${status.value}, Response: ${
+                        body.take(
+                            200
+                        )
+                    }"
+                )
             }
         }
     }

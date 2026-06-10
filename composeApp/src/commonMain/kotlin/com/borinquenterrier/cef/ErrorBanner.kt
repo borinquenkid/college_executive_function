@@ -5,11 +5,23 @@ import androidx.compose.animation.fadeIn
 import androidx.compose.animation.fadeOut
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
-import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxWidth
+import androidx.compose.foundation.layout.height
+import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
+import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Warning
-import androidx.compose.material3.*
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Icon
+import androidx.compose.material3.IconButton
+import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -31,9 +43,10 @@ fun QuotaErrorBanner(
         is AgentError.QuotaExhausted -> Pair(
             "Daily AI Quota Reached",
             "Your free-tier Gemini API key has hit its daily request limit. " +
-                "The quota resets at midnight Pacific Time. " +
-                "You can continue using the app manually — AI features will resume automatically tomorrow."
+                    "The quota resets at midnight Pacific Time. " +
+                    "You can continue using the app manually — AI features will resume automatically tomorrow."
         )
+
         is AgentError.GenericError -> Pair(
             "AI Error",
             error.message.ifBlank { "An unexpected error occurred. Please try again." }
@@ -42,7 +55,7 @@ fun QuotaErrorBanner(
 
     val containerColor = when (error) {
         is AgentError.QuotaExhausted -> MaterialTheme.colorScheme.errorContainer
-        is AgentError.GenericError   -> MaterialTheme.colorScheme.errorContainer
+        is AgentError.GenericError -> MaterialTheme.colorScheme.errorContainer
     }
 
     Card(
@@ -97,7 +110,7 @@ fun AnimatedErrorBanner(
     AnimatedVisibility(
         visible = error != null,
         enter = slideInVertically(initialOffsetY = { -it }) + fadeIn(),
-        exit  = slideOutVertically(targetOffsetY  = { -it }) + fadeOut(),
+        exit = slideOutVertically(targetOffsetY = { -it }) + fadeOut(),
         modifier = modifier
     ) {
         if (error != null) {

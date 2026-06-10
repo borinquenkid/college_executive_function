@@ -1,24 +1,18 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldBe
-import io.kotest.matchers.collections.shouldHaveSize
-import com.russhwolf.settings.MapSettings
-import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
-import com.borinquenterrier.cef.db.AppDatabase
 import com.borinquenterrier.cef.db.DriverFactory
-import kotlinx.coroutines.runBlocking
-import io.mockk.mockk
+import com.russhwolf.settings.MapSettings
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
+import io.mockk.mockk
 import io.mockk.slot
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 
 /**
  * Demonstrates that the application logic can now run "Headless"
@@ -31,7 +25,7 @@ class HeadlessLogicTest : FunSpec({
         val settings = MapSettings()
         val logger = Logger(settings)
         val driverFactory = DriverFactory() // Use real factory in test
-        
+
         // 2. Initialize Container
         val container = DependencyContainer(
             settings = settings,
@@ -46,14 +40,14 @@ class HeadlessLogicTest : FunSpec({
         // 3. Verify member access
         container.googleAccountFlow.state.value shouldBe GoogleConnectionState.Unlinked
         container.eventAgent.isLoading.value shouldBe false
-        
+
         // 4. Run a simple headless operation
         val text = "Test Event on 2026-01-01"
         val parts = SourceProcessor.process(text)
-        
+
         parts.size shouldBe 1
         parts[0].text shouldBe text
-        
+
         println("Headless logic successfully verified via DependencyContainer.")
     }
 
@@ -62,9 +56,15 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val database = null // Not needed for this pure logic test
         val logger = Logger(MapSettings())
-        
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, database, NormalizationService(), logger = logger)
-        
+
+        val eventAgent = EventAgent(
+            mockAiService,
+            mockCalendarAgent,
+            database,
+            NormalizationService(),
+            logger = logger
+        )
+
         // 1. Mock existing events in the calendar (e.g., a scheduled class)
         val existingClass = TimeEvent(
             title = "PHYS 401 Lecture",
@@ -75,7 +75,7 @@ class HeadlessLogicTest : FunSpec({
             category = AcademicCategory.CLASS
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(existingClass)
-        
+
         // 2. Mock AI response
         val mockAiResponse = listOf(
             TimeEvent(
@@ -88,22 +88,30 @@ class HeadlessLogicTest : FunSpec({
             )
         )
         val scheduleSlot = slot<String>()
-        coEvery { mockAiService.generateStudyPlan(any(), capture(scheduleSlot)) } returns mockAiResponse
-        
+        coEvery {
+            mockAiService.generateStudyPlan(
+                any(),
+                capture(scheduleSlot)
+            )
+        } returns mockAiResponse
+
         // 3. Run generateStudyPlan
-        val source = SourceItem("Mock Syllabus", listOf(SourceFragment("Midterm Exam on Oct 15", type = SourceType.TEXT)))
+        val source = SourceItem(
+            "Mock Syllabus",
+            listOf(SourceFragment("Midterm Exam on Oct 15", type = SourceType.TEXT))
+        )
         eventAgent.generateStudyPlan(source)
-        
+
         // 4. Verify that the EventAgent correctly queried the calendar and passed the formatted string to the AI
         coVerify { mockCalendarAgent.getEvents("default") }
         coVerify { mockAiService.generateStudyPlan(any(), any()) }
-        
+
         // The formatted string should contain the existing class details so the AI knows to avoid it
         val capturedSchedule = scheduleSlot.captured
         capturedSchedule.contains("PHYS 401 Lecture") shouldBe true
         capturedSchedule.contains("2026-10-14") shouldBe true
         capturedSchedule.contains("09:30") shouldBe true
-        
+
         // Verify the resulting generated events are available in state
         eventAgent.lastGeneratedEvents.value.size shouldBe 1
         eventAgent.lastGeneratedEvents.value[0].title shouldBe "Study for Midterm"
@@ -114,7 +122,13 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+        val eventAgent = EventAgent(
+            mockAiService,
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = logger
+        )
 
         val deadline = DayEvent(
             title = "Research Paper",
@@ -143,7 +157,13 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+        val eventAgent = EventAgent(
+            mockAiService,
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = logger
+        )
 
         val deadline = DayEvent(
             title = "Final Essay",
@@ -185,7 +205,13 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+        val eventAgent = EventAgent(
+            mockAiService,
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = logger
+        )
 
         val mockAuditResponse = """
             {
@@ -235,7 +261,13 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+        val eventAgent = EventAgent(
+            mockAiService,
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = logger
+        )
 
         val missedEvent = DayEvent(
             id = "event1",
@@ -246,7 +278,9 @@ class HeadlessLogicTest : FunSpec({
             completionStatus = CompletionStatus.INCOMPLETE
         )
 
-        coEvery { mockCalendarAgent.getIncompleteEventsBefore(any(), "default") } returns listOf(missedEvent)
+        coEvery { mockCalendarAgent.getIncompleteEventsBefore(any(), "default") } returns listOf(
+            missedEvent
+        )
         coEvery { mockCalendarAgent.updateEvent(any(), any()) } returns Unit
         coEvery { mockCalendarAgent.synchronize(any()) } returns Unit
         coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
@@ -256,23 +290,27 @@ class HeadlessLogicTest : FunSpec({
         eventAgent.incompleteEvents.value[0].title shouldBe "Missed Study Block"
 
         eventAgent.markEventCompleted(missedEvent)
-        coVerify(exactly = 1) { 
-            mockCalendarAgent.updateEvent(match { 
-                it.id == "event1" && it.completionStatus == CompletionStatus.COMPLETED 
-            }, "default") 
+        coVerify(exactly = 1) {
+            mockCalendarAgent.updateEvent(match {
+                it.id == "event1" && it.completionStatus == CompletionStatus.COMPLETED
+            }, "default")
         }
 
         eventAgent.skipEvent(missedEvent)
-        coVerify(exactly = 1) { 
-            mockCalendarAgent.updateEvent(match { 
-                it.id == "event1" && it.completionStatus == CompletionStatus.SKIPPED 
-            }, "default") 
+        coVerify(exactly = 1) {
+            mockCalendarAgent.updateEvent(match {
+                it.id == "event1" && it.completionStatus == CompletionStatus.SKIPPED
+            }, "default")
         }
 
         eventAgent.rescheduleEvent(missedEvent)
         coVerify(exactly = 1) {
             mockCalendarAgent.updateEvent(match {
-                it.id == "event1" && it.completionStatus == CompletionStatus.INCOMPLETE && it.date != LocalDate(2026, 6, 1)
+                it.id == "event1" && it.completionStatus == CompletionStatus.INCOMPLETE && it.date != LocalDate(
+                    2026,
+                    6,
+                    1
+                )
             }, "default")
         }
     }
@@ -282,12 +320,19 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+        val eventAgent = EventAgent(
+            mockAiService,
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = logger
+        )
 
         // Test clearError and errorState
         val stateProp = eventAgent::class.java.getDeclaredField("_errorState")
         stateProp.isAccessible = true
-        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<AgentError?>).value = AgentError.QuotaExhausted
+        (stateProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<AgentError?>).value =
+            AgentError.QuotaExhausted
 
         eventAgent.errorState.value shouldBe AgentError.QuotaExhausted
         eventAgent.clearError()
@@ -300,8 +345,14 @@ class HeadlessLogicTest : FunSpec({
         // Test clear
         val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
         lastGeneratedProp.isAccessible = true
-        val event = DayEvent(title = "Temp Event", source = EventSource.AI_GENERATED, category = AcademicCategory.REGULAR, date = LocalDate(2026, 1, 1))
-        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(event)
+        val event = DayEvent(
+            title = "Temp Event",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.REGULAR,
+            date = LocalDate(2026, 1, 1)
+        )
+        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(event)
 
         eventAgent.clear()
         eventAgent.lastGeneratedEvents.value shouldBe emptyList()
@@ -310,11 +361,13 @@ class HeadlessLogicTest : FunSpec({
         // Test clearDecomposition
         val decompTasksProp = eventAgent::class.java.getDeclaredField("_decomposedTasks")
         decompTasksProp.isAccessible = true
-        (decompTasksProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<DecomposedTask>>).value = listOf(DecomposedTask("Task", 1, "Desc"))
+        (decompTasksProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<DecomposedTask>>).value =
+            listOf(DecomposedTask("Task", 1, "Desc"))
 
         val decompTargetProp = eventAgent::class.java.getDeclaredField("_decompositionTarget")
         decompTargetProp.isAccessible = true
-        (decompTargetProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<Event?>).value = event
+        (decompTargetProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<Event?>).value =
+            event
 
         eventAgent.clearDecomposition()
         eventAgent.decomposedTasks.value shouldBe emptyList()
@@ -323,7 +376,13 @@ class HeadlessLogicTest : FunSpec({
 
     test("EventAgent pushToCalendar with empty generated events should return empty list") {
         val mockCalendarAgent = mockk<CalendarAgent>()
-        val eventAgent = EventAgent(mockk(), mockCalendarAgent, null, NormalizationService(), logger = Logger(MapSettings()))
+        val eventAgent = EventAgent(
+            mockk(),
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = Logger(MapSettings())
+        )
 
         val result = eventAgent.pushToCalendar()
         result shouldBe emptyList()
@@ -331,12 +390,24 @@ class HeadlessLogicTest : FunSpec({
 
     test("EventAgent pushToCalendar should set status message and error state on repository exception") {
         val mockCalendarAgent = mockk<CalendarAgent>()
-        val eventAgent = EventAgent(mockk(), mockCalendarAgent, null, NormalizationService(), logger = Logger(MapSettings()))
+        val eventAgent = EventAgent(
+            mockk(),
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = Logger(MapSettings())
+        )
 
-        val event = DayEvent(title = "Temp Event", source = EventSource.AI_GENERATED, category = AcademicCategory.REGULAR, date = LocalDate(2026, 1, 1))
+        val event = DayEvent(
+            title = "Temp Event",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.REGULAR,
+            date = LocalDate(2026, 1, 1)
+        )
         val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
         lastGeneratedProp.isAccessible = true
-        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value = listOf(event)
+        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(event)
 
         coEvery { mockCalendarAgent.getEvents(any()) } throws Exception("Database failure")
 
@@ -350,11 +421,28 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
-        val event = DayEvent(id = "event1", title = "Temp Event", source = EventSource.AI_GENERATED, category = AcademicCategory.REGULAR, date = LocalDate(2026, 1, 1))
+        val eventAgent = EventAgent(
+            mockAiService,
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = logger
+        )
+        val event = DayEvent(
+            id = "event1",
+            title = "Temp Event",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.REGULAR,
+            date = LocalDate(2026, 1, 1)
+        )
 
         // loadIncompleteEvents exception
-        coEvery { mockCalendarAgent.getIncompleteEventsBefore(any(), any()) } throws Exception("Failed to load")
+        coEvery {
+            mockCalendarAgent.getIncompleteEventsBefore(
+                any(),
+                any()
+            )
+        } throws Exception("Failed to load")
         eventAgent.loadIncompleteEvents() // Should not throw
 
         // markEventCompleted exception
@@ -377,9 +465,16 @@ class HeadlessLogicTest : FunSpec({
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
 
-        val eventAgent = EventAgent(mockAiService, mockCalendarAgent, null, NormalizationService(), logger = logger)
+        val eventAgent = EventAgent(
+            mockAiService,
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = logger
+        )
 
-        val today = kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
+        val today =
+            kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
         val event = TimeEvent(
             id = "event1",
             title = "Missed Study Block",

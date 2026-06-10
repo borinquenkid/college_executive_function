@@ -1,7 +1,6 @@
 package com.borinquenterrier.cef
 
 import kotlinx.coroutines.CoroutineScope
-import kotlinx.coroutines.launch
 
 /**
  * Loads sources from the database and reconstructs SourceItem objects with fragments.

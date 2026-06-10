@@ -13,9 +13,14 @@ object AiPrompts {
         syllabusText: String,
         existingSchedule: String = "",
         preferences: StudyPreferences = StudyPreferences()
-    ): String = StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule, preferences)
+    ): String =
+        StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule, preferences)
 
-    fun getTaskDecompositionPrompt(taskTitle: String, dueDate: String, context: String = ""): String =
+    fun getTaskDecompositionPrompt(
+        taskTitle: String,
+        dueDate: String,
+        context: String = ""
+    ): String =
         StudyPlanBuilder.getTaskDecompositionPrompt(taskTitle, dueDate, context)
 
     fun getDocumentIntelligencePrompt(text: String): String =
@@ -36,7 +41,11 @@ object AiPrompts {
     fun getChatCritiquePrompt(originalPrompt: String, response: String): String =
         ChatBuilder.getChatCritiquePrompt(originalPrompt, response)
 
-    fun getDecompositionCritiquePrompt(taskTitle: String, dueDate: String, tasksJson: String): String =
+    fun getDecompositionCritiquePrompt(
+        taskTitle: String,
+        dueDate: String,
+        tasksJson: String
+    ): String =
         StudyPlanBuilder.getDecompositionCritiquePrompt(taskTitle, dueDate, tasksJson)
 
     fun getSyllabusAuditPrompt(syllabusText: String): String =

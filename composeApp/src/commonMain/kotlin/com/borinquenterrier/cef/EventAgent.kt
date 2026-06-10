@@ -58,7 +58,13 @@ class EventAgent(
     /** Non-null when an error requiring user attention has occurred. Call [clearError] to dismiss. */
     val errorState: StateFlow<AgentError?> = _errorState.asStateFlow()
 
+    private val _unresolvedConflicts = MutableStateFlow<List<ConflictResolver.UnresolvedConflict>>(emptyList())
+    /** Conflicts requiring professor approval (quiz, test, exam conflicts). */
+    val unresolvedConflicts: StateFlow<List<ConflictResolver.UnresolvedConflict>> = _unresolvedConflicts.asStateFlow()
+
     fun clearError() { _errorState.value = null }
+
+    fun clearUnresolvedConflicts() { _unresolvedConflicts.value = emptyList() }
 
     fun updateStatus(message: String) {
         _statusMessage.value = message
@@ -156,11 +162,18 @@ class EventAgent(
             val outcome = pushResolver.resolveAndPush(events, existing, calendarId)
             conflicts = outcome.conflicts
 
-            if (conflicts.isEmpty()) {
+            // Capture unresolved conflicts (those requiring professor approval)
+            if (outcome.unresolvableConflicts.isNotEmpty()) {
+                _unresolvedConflicts.value = outcome.unresolvableConflicts
+                logger?.d(tag, "Found ${outcome.unresolvableConflicts.size} unresolvable conflicts requiring professor approval")
+            }
+
+            if (conflicts.isEmpty() && outcome.unresolvableConflicts.isEmpty()) {
                 _statusMessage.value = "Success! All ${outcome.successCount} events pushed."
                 _lastGeneratedEvents.value = emptyList()
             } else {
-                _statusMessage.value = "Synced ${outcome.successCount} events. ${conflicts.size} conflicts need review."
+                val unresolvableCount = outcome.unresolvableConflicts.size
+                _statusMessage.value = "Synced ${outcome.successCount} events. $unresolvableCount require professor contact, ${conflicts.size} other conflicts."
                 _lastGeneratedEvents.value = conflicts
             }
         } catch (e: Exception) {

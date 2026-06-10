@@ -47,7 +47,9 @@ fun AcademicCalendar(
     var isSyncing by remember { mutableStateOf(false) }
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
     var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
+    var showConflictDialog by remember { mutableStateOf(false) }
     val errorState by eventAgent.errorState.collectAsState()
+    val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
 
     LaunchedEffect(routineRepository) {
         routineEvents = routineRepository.getRoutineEvents()
@@ -69,6 +71,12 @@ fun AcademicCalendar(
                     isSyncing = false
                 }
             }
+        }
+    }
+
+    LaunchedEffect(unresolvedConflicts) {
+        if (unresolvedConflicts.isNotEmpty()) {
+            showConflictDialog = true
         }
     }
 
@@ -112,6 +120,16 @@ fun AcademicCalendar(
             },
             onDismiss = {
                 activeSyncNegotiation = null
+            }
+        )
+    }
+
+    if (showConflictDialog) {
+        ConflictResolutionDialog(
+            conflicts = unresolvedConflicts,
+            onDismiss = {
+                showConflictDialog = false
+                eventAgent.clearUnresolvedConflicts()
             }
         )
     }

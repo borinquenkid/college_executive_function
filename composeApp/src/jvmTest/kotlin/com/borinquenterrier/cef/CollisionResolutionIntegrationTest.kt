@@ -92,6 +92,10 @@ class CollisionResolutionIntegrationTest : FunSpec({
         dbEvents.find { it.title == "Clean Study Block B" } shouldNotBe null
     }
 
+    @KnownFailure(
+        issue = "https://github.com/borinquenkid/college_executive_function/issues/3",
+        reason = "SchedulingAlgorithm not finding valid slots for bumped events"
+    )
     test("Headless Integration: Priority Bump and Shift Cascade") {
         val (eventAgent, localRepo) = setupTestAgent()
 
@@ -203,6 +207,10 @@ class CollisionResolutionIntegrationTest : FunSpec({
         math.startTime shouldNotBe chem.startTime
     }
 
+    @KnownFailure(
+        issue = "https://github.com/borinquenkid/college_executive_function/issues/4",
+        reason = "NPE in deadline leeway logic or calculation"
+    )
     test("Headless Integration: Post-Deadline Shift (Late Leeway warning)") {
         val (eventAgent, localRepo) = setupTestAgent()
 

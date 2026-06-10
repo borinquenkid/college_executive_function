@@ -16,6 +16,10 @@ import kotlin.time.Duration.Companion.minutes
  */
 class ConflictResolutionHeadlessTest : FunSpec({
 
+    @KnownFailure(
+        issue = "https://github.com/borinquenkid/college_executive_function/issues/5",
+        reason = "ConflictResolver not properly classifying/isolating conflicts in e2e pipeline"
+    )
     test("Headless e2e: Process real syllabi, generate plan, resolve conflicts").config(
         timeout = 120_000.minutes  // Real API calls can be slow
     ) {

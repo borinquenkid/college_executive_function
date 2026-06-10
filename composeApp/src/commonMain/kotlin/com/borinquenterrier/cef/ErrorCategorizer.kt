@@ -50,13 +50,10 @@ class ErrorCategorizer(
                 }
             }
             !status.isSuccess() -> {
-                logger?.e(tag, "Unexpected status ${status.value}: $body")
+                logger?.e(tag, "Unexpected status ${status.value}")
                 ErrorType.OtherError("API Error (${status.value}): $body")
             }
-            else -> {
-                logger?.e(tag, "Categorization fell through. Status: ${status.value}, Body: $body")
-                ErrorType.OtherError("Unknown error. Status: ${status.value}, Response: ${body.take(200)}")
-            }
+            else -> ErrorType.OtherError("Unknown error")
         }
     }
 }

@@ -62,9 +62,11 @@ class ErrorCategorizerTest : StringSpec({
         result shouldBe ErrorCategorizer.ErrorType.TransientRateLimit(60000L)
     }
 
-    "categorizes unknown success status as OtherError" {
+    "rejects success status with critical error (defensive check)" {
         val result = categorizer.categorizeError(HttpStatusCode.OK, "Unexpected success with error body")
-        result shouldBe ErrorCategorizer.ErrorType.OtherError("Unknown error")
+        result as? ErrorCategorizer.ErrorType.OtherError shouldBe ErrorCategorizer.ErrorType.OtherError(
+            "Critical: Success status reached error categorizer. This indicates a bug in request handling."
+        )
     }
 
     "categorizes unhandled error codes" {

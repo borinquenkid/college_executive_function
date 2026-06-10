@@ -24,6 +24,12 @@ class ErrorCategorizer(
     }
 
     fun categorizeError(status: HttpStatusCode, body: String): ErrorType {
+        // Success responses should never reach error categorization
+        if (status.isSuccess()) {
+            logger?.e(tag, "CRITICAL: categorizeError called with success status ${status.value}. Success responses must be handled before error categorization.")
+            return ErrorType.OtherError("Critical: Success status reached error categorizer. This indicates a bug in request handling.")
+        }
+
         return when {
             status == HttpStatusCode.Unauthorized -> ErrorType.Unauthorized
             status == HttpStatusCode.Forbidden -> ErrorType.Forbidden

@@ -59,7 +59,15 @@ class GeminiRequestExecutor(
                 val httpResponse = postToModel(modelName, body(modelName))
                 val responseBody = httpResponse.bodyAsText()
 
-                // Categorize error
+                // Handle success immediately (2xx status codes)
+                if (httpResponse.status.isSuccess()) {
+                    val geminiResponse = Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(responseBody)
+                    val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
+                        ?: throw Exception("Empty response from AI")
+                    return parseResponse(responseText)
+                }
+
+                // Categorize error (only for non-2xx responses)
                 val errorType = errorHandler.categorizeError(httpResponse.status, responseBody)
 
                 // Handle fatal errors
@@ -124,7 +132,7 @@ class GeminiRequestExecutor(
                     continue
                 }
 
-                // Handle other errors
+                // Handle other errors (should not reach here for 2xx responses)
                 if (errorType is ErrorCategorizer.ErrorType.OtherError) {
                     val fullMessage = if (errorType.message.isNotBlank()) {
                         errorType.message
@@ -135,12 +143,8 @@ class GeminiRequestExecutor(
                     throw Exception(fullMessage)
                 }
 
-                // Success
-                val geminiResponse = Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(responseBody)
-                val responseText = geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                    ?: throw Exception("Empty response from AI")
-
-                return parseResponse(responseText)
+                // Defensive: throw if we somehow reach here
+                throw Exception("Unexpected response status: ${httpResponse.status}")
 
             } catch (e: Exception) {
                 if (e.message?.let { it.contains("Unauthorized") || it.contains("Forbidden") || it.contains("QuotaExhausted") } == true) {

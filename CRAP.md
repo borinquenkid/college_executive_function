@@ -202,6 +202,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `runAgentAction` | 1 |
 | *... and 6 more* | |
 
+### GeminiRequestExecutor.kt (Score: 28.88 - 🟡 MEDIUM)
+- **Total Complexity**: 24
+- **Real Coverage**: 79.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearRateLimitResetForTesting` | 1 |
+| `postToModel` | 1 |
+| `<T> executeWithRetry` | 1 |
+
 ### GeminiAIService.kt (Score: 28.20 - 🟡 MEDIUM)
 - **Total Complexity**: 26
 - **Real Coverage**: 85.2%
@@ -220,17 +231,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseDecomposeTaskJson` | 1 |
 | `parseCategorizeSourceJson` | 1 |
 | *... and 6 more* | |
-
-### GeminiRequestExecutor.kt (Score: 27.48 - 🟡 MEDIUM)
-- **Total Complexity**: 23
-- **Real Coverage**: 79.6%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearRateLimitResetForTesting` | 1 |
-| `postToModel` | 1 |
-| `<T> executeWithRetry` | 1 |
 
 ### GoogleCalendarPanel.kt (Score: 27.05 - 🟡 MEDIUM)
 - **Total Complexity**: 23

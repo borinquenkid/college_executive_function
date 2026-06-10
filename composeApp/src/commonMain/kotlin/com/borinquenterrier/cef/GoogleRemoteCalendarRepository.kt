@@ -22,22 +22,31 @@ class GoogleRemoteCalendarRepository(
 
     override suspend fun getAllEvents(calendarId: String): List<Event> {
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)
-        validateCalendarExists(targetId)
-        return syncService.getEvents(targetId)
+        try {
+            return syncService.getEvents(targetId)
+        } catch (e: GoogleApiException) {
+            throw mapCalendarException(targetId, e)
+        }
     }
 
     override suspend fun saveEvent(event: Event, calendarId: String) {
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)
-        validateCalendarExists(targetId)
-        val existingEvents = syncService.getEvents(targetId)
-        conflictDetector.validateNoConflict(event, existingEvents)
-        syncService.syncEvent(event, targetId)
+        try {
+            val existingEvents = syncService.getEvents(targetId)
+            conflictDetector.validateNoConflict(event, existingEvents)
+            syncService.syncEvent(event, targetId)
+        } catch (e: GoogleApiException) {
+            throw mapCalendarException(targetId, e)
+        }
     }
 
     override suspend fun updateEvent(event: Event, calendarId: String) {
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)
-        validateCalendarExists(targetId)
-        syncService.syncEvent(event, targetId)
+        try {
+            syncService.syncEvent(event, targetId)
+        } catch (e: GoogleApiException) {
+            throw mapCalendarException(targetId, e)
+        }
     }
 
     override suspend fun deleteEvent(eventId: String, calendarId: String) {
@@ -83,28 +92,22 @@ class GoogleRemoteCalendarRepository(
     }
 
     /**
-     * Validates that a calendar exists on the server.
-     * Throws [CalendarNotFoundException] if the calendar has been deleted or is inaccessible.
+     * Maps Google API exceptions to user-friendly calendar-specific exceptions.
+     * Detects 404 (calendar deleted) and 403 (access revoked) and provides clear guidance.
      */
-    private suspend fun validateCalendarExists(calendarId: String) {
-        try {
-            // Try to fetch events (just checks if calendar is accessible)
-            // If calendar doesn't exist, Google API returns 404
-            syncService.getEvents(calendarId)
-        } catch (e: GoogleApiException) {
-            when (e.statusCode) {
-                404 -> throw CalendarNotFoundException(
-                    calendarId = calendarId,
-                    message = "Calendar '$calendarId' no longer exists or has been deleted on Google Calendar. " +
-                              "Please re-link your calendar or use a different calendar."
-                )
-                403 -> throw CalendarNotFoundException(
-                    calendarId = calendarId,
-                    message = "No longer have access to calendar '$calendarId'. " +
-                              "The calendar owner may have revoked your access."
-                )
-                else -> throw e
-            }
+    private fun mapCalendarException(calendarId: String, e: GoogleApiException): Throwable {
+        return when (e.statusCode) {
+            404 -> CalendarNotFoundException(
+                calendarId = calendarId,
+                message = "Calendar '$calendarId' no longer exists or has been deleted on Google Calendar. " +
+                          "Please re-link your calendar or use a different calendar."
+            )
+            403 -> CalendarNotFoundException(
+                calendarId = calendarId,
+                message = "No longer have access to calendar '$calendarId'. " +
+                          "The calendar owner may have revoked your access."
+            )
+            else -> e
         }
     }
 }

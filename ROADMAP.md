@@ -57,9 +57,14 @@ Implement the database-per-student, connection caching, Litestream replication, 
   1. ✅ Implement hashed database-per-student sharding and an LRU connection cache to prevent handle leaks.
   2. ✅ Isolate student settings and Google OAuth tokens in their sharded SQLite database files instead of a global shared JVM preference store.
   3. ✅ Create a coroutine-based async ingest worker pool to isolate document parsing and vector indexing from the main HTTP thread pool.
-  4. Wire `ServerContainer` to use `TenantSettingsFactory` instead of the global `PreferencesSettings` instance.
-  5. Set up Litestream parameters and nightly compacted snapshot backups (`VACUUM INTO`).
+  4. ✅ Wire `ServerContainer` to use `TenantSettingsFactory` instead of the global `PreferencesSettings` instance.
+  5. ✅ Set up Litestream parameters and nightly compacted snapshot backups (`VACUUM INTO`).
   6. Implement an automated multi-database schema migration runner to run upgrades across all active tenant files.
+
+* **Known Issues (Desktop ↔ Server Compatibility)**:
+  * **`DriverFactory` collision (blocker before production):** `DriverFactory.createDriver()` is hardcoded to `~/.cef/cef.db`. The server's `ServerContainerFactory` calls `DriverFactory()` for every student's `DependencyContainer`, meaning all student containers open the same shared `AppDatabase` instead of isolated per-student files. Must be resolved in Task 6 by introducing a `TenantDriverFactory` that routes each student to their own sharded SQLite path via `TenantDatabaseFactory`.
+  * **`GoogleAuthService` writes OAuth flow state to `~/.cef_credentials/`:** The authorization-code-exchange still uses `FileDataStoreFactory` pointed at a shared host directory. Not a problem while the server doesn't handle OAuth flows, but must be isolated per-tenant before exposing OAuth endpoints.
+  * **`DependencyContainer` carries desktop-only components:** `PollScheduler`, `AgentHarness`, and `AppController` are lazy vals that never initialize on the server, so there is no runtime cost. Long-term, a shared-kernel boundary between desktop and server containers would remove the coupling.
 
 ---
 

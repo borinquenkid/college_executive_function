@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: 6.0 (Completed)** — Completed Web Client & AG-UI Protocol Integration. Next up: Phase 1 (Custom Calendar UI) or Phase 0.23+ CRAP Remediation.
+**Current Phase: Phase 3 (In Progress)** — Implementing Web Ingestion REST Endpoints (ADR 0001 Happy Path) to support the React web client.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8, 0.9+)
 
@@ -39,28 +39,26 @@
 
 ## 🆕 Planned Work & User-Reported Issues
 
-### Phase 1 — Custom Google Calendar Selection UI
-Add ability to fetch available Google Calendars, save the selected calendar ID/name to preferences, and configure the synchronization pipeline to target the chosen calendar. This enables flexible desktop testing using specific test calendars instead of hardcoding target IDs.
-* **Status**: ⏳ Planned
+### Phase 3 — Web Ingestion REST Endpoints (ADR 0001 Happy Path)
+Implement the missing REST endpoints on the Ktor server to support the React web client's file ingestion, event loading, and settings management as described in [SPEC.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/SPEC.md).
+* **Status**: ⏳ **IN PROGRESS**
 * **Tasks**:
-  1. Fetch available calendars via `RemoteCalendarRepository.getAvailableCalendars()` (wired through `syncService.listCalendars()`).
-  2. Add preference keys (`google_calendar_id`, `google_calendar_name`) to `PreferencesRepository` / `StudyPreferences`.
-  3. Display a dropdown menu in `SettingsScreen.kt` listing all fetched Google Calendars and saving the selected choice.
-  4. Refactor `GoogleRemoteCalendarRepository.kt` to query and use the selected calendar ID from settings rather than defaulting to `"CEF Academic"`.
+  1. Add Ktor REST endpoints to [Application.kt](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/server/src/main/kotlin/com/borinquenterrier/cef/Application.kt) delegating to a clean [WebIngestionController](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/server/src/main/kotlin/com/borinquenterrier/cef/WebIngestionController.kt).
+  2. Implement multipart file upload and URL processing in [WebIngestionController](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/server/src/main/kotlin/com/borinquenterrier/cef/WebIngestionController.kt).
+  3. Implement event retrieval, source listing/deletion, and settings persistence.
+  4. Write E2E integration tests in Ktor test server verifying file/URL ingestion and deletion flows using checked-in test documents (e.g. `sample.pdf`).
 
 ---
 
-### Phase 2 — Google Calendar, Gemini Quota, and OAuth Improvements
-These are user-reported issues and feature requests targeted for the next development cycles:
-* **Target Google Calendar Creation Capability** (Feature Request)
-  * **Description**: The app currently only allows picking from existing calendars retrieved from the user's Google Account. There is no option in the settings UI to create a *new* calendar.
-  * **Proposed Solution**: Add a "Create New Calendar" button/dialog in `SettingsScreen.kt` that calls `GoogleCalendarSyncService.createCalendar(name)` to instantiate a fresh calendar directly from the app.
-* **Gemini API Daily Quota Rate Limit Issue**
-  * **Description**: Ingesting a calendar and two syllabi simultaneously frequently triggers a `QuotaExhausted: Rate limit reached` error due to multiple concurrent requests.
-  * **Proposed Solution**: Improve the Critic-Actor and Event generation loops to stagger requests, run sequential retries with exponential backoff, and notify the user with a clearer countdown.
-* **Google OAuth Stale Connection / JSON Auth Error**
-  * **Description**: On startup, if local session tokens are stale/expired, the connection shows a raw JSON authentication error. Disconnecting and reconnecting resolves it.
-  * **Proposed Solution**: Auto-detect invalid refresh tokens at startup inside `GoogleAccountFlow` and transition the status cleanly to `Unlinked` instead of throwing raw JSON error messages.
+### Phase 4 — Multi-Tenant Institutional Scaling (ADR 0002 & ADR 0003)
+Implement the database-per-student, connection caching, Litestream replication, and async worker pool architectures accepted in ADR 0002 and ADR 0003.
+* **Status**: ⏳ Planned
+* **Tasks**:
+  1. Implement hashed database-per-student sharding and an LRU connection cache to prevent handle leaks.
+  2. Isolate student settings and Google OAuth tokens in their sharded SQLite database files instead of a global shared JVM preference store.
+  3. Create a coroutine-based async ingest worker pool to isolate document parsing and vector indexing from the main HTTP thread pool.
+  4. Set up Litestream parameters and nightly compacted snapshot backups (`VACUUM INTO`).
+  5. Implement an automated multi-database schema migration runner to run upgrades across all active tenant files.
 
 ---
 
@@ -71,6 +69,8 @@ For detailed lists of deliverables, code changes, and historical refactoring pla
 | Completed Phase / Feature | Summary / Notes | Status |
 |---|---|---|
 | **Phase 0.1–0.22 (CRAP Remediation)** | Decomposed all high-risk files (GeminiAIService, SettingsScreen, AppController, AcademicCalendar, ContextAgent, AiPrompts, CollisionResolver, AgentHarness, and File Ingestion services). | ✅ DONE |
+| **Phase 1 (Custom Google Calendar Selection UI)** | Fetch calendars, store custom `googleCalendarId` / `googleCalendarName` in settings, and Sync with custom target. | ✅ DONE |
+| **Phase 2 (Calendar, Gemini Quota & OAuth Hardening)** | Create calendars from settings UI, exponential backoff retry for Gemini quota exhaustion, auto-detect expired tokens and transition to Unlinked. | ✅ DONE |
 | **Phase 1 (Core Improvements)** | Multi-Source Chat Context, `.ics` Export, and Google Sync Hardening. | ✅ DONE |
 | **Phase 2 (UX Fine-Tuning)** | Visual Progress Tracking (health chips, bars), Configurable Scheduling Preferences, and Weighted Deliverables. | ✅ DONE |
 | **Phase 3 (Infrastructure & Polish)** | Client Secrets build-time injection, Compose UI Tests, and TF-IDF Source Fragment Indexing. | ✅ DONE |

@@ -201,6 +201,19 @@ Two complementary levers reduce CRAP:
 
 ## 🚀 Completed Feature Deliverables Details (June 2026)
 
+### Phase 1 — Custom Google Calendar Selection UI ✅ **COMPLETED**
+* **Work items:**
+  1. Wired `RemoteCalendarRepository.getAvailableCalendars()` and `syncService.listCalendars()` to fetch available calendars.
+  2. Extended `StudyPreferences` / `PreferencesRepository` with `googleCalendarId` and `googleCalendarName` settings properties.
+  3. Built Google Calendar dropdown selection menu in `SettingsScreen.kt`.
+  4. Updated `GoogleRemoteCalendarRepository.kt` to target the custom `googleCalendarId` resolved from preferences settings.
+
+### Phase 2 — Google Calendar, Gemini Quota, and OAuth Improvements ✅ **COMPLETED**
+* **Work items:**
+  1. Created target Google Calendar creation button/dialog in `SettingsScreen.kt` using `GoogleCalendarSyncService.createCalendar(name)`.
+  2. Wrapped Gemini API invocations with rate limit backoff retry handler to stagger and throttle concurrent ingest streams.
+  3. Hardened Google OAuth start-up status check to detect expired refresh tokens and transition the account connection status cleanly to `Unlinked`.
+
 ### Phase 1 — High Impact, Near-Term (Do First)
 
 #### 1.1 — Multi-Source Chat Context

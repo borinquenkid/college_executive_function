@@ -1,5 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAgentStream } from './useAgentStream';
+import type { StudyPreferences, RemoteCalendarMetadata } from './cef-types';
+export type { StudyPreferences, RemoteCalendarMetadata } from './cef-types';
 
 // API Interface Mappings matching KMP/Ktor Server backend
 interface WebSource {
@@ -39,17 +41,8 @@ interface DecomposedTask {
   description: string;
 }
 
-interface StudyPreferences {
-  studyStartHour: number;
-  studyEndHour: number;
-  lunchStartHour: number;
-  lunchEndHour: number;
-  dinnerStartHour: number;
-  dinnerEndHour: number;
-  maxStudyBlockHours: number;
-  preferredBreakMinutes: number;
-  shareAnonymousBugReports: boolean;
-}
+// StudyPreferences and RemoteCalendarMetadata are imported from ./cef-types
+// (auto-generated from Kotlin @Serializable classes via ./gradlew :server:generateTypescript)
 
 export default function App() {
   const [activeTab, setActiveTab] = useState<'calendar' | 'sources' | 'chat' | 'settings'>('calendar');
@@ -70,13 +63,26 @@ export default function App() {
     dinnerEndHour: 19,
     maxStudyBlockHours: 2,
     preferredBreakMinutes: 30,
-    shareAnonymousBugReports: false
+    shareAnonymousBugReports: false,
+    googleCalendarId: 'default',
+    googleCalendarName: 'CEF Academic'
   });
 
   // Action/Loading States
   const [isSyncing, setIsSyncing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [isDecomposing, setIsDecomposing] = useState(false);
+
+  // Google Calendar state
+  const [googleLinked, setGoogleLinked] = useState(false);
+  const [availableCalendars, setAvailableCalendars] = useState<RemoteCalendarMetadata[]>([]);
+  const [isLoadingCalendars, setIsLoadingCalendars] = useState(false);
+  const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
+  const [showCreateCalendarModal, setShowCreateCalendarModal] = useState(false);
+  const [newCalendarName, setNewCalendarName] = useState('');
+  const [isCreatingCalendar, setIsCreatingCalendar] = useState(false);
+  const [createCalendarError, setCreateCalendarError] = useState<string | null>(null);
+  const [calendarLoadError, setCalendarLoadError] = useState<string | null>(null);
 
   // Form inputs
   const [sourceUrl, setSourceUrl] = useState('');
@@ -122,6 +128,7 @@ export default function App() {
     fetchSources();
     fetchEvents();
     fetchSettings();
+    fetchGoogleAuthStatus();
   }, []);
 
   useEffect(() => {
@@ -159,14 +166,73 @@ export default function App() {
     }
   };
 
-  const saveSettings = async (newApiKey: string) => {
+  const fetchGoogleAuthStatus = async () => {
+    try {
+      const res = await fetch('/api/auth/google/status');
+      const data = await res.json();
+      const linked = !!data.linked;
+      setGoogleLinked(linked);
+      if (linked) fetchCalendars();
+    } catch (e) {
+      console.error('Failed to fetch Google auth status:', e);
+    }
+  };
+
+  const fetchCalendars = async () => {
+    setIsLoadingCalendars(true);
+    setCalendarLoadError(null);
+    try {
+      const res = await fetch('/api/calendars');
+      if (!res.ok) {
+        const err = await res.json();
+        setCalendarLoadError(err.error || 'Failed to load calendars');
+        return;
+      }
+      const data = await res.json();
+      if (Array.isArray(data)) setAvailableCalendars(data);
+    } catch (e) {
+      setCalendarLoadError('Could not reach calendar service');
+    } finally {
+      setIsLoadingCalendars(false);
+    }
+  };
+
+  const createCalendar = async () => {
+    if (!newCalendarName.trim()) return;
+    setIsCreatingCalendar(true);
+    setCreateCalendarError(null);
+    try {
+      const res = await fetch('/api/calendars', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newCalendarName })
+      });
+      if (!res.ok) {
+        const err = await res.json();
+        setCreateCalendarError(err.error || 'Failed to create calendar');
+        return;
+      }
+      const data = await res.json();
+      setPreferences(prev => ({ ...prev, googleCalendarId: data.id, googleCalendarName: data.name }));
+      setShowCreateCalendarModal(false);
+      setNewCalendarName('');
+      await fetchCalendars();
+    } catch (e) {
+      setCreateCalendarError('Network error — could not create calendar');
+    } finally {
+      setIsCreatingCalendar(false);
+    }
+  };
+
+  const saveSettings = async (newApiKey: string, newPrefs: StudyPreferences) => {
     try {
       await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: newApiKey })
+        body: JSON.stringify({ apiKey: newApiKey, studyPreferences: newPrefs })
       });
       setApiKey(newApiKey);
+      setPreferences(newPrefs);
       alert('Settings updated successfully!');
     } catch (e) {
       console.error('Failed to save settings:', e);
@@ -640,7 +706,90 @@ export default function App() {
                 </div>
               </div>
 
-              <button onClick={() => saveSettings(apiKey)} className="btn btn-primary" style={{ marginTop: '12px' }}>
+              <div className="grid-2">
+                <div className="form-group">
+                  <label>Max Study Block Hours</label>
+                  <input type="number" className="form-control" value={preferences.maxStudyBlockHours} onChange={e => setPreferences({...preferences, maxStudyBlockHours: parseInt(e.target.value)})} />
+                </div>
+                <div className="form-group">
+                  <label>Preferred Break Minutes</label>
+                  <input type="number" className="form-control" value={preferences.preferredBreakMinutes} onChange={e => setPreferences({...preferences, preferredBreakMinutes: parseInt(e.target.value)})} />
+                </div>
+              </div>
+
+              <div style={{ borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
+
+              {/* Google Calendar Section */}
+              <h3>Google Calendar Connection</h3>
+              <div style={{ marginTop: '12px', padding: '16px', borderRadius: '10px', border: `1px solid ${googleLinked ? 'var(--color-success)' : 'var(--border-color)'}`, background: googleLinked ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.02)' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
+                  <span style={{ fontSize: '18px' }}>{googleLinked ? '✅' : '🔒'}</span>
+                  <div>
+                    <p style={{ fontWeight: 600, fontSize: '14px' }}>{googleLinked ? 'Google Account Connected' : 'Google Account Not Linked'}</p>
+                    <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
+                      {googleLinked ? 'Calendars are available for sync.' : 'Run the desktop app to authenticate via OAuth, then refresh this page.'}
+                    </p>
+                  </div>
+                  {googleLinked && (
+                    <button onClick={fetchCalendars} disabled={isLoadingCalendars} className="btn btn-secondary" style={{ marginLeft: 'auto', padding: '4px 10px', fontSize: '12px' }}>
+                      {isLoadingCalendars ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                  )}
+                </div>
+
+                {googleLinked && (
+                  <div>
+                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)' }}>Target Google Calendar</label>
+                    {isLoadingCalendars ? (
+                      <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>Loading available calendars…</p>
+                    ) : calendarLoadError ? (
+                      <p style={{ fontSize: '12px', color: 'var(--color-danger)', marginTop: '8px' }}>{calendarLoadError}</p>
+                    ) : (
+                      <div style={{ position: 'relative', marginTop: '8px' }}>
+                        <div
+                          onClick={() => setCalendarDropdownOpen(v => !v)}
+                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', cursor: 'pointer', background: 'var(--bg-input, rgba(255,255,255,0.05))', fontSize: '14px' }}
+                        >
+                          <span>{preferences.googleCalendarId === 'default' ? 'CEF Academic (Default)' : preferences.googleCalendarName}</span>
+                          <span style={{ opacity: 0.6 }}>▾</span>
+                        </div>
+                        {calendarDropdownOpen && (
+                          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 50, background: 'var(--bg-card, #1a1d2e)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
+                            <div
+                              onClick={() => { setPreferences(p => ({...p, googleCalendarId: 'default', googleCalendarName: 'CEF Academic'})); setCalendarDropdownOpen(false); }}
+                              style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid var(--border-color)' }}
+                            >CEF Academic (Default)</div>
+                            {availableCalendars.map(cal => (
+                              <div
+                                key={cal.id}
+                                onClick={() => { setPreferences(p => ({...p, googleCalendarId: cal.id, googleCalendarName: cal.name})); setCalendarDropdownOpen(false); }}
+                                style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid var(--border-color)', background: preferences.googleCalendarId === cal.id ? 'rgba(99,102,241,0.15)' : 'transparent' }}
+                              >{cal.name}</div>
+                            ))}
+                          </div>
+                        )}
+                      </div>
+                    )}
+                    <button
+                      onClick={() => { setShowCreateCalendarModal(true); setCreateCalendarError(null); }}
+                      className="btn btn-secondary"
+                      style={{ marginTop: '10px', fontSize: '12px', padding: '5px 12px' }}
+                    >+ Create New Calendar</button>
+                  </div>
+                )}
+              </div>
+
+              <div className="form-group" style={{ display: 'flex', alignItems: 'center', gap: '8px', marginTop: '12px' }}>
+                <input 
+                  type="checkbox" 
+                  id="shareReports"
+                  checked={preferences.shareAnonymousBugReports} 
+                  onChange={e => setPreferences({...preferences, shareAnonymousBugReports: e.target.checked})} 
+                />
+                <label htmlFor="shareReports" style={{ cursor: 'pointer' }}>Share Anonymous Bug Reports</label>
+              </div>
+
+              <button onClick={() => saveSettings(apiKey, preferences)} className="btn btn-primary" style={{ marginTop: '16px' }}>
                 Save Configurations
               </button>
             </div>
@@ -686,6 +835,42 @@ export default function App() {
           </div>
         </div>
       )}
+
+      {/* Create New Calendar Modal */}
+      {showCreateCalendarModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }}>
+          <div className="card" style={{ width: '90%', maxWidth: '460px', background: '#131520' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <h2>Create New Google Calendar</h2>
+              <button onClick={() => { setShowCreateCalendarModal(false); setNewCalendarName(''); setCreateCalendarError(null); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+            </div>
+            <div className="form-group">
+              <label>Calendar Name</label>
+              <input
+                type="text"
+                className="form-control"
+                placeholder="e.g., Study Calendar"
+                value={newCalendarName}
+                onChange={e => setNewCalendarName(e.target.value)}
+                disabled={isCreatingCalendar}
+                autoFocus
+              />
+            </div>
+            {createCalendarError && (
+              <p style={{ fontSize: '12px', color: 'var(--color-danger)', marginBottom: '12px' }}>{createCalendarError}</p>
+            )}
+            <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '16px' }}>
+              <button onClick={() => { setShowCreateCalendarModal(false); setNewCalendarName(''); setCreateCalendarError(null); }} className="btn btn-secondary" disabled={isCreatingCalendar}>
+                Cancel
+              </button>
+              <button onClick={createCalendar} className="btn btn-primary" disabled={!newCalendarName.trim() || isCreatingCalendar}>
+                {isCreatingCalendar ? 'Creating…' : 'Create'}
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
+
   );
 }

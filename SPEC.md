@@ -93,3 +93,17 @@ All events use a generic wrapper structure:
 * **`TEXT_MESSAGE_START` / `TEXT_MESSAGE_DELTA` / `TEXT_MESSAGE_END`**: Streams response markdown text word-by-word.
 * **`STATE_SNAPSHOT`**: Delivers a full update of active source documents or calendar events.
 * **`RUN_FINISHED`**: Execution complete.
+
+### 4.3 REST API Endpoints
+To support sources management, settings persistence, and calendar synchronization, the server exposes the following REST endpoints:
+
+* **`GET /api/sources`**: Returns the list of `SourceItem`s currently stored in the database.
+* **`POST /api/sources`**: Ingests new content. Supports two formats in `multipart/form-data`:
+  * `url`: A string URL to be ingested.
+  * `file`: A binary file (e.g. PDF/DOCX/ICS) to be processed.
+* **`DELETE /api/sources/{id}`**: Deletes a source by its title (which acts as the source ID) and cleans up associated calendar events.
+* **`GET /api/events`**: Returns the list of active calendar events from the local calendar database.
+* **`POST /api/events/sync`**: Forces a two-way synchronization between the local repository and the remote provider.
+* **`GET /api/settings`**: Returns the active system settings: `{ "apiKey": "...", "studyPreferences": { ... } }`.
+* **`POST /api/settings`**: Saves the Gemini API Key and/or study preferences.
+

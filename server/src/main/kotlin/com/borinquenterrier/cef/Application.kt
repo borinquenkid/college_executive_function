@@ -8,6 +8,8 @@ import io.ktor.server.netty.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
 import io.ktor.utils.io.*
+import io.ktor.server.plugins.contentnegotiation.*
+import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.delay
 
 fun main() {
@@ -49,10 +51,56 @@ fun Application.module(testContainer: DependencyContainer? = null) {
         testContainer ?: ServerContainer.container
     }
 
+    install(ContentNegotiation) {
+        json()
+    }
+
     routing {
         get("/") {
             call.respondText("Ktor: ${Greeting().greet()}")
         }
+
+        get("/api/sources") {
+            WebIngestionController.handleGetSources(call, getContainer())
+        }
+
+        post("/api/sources") {
+            WebIngestionController.handlePostSource(call, getContainer())
+        }
+
+        delete("/api/sources/{id}") {
+            val id = call.parameters["id"] ?: ""
+            WebIngestionController.handleDeleteSource(call, id, getContainer())
+        }
+
+        get("/api/events") {
+            WebIngestionController.handleGetEvents(call, getContainer())
+        }
+
+        post("/api/events/sync") {
+            WebIngestionController.handleSyncEvents(call, getContainer())
+        }
+
+        get("/api/settings") {
+            WebIngestionController.handleGetSettings(call, getContainer())
+        }
+
+        post("/api/settings") {
+            WebIngestionController.handleSaveSettings(call, getContainer())
+        }
+
+        get("/api/auth/google/status") {
+            WebIngestionController.handleGetGoogleAuthStatus(call, getContainer())
+        }
+
+        get("/api/calendars") {
+            WebIngestionController.handleGetCalendars(call, getContainer())
+        }
+
+        post("/api/calendars") {
+            WebIngestionController.handleCreateCalendar(call, getContainer())
+        }
+
         
         get("/api/agent/stream") {
             val query = call.request.queryParameters["query"] ?: ""

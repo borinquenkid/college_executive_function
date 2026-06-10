@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: Phase 3 (In Progress)** — Implementing Web Ingestion REST Endpoints (ADR 0001 Happy Path) to support the React web client.
+**Current Phase: Phase 4 (In Progress)** — Multi-Tenant Institutional Scaling (ADR 0002 & ADR 0003).
 
 ### CRAP Remediation Progress (Phases 0.1–0.8, 0.9+)
 
@@ -41,7 +41,7 @@
 
 ### Phase 3 — Web Ingestion REST Endpoints (ADR 0001 Happy Path)
 Implement the missing REST endpoints on the Ktor server to support the React web client's file ingestion, event loading, and settings management as described in [SPEC.md](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/SPEC.md).
-* **Status**: ⏳ **IN PROGRESS**
+* **Status**: ✅ **DONE**
 * **Tasks**:
   1. Add Ktor REST endpoints to [Application.kt](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/server/src/main/kotlin/com/borinquenterrier/cef/Application.kt) delegating to a clean [WebIngestionController](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/server/src/main/kotlin/com/borinquenterrier/cef/WebIngestionController.kt).
   2. Implement multipart file upload and URL processing in [WebIngestionController](file:///Users/walterduquedeestrada/AndroidStudioProjects/college_executive_function/server/src/main/kotlin/com/borinquenterrier/cef/WebIngestionController.kt).
@@ -52,7 +52,7 @@ Implement the missing REST endpoints on the Ktor server to support the React web
 
 ### Phase 4 — Multi-Tenant Institutional Scaling (ADR 0002 & ADR 0003)
 Implement the database-per-student, connection caching, Litestream replication, and async worker pool architectures accepted in ADR 0002 and ADR 0003.
-* **Status**: ⏳ Planned
+* **Status**: ⏳ **IN PROGRESS**
 * **Tasks**:
   1. Implement hashed database-per-student sharding and an LRU connection cache to prevent handle leaks.
   2. Isolate student settings and Google OAuth tokens in their sharded SQLite database files instead of a global shared JVM preference store.
@@ -77,6 +77,7 @@ For detailed lists of deliverables, code changes, and historical refactoring pla
 | **Phase 4 (Evaluations & Telemetry)** | Syllabus Evaluation Suite, Offline Test Runner, and Observability Logging (TelemetryManager). | ✅ DONE |
 | **Phase 5 (Critic-Actor & Harness)** | Graph-Based Cycle Detection, Startup Interview Loop, Active Directory Poller Harness. | ✅ DONE |
 | **Phase 6 (Web UI / Server-Sent Events)** | Ktor AG-UI SSE Stream, Vite React TypeScript Frontend (AG-UI Protocol). | ✅ DONE |
+| **Phase 3 (Web Ingestion REST Endpoints)** | GET/POST/DELETE sources, GET events, POST sync, GET/POST settings, Google auth status, calendars. 325-line E2E integration test suite. | ✅ DONE |
 | **User UX Requests** | Source deletion, Submit on Enter key, macOS copy-paste support, friendly quota countdowns. | ✅ DONE |
 
 ---

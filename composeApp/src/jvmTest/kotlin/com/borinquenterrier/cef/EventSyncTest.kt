@@ -69,7 +69,7 @@ class EventSyncTest : FunSpec({
         eventAgent.lastGeneratedEvents.value[0].title shouldBe "Conflicting Event"
 
         // Verify status message updated
-        eventAgent.statusMessage.value shouldBe "Synced 1 events. 1 conflicts need review."
+        eventAgent.statusMessage.value shouldBe "Synced 1 events. 0 require professor contact, 1 other conflicts."
     }
 
     test("EventAgent.pushToCalendar should clear state on full success") {

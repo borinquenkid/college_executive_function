@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **83.90%** (8390/10000 lines)
-- **Total Source Files**: 149
+- **Total Source Files**: 150
 
 ## Coverage by File
 
@@ -13,6 +13,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | :---: | :--- | :---: | :---: | :---: | :--- |
 | 🔴 | SourceInterfaces.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | LocalFileFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | StateFlowWrapper.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | App.kt | 0.0% (0/52) | 0.0% (0/4) | 0.0% | AppKt, AppKt$App$containerState$1$1, AppKt$App$containerState$1$1$1 |
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% | *None* |

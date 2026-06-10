@@ -19,26 +19,41 @@ class AppController(val container: DependencyContainer) {
     private val eventsService = AiEventsService()
     private val sourceManager = container.sourceManager
 
-    // Chat State
-    private val _chatMessages = MutableStateFlow<List<ChatMessage>>(
-        listOf(
-            ChatMessage(
-                "AI",
-                "Hello! How can I help you today?"
+    // Chat State - wrapped for testability
+    private val _chatMessagesWrapper: MutableStateFlowWrapper<List<ChatMessage>> =
+        mutableStateFlowWrapper(
+            listOf(
+                ChatMessage(
+                    "AI",
+                    "Hello! How can I help you today?"
+                )
             )
         )
-    )
-    val chatMessages: StateFlow<List<ChatMessage>> = _chatMessages.asStateFlow()
+    val chatMessages: StateFlowReader<List<ChatMessage>> = _chatMessagesWrapper
 
     // Listeners for platform-specific UI (like native iOS)
     private var screenListener: ((AppScreen) -> Unit)? = null
     private var eventsListener: ((List<Event>) -> Unit)? = null
 
-    // Expose delegated services
-    val currentScreen: StateFlow<AppScreen> = navigationService.currentScreen
-    val aiGeneratedEvents: StateFlow<List<Event>> = eventsService.aiGeneratedEvents
-    val sourceItems: StateFlow<List<SourceItem>> = sourceManager.sourceItems
-    val selectedSource: StateFlow<SourceItem?> = sourceManager.selectedSource
+    // Expose delegated services via StateFlowReader interfaces
+    val currentScreen: StateFlowReader<AppScreen> = object : StateFlowReader<AppScreen> {
+        override val value: AppScreen get() = navigationService.currentScreen.value
+        override suspend fun collect(collector: suspend (AppScreen) -> Unit) {
+            navigationService.currentScreen.collect(collector)
+        }
+        override fun asStateFlow() = navigationService.currentScreen
+    }
+
+    val aiGeneratedEvents: StateFlowReader<List<Event>> = object : StateFlowReader<List<Event>> {
+        override val value: List<Event> get() = eventsService.aiGeneratedEvents.value
+        override suspend fun collect(collector: suspend (List<Event>) -> Unit) {
+            eventsService.aiGeneratedEvents.collect(collector)
+        }
+        override fun asStateFlow() = eventsService.aiGeneratedEvents
+    }
+
+    val sourceItems: StateFlowReader<List<SourceItem>> = sourceManager.sourceItems
+    val selectedSource: StateFlowReader<SourceItem?> = sourceManager.selectedSource
 
     init {
         scope.launch {
@@ -91,7 +106,7 @@ class AppController(val container: DependencyContainer) {
     }
 
     fun addChatMessage(message: ChatMessage) {
-        _chatMessages.value = _chatMessages.value + message
+        _chatMessagesWrapper.setValue(_chatMessagesWrapper.value + message)
     }
 
     fun setScreenListener(listener: (AppScreen) -> Unit) {

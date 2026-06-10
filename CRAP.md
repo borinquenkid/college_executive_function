@@ -9,8 +9,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 149
-- **High-Risk Files (CRAP > 30)**: 12
+- **Total Files Analyzed**: 150
+- **High-Risk Files (CRAP > 30)**: 13
 
 ### Top 15 High-Risk Files
 
@@ -24,13 +24,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | EventRangeFilter.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | PreferenceSerializer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | TFIDFScorer.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
+| StateFlowWrapper.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | FragmentRanker.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | SourceContextBuilder.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | EventAgent.kt | 34 | 99.1% | 34.00 | 🔴 HIGH |
 | GeminiRequestExecutor.kt | 25 | 79.6% | 30.30 | 🔴 HIGH |
 | LocalFileFetcher.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | CalendarIdResolver.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 
 ---
 
@@ -120,6 +120,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `scoreDocuments` | 1 |
 | `calculateTFIDF` | 1 |
+
+### StateFlowWrapper.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `collect` | 1 |
+| `setValue` | 1 |
+| `collect` | 1 |
+| `asStateFlow` | 1 |
+| `setValue` | 1 |
+| `<T> mutableStateFlowWrapper` | 1 |
 
 ### FragmentRanker.kt (Score: 42.00 - 🔴 HIGH)
 - **Total Complexity**: 6
@@ -635,6 +649,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getCategoryLabel` | 3 |
 | `getDeadlineStatus` | 2 |
 
+### AppController.kt (Score: 17.38 - 🟡 MEDIUM)
+- **Total Complexity**: 15
+- **Real Coverage**: 78.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `collect` | 1 |
+| `asStateFlow` | 1 |
+| `collect` | 1 |
+| `asStateFlow` | 1 |
+| `loadSources` | 1 |
+| `navigateTo` | 1 |
+| `addEvents` | 1 |
+| `clearEvents` | 1 |
+| `addSource` | 1 |
+| `launchInScope` | 1 |
+| *... and 5 more* | |
+
 ### GoogleDriveService.kt (Score: 17.00 - 🟡 MEDIUM)
 - **Total Complexity**: 17
 - **Real Coverage**: 98.5%
@@ -760,25 +793,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `AddRoutineItemDialog` | 11 |
 | `ClickableField` | 1 |
 | `TimePickerDialog` | 1 |
-
-### AppController.kt (Score: 12.28 - 🟢 LOW)
-- **Total Complexity**: 11
-- **Real Coverage**: 78.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `loadSources` | 1 |
-| `navigateTo` | 1 |
-| `addEvents` | 1 |
-| `clearEvents` | 1 |
-| `addSource` | 1 |
-| `launchInScope` | 1 |
-| `deleteSource` | 1 |
-| `selectSource` | 1 |
-| `addChatMessage` | 1 |
-| `setScreenListener` | 1 |
-| *... and 1 more* | |
 
 ### CalendarSyncManager.kt (Score: 12.10 - 🟢 LOW)
 - **Total Complexity**: 8
@@ -992,6 +1006,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `resolveCategory` | 1 |
 | `persistSource` | 1 |
 
+### SourceManager.kt (Score: 9.96 - 🟢 LOW)
+- **Total Complexity**: 7
+- **Real Coverage**: 60.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `deleteSource` | 2 |
+| `collect` | 1 |
+| `asStateFlow` | 1 |
+| `loadSources` | 1 |
+| `addSource` | 1 |
+| `selectSource` | 1 |
+
 ### Logger.kt (Score: 9.27 - 🟢 LOW)
 - **Total Complexity**: 9
 - **Real Coverage**: 85.0%
@@ -1143,18 +1171,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `SettingsScreen` | 1 |
 | `savePreferences` | 1 |
 | `formatCalendarError` | 1 |
-
-### SourceManager.kt (Score: 6.51 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 60.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `deleteSource` | 2 |
-| `loadSources` | 1 |
-| `addSource` | 1 |
-| `selectSource` | 1 |
 
 ### AppContent.kt (Score: 6.10 - 🟢 LOW)
 - **Total Complexity**: 6

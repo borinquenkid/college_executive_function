@@ -38,8 +38,8 @@ import androidx.compose.ui.unit.dp
 @Composable
 fun UniversalHomeLayout(container: DependencyContainer) {
     val appController = container.appController
-    val sourceItems by appController.sourceItems.collectAsState()
-    val selectedSource by appController.selectedSource.collectAsState()
+    val sourceItems by appController.sourceItems.asStateFlow().collectAsState()
+    val selectedSource by appController.selectedSource.asStateFlow().collectAsState()
 
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }

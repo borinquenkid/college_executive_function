@@ -54,9 +54,9 @@ fun ChatPanel(
     modifier: Modifier = Modifier,
     appController: AppController
 ) {
-    val selectedSource by appController.selectedSource.collectAsState()
-    val messages by appController.chatMessages.collectAsState()
-    val sourceItems by appController.sourceItems.collectAsState()
+    val selectedSource by appController.selectedSource.asStateFlow().collectAsState()
+    val messages by appController.chatMessages.asStateFlow().collectAsState()
+    val sourceItems by appController.sourceItems.asStateFlow().collectAsState()
     val contextAgent = appController.container.contextAgent
 
     var newMessage by remember { mutableStateOf("") }

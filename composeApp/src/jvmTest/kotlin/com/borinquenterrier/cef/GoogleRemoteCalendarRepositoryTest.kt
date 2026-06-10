@@ -111,6 +111,8 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
         coEvery { syncService.getEvents(cefCalId) } returns listOf(conflictingEvent)
+        coEvery { conflictDetector.validateNoConflict(timeEvent, listOf(conflictingEvent)) } throws
+            OverlapException(conflictingEvent, timeEvent)
 
         val ex = shouldThrow<OverlapException> {
             repo.saveEvent(timeEvent, "default")
@@ -248,14 +250,21 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
     test("getEventsInRange returns only events within the date range") {
         val inRange = timeEvent.copy(date = LocalDate(2026, 6, 10))
         val outOfRange = timeEvent.copy(id = "out", date = LocalDate(2026, 7, 1))
+        val start = LocalDate(2026, 6, 1)
+        val end = LocalDate(2026, 6, 30)
         coEvery { syncService.listCalendars() } returns listOf(
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
         coEvery { syncService.getEvents(cefCalId) } returns listOf(inRange, outOfRange)
+        coEvery { eventFilter.filterByDateRange(any(), start, end) } answers {
+            firstArg<List<Event>>().filter { event ->
+                event.date in start..end
+            }
+        }
 
         val result = repo.getEventsInRange(
-            start = LocalDate(2026, 6, 1),
-            end = LocalDate(2026, 6, 30),
+            start = start,
+            end = end,
             calendarId = "default"
         )
 
@@ -281,16 +290,23 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
     }
 
     test("getEventsInRange returns empty list when no events are in range") {
+        val start = LocalDate(2026, 6, 1)
+        val end = LocalDate(2026, 6, 30)
         coEvery { syncService.listCalendars() } returns listOf(
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
         coEvery { syncService.getEvents(cefCalId) } returns listOf(
             timeEvent.copy(date = LocalDate(2025, 1, 1))
         )
+        coEvery { eventFilter.filterByDateRange(any(), start, end) } answers {
+            firstArg<List<Event>>().filter { event ->
+                event.date in start..end
+            }
+        }
 
         val result = repo.getEventsInRange(
-            start = LocalDate(2026, 6, 1),
-            end = LocalDate(2026, 6, 30),
+            start = start,
+            end = end,
             calendarId = "default"
         )
 
@@ -321,6 +337,7 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
     // ─── getIncompleteEventsBefore ───────────────────────────────────────────
 
     test("getIncompleteEventsBefore returns only incomplete events before the given date") {
+        val cutoffDate = LocalDate(2026, 6, 8)
         val pastIncomplete = timeEvent.copy(
             id = "past-incomplete",
             date = LocalDate(2026, 5, 1),
@@ -344,14 +361,20 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
             futureIncomplete,
             pastComplete
         )
+        coEvery { eventFilter.filterIncompleteBeforeDate(any(), cutoffDate) } answers {
+            firstArg<List<Event>>().filter { event ->
+                event.completionStatus == CompletionStatus.INCOMPLETE && event.date < cutoffDate
+            }
+        }
 
-        val result = repo.getIncompleteEventsBefore(LocalDate(2026, 6, 8), "default")
+        val result = repo.getIncompleteEventsBefore(cutoffDate, "default")
 
         result shouldHaveSize 1
         result.first().id shouldBe "past-incomplete"
     }
 
     test("getIncompleteEventsBefore returns empty list when all events are complete or in the future") {
+        val cutoffDate = LocalDate(2026, 6, 8)
         val completeEvent = timeEvent.copy(
             date = LocalDate(2026, 5, 1),
             completionStatus = CompletionStatus.COMPLETED
@@ -360,8 +383,13 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
         coEvery { syncService.getEvents(cefCalId) } returns listOf(completeEvent)
+        coEvery { eventFilter.filterIncompleteBeforeDate(any(), cutoffDate) } answers {
+            firstArg<List<Event>>().filter { event ->
+                event.completionStatus == CompletionStatus.INCOMPLETE && event.date < cutoffDate
+            }
+        }
 
-        val result = repo.getIncompleteEventsBefore(LocalDate(2026, 6, 8), "default")
+        val result = repo.getIncompleteEventsBefore(cutoffDate, "default")
 
         result.shouldBeEmpty()
     }

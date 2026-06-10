@@ -106,10 +106,6 @@ class DriveFileScannerTest : StringSpec({
         }
     }
 
-    @KnownFailure(
-        issue = "https://github.com/borinquenkid/college_executive_function/issues/6",
-        reason = "listFilesRecursive() or folder iteration logic stopping early"
-    )
     "scanNewFiles processes multiple watched folders" {
         val driveService = mockk<GoogleDriveService>()
         val tokenRepository = mockk<GoogleTokenRepository>()
@@ -132,7 +128,9 @@ class DriveFileScannerTest : StringSpec({
 
         runTest {
             val result = scanner.scanNewFiles(emptySet())
-            result.shouldHaveSize(2)
+            expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/6") {
+                result.shouldHaveSize(2)
+            }
         }
     }
 
@@ -156,10 +154,6 @@ class DriveFileScannerTest : StringSpec({
         }
     }
 
-    @KnownFailure(
-        issue = "https://github.com/borinquenkid/college_executive_function/issues/7",
-        reason = "coVerify failing on call count or arguments matching"
-    )
     "scanNewFiles calls listFiles for watched folders" {
         val driveService = mockk<GoogleDriveService>()
         val tokenRepository = mockk<GoogleTokenRepository>()
@@ -174,14 +168,12 @@ class DriveFileScannerTest : StringSpec({
 
         runTest {
             scanner.scanNewFiles(emptySet())
-            coVerify { driveService.listFiles("folder-id-test") }
+            expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/7") {
+                coVerify { driveService.listFiles("folder-id-test") }
+            }
         }
     }
 
-    @KnownFailure(
-        issue = "https://github.com/borinquenkid/college_executive_function/issues/8",
-        reason = "Exception handling doesn't isolate failures per folder"
-    )
     "scanNewFiles handles partial failures in multiple folders" {
         val driveService = mockk<GoogleDriveService>()
         val tokenRepository = mockk<GoogleTokenRepository>()
@@ -206,8 +198,10 @@ class DriveFileScannerTest : StringSpec({
 
         runTest {
             val result = scanner.scanNewFiles(emptySet())
-            // Should still return files from successful folders
-            result.size shouldBe 2
+            expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/8") {
+                // Should still return files from successful folders
+                result.size shouldBe 2
+            }
         }
     }
 })

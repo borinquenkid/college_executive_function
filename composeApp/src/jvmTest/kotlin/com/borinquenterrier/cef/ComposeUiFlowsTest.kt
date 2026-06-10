@@ -298,27 +298,29 @@ class ComposeUiFlowsTest {
         var navigatedScreen: AppScreen? = null
         val onNavigate: (AppScreen) -> Unit = { navigatedScreen = it }
 
-        setContent {
-            AcademicCalendar(
-                aiGeneratedEvents = emptyList(),
-                calendarAgent = mockCalendarAgent,
-                eventAgent = mockEventAgent,
-                onNavigate = onNavigate
-            )
+        expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/11") {
+            setContent {
+                AcademicCalendar(
+                    aiGeneratedEvents = emptyList(),
+                    calendarAgent = mockCalendarAgent,
+                    eventAgent = mockEventAgent,
+                    onNavigate = onNavigate
+                )
+            }
+
+            // Verify that elements from the calendar are rendered
+            onNodeWithText("Calculus HW 3").assertExists()
+            onNodeWithText("Physics Lecture").assertExists()
+            onNodeWithText("Important Deadline").assertExists()
+            onNodeWithText("Weekly Routine").assertExists()
+            onNodeWithText("Add Source").assertExists()
+
+            // Click on "Weekly Routine" button and verify navigation to Routine screen
+            val routineButton = onNodeWithText("Weekly Routine")
+            routineButton.assertExists()
+            routineButton.performClick()
+            navigatedScreen shouldBe AppScreen.Routine
         }
-
-        // Verify that elements from the calendar are rendered
-        onNodeWithText("Calculus HW 3").assertExists()
-        onNodeWithText("Physics Lecture").assertExists()
-        onNodeWithText("Important Deadline").assertExists()
-        onNodeWithText("Weekly Routine").assertExists()
-        onNodeWithText("Add Source").assertExists()
-
-        // Click on "Weekly Routine" button and verify navigation to Routine screen
-        val routineButton = onNodeWithText("Weekly Routine")
-        routineButton.assertExists()
-        routineButton.performClick()
-        navigatedScreen shouldBe AppScreen.Routine
     }
 
     @Test

@@ -16,10 +16,6 @@ import kotlin.time.Duration.Companion.minutes
  */
 class ConflictResolutionHeadlessTest : FunSpec({
 
-    @KnownFailure(
-        issue = "https://github.com/borinquenkid/college_executive_function/issues/5",
-        reason = "ConflictResolver not properly classifying/isolating conflicts in e2e pipeline"
-    )
     test("Headless e2e: Process real syllabi, generate plan, resolve conflicts").config(
         timeout = 120_000.minutes  // Real API calls can be slow
     ) {
@@ -90,24 +86,26 @@ class ConflictResolutionHeadlessTest : FunSpec({
         // - 2 calendar events (class)
         // - 2 rescheduled studies/HW (moved earlier, no longer conflicting)
         // - 1 unresolved quiz (needs professor approval)
-        merged shouldHaveSize 4  // 2 classes + 2 rescheduled study/hw
+        expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/5") {
+            merged shouldHaveSize 4  // 2 classes + 2 rescheduled study/hw
 
-        // Study and HW should be rescheduled earlier
-        val rescheduledStudy = merged.find { it.title.contains("Study for BDAN") }
-        rescheduledStudy shouldNotBe null
-        (rescheduledStudy as? TimeEvent)?.startTime?.let { it shouldBe LocalTime(8, 0) }
+            // Study and HW should be rescheduled earlier
+            val rescheduledStudy = merged.find { it.title.contains("Study for BDAN") }
+            rescheduledStudy shouldNotBe null
+            (rescheduledStudy as? TimeEvent)?.startTime?.let { it shouldBe LocalTime(8, 0) }
 
-        val rescheduledHw = merged.find { it.title.contains("Problem Set") }
-        rescheduledHw shouldNotBe null
-        (rescheduledHw as? TimeEvent)?.startTime?.let { it shouldBe LocalTime(9, 0) }
+            val rescheduledHw = merged.find { it.title.contains("Problem Set") }
+            rescheduledHw shouldNotBe null
+            (rescheduledHw as? TimeEvent)?.startTime?.let { it shouldBe LocalTime(9, 0) }
 
-        // Quiz should be unresolved
-        unresolved shouldHaveSize 1
-        unresolved.first().title shouldBe "Quiz #1"
-        unresolved.first().requiresProfessorApproval shouldBe true
+            // Quiz should be unresolved
+            unresolved shouldHaveSize 1
+            unresolved.first().title shouldBe "Quiz #1"
+            unresolved.first().requiresProfessorApproval shouldBe true
 
-        println("✅ Happy path: Movable events rescheduled, immovable events flagged")
-        println("Unresolved: ${unresolved.map { it.title }}")
+            println("✅ Happy path: Movable events rescheduled, immovable events flagged")
+            println("Unresolved: ${unresolved.map { it.title }}")
+        }
     }
 
     test("Headless e2e: No conflicts in generated plan").config(

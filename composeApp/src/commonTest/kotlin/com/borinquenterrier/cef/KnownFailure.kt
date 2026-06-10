@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import kotlin.annotation.AnnotationRetention
+
 /**
  * Marks a test as a known failure that should be revisited when fixed.
  *
@@ -18,8 +20,8 @@ package com.borinquenterrier.cef
  * 3. Developer must explicitly remove the annotation
  * 4. This prevents silent fixes of known issues
  */
-@Target(AnnotationTarget.FUNCTION)
-@Retention(RetentionPolicy.RUNTIME)
+@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CLASS)
+@Retention(AnnotationRetention.RUNTIME)
 annotation class KnownFailure(
     val issue: String,
     val reason: String

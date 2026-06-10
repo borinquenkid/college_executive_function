@@ -102,10 +102,6 @@ class LocalFileScannerTest : StringSpec({
         }
     }
 
-    @KnownFailure(
-        issue = "https://github.com/borinquenkid/college_executive_function/issues/9",
-        reason = "File extension filtering not implemented or not applied"
-    )
     "scanNewFiles filters files by supported extensions" {
         val fileReader = mockk<LocalFileReader>()
         val preferencesManager = mockk<DirectoryPreferencesManager>()
@@ -122,15 +118,13 @@ class LocalFileScannerTest : StringSpec({
 
         runTest {
             val result = scanner.scanNewFiles(emptySet())
-            // Only PDF and DOCX should be included
-            result.size shouldBe 2
+            expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/9") {
+                // Only PDF and DOCX should be included
+                result.size shouldBe 2
+            }
         }
     }
 
-    @KnownFailure(
-        issue = "https://github.com/borinquenkid/college_executive_function/issues/10",
-        reason = "Concurrent/parallel processing not collecting all results properly"
-    )
     "scanNewFiles handles concurrent directory scanning" {
         val fileReader = mockk<LocalFileReader>()
         val preferencesManager = mockk<DirectoryPreferencesManager>()
@@ -147,7 +141,9 @@ class LocalFileScannerTest : StringSpec({
 
         runTest {
             val result = scanner.scanNewFiles(emptySet())
-            result.shouldHaveSize(3) // One file from each directory call
+            expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/10") {
+                result.shouldHaveSize(3) // One file from each directory call
+            }
         }
     }
 

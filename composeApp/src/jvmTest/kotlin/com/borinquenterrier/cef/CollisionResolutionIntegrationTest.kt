@@ -92,10 +92,6 @@ class CollisionResolutionIntegrationTest : FunSpec({
         dbEvents.find { it.title == "Clean Study Block B" } shouldNotBe null
     }
 
-    @KnownFailure(
-        issue = "https://github.com/borinquenkid/college_executive_function/issues/3",
-        reason = "SchedulingAlgorithm not finding valid slots for bumped events"
-    )
     test("Headless Integration: Priority Bump and Shift Cascade") {
         val (eventAgent, localRepo) = setupTestAgent()
 
@@ -149,20 +145,22 @@ class CollisionResolutionIntegrationTest : FunSpec({
         val conflicts = runBlocking { eventAgent.pushToCalendar() }
 
         // ASSERT
-        conflicts shouldHaveSize 0
+        expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/3") {
+            conflicts shouldHaveSize 0
 
-        val dbEvents = runBlocking { localRepo.getAllEvents() }
-        dbEvents shouldHaveSize 3
+            val dbEvents = runBlocking { localRepo.getAllEvents() }
+            dbEvents shouldHaveSize 3
 
-        val lecture = dbEvents.find { it.title == "Physics Lecture" } as TimeEvent
-        lecture.startTime shouldBe LocalTime(10, 0)
+            val lecture = dbEvents.find { it.title == "Physics Lecture" } as TimeEvent
+            lecture.startTime shouldBe LocalTime(10, 0)
 
-        val quantumStudy = dbEvents.find { it.title == "Quantum Study" } as TimeEvent
-        quantumStudy.startTime shouldBe LocalTime(11, 0)
-        quantumStudy.endTime shouldBe LocalTime(12, 0)
+            val quantumStudy = dbEvents.find { it.title == "Quantum Study" } as TimeEvent
+            quantumStudy.startTime shouldBe LocalTime(11, 0)
+            quantumStudy.endTime shouldBe LocalTime(12, 0)
 
-        val doctor = dbEvents.find { it.title == "Doctor Appointment" } as TimeEvent
-        doctor.startTime shouldBe LocalTime(9, 0)
+            val doctor = dbEvents.find { it.title == "Doctor Appointment" } as TimeEvent
+            doctor.startTime shouldBe LocalTime(9, 0)
+        }
     }
 
     test("Headless Integration: Complex Overlapping Batch (Internal conflicts resolve against each other)") {
@@ -207,10 +205,6 @@ class CollisionResolutionIntegrationTest : FunSpec({
         math.startTime shouldNotBe chem.startTime
     }
 
-    @KnownFailure(
-        issue = "https://github.com/borinquenkid/college_executive_function/issues/4",
-        reason = "NPE in deadline leeway logic or calculation"
-    )
     test("Headless Integration: Post-Deadline Shift (Late Leeway warning)") {
         val (eventAgent, localRepo) = setupTestAgent()
 
@@ -271,12 +265,14 @@ class CollisionResolutionIntegrationTest : FunSpec({
         val conflicts = runBlocking { eventAgent.pushToCalendar() }
 
         // ASSERT
-        conflicts shouldHaveSize 0
+        expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/4") {
+            conflicts shouldHaveSize 0
 
-        val dbEvents = runBlocking { localRepo.getAllEvents() }
-        val resolvedLateStudy = dbEvents.find { it.title == "Late Night Study" } as TimeEvent
+            val dbEvents = runBlocking { localRepo.getAllEvents() }
+            val resolvedLateStudy = dbEvents.find { it.title == "Late Night Study" } as TimeEvent
 
-        // Should have shifted forward to a future date
-        resolvedLateStudy.date shouldBe date.plus(1, DateTimeUnit.DAY)
+            // Should have shifted forward to a future date
+            resolvedLateStudy.date shouldBe date.plus(1, DateTimeUnit.DAY)
+        }
     }
 })

@@ -4,8 +4,10 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.plus
 import kotlin.time.Duration.Companion.minutes
 
 /**
@@ -169,7 +171,7 @@ object ConflictGeneratorUtility {
         daysAfter: Int = 7
     ): DayEvent = DayEvent(
         title = "Quiz for ${classEvent.title}",
-        date = classEvent.date.plus(java.time.Period.ofDays(daysAfter)),
+        date = classEvent.date.plus(daysAfter, DateTimeUnit.DAY),
         category = AcademicCategory.DEADLINE,
         source = EventSource.AI_GENERATED
     )
@@ -179,7 +181,7 @@ object ConflictGeneratorUtility {
         daysAfter: Int = 30
     ): TimeEvent = TimeEvent(
         title = "Exam for ${classEvent.title}",
-        date = classEvent.date.plus(java.time.Period.ofDays(daysAfter)),
+        date = classEvent.date.plus(daysAfter, DateTimeUnit.DAY),
         startTime = LocalTime(10, 0),
         endTime = LocalTime(12, 0),
         category = AcademicCategory.FINALS,

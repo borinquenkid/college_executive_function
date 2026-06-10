@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import java.security.MessageDigest
+
 /**
  * Generates candidate calendar events from a source via AI — either deliverables
  * extracted directly from the document, or a proactive study plan that schedules
@@ -79,8 +81,28 @@ class EventGenerationService(
         return scheduleText
     }
 
-    private fun normalize(events: List<Event>): List<Event> =
-        normalizationService.extract(events).distinctBy {
+    private fun normalize(events: List<Event>): List<Event> {
+        val normalized = normalizationService.extract(events).distinctBy {
             "${it.title}-${it.date}-${if (it is TimeEvent) it.startTime else ""}"
         }
+        // Assign deterministic IDs based on content so duplicates are recognized across generations
+        return normalized.map { event ->
+            if (event.id == null) {
+                val idContent = "${event.title}|${event.date}|${if (event is TimeEvent) event.startTime else ""}|${event.category}"
+                val deterministicId = generateDeterministicId(idContent)
+                when (event) {
+                    is TimeEvent -> event.copy(id = deterministicId)
+                    is DayEvent -> event.copy(id = deterministicId)
+                }
+            } else {
+                event
+            }
+        }
+    }
+
+    private fun generateDeterministicId(content: String): String {
+        val digest = MessageDigest.getInstance("SHA-256")
+        val hash = digest.digest(content.toByteArray())
+        return hash.take(12).joinToString("") { "%02x".format(it) }
+    }
 }

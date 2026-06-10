@@ -13,6 +13,7 @@ class GoogleRemoteCalendarRepository(
     private val conflictDetector: EventConflictDetector,
     private val eventFilter: EventRangeFilter
 ) : RemoteCalendarRepository {
+    private val tag = "GoogleRemoteCalendarRepository"
 
     override fun getSettings(): com.russhwolf.settings.Settings? = null
 
@@ -21,11 +22,13 @@ class GoogleRemoteCalendarRepository(
 
     override suspend fun getAllEvents(calendarId: String): List<Event> {
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)
+        validateCalendarExists(targetId)
         return syncService.getEvents(targetId)
     }
 
     override suspend fun saveEvent(event: Event, calendarId: String) {
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)
+        validateCalendarExists(targetId)
         val existingEvents = syncService.getEvents(targetId)
         conflictDetector.validateNoConflict(event, existingEvents)
         syncService.syncEvent(event, targetId)
@@ -33,6 +36,7 @@ class GoogleRemoteCalendarRepository(
 
     override suspend fun updateEvent(event: Event, calendarId: String) {
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)
+        validateCalendarExists(targetId)
         syncService.syncEvent(event, targetId)
     }
 
@@ -77,4 +81,39 @@ class GoogleRemoteCalendarRepository(
         val events = getAllEvents(calendarId)
         return eventFilter.filterIncompleteBeforeDate(events, date)
     }
+
+    /**
+     * Validates that a calendar exists on the server.
+     * Throws [CalendarNotFoundException] if the calendar has been deleted or is inaccessible.
+     */
+    private suspend fun validateCalendarExists(calendarId: String) {
+        try {
+            // Try to fetch events (just checks if calendar is accessible)
+            // If calendar doesn't exist, Google API returns 404
+            syncService.getEvents(calendarId)
+        } catch (e: GoogleApiException) {
+            when (e.statusCode) {
+                404 -> throw CalendarNotFoundException(
+                    calendarId = calendarId,
+                    message = "Calendar '$calendarId' no longer exists or has been deleted on Google Calendar. " +
+                              "Please re-link your calendar or use a different calendar."
+                )
+                403 -> throw CalendarNotFoundException(
+                    calendarId = calendarId,
+                    message = "No longer have access to calendar '$calendarId'. " +
+                              "The calendar owner may have revoked your access."
+                )
+                else -> throw e
+            }
+        }
+    }
 }
+
+/**
+ * Thrown when a calendar is no longer accessible on the server.
+ * This can happen if the calendar was deleted or access was revoked.
+ */
+class CalendarNotFoundException(
+    val calendarId: String,
+    override val message: String
+) : Exception(message)

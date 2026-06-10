@@ -176,6 +176,10 @@ class EventAgent(
                 _statusMessage.value = "Synced ${outcome.successCount} events. $unresolvableCount require professor contact, ${conflicts.size} other conflicts."
                 _lastGeneratedEvents.value = conflicts
             }
+        } catch (e: CalendarNotFoundException) {
+            logger?.e(tag, "Calendar not found during sync", e)
+            _statusMessage.value = e.message ?: "Calendar is no longer accessible. Please re-link your calendar."
+            _errorState.value = AgentError.GenericError(e.message ?: "Calendar sync failed")
         } catch (e: Exception) {
             logger?.e(tag, "Error pushing to calendar", e)
             _statusMessage.value = "Sync Error: ${e.message}"

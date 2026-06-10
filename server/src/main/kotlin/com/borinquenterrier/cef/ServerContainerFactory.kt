@@ -25,7 +25,7 @@ class ServerContainerFactory(
         val container = DependencyContainer(
             settings = settings,
             logger = Logger(settings),
-            driverFactory = DriverFactory(),
+            driverFactory = TenantDriverFactory(studentId, dbFactory),
             modelBasePath = modelBasePath,
             fileReader = LocalFileReader(),
             docxReader = DocxReader(),

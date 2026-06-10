@@ -4,9 +4,9 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import java.io.File
 
-actual class DriverFactory {
-    actual fun createDriver(): SqlDriver {
-        val databaseFile = File(System.getProperty("user.home"), ".cef/cef.db")
+actual open class DriverFactory(val dbFile: File? = null) {
+    actual open fun createDriver(): SqlDriver {
+        val databaseFile = dbFile ?: File(System.getProperty("user.home"), ".cef/cef.db")
         val exists = databaseFile.exists()
 
         if (!databaseFile.parentFile.exists()) {

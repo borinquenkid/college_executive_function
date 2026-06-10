@@ -2,8 +2,8 @@ package com.borinquenterrier.cef.db
 
 import app.cash.sqldelight.db.SqlDriver
 
-expect class DriverFactory {
-    fun createDriver(): SqlDriver
+expect open class DriverFactory {
+    open fun createDriver(): SqlDriver
 }
 
 fun createDatabase(driverFactory: DriverFactory): AppDatabase {

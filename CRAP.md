@@ -10,7 +10,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 150
-- **High-Risk Files (CRAP > 30)**: 8
+- **High-Risk Files (CRAP > 30)**: 9
 
 ### Top 15 High-Risk Files
 
@@ -20,14 +20,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | AcademicCalendarComponents.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | CalendarSyncManager.kt | 8 | 16.0% | 45.93 | 🔴 HIGH |
-| GeminiRequestExecutor.kt | 25 | 71.2% | 39.97 | 🔴 HIGH |
+| GeminiRequestExecutor.kt | 25 | 69.4% | 42.96 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 22 | 66.7% | 39.93 | 🔴 HIGH |
 | EventAgent.kt | 34 | 93.1% | 34.38 | 🔴 HIGH |
+| GeminiAIService.kt | 26 | 78.9% | 32.31 | 🔴 HIGH |
 | GoogleCalendarPanel.kt | 23 | 75.0% | 31.27 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | CalendarPushResolver.kt | 21 | 73.3% | 29.36 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 93.9% | 29.19 | 🟡 MEDIUM |
-| GeminiAIService.kt | 26 | 84.2% | 28.66 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.2% | 24.53 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 86.4% | 24.34 | 🟡 MEDIUM |
 | CommonSourceProviders.kt | 21 | 80.9% | 24.07 | 🟡 MEDIUM |
@@ -80,9 +80,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `initiateSyncIfNeeded` | 1 |
 | `applySyncProposal` | 1 |
 
-### GeminiRequestExecutor.kt (Score: 39.97 - 🔴 HIGH)
+### GeminiRequestExecutor.kt (Score: 42.96 - 🔴 HIGH)
 - **Total Complexity**: 25
-- **Real Coverage**: 71.2%
+- **Real Coverage**: 69.4%
 
 #### Methods list:
 | Method | Complexity |
@@ -128,6 +128,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `Exception.isQuotaError` | 1 |
 | `runAgentAction` | 1 |
 | *... and 7 more* | |
+
+### GeminiAIService.kt (Score: 32.31 - 🔴 HIGH)
+- **Total Complexity**: 26
+- **Real Coverage**: 78.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `categorizeSource` | 4 |
+| `analyzeDocument` | 3 |
+| `generateCalendarEvents` | 2 |
+| `generateCalendarEventsFromPrompt` | 2 |
+| `generateChatResponse` | 2 |
+| `extractSourceYears` | 1 |
+| `filterToSourceYears` | 1 |
+| `parseEventsJson` | 1 |
+| `parseDecomposeTaskJson` | 1 |
+| `parseCategorizeSourceJson` | 1 |
+| *... and 6 more* | |
 
 ### GoogleCalendarPanel.kt (Score: 31.27 - 🔴 HIGH)
 - **Total Complexity**: 23
@@ -177,25 +196,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `createCalendar` | 1 |
 | `deleteEvent` | 1 |
 | `fetchEventsPage` | 1 |
-
-### GeminiAIService.kt (Score: 28.66 - 🟡 MEDIUM)
-- **Total Complexity**: 26
-- **Real Coverage**: 84.2%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `categorizeSource` | 4 |
-| `analyzeDocument` | 3 |
-| `generateCalendarEvents` | 2 |
-| `generateCalendarEventsFromPrompt` | 2 |
-| `generateChatResponse` | 2 |
-| `extractSourceYears` | 1 |
-| `filterToSourceYears` | 1 |
-| `parseEventsJson` | 1 |
-| `parseDecomposeTaskJson` | 1 |
-| `parseCategorizeSourceJson` | 1 |
-| *... and 6 more* | |
 
 ### SqlDelightLocalCalendarRepository.kt (Score: 24.53 - 🟡 MEDIUM)
 - **Total Complexity**: 24
@@ -1133,6 +1133,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readText` | 1 |
 | `rememberLocalFileReader` | 1 |
 
+### NormalizationService.kt (Score: 5.46 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 73.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extract` | 5 |
+
 ### SourceProcessor.kt (Score: 5.01 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 91.7%
@@ -1153,15 +1162,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `buildPostUrl` | 2 |
 | `postToModel` | 2 |
 | `hasApiKey` | 1 |
-
-### NormalizationService.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 94.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `extract` | 5 |
 
 ### TaskDecompositionService.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5

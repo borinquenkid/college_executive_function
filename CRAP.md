@@ -362,6 +362,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findNextTimeSlot` | 1 |
 | `findTimeSlotOnDay` | 1 |
 
+### SchedulingAlgorithm.kt (Score: 306.00 - 🔴 HIGH)
+- **Total Complexity**: 17
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `resolve` | 1 |
+| `findNewSlotAndResolve` | 1 |
+| `shiftEvent` | 1 |
+| `findNextAvailableSlot` | 1 |
+
 ### GoogleDriveService.kt (Score: 306.00 - 🔴 HIGH)
 - **Total Complexity**: 17
 - **Real Coverage**: 0.0%
@@ -386,18 +398,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `resolveRetryDelay` | 1 |
 | `activateRateLimitWindow` | 1 |
 | `wait` | 1 |
-
-### SchedulingAlgorithm.kt (Score: 272.00 - 🔴 HIGH)
-- **Total Complexity**: 16
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `resolve` | 1 |
-| `findNewSlotAndResolve` | 1 |
-| `shiftEvent` | 1 |
-| `findNextAvailableSlot` | 1 |
 
 ### AppController.kt (Score: 240.00 - 🔴 HIGH)
 - **Total Complexity**: 15

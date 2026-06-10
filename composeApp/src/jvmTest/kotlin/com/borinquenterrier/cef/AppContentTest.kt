@@ -9,6 +9,7 @@ import com.russhwolf.settings.MapSettings
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlin.test.Test
 
@@ -37,6 +38,38 @@ class AppContentTest {
         every { mockEventAgent.incompleteEvents } returns incompleteEvents
 
         coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
+
+        // Set up sourceManager for AppController
+        val mockSourceLoader = mockk<SourceLoader>(relaxed = true)
+        val mockSourceAdder = mockk<SourceAdder>(relaxed = true)
+        val mockSourceRepository = mockk<SqlDelightSourceRepository>(relaxed = true)
+        val mockLocalRepository = mockk<SqlDelightLocalCalendarRepository>(relaxed = true)
+        val mockLogger = mockk<Logger>(relaxed = true)
+        val realSourceSelector = SourceSelector()
+
+        coEvery { mockSourceLoader.loadSources() } returns emptyList()
+        coEvery { mockSourceRepository.getAllSources() } returns emptyList()
+        coEvery { mockSourceRepository.getFragmentsForSource(any()) } returns emptyList()
+
+        val realSourceDeleter = SourceDeleter(
+            mockSourceRepository,
+            mockLocalRepository,
+            mockCalendarAgent,
+            mockLogger,
+            GlobalScope
+        )
+
+        val realSourceManager = SourceManager(
+            mockSourceLoader,
+            mockSourceAdder,
+            realSourceDeleter,
+            realSourceSelector,
+            GlobalScope
+        )
+        every { mockContainer.sourceManager } returns realSourceManager
+        every { mockContainer.sourceRepository } returns mockSourceRepository
+        every { mockContainer.localRepository } returns mockLocalRepository
+        every { mockContainer.logger } returns mockLogger
 
         every { mockContainer.appController } returns AppController(mockContainer)
 

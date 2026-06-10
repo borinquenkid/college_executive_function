@@ -7,8 +7,10 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.coroutines.GlobalScope
 
 class AppControllerTest : FunSpec({
 
@@ -46,6 +48,31 @@ class AppControllerTest : FunSpec({
         every { container.aiService } returns aiService
         every { container.contextAgent } returns contextAgent
         every { container.logger } returns logger
+
+        // Set up real SourceManager, SourceSelector, and SourceDeleter for proper state management
+        val mockSourceLoader = mockk<SourceLoader>(relaxed = true)
+        val mockSourceAdder = mockk<SourceAdder>(relaxed = true)
+        val realSourceSelector = SourceSelector()
+
+        coEvery { mockSourceLoader.loadSources() } returns emptyList()
+
+        // Use real SourceDeleter so it actually calls the repositories
+        val realSourceDeleter = SourceDeleter(
+            sourceRepository,
+            localRepository,
+            calendarAgent,
+            logger,
+            GlobalScope
+        )
+
+        val realSourceManager = SourceManager(
+            mockSourceLoader,
+            mockSourceAdder,
+            realSourceDeleter,
+            realSourceSelector,
+            GlobalScope
+        )
+        every { container.sourceManager } returns realSourceManager
 
         // loadSources is called from init; stub to return empty
         coEvery { sourceRepository.getAllSources() } returns emptyList()

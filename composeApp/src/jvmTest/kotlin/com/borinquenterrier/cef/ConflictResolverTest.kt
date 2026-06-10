@@ -14,24 +14,24 @@ class ConflictResolverTest : FunSpec({
     val resolver = ConflictResolver()
 
     test("detects overlap between TimeEvents on same date") {
-        val date = LocalDate(2025, 1, 15)
+        val testDate = LocalDate(2025, 1, 15)
         val event1 = mockk<TimeEvent> {
-            every { date } returns date
+            every { date } returns testDate
             every { startTime } returns LocalTime(9, 0)
             every { endTime } returns LocalTime(11, 0)
             every { overlaps(any()) } answers { other ->
-                if (other is TimeEvent && other.date == date) {
+                if (other is TimeEvent && other.date == testDate) {
                     this@mockk.startTime < other.endTime && this@mockk.endTime > other.startTime
                 } else false
             }
         }
 
         val event2 = mockk<TimeEvent> {
-            every { date } returns date
+            every { date } returns testDate
             every { startTime } returns LocalTime(10, 0)
             every { endTime } returns LocalTime(12, 0)
             every { overlaps(any()) } answers { other ->
-                if (other is TimeEvent && other.date == date) {
+                if (other is TimeEvent && other.date == testDate) {
                     this@mockk.startTime < other.endTime && this@mockk.endTime > other.startTime
                 } else false
             }
@@ -41,24 +41,24 @@ class ConflictResolverTest : FunSpec({
     }
 
     test("detects no overlap when events are adjacent") {
-        val date = LocalDate(2025, 1, 15)
+        val testDate = LocalDate(2025, 1, 15)
         val event1 = mockk<TimeEvent> {
-            every { date } returns date
+            every { date } returns testDate
             every { startTime } returns LocalTime(9, 0)
             every { endTime } returns LocalTime(10, 0)
             every { overlaps(any()) } answers { other ->
-                if (other is TimeEvent && other.date == date) {
+                if (other is TimeEvent && other.date == testDate) {
                     this@mockk.startTime < other.endTime && this@mockk.endTime > other.startTime
                 } else false
             }
         }
 
         val event2 = mockk<TimeEvent> {
-            every { date } returns date
+            every { date } returns testDate
             every { startTime } returns LocalTime(10, 0)
             every { endTime } returns LocalTime(11, 0)
             every { overlaps(any()) } answers { other ->
-                if (other is TimeEvent && other.date == date) {
+                if (other is TimeEvent && other.date == testDate) {
                     this@mockk.startTime < other.endTime && this@mockk.endTime > other.startTime
                 } else false
             }
@@ -107,15 +107,15 @@ class ConflictResolverTest : FunSpec({
 
     test("finds available earlier slot for rescheduling") {
         val resolver = ConflictResolver()
-        val date = LocalDate(2025, 1, 15)
+        val testDate = LocalDate(2025, 1, 15)
 
         // Class occupies 10:00-11:00
         val occupiedEvent = mockk<TimeEvent> {
-            every { date } returns date
+            every { date } returns testDate
             every { startTime } returns LocalTime(10, 0)
             every { endTime } returns LocalTime(11, 0)
             every { overlaps(any()) } answers { other ->
-                if (other is TimeEvent && other.date == date) {
+                if (other is TimeEvent && other.date == testDate) {
                     this@mockk.startTime < other.endTime && this@mockk.endTime > other.startTime
                 } else false
             }
@@ -123,13 +123,13 @@ class ConflictResolverTest : FunSpec({
 
         // Study wants 10:00-11:00 but that conflicts
         val studyEvent = mockk<TimeEvent> {
-            every { date } returns date
+            every { date } returns testDate
             every { startTime } returns LocalTime(10, 0)
             every { endTime } returns LocalTime(11, 0)
             every { category } returns AcademicCategory.STUDY_BLOCK
             every { title } returns "Study"
             every { overlaps(any()) } answers { other ->
-                if (other is TimeEvent && other.date == date) {
+                if (other is TimeEvent && other.date == testDate) {
                     this@mockk.startTime < other.endTime && this@mockk.endTime > other.startTime
                 } else false
             }
@@ -142,11 +142,11 @@ class ConflictResolverTest : FunSpec({
 
     test("returns unresolved conflict for Quiz") {
         val resolver = ConflictResolver()
-        val date = LocalDate(2025, 1, 15)
+        val testDate = LocalDate(2025, 1, 15)
 
         val quiz = mockk<DayEvent> {
             every { title } returns "Quiz"
-            every { date } returns date
+            every { date } returns testDate
             every { category } returns AcademicCategory.DEADLINE
             every { overlaps(any()) } returns true
         }
@@ -156,11 +156,11 @@ class ConflictResolverTest : FunSpec({
 
     test("returns unresolved conflict for Exam") {
         val resolver = ConflictResolver()
-        val date = LocalDate(2025, 1, 15)
+        val testDate = LocalDate(2025, 1, 15)
 
         val exam = mockk<TimeEvent> {
             every { title } returns "Midterm"
-            every { date } returns date
+            every { date } returns testDate
             every { category } returns AcademicCategory.FINALS
             every { overlaps(any()) } returns true
         }

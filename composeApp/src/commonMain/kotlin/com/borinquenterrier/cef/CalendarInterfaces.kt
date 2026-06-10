@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import kotlinx.datetime.LocalDate
+import kotlinx.serialization.Serializable
 
 /**
  * Interface representing a source of academic events.
@@ -25,6 +26,7 @@ interface EventExtractor {
 /**
  * Metadata for identifying an external calendar (e.g., Google 'Primary' or 'School').
  */
+@Serializable
 data class RemoteCalendarMetadata(val id: String, val name: String)
 
 /**

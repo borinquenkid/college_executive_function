@@ -75,6 +75,17 @@ To enable Calendar sync and file import capabilities:
    GOOGLE_CLIENT_SECRET=your_client_secret_here
    ```
 
+5. **CI/CD Repository Secrets (for GitHub Releases)**:
+   When GitHub Actions packages and builds the desktop installers (`.dmg`, `.msi`, `.deb`), it requires the OAuth credentials to be configured as Repository Secrets on GitHub.
+   To configure these:
+   - Go to your repository on GitHub.
+   - Click **Settings** > **Secrets and variables** > **Actions** > **New repository secret**.
+   - Add the following secrets:
+     * `GOOGLE_CLIENT_ID`: (Your Google Client ID)
+     * `GOOGLE_CLIENT_SECRET`: (Your Google Client Secret)
+     * `WEB3FORMS_ACCESS_KEY`: (Optional. Web3Forms access key for anonymous bug reporting)
+
+
 ---
 
 Learn more about [Kotlin Multiplatform](https://www.jetbrains.com/help/kotlin-multiplatform-dev/get-started.html)…

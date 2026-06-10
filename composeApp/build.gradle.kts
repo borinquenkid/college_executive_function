@@ -26,6 +26,10 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
     val outputDir = layout.buildDirectory.dir("generated/cef/commonMain/kotlin")
     outputs.dir(outputDir)
     
+    inputs.property("GOOGLE_CLIENT_ID", System.getenv("GOOGLE_CLIENT_ID") ?: "")
+    inputs.property("GOOGLE_CLIENT_SECRET", System.getenv("GOOGLE_CLIENT_SECRET") ?: "")
+    inputs.property("WEB3FORMS_ACCESS_KEY", System.getenv("WEB3FORMS_ACCESS_KEY") ?: "")
+    
     doLast {
         // Read local.properties
         val localProps = Properties()
@@ -49,21 +53,40 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
             ?: envProps.getProperty("GOOGLE_CLIENT_SECRET")
             ?: ""
 
+        if (System.getenv("GITHUB_ACTIONS") == "true") {
+            if (clientId.isBlank() || clientSecret.isBlank()) {
+                error("GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET environment variables must be set on CI. Please configure them in GitHub Repository Secrets.")
+            }
+        }
+
+
         val web3FormsAccessKey = System.getenv("WEB3FORMS_ACCESS_KEY")
             ?: localProps.getProperty("WEB3FORMS_ACCESS_KEY")
             ?: envProps.getProperty("WEB3FORMS_ACCESS_KEY")
             ?: "cef-academic-anonymous-bugs-key-placeholder"
             
+        // XOR obfuscation: secrets are stored as IntArrays in the bytecode, never as string literals.
+        // The key is an Int constant — strings/javap will not reveal the credential value.
+        val obfKey = 0x4A3F
+        fun obfuscate(s: String): String {
+            val parts = s.map { "0x${(it.code xor obfKey).toString(16).uppercase()}" }
+            return "intArrayOf(${parts.joinToString(", ")})"
+        }
+
         val secretsFile = outputDir.get().file("com/borinquenterrier/cef/BuildSecrets.kt").asFile
         secretsFile.parentFile.mkdirs()
-        
+
         secretsFile.writeText("""
             package com.borinquenterrier.cef
-            
+
             object BuildSecrets {
-                val GOOGLE_CLIENT_ID: String? = ${if (clientId.isBlank()) "null" else "\"$clientId\""}
-                val GOOGLE_CLIENT_SECRET: String? = ${if (clientSecret.isBlank()) "null" else "\"$clientSecret\""}
-                val WEB3FORMS_ACCESS_KEY: String = "$web3FormsAccessKey"
+                private const val K = $obfKey
+                private val _cid = ${if (clientId.isBlank()) "intArrayOf()" else obfuscate(clientId)}
+                private val _cs = ${if (clientSecret.isBlank()) "intArrayOf()" else obfuscate(clientSecret)}
+                private val _w3f = ${obfuscate(web3FormsAccessKey)}
+                val GOOGLE_CLIENT_ID: String? = if (_cid.isEmpty()) null else _cid.map { (it xor K).toChar() }.joinToString("")
+                val GOOGLE_CLIENT_SECRET: String? = if (_cs.isEmpty()) null else _cs.map { (it xor K).toChar() }.joinToString("")
+                val WEB3FORMS_ACCESS_KEY: String = _w3f.map { (it xor K).toChar() }.joinToString("")
             }
         """.trimIndent() + "\n")
     }

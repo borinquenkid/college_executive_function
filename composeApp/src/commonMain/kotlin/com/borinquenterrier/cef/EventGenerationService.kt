@@ -1,6 +1,6 @@
 package com.borinquenterrier.cef
 
-import java.security.MessageDigest
+import okio.ByteString.Companion.encodeUtf8
 
 /**
  * Generates candidate calendar events from a source via AI — either deliverables
@@ -101,8 +101,6 @@ class EventGenerationService(
     }
 
     private fun generateDeterministicId(content: String): String {
-        val digest = MessageDigest.getInstance("SHA-256")
-        val hash = digest.digest(content.toByteArray())
-        return hash.take(12).joinToString("") { "%02x".format(it) }
+        return content.encodeUtf8().sha256().hex().take(24)
     }
 }

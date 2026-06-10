@@ -12,12 +12,49 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)
 class ComposeUiFlowsTest {
+
+    private fun createMockContainer(): DependencyContainer {
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockSourceLoader = mockk<SourceLoader>(relaxed = true)
+        val mockSourceAdder = mockk<SourceAdder>(relaxed = true)
+        val mockSourceRepository = mockk<SqlDelightSourceRepository>(relaxed = true)
+        val mockLocalRepository = mockk<SqlDelightLocalCalendarRepository>(relaxed = true)
+        val mockLogger = mockk<Logger>(relaxed = true)
+        val realSourceSelector = SourceSelector()
+
+        coEvery { mockSourceLoader.loadSources() } returns emptyList()
+        coEvery { mockSourceRepository.getAllSources() } returns emptyList()
+        coEvery { mockSourceRepository.getFragmentsForSource(any()) } returns emptyList()
+
+        val realSourceDeleter = SourceDeleter(
+            mockSourceRepository,
+            mockLocalRepository,
+            mockk(relaxed = true),
+            mockLogger,
+            GlobalScope
+        )
+
+        val realSourceManager = SourceManager(
+            mockSourceLoader,
+            mockSourceAdder,
+            realSourceDeleter,
+            realSourceSelector,
+            GlobalScope
+        )
+        every { mockContainer.sourceManager } returns realSourceManager
+        every { mockContainer.sourceRepository } returns mockSourceRepository
+        every { mockContainer.localRepository } returns mockLocalRepository
+        every { mockContainer.logger } returns mockLogger
+
+        return mockContainer
+    }
 
     @Test
     fun testSettingsScreenApiKeyRoundTrip() = runComposeUiTest {
@@ -52,7 +89,7 @@ class ComposeUiFlowsTest {
 
     @Test
     fun testChatPanelMessageSubmissionAndResponse() = runComposeUiTest {
-        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockContainer = createMockContainer()
         val mockContextAgent = mockk<ContextAgent>(relaxed = true)
         every { mockContainer.contextAgent } returns mockContextAgent
 

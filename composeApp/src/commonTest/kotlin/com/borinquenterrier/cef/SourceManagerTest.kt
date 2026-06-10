@@ -11,7 +11,7 @@ class SourceManagerTest : FunSpec({
         val loader = mockk<SourceLoader>()
         val adder = mockk<SourceAdder>()
         val deleter = mockk<SourceDeleter>()
-        val selector = mockk<SourceSelector>()
+        val selector = SourceSelector()
 
         val manager = SourceManager(loader, adder, deleter, selector, mockk())
 

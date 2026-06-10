@@ -19,6 +19,7 @@ class GoogleAuthServiceTest : FunSpec({
         System.clearProperty("GOOGLE_CLIENT_SECRET")
         System.clearProperty("CEF_GOOGLE_CLIENT_SECRET_PATH")
         System.setProperty("CEF_BYPASS_BUILD_SECRETS", "true")
+        System.setProperty("CEF_BYPASS_ENV_SECRETS", "true")
 
         // Setup isolated temp credentials dir
         tempCredentialsDir = Files.createTempDirectory("cef-test-credentials").toFile()
@@ -32,6 +33,7 @@ class GoogleAuthServiceTest : FunSpec({
         System.clearProperty("CEF_GOOGLE_CLIENT_SECRET_PATH")
         System.clearProperty("CEF_CREDENTIALS_DIR")
         System.clearProperty("CEF_BYPASS_BUILD_SECRETS")
+        System.clearProperty("CEF_BYPASS_ENV_SECRETS")
         tempCredentialsDir.deleteRecursively()
     }
 
@@ -40,6 +42,7 @@ class GoogleAuthServiceTest : FunSpec({
             System.clearProperty("GOOGLE_CLIENT_ID")
             System.clearProperty("GOOGLE_CLIENT_SECRET")
             System.setProperty("CEF_BYPASS_BUILD_SECRETS", "false")
+            System.setProperty("CEF_BYPASS_ENV_SECRETS", "true")
 
             // Backup the real .env if it exists so loadEnvFile() doesn't find it
             val envFile = File(".env")

@@ -161,10 +161,13 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     }
 
     internal fun buildFlow(): GoogleAuthorizationCodeFlow {
-        // 1. Try environment variables (JVM properties or system env)
-        var clientId = System.getProperty("GOOGLE_CLIENT_ID") ?: System.getenv("GOOGLE_CLIENT_ID")
-        var clientSecret =
-            System.getProperty("GOOGLE_CLIENT_SECRET") ?: System.getenv("GOOGLE_CLIENT_SECRET")
+        val bypassEnv = System.getProperty("CEF_BYPASS_ENV_SECRETS") == "true"
+
+        // 1. Try JVM system properties first, then OS env vars (env vars skipped in tests via CEF_BYPASS_ENV_SECRETS)
+        var clientId = System.getProperty("GOOGLE_CLIENT_ID")
+            ?: if (bypassEnv) null else System.getenv("GOOGLE_CLIENT_ID")
+        var clientSecret = System.getProperty("GOOGLE_CLIENT_SECRET")
+            ?: if (bypassEnv) null else System.getenv("GOOGLE_CLIENT_SECRET")
 
         // 2. Try build-time injected secrets (unless bypassed in tests)
         if (System.getProperty("CEF_BYPASS_BUILD_SECRETS") != "true") {

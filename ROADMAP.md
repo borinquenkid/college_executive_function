@@ -54,11 +54,12 @@ Implement the missing REST endpoints on the Ktor server to support the React web
 Implement the database-per-student, connection caching, Litestream replication, and async worker pool architectures accepted in ADR 0002 and ADR 0003.
 * **Status**: ⏳ **IN PROGRESS**
 * **Tasks**:
-  1. Implement hashed database-per-student sharding and an LRU connection cache to prevent handle leaks.
-  2. Isolate student settings and Google OAuth tokens in their sharded SQLite database files instead of a global shared JVM preference store.
-  3. Create a coroutine-based async ingest worker pool to isolate document parsing and vector indexing from the main HTTP thread pool.
-  4. Set up Litestream parameters and nightly compacted snapshot backups (`VACUUM INTO`).
-  5. Implement an automated multi-database schema migration runner to run upgrades across all active tenant files.
+  1. ✅ Implement hashed database-per-student sharding and an LRU connection cache to prevent handle leaks.
+  2. ✅ Isolate student settings and Google OAuth tokens in their sharded SQLite database files instead of a global shared JVM preference store.
+  3. ✅ Create a coroutine-based async ingest worker pool to isolate document parsing and vector indexing from the main HTTP thread pool.
+  4. Wire `ServerContainer` to use `TenantSettingsFactory` instead of the global `PreferencesSettings` instance.
+  5. Set up Litestream parameters and nightly compacted snapshot backups (`VACUUM INTO`).
+  6. Implement an automated multi-database schema migration runner to run upgrades across all active tenant files.
 
 ---
 

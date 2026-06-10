@@ -33,6 +33,53 @@ For UI-related changes, verify the visual state by running the relevant module (
 ### CRAP Remediation Protocol
 When a file scores high on the CRAP index (`CRAP.md`), prefer **decomposing it into smaller, single-responsibility files before writing tests against it**. The formula (`complexity² × (1 - coverage)³ + complexity`) squares complexity, so splitting one high-complexity file into focused units shrinks the score sharply on its own — often more than coverage alone would. Testing a monolith first is a sunk cost: once it's split, those tests have to be rewritten or relocated against the new shape anyway. Decompose first, then write targeted tests against the smaller, stable units that result.
 
+### Reactive State Testability Pattern: StateFlowReader/StateFlowWriter
+
+**Foundational Principle:** If you can't test it, you can't ship it. Raw reactive types (StateFlow, Flow) block testing just like raw IOStreams do in Java.
+
+**Mandatory Pattern for all StateFlow usage:**
+
+Never expose `StateFlow<T>` directly. Always wrap in reader/writer interfaces:
+
+```kotlin
+// Read-only interface for observers
+interface StateFlowReader<out T> {
+    val value: T
+    suspend fun collect(collector: suspend (T) -> Unit)
+}
+
+// Write-only interface for owners
+interface StateFlowWriter<in T> {
+    fun setValue(value: T)
+}
+
+// Private implementation (not exposed)
+class MutableStateFlowWrapper<T>(initialValue: T) : StateFlowReader<T>, StateFlowWriter<T> {
+    private val _flow = MutableStateFlow(initialValue)
+    override val value: T get() = _flow.value
+    override suspend fun collect(collector: suspend (T) -> Unit) = _flow.collect(collector)
+    fun setValue(newValue: T) { _flow.value = newValue }
+}
+```
+
+**Application Rules:**
+1. Never expose `StateFlow<T>` as a public property. Always use `StateFlowReader<T>` or `StateFlowWriter<T>`.
+2. Components that read state receive `StateFlowReader<T>` only (e.g., `AppController` gets `sourceItems: StateFlowReader<List<SourceItem>>`)
+3. Components that write state receive `StateFlowWriter<T>` only (e.g., `SourceManager` gets write access internally)
+4. Tests can mock readers/writers independently without requiring real implementations
+5. This enforces **Principle of Least Privilege** at the type level
+
+**Why:** Exposing raw StateFlow forces tests to either:
+- Mock the entire reactive lifecycle (fragile, error-prone) → forces using real implementations → untestable architecture
+- Use the real implementation (defeats unit test isolation)
+
+Wrapping separates concerns and makes mocking trivial:
+```kotlin
+// Test setup becomes simple
+val mockSourceItems = mockk<StateFlowReader<List<SourceItem>>>()
+every { mockContainer.sourceItems } returns mockSourceItems
+```
+
 ### Complexity & Decomposition Standards
 Prevent high-CRAP code by designing for decomposition and testability **from the spec phase**, not by discovering problems during metrics review. Architectural requirements must enforce these limits:
 

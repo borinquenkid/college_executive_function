@@ -126,7 +126,13 @@ class GeminiRequestExecutor(
 
                 // Handle other errors
                 if (errorType is ErrorCategorizer.ErrorType.OtherError) {
-                    throw Exception(errorType.message)
+                    val fullMessage = if (errorType.message.isNotBlank()) {
+                        errorType.message
+                    } else {
+                        "Unknown error. Response: $responseBody"
+                    }
+                    logger?.e(tag, "API Error: $fullMessage")
+                    throw Exception(fullMessage)
                 }
 
                 // Success

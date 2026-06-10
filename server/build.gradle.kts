@@ -18,9 +18,16 @@ dependencies {
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.multiplatform.settings)
     implementation(libs.kotlinx.datetime)
+    implementation(libs.sqldelight.sqlite.driver)
     testImplementation(libs.kotlin.test)
     testImplementation(libs.ktor.server.test.host)
     testImplementation(libs.mockk)
+    testImplementation(libs.kotest.runner.junit5)
+    testImplementation(libs.kotest.assertions.core)
+}
+
+tasks.withType<Test>().configureEach {
+    useJUnitPlatform()
 }
 
 tasks.withType<AbstractCopyTask>().configureEach {

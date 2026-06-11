@@ -1,7 +1,7 @@
 package com.borinquenterrier.cef
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -12,7 +12,7 @@ import java.io.File
 actual class LocalFileReader(private val context: Context) {
     actual suspend fun readText(path: String): String = withContext(Dispatchers.IO) {
         if (path.startsWith("content://")) {
-            context.contentResolver.openInputStream(Uri.parse(path))?.use { input ->
+            context.contentResolver.openInputStream(path.toUri())?.use { input ->
                 input.bufferedReader().use { it.readText() }
             } ?: "Error: Could not open content URI"
         } else {

@@ -1,6 +1,6 @@
 package com.borinquenterrier.cef
 
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 
@@ -10,6 +10,7 @@ import kotlinx.datetime.todayIn
  */
 object EventBuilder {
 
+    @OptIn(kotlin.time.ExperimentalTime::class)
     private val currentYear = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
 
     private val SOURCE_FRAGMENT_INSTRUCTIONS = """

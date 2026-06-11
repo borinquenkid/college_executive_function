@@ -3,7 +3,7 @@ package com.borinquenterrier.cef
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 /**
  * Lightweight facade orchestrating the autonomous background polling harness.
@@ -74,6 +74,7 @@ class AgentHarness(
             logger.d(tag, "Running calendar synchronization...")
             calendarAgent.synchronize("default")
 
+            @OptIn(kotlin.time.ExperimentalTime::class)
             pollScheduler.setLastPollTime(Clock.System.now().toEpochMilliseconds())
             _status.value = "Completed successfully."
             logger.d(tag, "Harness run completed successfully.")

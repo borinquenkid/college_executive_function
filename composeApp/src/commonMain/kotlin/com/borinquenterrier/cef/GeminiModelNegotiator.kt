@@ -7,7 +7,7 @@ import io.ktor.client.request.header
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 
@@ -48,6 +48,7 @@ class GeminiModelNegotiator(
     }
 
     fun blacklistModel(modelName: String) {
+        @OptIn(kotlin.time.ExperimentalTime::class)
         val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
         blacklistedModels[modelName] = expiry
     }
@@ -89,6 +90,7 @@ class GeminiModelNegotiator(
         available: List<ModelInfo>,
         tier: GeminiAIService.TaskTier = GeminiAIService.TaskTier.HEAVY
     ): String {
+        @OptIn(kotlin.time.ExperimentalTime::class)
         val currentTime = Clock.System.now().toEpochMilliseconds()
 
         val cachedModel = database?.appDatabaseQueries?.getSelectedModel(PREFERRED_MODEL_KEY)

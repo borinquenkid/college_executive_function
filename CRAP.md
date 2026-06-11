@@ -767,23 +767,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `parse` | 1 |
 
-### AIService.kt (Score: 9.00 - 🟢 LOW)
-- **Total Complexity**: 9
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `isConfigured` | 1 |
-| `generateCalendarEvents` | 1 |
-| `analyzeDocument` | 1 |
-| `categorizeSource` | 1 |
-| `isConfigured` | 1 |
-| `generateCalendarEvents` | 1 |
-| `analyzeDocument` | 1 |
-| `categorizeSource` | 1 |
-| `rememberAIService` | 1 |
-
 ### ChatBuilder.kt (Score: 9.00 - 🟢 LOW)
 - **Total Complexity**: 9
 - **Real Coverage**: 100.0%
@@ -861,6 +844,22 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `connect` | 5 |
 | `disconnect` | 1 |
 | `reportAuthError` | 1 |
+
+### AIService.kt (Score: 8.00 - 🟢 LOW)
+- **Total Complexity**: 8
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `isConfigured` | 1 |
+| `generateCalendarEvents` | 1 |
+| `analyzeDocument` | 1 |
+| `categorizeSource` | 1 |
+| `isConfigured` | 1 |
+| `generateCalendarEvents` | 1 |
+| `analyzeDocument` | 1 |
+| `categorizeSource` | 1 |
 
 ### OAuthExchange.kt (Score: 7.20 - 🟢 LOW)
 - **Total Complexity**: 6

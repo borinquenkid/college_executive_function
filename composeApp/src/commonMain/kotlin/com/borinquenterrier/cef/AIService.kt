@@ -38,5 +38,3 @@ expect class RealAIService(
     override suspend fun categorizeSource(text: String): SourceCategory
 }
 
-@Composable
-expect fun rememberAIService(): AIService

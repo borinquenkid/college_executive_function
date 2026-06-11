@@ -64,17 +64,3 @@ actual class RealAIService actual constructor(
     }
 }
 
-@Composable
-actual fun rememberAIService(): AIService {
-    val settings = rememberSettings()
-    val logger = rememberLogger()
-    val driverFactory = rememberDriverFactory()
-    val database = remember(driverFactory) { AppDatabase(driverFactory.createDriver()) }
-
-    return remember(settings, logger, database) {
-        CriticActorAIService(
-            RecursiveDecompositionAIService(RealAIService(settings, logger, database)),
-            logger
-        )
-    }
-}

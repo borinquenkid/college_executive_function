@@ -337,9 +337,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `blacklistModel` | 1 |
 | `negotiateBestModel` | 1 |
 
-### Event.kt (Score: 20.15 - 🟡 MEDIUM)
+### Event.kt (Score: 20.16 - 🟡 MEDIUM)
 - **Total Complexity**: 20
-- **Real Coverage**: 92.8%
+- **Real Coverage**: 92.7%
 
 #### Methods list:
 | Method | Complexity |
@@ -461,6 +461,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `activateRateLimitWindow` | 1 |
 | `wait` | 1 |
 
+### CalendarInterfaces.kt (Score: 16.43 - 🟡 MEDIUM)
+- **Total Complexity**: 13
+- **Real Coverage**: 72.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEvents` | 1 |
+| `extract` | 1 |
+| `getSettings` | 1 |
+| `getAllEvents` | 1 |
+| `saveEvent` | 1 |
+| `updateEvent` | 1 |
+| `deleteEvent` | 1 |
+| `hardDeleteEvent` | 1 |
+| `getEventsInRange` | 1 |
+| `getEventsBySyncStatus` | 1 |
+| *... and 3 more* | |
+
 ### AppController.kt (Score: 16.10 - 🟡 MEDIUM)
 - **Total Complexity**: 15
 - **Real Coverage**: 83.0%
@@ -491,25 +510,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findNewSlotAndResolve` | 1 |
 | `shiftEvent` | 1 |
 | `findNextAvailableSlot` | 1 |
-
-### CalendarInterfaces.kt (Score: 15.08 - 🟡 MEDIUM)
-- **Total Complexity**: 13
-- **Real Coverage**: 76.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getEvents` | 1 |
-| `extract` | 1 |
-| `getSettings` | 1 |
-| `getAllEvents` | 1 |
-| `saveEvent` | 1 |
-| `updateEvent` | 1 |
-| `deleteEvent` | 1 |
-| `hardDeleteEvent` | 1 |
-| `getEventsInRange` | 1 |
-| `getEventsBySyncStatus` | 1 |
-| *... and 3 more* | |
 
 ### SyncNegotiationApplier.kt (Score: 15.00 - 🟢 LOW)
 - **Total Complexity**: 15

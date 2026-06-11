@@ -102,7 +102,6 @@ class MultiSourceIngestionIntegrationTest : FunSpec({
         val eventAgent = EventAgent(
             aiService = aiService,
             repository = calendarAgent,
-            database = database,
             logger = logger
         )
 

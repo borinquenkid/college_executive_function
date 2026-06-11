@@ -55,13 +55,11 @@ class HeadlessLogicTest : FunSpec({
     test("EventAgent should pass existing calendar events to AIService to prevent collisions") {
         val mockAiService = mockk<AIService>()
         val mockCalendarAgent = mockk<CalendarAgent>()
-        val database = null // Not needed for this pure logic test
         val logger = Logger(MapSettings())
 
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            database,
             NormalizationService(),
             logger = logger
         )
@@ -126,7 +124,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = logger
         )
@@ -161,7 +158,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = logger
         )
@@ -209,7 +205,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = logger
         )
@@ -265,7 +260,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = logger
         )
@@ -324,7 +318,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = logger
         )
@@ -380,7 +373,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockk(),
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = Logger(MapSettings())
         )
@@ -394,7 +386,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockk(),
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = Logger(MapSettings())
         )
@@ -425,7 +416,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = logger
         )
@@ -469,7 +459,6 @@ class HeadlessLogicTest : FunSpec({
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = logger
         )

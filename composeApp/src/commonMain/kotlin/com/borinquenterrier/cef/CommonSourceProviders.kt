@@ -42,9 +42,9 @@ class LocalFileSourceProvider(
     private val filePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit = { onFileSelected ->
         FilePicker(
             show = true,
-            onFileSelected = onFileSelected
+            onFileSelected = onFileSelected,
         )
-    }
+    },
 ) : SourceProvider {
     override val id = "local_file"
     override val displayName = "File"
@@ -57,29 +57,28 @@ class LocalFileSourceProvider(
         val scope = rememberCoroutineScope()
         val handler =
             remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
-        var hasTriggered by remember { mutableStateOf(false) }
-        var isIngesting by remember { mutableStateOf(false) }
+        val hasTriggered = remember { mutableStateOf(value = false) }
+        val isIngesting = remember { mutableStateOf(value = false) }
 
-        if (isIngesting) {
+        if (isIngesting.value) {
             IngestingProgressDialog(
                 title = "Reading Document",
                 message = "Extracting text and analyzing structure..."
             )
         }
 
-        if (!hasTriggered) {
+        if (!hasTriggered.value) {
             filePicker { path ->
-                hasTriggered = true
+                hasTriggered.value = true
                 if (path == null) {
                     onDismiss()
                 } else {
                     handler.ingestLocalFile(
                         path = path,
-                        onStart = { isIngesting = true },
+                        onStart = { isIngesting.value = true },
                         onSuccess = onSourceAdded,
-                        onFailure = onDismiss,
-                        onFinish = { isIngesting = false }
-                    )
+                        onFailure = onDismiss
+                    ) { isIngesting.value = false }
                 }
             }
         }
@@ -102,21 +101,20 @@ class UrlSourceProvider(
         val handler =
             remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var url by remember { mutableStateOf("") }
-        var isIngesting by remember { mutableStateOf(false) }
+        val isIngesting = remember { mutableStateOf(value = false) }
 
         val submitUrl = {
             if (url.isNotBlank()) {
                 handler.ingestUrl(
                     url = url,
-                    onStart = { isIngesting = true },
+                    onStart = { isIngesting.value = true },
                     onSuccess = onSourceAdded,
-                    onFailure = onDismiss,
-                    onFinish = { isIngesting = false }
-                )
+                    onFailure = onDismiss
+                ) { isIngesting.value = false }
             }
         }
 
-        if (isIngesting) {
+        if (isIngesting.value) {
             IngestingProgressDialog(
                 title = "Reading URL",
                 message = "Fetching content and analyzing structure..."
@@ -133,7 +131,7 @@ class UrlSourceProvider(
                         modifier = Modifier
                             .fillMaxWidth()
                             .onKeyEvent { keyEvent ->
-                                if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyDown) {
+                                if ((keyEvent.key == Key.Enter) && (keyEvent.type == KeyEventType.KeyDown)) {
                                     submitUrl()
                                     true
                                 } else {
@@ -174,9 +172,9 @@ class GoogleDriveSourceProvider(
         val scope = rememberCoroutineScope()
         val handler =
             remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
-        var isIngesting by remember { mutableStateOf(false) }
+        val isIngesting = remember { mutableStateOf(value = false) }
 
-        if (isIngesting) {
+        if (isIngesting.value) {
             IngestingProgressDialog(
                 title = "Reading Drive File",
                 message = "Downloading and analyzing file..."
@@ -196,16 +194,14 @@ class GoogleDriveSourceProvider(
             DrivePickerDialog(
                 driveService = driveService,
                 onDismiss = onDismiss,
-                onFileSelected = { file ->
-                    handler.ingestDriveFile(
-                        file = file,
-                        onStart = { isIngesting = true },
-                        onSuccess = onSourceAdded,
-                        onFailure = onDismiss,
-                        onFinish = { isIngesting = false }
-                    )
-                }
-            )
+            ) { file ->
+                handler.ingestDriveFile(
+                    file = file,
+                    onStart = { isIngesting.value = true },
+                    onSuccess = onSourceAdded,
+                    onFailure = onDismiss
+                ) { isIngesting.value = false }
+            }
         }
     }
 }
@@ -217,7 +213,7 @@ fun DrivePickerDialog(
     onFileSelected: (DriveFile) -> Unit
 ) {
     var files by remember { mutableStateOf<List<DriveFile>?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
+    var isLoading by remember { mutableStateOf(value = true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
     LaunchedEffect(Unit) {

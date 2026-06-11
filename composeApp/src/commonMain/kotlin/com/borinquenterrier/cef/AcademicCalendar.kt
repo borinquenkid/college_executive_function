@@ -27,7 +27,7 @@ fun AcademicCalendar(
     aiGeneratedEvents: List<Event>,
     calendarAgent: CalendarAgent,
     eventAgent: EventAgent,
-    onNavigate: (AppScreen) -> Unit
+    onNavigate: (AppScreen) -> Unit,
 ) {
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
@@ -47,10 +47,10 @@ fun AcademicCalendar(
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
     var displayedEvents by remember { mutableStateOf(emptyList<Event>()) }
     var isGoogleLinked by remember { mutableStateOf(authManager.isLinked()) }
-    var isSyncing by remember { mutableStateOf(false) }
-    var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
-    var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
-    var showConflictDialog by remember { mutableStateOf(false) }
+    var isSyncing by remember { mutableStateOf(value = false) }
+    val selectedEventForDecomposition = remember { mutableStateOf<Event?>(null) }
+    val activeSyncNegotiation = remember { mutableStateOf<SyncNegotiation?>(null) }
+    val showConflictDialog = remember { mutableStateOf(value = false) }
     val errorState by eventAgent.errorState.collectAsState()
     val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
 
@@ -66,7 +66,7 @@ fun AcademicCalendar(
                 try {
                     val negotiation = syncManager.initiateSyncIfNeeded(isGoogleLinked)
                     if (negotiation != null) {
-                        activeSyncNegotiation = negotiation
+                        activeSyncNegotiation.value = negotiation
                     } else {
                         displayedEvents = syncManager.refreshEvents()
                     }
@@ -79,7 +79,7 @@ fun AcademicCalendar(
 
     LaunchedEffect(unresolvedConflicts) {
         if (unresolvedConflicts.isNotEmpty()) {
-            showConflictDialog = true
+            showConflictDialog.value = true
         }
     }
 
@@ -95,46 +95,45 @@ fun AcademicCalendar(
                 aiGeneratedEvents = aiGeneratedEvents,
                 displayedEvents = displayedEvents,
                 startDate = viewStartDate,
-                endDate = viewEndDate
+                endDate = viewEndDate,
             )
         }
 
     val groupedEvents = CalendarEventGrouper.groupEventsByDate(allExpandedEvents)
 
-    selectedEventForDecomposition?.let { event ->
+    selectedEventForDecomposition.value?.let { event ->
         TaskDecompositionDialog(
             event = event,
             eventAgent = eventAgent,
-            onDismiss = {
-                eventAgent.clearDecomposition()
-                selectedEventForDecomposition = null
-            }
-        )
+        ) {
+            eventAgent.clearDecomposition()
+            selectedEventForDecomposition.value = null
+        }
     }
 
-    activeSyncNegotiation?.let { negotiation ->
+    activeSyncNegotiation.value?.let { negotiation ->
         SyncNegotiationDialog(
             negotiation = negotiation,
             calendarAgent = calendarAgent,
             onApplied = {
-                activeSyncNegotiation = null
+                activeSyncNegotiation.value = null
                 scope.launch {
                     displayedEvents = syncManager.refreshEvents()
                 }
             },
             onDismiss = {
-                activeSyncNegotiation = null
+                activeSyncNegotiation.value = null
             }
         )
     }
 
-    if (showConflictDialog) {
+    if (showConflictDialog.value) {
         ConflictResolutionDialog(
             conflicts = unresolvedConflicts,
             onDismiss = {
-                showConflictDialog = false
+                showConflictDialog.value = false
                 eventAgent.clearUnresolvedConflicts()
-            }
+            },
         )
     }
 
@@ -151,7 +150,7 @@ fun AcademicCalendar(
                 item {
                     GoogleLinkPrompt(
                         onLink = { authManager.loginAndLink() },
-                        onLinked = { isGoogleLinked = true }
+                        onLinked = { isGoogleLinked = true },
                     )
                 }
             }
@@ -166,9 +165,9 @@ fun AcademicCalendar(
                         scope.launch {
                             isSyncing = true
                             try {
-                                val negotiation = syncManager.initiateSyncIfNeeded(true)
+                                val negotiation = syncManager.initiateSyncIfNeeded(isGoogleLinked = true)
                                 if (negotiation != null) {
-                                    activeSyncNegotiation = negotiation
+                                    activeSyncNegotiation.value = negotiation
                                 } else {
                                     displayedEvents = syncManager.refreshEvents()
                                 }
@@ -183,7 +182,7 @@ fun AcademicCalendar(
             item {
                 EventListContent(
                     groupedEvents = groupedEvents,
-                    onEventSelected = { selectedEventForDecomposition = it }
+                    onEventSelected = { selectedEventForDecomposition.value = it }
                 )
             }
         }

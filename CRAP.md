@@ -21,7 +21,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | CalendarSyncManager.kt | 8 | 16.0% | 45.93 | 🔴 HIGH |
 | GeminiRequestExecutor.kt | 25 | 69.4% | 42.96 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 22 | 66.7% | 39.93 | 🔴 HIGH |
-| EventAgent.kt | 34 | 93.1% | 34.38 | 🔴 HIGH |
+| EventAgent.kt | 32 | 93.1% | 32.34 | 🔴 HIGH |
 | GeminiAIService.kt | 26 | 78.9% | 32.31 | 🔴 HIGH |
 | GoogleCalendarPanel.kt | 23 | 75.0% | 31.27 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -97,14 +97,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getEventsInRange` | 1 |
 | *... and 2 more* | |
 
-### EventAgent.kt (Score: 34.38 - 🔴 HIGH)
-- **Total Complexity**: 34
+### EventAgent.kt (Score: 32.34 - 🔴 HIGH)
+- **Total Complexity**: 32
 - **Real Coverage**: 93.1%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `pushToCalendar` | 8 |
+| `pushToCalendar` | 6 |
 | `acceptDecomposition` | 3 |
 | `rescheduleEvent` | 3 |
 | `generateStudyPlan` | 2 |

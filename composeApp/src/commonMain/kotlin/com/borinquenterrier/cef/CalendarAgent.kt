@@ -12,9 +12,9 @@ import kotlinx.datetime.LocalDate
 class CalendarAgent(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
-    private val logger: Logger? = null,
+    logger: Logger? = null,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
-    private val preferencesRepository: PreferencesRepository? = null
+    preferencesRepository: PreferencesRepository? = null,
 ) {
     private val negotiator =
         SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository)
@@ -53,7 +53,7 @@ class CalendarAgent(
      */
     suspend fun updateEvent(event: Event, calendarId: String = "default") {
         val original = localRepo.getAllEvents(calendarId).find { it.id == event.id }
-        if (original != null && original.category == AcademicCategory.STUDY_BLOCK) {
+        if ((original != null) && (original.category == AcademicCategory.STUDY_BLOCK)) {
             val hasMoved =
                 original.date != event.date || (original is TimeEvent && event is TimeEvent && (original.startTime != event.startTime || original.endTime != event.endTime))
             if (hasMoved) {
@@ -91,7 +91,7 @@ class CalendarAgent(
             remoteRepo.deleteEvent(eventId, calendarId)
             // If remote success, hard delete locally
             localRepo.hardDeleteEvent(eventId, calendarId)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             // Stay as DELETED_LOCALLY for later sync
         }
     }
@@ -126,11 +126,11 @@ class CalendarAgent(
      */
     suspend fun getIncompleteEventsBefore(
         date: LocalDate,
-        calendarId: String = "default"
+        calendarId: String = "default",
     ): List<Event> {
         return localRepo.getIncompleteEventsBefore(date, calendarId)
     }
 
-    private suspend fun isLiveSyncEnabled(): Boolean =
+    private fun isLiveSyncEnabled(): Boolean =
         (localRepo.getSettings()?.getString("run_profile", "local") ?: "local") != "test"
 }

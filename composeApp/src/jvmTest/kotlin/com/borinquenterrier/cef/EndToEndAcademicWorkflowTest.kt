@@ -51,7 +51,6 @@ class EndToEndAcademicWorkflowTest : FunSpec({
         val events = EventAgent(
             mockAi,
             calendar,
-            container.database,
             NormalizationService(),
             logger = logger
         )

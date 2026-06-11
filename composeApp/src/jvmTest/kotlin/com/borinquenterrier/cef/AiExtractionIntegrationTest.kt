@@ -26,7 +26,7 @@ class AiExtractionIntegrationTest : FunSpec({
         val logger = Logger(settings)
         val aiService: AIService = RealAIService(settings, logger, database)
         val mockRepo = mockk<CalendarAgent>(relaxed = true)
-        val eventAgent = EventAgent(aiService, mockRepo, database, logger = logger)
+        val eventAgent = EventAgent(aiService, mockRepo, logger = logger)
 
         // Load syllabus text
         val syllabusStream = object {}.javaClass.classLoader.getResourceAsStream("syllabus.txt")

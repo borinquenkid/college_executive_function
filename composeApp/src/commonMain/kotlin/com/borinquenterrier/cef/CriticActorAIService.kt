@@ -3,7 +3,7 @@ package com.borinquenterrier.cef
 class CriticActorAIService(
     private val delegate: AIService,
     private val logger: Logger? = null,
-    private val telemetryManager: TelemetryManager? = null
+    private val telemetryManager: TelemetryManager? = null,
 ) : AIService by delegate {
 
     override suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
@@ -16,13 +16,12 @@ class CriticActorAIService(
             firstPass = firstPass,
             serialize = CriticJsonCodec::serializeEvents,
             parse = { CriticJsonCodec.parseEvents(it, logger) },
-            buildPrompt = { currentJson ->
-                AiPrompts.getEventCritiquePrompt(
-                    sourceText,
-                    currentJson
-                )
-            }
-        )
+        ) { currentJson ->
+            AiPrompts.getEventCritiquePrompt(
+                sourceText,
+                currentJson
+            )
+        }
 
         val modified = areEventListsDifferent(firstPass, refined)
         telemetryManager?.logCriticPass(modified)
@@ -46,13 +45,12 @@ class CriticActorAIService(
             firstPass = firstPass,
             serialize = CriticJsonCodec::serializeEvents,
             parse = { CriticJsonCodec.parseEvents(it, logger) },
-            buildPrompt = { currentJson ->
-                AiPrompts.getEventCritiquePrompt(
-                    syllabusText,
-                    currentJson
-                )
-            }
-        )
+        ) { currentJson ->
+            AiPrompts.getEventCritiquePrompt(
+                syllabusText,
+                currentJson
+            )
+        }
 
         val modified = areEventListsDifferent(firstPass, refined)
         telemetryManager?.logCriticPass(modified)
@@ -146,14 +144,12 @@ class CriticActorAIService(
 
         logger?.d("CriticActor", "First-pass chat response generated. Launching critique pass...")
 
-        try {
+        return try {
             val critiquePrompt = AiPrompts.getChatCritiquePrompt(prompt, firstPass)
-            val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
-            logger?.d("CriticActor", "Chat critique complete.")
-            return critiqueResponse
+            delegate.generateChatResponse(critiquePrompt)
         } catch (e: Exception) {
             logger?.e("CriticActor", "Chat critique failed, falling back to first pass response", e)
-            return firstPass
+            firstPass
         }
     }
 
@@ -165,15 +161,14 @@ class CriticActorAIService(
             logLabel = "decomposition",
             firstPass = firstPass,
             serialize = CriticJsonCodec::serializeTasks,
-            parse = { CriticJsonCodec.parseTasks(it, logger) },
-            buildPrompt = { currentJson ->
-                AiPrompts.getDecompositionCritiquePrompt(
-                    taskTitle,
-                    dueDate,
-                    currentJson
-                )
-            }
-        )
+            parse = { CriticJsonCodec.parseTasks(it, logger) }
+        ) { currentJson ->
+            AiPrompts.getDecompositionCritiquePrompt(
+                taskTitle,
+                dueDate,
+                currentJson
+            )
+        }
 
         logger?.d(
             "CriticActor",
@@ -187,8 +182,8 @@ class CriticActorAIService(
         for (i in list1.indices) {
             val e1 = list1[i]
             val e2 = list2[i]
-            if (e1.title != e2.title || e1.date != e2.date || e1.category != e2.category) return true
-            if (e1 is TimeEvent && e2 is TimeEvent) {
+            if ((e1.title != e2.title) || (e1.date != e2.date) || (e1.category != e2.category)) return true
+            if ((e1 is TimeEvent) && (e2 is TimeEvent)) {
                 if (e1.startTime != e2.startTime || e1.endTime != e2.endTime) return true
             } else if (e1 is TimeEvent || e2 is TimeEvent) {
                 return true

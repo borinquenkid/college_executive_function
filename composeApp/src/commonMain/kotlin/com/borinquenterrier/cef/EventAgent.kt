@@ -1,6 +1,5 @@
 package com.borinquenterrier.cef
 
-import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -24,13 +23,12 @@ sealed class AgentError {
  * separating AI processing and event management from the UI.
  */
 class EventAgent(
-    private val aiService: AIService,
+    aiService: AIService,
     private val repository: CalendarAgent,
-    private val database: AppDatabase? = null,
-    private val normalizationService: NormalizationService = NormalizationService(),
-    private val preferencesRepository: PreferencesRepository? = null,
+    normalizationService: NormalizationService = NormalizationService(),
+    preferencesRepository: PreferencesRepository? = null,
     private val logger: Logger? = null,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null
+    userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
 ) {
     private val tag = "EventAgent"
 
@@ -39,7 +37,7 @@ class EventAgent(
         repository,
         preferencesRepository,
         userPreferenceMemoryRepository,
-        logger
+        logger,
     )
     private val generationService = EventGenerationService(
         aiService,
@@ -50,7 +48,7 @@ class EventAgent(
     )
     private val decompositionService = TaskDecompositionService(aiService, repository)
 
-    private val _isLoading = MutableStateFlow(false)
+    private val _isLoading = MutableStateFlow(value = false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
 
     private val _statusMessage = MutableStateFlow("Select a source and an action.")
@@ -137,7 +135,7 @@ class EventAgent(
         if (triggerSync) {
             try {
                 repository.synchronize("default")
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 // Ignore sync errors
             }
         }
@@ -206,9 +204,8 @@ class EventAgent(
             }
         } catch (e: CalendarNotFoundException) {
             logger?.e(tag, "Calendar not found during sync", e)
-            _statusMessage.value =
-                e.message ?: "Calendar is no longer accessible. Please re-link your calendar."
-            _errorState.value = AgentError.GenericError(e.message ?: "Calendar sync failed")
+            _statusMessage.value = "Calendar is no longer accessible. Please re-link your calendar."
+            _errorState.value = AgentError.GenericError("Calendar sync failed")
         } catch (e: Exception) {
             logger?.e(tag, "Error pushing to calendar", e)
             _statusMessage.value = "Sync Error: ${e.message}"

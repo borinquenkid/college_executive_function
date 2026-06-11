@@ -1,6 +1,5 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.runtime.Composable
 import com.borinquenterrier.cef.db.AppDatabase
 import com.russhwolf.settings.Settings
 
@@ -11,7 +10,7 @@ interface AIService {
     suspend fun generateStudyPlan(
         syllabusText: String,
         existingSchedule: String = "",
-        preferences: StudyPreferences = StudyPreferences()
+        preferences: StudyPreferences = StudyPreferences(),
     ): List<Event>
 
     suspend fun analyzeDocument(text: String): String?
@@ -22,7 +21,7 @@ interface AIService {
 expect class RealAIService(
     settings: Settings,
     logger: Logger,
-    database: AppDatabase? = null
+    database: AppDatabase? = null,
 ) : AIService {
     override fun isConfigured(): Boolean
     override suspend fun generateChatResponse(prompt: String): String

@@ -24,7 +24,7 @@ class DependencyContainer(
     val modelBasePath: String,
     val fileReader: LocalFileReader,
     val docxReader: DocxReader,
-    val pdfReader: PdfReader
+    val pdfReader: PdfReader,
 ) {
     private val globalScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     val httpClient by lazy {
@@ -140,7 +140,6 @@ class DependencyContainer(
         EventAgent(
             aiService,
             calendarAgent,
-            database,
             NormalizationService(),
             preferencesRepository,
             logger,
@@ -245,7 +244,7 @@ class DependencyContainer(
             contextAgent,
             logger,
             globalScope,
-            { events -> /* events will be handled by EventAgent */ })
+        ) { _ -> /* events will be handled by EventAgent */ }
     }
 
     val sourceDeleter by lazy {

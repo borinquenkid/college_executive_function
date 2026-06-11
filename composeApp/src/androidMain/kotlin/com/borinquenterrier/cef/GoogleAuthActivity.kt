@@ -1,6 +1,5 @@
 package com.borinquenterrier.cef
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -24,7 +23,7 @@ class GoogleAuthActivity : ComponentActivity() {
     private val signInLauncher = registerForActivityResult(
         androidx.activity.result.contract.ActivityResultContracts.StartActivityForResult()
     ) { result ->
-        handleSignInResult(result.resultCode, result.data)
+        handleSignInResult(result.data)
     }
 
     private val recoveryLauncher = registerForActivityResult(
@@ -53,7 +52,7 @@ class GoogleAuthActivity : ComponentActivity() {
         }
     }
 
-    private fun handleSignInResult(resultCode: Int, data: Intent?) {
+    private fun handleSignInResult(data: Intent?) {
         val task: Task<GoogleSignInAccount> = GoogleSignIn.getSignedInAccountFromIntent(data)
         try {
             val account = task.result
@@ -95,7 +94,7 @@ class GoogleAuthActivity : ComponentActivity() {
 
     private fun handleRecoveryResult(resultCode: Int) {
         // After recovery intent finishes, try login again (or finish)
-        if (resultCode == Activity.RESULT_OK) {
+        if (resultCode == RESULT_OK) {
             // Try to get token again
             val account = GoogleSignIn.getLastSignedInAccount(this)
             if (account != null && account.account != null) {

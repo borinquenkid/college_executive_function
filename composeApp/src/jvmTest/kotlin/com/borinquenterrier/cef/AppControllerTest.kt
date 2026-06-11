@@ -114,8 +114,9 @@ class AppControllerTest : FunSpec({
     }
 
     // ── Source management ─────────────────────────────────────────────────────
-
+    
     test("addSource adds to sourceItems and sets selectedSource when previously null") {
+        kotlinx.coroutines.delay(100)
         val source = SourceItem("notes.txt", emptyList(), SourceCategory.READING_MATERIAL)
         every { aiService.isConfigured() } returns false
 
@@ -127,6 +128,7 @@ class AppControllerTest : FunSpec({
     }
 
     test("addSource does not overwrite selectedSource when one already exists") {
+        kotlinx.coroutines.delay(100)
         val first = SourceItem("first.txt", emptyList(), SourceCategory.SYLLABUS)
         val second = SourceItem("second.txt", emptyList(), SourceCategory.READING_MATERIAL)
         every { aiService.isConfigured() } returns false
@@ -138,6 +140,7 @@ class AppControllerTest : FunSpec({
     }
 
     test("deleteSource removes item from sourceItems and deselects it") {
+        kotlinx.coroutines.delay(100)
         val source = SourceItem("syllabus.pdf", emptyList(), SourceCategory.SYLLABUS)
         every { aiService.isConfigured() } returns false
         coEvery { localRepository.getAllEvents(any()) } returns emptyList()
@@ -154,6 +157,7 @@ class AppControllerTest : FunSpec({
     }
 
     test("deleteSource hardDeletes matching events by id prefix") {
+        kotlinx.coroutines.delay(100)
         val source = SourceItem("cs101_syllabus", emptyList(), SourceCategory.SYLLABUS)
         every { aiService.isConfigured() } returns false
 
@@ -175,6 +179,7 @@ class AppControllerTest : FunSpec({
     }
 
     test("deleteSource calls calendarAgent.synchronize after cleanup") {
+        kotlinx.coroutines.delay(100)
         val source = SourceItem("notes.txt", emptyList(), SourceCategory.READING_MATERIAL)
         every { aiService.isConfigured() } returns false
         coEvery { localRepository.getAllEvents(any()) } returns emptyList()

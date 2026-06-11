@@ -125,10 +125,11 @@ tasks.register<JavaExec>("generateCrapReport") {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
+
     androidTarget {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
     
@@ -176,7 +177,9 @@ kotlin {
             implementation(libs.google.api.services.calendar)
             implementation(libs.google.api.client)
             implementation(libs.google.oauth.client.jetty)
-            implementation(libs.okio)        }
+            implementation(libs.llamatik)
+            implementation(libs.okio)
+        }
         iosMain.dependencies {
             implementation(libs.ktor.client.darwin)
             implementation(libs.sqldelight.native.driver)
@@ -247,8 +250,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     testOptions {
         unitTests.all {
@@ -308,4 +311,10 @@ compose.desktop {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     maxHeapSize = "8g"
+}
+
+tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
 }

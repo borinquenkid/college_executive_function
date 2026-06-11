@@ -8,7 +8,7 @@ import java.io.File
 
 actual fun generateIcsString(events: List<Event>): String {
     // We can write a simple manual builder for Android/iOS or use a custom pure Kotlin builder
-    return com.borinquenterrier.cef.IcsStringBuilder.buildIcsString(events)
+    return IcsStringBuilder.buildIcsString(events)
 }
 
 actual fun writeIcsFile(content: String): String {

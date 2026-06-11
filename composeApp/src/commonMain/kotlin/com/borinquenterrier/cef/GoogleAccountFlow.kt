@@ -24,6 +24,7 @@ class GoogleAccountFlow(
         _state.value = GoogleConnectionState.Connecting
         try {
             println("[GoogleAccountFlow] Transition: Unlinked -> Connecting")
+            authService.logout()
             val result = authService.login()
 
             println("[GoogleAccountFlow] Saving tokens...")

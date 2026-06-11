@@ -16,6 +16,9 @@ import java.io.FileInputStream
 import java.io.InputStreamReader
 import java.io.StringReader
 import java.nio.file.Paths
+import com.google.api.client.util.store.MemoryDataStoreFactory
+import com.google.api.client.googleapis.auth.oauth2.GoogleTokenResponse
+import com.borinquenterrier.cef.getAppDirectory
 
 /**
  * JVM Implementation using the Local Server Flow.
@@ -29,12 +32,6 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     private val scopes = listOf(
         "https://www.googleapis.com/auth/calendar",
         "https://www.googleapis.com/auth/drive.readonly"
-    )
-    private val credentialsDir = File(
-        System.getProperty("CEF_CREDENTIALS_DIR")
-            ?: System.getenv("CEF_CREDENTIALS_DIR")
-            ?: System.getProperty("user.home"),
-        ".cef_credentials"
     )
 
     actual suspend fun login(): Pair<String, String?> = withContext(Dispatchers.IO) {
@@ -116,7 +113,10 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         withContext(Dispatchers.IO) {
             try {
                 val flow = buildFlow()
-                val credential = flow.loadCredential("user") ?: return@withContext null
+                val credential = flow.createAndStoreCredential(
+                    GoogleTokenResponse().setRefreshToken(refreshToken),
+                    "user"
+                )
                 if (credential.refreshToken()) {
                     credential.accessToken
                 } else {
@@ -130,10 +130,9 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
 
     actual fun logout() {
         try {
-            if (credentialsDir.exists()) {
-                val success = credentialsDir.deleteRecursively()
-                println("[$tag] Local session cleared: $success")
-            }
+            val flow = buildFlow()
+            flow.credentialDataStore.delete("user")
+            println("[$tag] Local session cleared.")
         } catch (e: Exception) {
             println("[$tag] Logout error: ${e.message}")
         }
@@ -206,8 +205,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
             // 3. Fallback to client_secret.json file
             val envPath = System.getProperty("CEF_GOOGLE_CLIENT_SECRET_PATH")
                 ?: System.getenv("CEF_GOOGLE_CLIENT_SECRET_PATH")
-            val defaultPath =
-                Paths.get(System.getProperty("user.home"), ".cef", "client_secret.json").toString()
+            val defaultPath = File(getAppDirectory(), "client_secret.json").absolutePath
             val secretPath = envPath ?: defaultPath
 
             val secretFile = File(secretPath)
@@ -221,10 +219,12 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         }
 
         return GoogleAuthorizationCodeFlow.Builder(
-            transport, jsonFactory, clientSecrets, scopes
-        ).setDataStoreFactory(FileDataStoreFactory(credentialsDir))
+            transport,
+            jsonFactory,
+            clientSecrets,
+            scopes
+        ).setDataStoreFactory(MemoryDataStoreFactory.getDefaultInstance())
             .setAccessType("offline")
-            .setApprovalPrompt("force") // Ensures a fresh login every time you click Connect
             .build()
     }
 }

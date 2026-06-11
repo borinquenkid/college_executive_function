@@ -6,7 +6,7 @@ import com.borinquenterrier.cef.db.AppDatabase
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -63,6 +63,7 @@ class UserPreferenceMemoryRepositoryTest : FunSpec({
         repository.logOverride(OverrideAction.DELETE, testEvent)
 
         // Wait a millisecond to make sure log timestamp is older than prune time
+        @OptIn(kotlin.time.ExperimentalTime::class)
         val pruneTime = Clock.System.now().toEpochMilliseconds() + 10
 
         repository.pruneOldLogs(pruneTime)

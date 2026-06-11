@@ -4,7 +4,7 @@ import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 
@@ -257,6 +257,7 @@ class EventAgent(
     val incompleteEvents: StateFlow<List<Event>> = _incompleteEvents.asStateFlow()
 
     suspend fun loadIncompleteEvents() {
+        @OptIn(kotlin.time.ExperimentalTime::class)
         val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
         try {
             val list = repository.getIncompleteEventsBefore(today, "default")
@@ -285,6 +286,7 @@ class EventAgent(
 
     suspend fun rescheduleEvent(event: Event) {
         runAgentAction("Failed to reschedule event") {
+            @OptIn(kotlin.time.ExperimentalTime::class)
             val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
             val updated = when (event) {
                 is TimeEvent -> event.copy(date = today)

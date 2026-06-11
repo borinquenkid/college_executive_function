@@ -13,6 +13,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
+import kotlin.time.Clock
 
 /**
  * Demonstrates that the application logic can now run "Headless"
@@ -473,8 +474,9 @@ class HeadlessLogicTest : FunSpec({
             logger = logger
         )
 
+        @OptIn(kotlin.time.ExperimentalTime::class)
         val today =
-            kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
+            Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
         val event = TimeEvent(
             id = "event1",
             title = "Missed Study Block",

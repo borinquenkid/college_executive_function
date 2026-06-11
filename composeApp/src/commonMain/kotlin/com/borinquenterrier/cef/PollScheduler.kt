@@ -1,7 +1,7 @@
 package com.borinquenterrier.cef
 
 import com.russhwolf.settings.Settings
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 /**
  * Manages polling schedule state, including last poll time and poll frequency logic.
@@ -29,6 +29,7 @@ class PollScheduler(
     fun shouldPoll(force: Boolean = false): Boolean {
         if (force) return true
 
+        @OptIn(kotlin.time.ExperimentalTime::class)
         val now = Clock.System.now().toEpochMilliseconds()
         val lastPoll = getLastPollTime()
 

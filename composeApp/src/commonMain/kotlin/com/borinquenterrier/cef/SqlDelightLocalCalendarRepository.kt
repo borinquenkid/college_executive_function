@@ -5,6 +5,7 @@ import com.russhwolf.settings.Settings
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.json.Json
+import kotlin.time.Clock
 
 class SqlDelightLocalCalendarRepository(
     private val database: AppDatabase,
@@ -43,7 +44,8 @@ class SqlDelightLocalCalendarRepository(
 
         database.appDatabaseQueries.insertEvent(
             id = event.id ?: "${
-                kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+                @OptIn(kotlin.time.ExperimentalTime::class)
+                Clock.System.now().toEpochMilliseconds()
             }-${(1000..9999).random()}",
             title = event.title,
             source = event.source.name,
@@ -65,7 +67,7 @@ class SqlDelightLocalCalendarRepository(
 
     override suspend fun deleteEvent(eventId: String, calendarId: String) {
         database.appDatabaseQueries.markAsDeleted(
-            updatedAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds(),
+            updatedAt = @OptIn(kotlin.time.ExperimentalTime::class) Clock.System.now().toEpochMilliseconds(),
             id = eventId
         )
     }

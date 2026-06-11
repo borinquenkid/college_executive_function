@@ -1,6 +1,5 @@
 package com.borinquenterrier.cef
 
-import kotlinx.datetime.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.LocalDate
@@ -10,6 +9,7 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
+import kotlin.time.Clock
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
@@ -134,12 +134,14 @@ fun Event.withCompletionStatus(status: CompletionStatus): Event = when (this) {
 }
 
 fun Event.timeUntilDue(
+    @OptIn(kotlin.time.ExperimentalTime::class)
     currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 ): Duration {
     return currentDate.daysUntil(this.date).days
 }
 
 fun Event.studyProgress(
+    @OptIn(kotlin.time.ExperimentalTime::class)
     currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 ): Float {
     if (category != AcademicCategory.DEADLINE && category != AcademicCategory.FINALS) {

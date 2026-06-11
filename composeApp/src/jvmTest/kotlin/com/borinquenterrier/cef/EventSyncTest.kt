@@ -19,7 +19,6 @@ class EventSyncTest : FunSpec({
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = logger
         )
@@ -77,7 +76,6 @@ class EventSyncTest : FunSpec({
         val eventAgent = EventAgent(
             mockk(),
             mockCalendarAgent,
-            null,
             NormalizationService(),
             logger = Logger(MapSettings())
         )

@@ -14,7 +14,7 @@ package com.borinquenterrier.cef
  */
 class GroundingGuardAIService(
     private val delegate: AIService,
-    private val logger: Logger? = null
+    private val logger: Logger? = null,
 ) : AIService by delegate {
 
     override suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {

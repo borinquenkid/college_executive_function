@@ -27,13 +27,13 @@ class StudioPanelTest {
         every { mockContainer.eventAgent } returns mockEventAgent
 
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns MutableStateFlow(false)
+        every { tokenRepo.isLinked } returns MutableStateFlow(value = false)
         every { mockContainer.tokenRepository } returns tokenRepo
 
         // Mock states
-        every { mockEventAgent.isLoading } returns MutableStateFlow(false)
-        every { mockEventAgent.statusMessage } returns MutableStateFlow("Select a source and an action.")
-        every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.isLoading } returns MutableStateFlow(value = false)
+        every { mockEventAgent.statusMessage } returns MutableStateFlow(value = "Select a source and an action.")
+        every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(value = emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
 
         coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
@@ -43,8 +43,7 @@ class StudioPanelTest {
                 selectedSource = null,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = {}
-            )
+            ) {}
         }
 
         // Verify that the no-source placeholder exists
@@ -73,7 +72,7 @@ class StudioPanelTest {
         }
 
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns MutableStateFlow(false)
+        every { tokenRepo.isLinked } returns MutableStateFlow(value = false)
         every { mockContainer.tokenRepository } returns tokenRepo
 
         // Mock states
@@ -85,7 +84,7 @@ class StudioPanelTest {
         val testSource = SourceItem(
             title = "Test Syllabus",
             fragments = listOf(SourceFragment(text = "Course requirements")),
-            category = SourceCategory.SYLLABUS
+            category = SourceCategory.SYLLABUS,
         )
 
         setContent {
@@ -93,8 +92,7 @@ class StudioPanelTest {
                 selectedSource = testSource,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = {}
-            )
+            ) {}
         }
 
         // Placeholder should not exist
@@ -149,7 +147,7 @@ class StudioPanelTest {
         val testSource = SourceItem(
             title = "Test Syllabus",
             fragments = listOf(SourceFragment(text = "Course requirements")),
-            category = SourceCategory.SYLLABUS
+            category = SourceCategory.SYLLABUS,
         )
 
         var onEventsGeneratedCalled = false
@@ -158,8 +156,7 @@ class StudioPanelTest {
                 selectedSource = testSource,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = { onEventsGeneratedCalled = true }
-            )
+            ) { onEventsGeneratedCalled = true }
         }
 
         // Verify event displays
@@ -177,6 +174,7 @@ class StudioPanelTest {
         pushButton.performClick()
 
         coVerify { mockEventAgent.pushToCalendar() }
+        kotlin.test.assertTrue(onEventsGeneratedCalled, "onEventsGenerated should have been called")
 
         // Verify export button exists
         onNodeWithTag("export_ics_button").assertExists()
@@ -191,7 +189,7 @@ class StudioPanelTest {
         every { mockContainer.eventAgent } returns mockEventAgent
 
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns MutableStateFlow(false)
+        every { tokenRepo.isLinked } returns MutableStateFlow(value = false)
         every { mockContainer.tokenRepository } returns tokenRepo
 
         // Mock states
@@ -203,7 +201,7 @@ class StudioPanelTest {
         val testSource = SourceItem(
             title = "Test Syllabus",
             fragments = listOf(SourceFragment(text = "Course requirements")),
-            category = SourceCategory.SYLLABUS
+            category = SourceCategory.SYLLABUS,
         )
 
         setContent {
@@ -211,8 +209,7 @@ class StudioPanelTest {
                 selectedSource = testSource,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = {}
-            )
+            ) {}
         }
 
         // Verify progress indicator is visible
@@ -242,7 +239,7 @@ class StudioPanelTest {
         }
 
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns MutableStateFlow(false)
+        every { tokenRepo.isLinked } returns MutableStateFlow(value = false)
         every { mockContainer.tokenRepository } returns tokenRepo
 
         val generatedEvents = listOf(
@@ -264,7 +261,7 @@ class StudioPanelTest {
         val testSource = SourceItem(
             title = "Test Syllabus",
             fragments = listOf(SourceFragment(text = "Course requirements")),
-            category = SourceCategory.SYLLABUS
+            category = SourceCategory.SYLLABUS,
         )
 
         setContent {
@@ -272,8 +269,7 @@ class StudioPanelTest {
                 selectedSource = testSource,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = {}
-            )
+            ) {}
         }
 
         val exportButton = onNodeWithTag("export_ics_button")

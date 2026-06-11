@@ -47,7 +47,6 @@ class CollisionResolutionIntegrationTest : FunSpec({
         val eventAgent = EventAgent(
             aiService = mockk(relaxed = true),
             repository = calendarAgent,
-            database = database,
             normalizationService = NormalizationService(),
             logger = Logger(settings)
         )

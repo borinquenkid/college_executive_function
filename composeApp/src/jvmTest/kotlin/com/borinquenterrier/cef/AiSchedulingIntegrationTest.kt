@@ -26,7 +26,7 @@ class AiSchedulingIntegrationTest : FunSpec({
         val logger = Logger(settings)
         val aiService: AIService = RealAIService(settings, logger, database)
         val mockRepo = mockk<CalendarAgent>(relaxed = true)
-        val eventAgent = EventAgent(aiService, mockRepo, database, logger = logger)
+        val eventAgent = EventAgent(aiService, mockRepo, logger = logger)
 
         // A tricky mock syllabus: classes occupy most of the day, the AI must schedule
         // study blocks around them, avoiding lunch (12-1) and evening break (18-20),

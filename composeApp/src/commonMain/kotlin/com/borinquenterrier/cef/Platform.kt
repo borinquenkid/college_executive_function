@@ -3,7 +3,6 @@ package com.borinquenterrier.cef
 import androidx.compose.runtime.Composable
 import com.borinquenterrier.cef.db.DriverFactory
 
-expect val isDesktop: Boolean
 expect val isDebug: Boolean
 expect val platformName: String
 

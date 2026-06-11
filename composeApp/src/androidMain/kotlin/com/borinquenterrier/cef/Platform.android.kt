@@ -13,7 +13,6 @@ object AndroidAppContext {
     var applicationContext: Context? = null
 }
 
-actual val isDesktop: Boolean = false
 actual val isDebug: Boolean = BuildConfig.DEBUG
 actual val platformName: String = "Android"
 

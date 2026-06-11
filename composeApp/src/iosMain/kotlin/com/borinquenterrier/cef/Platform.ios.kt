@@ -8,8 +8,6 @@ import platform.Foundation.NSFileManager
 import platform.Foundation.NSUserDomainMask
 import kotlin.experimental.ExperimentalNativeApi
 
-actual val isDesktop: Boolean = false
-
 @OptIn(ExperimentalNativeApi::class)
 actual val isDebug: Boolean = Platform.isDebugBinary
 

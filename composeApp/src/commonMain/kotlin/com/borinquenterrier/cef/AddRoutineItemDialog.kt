@@ -1,6 +1,5 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,10 +16,10 @@ import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
-import androidx.compose.material3.TextField
 import androidx.compose.material3.TimeInput
 import androidx.compose.material3.rememberDatePickerState
 import androidx.compose.material3.rememberTimePickerState
@@ -34,22 +33,26 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import kotlinx.datetime.DayOfWeek
-import kotlinx.datetime.Instant
-import kotlinx.datetime.LocalDate
+import kotlin.time.Clock
+import kotlin.time.Instant
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.toLocalDateTime
+import kotlinx.datetime.todayIn
 
-@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class, kotlin.time.ExperimentalTime::class)
 @Composable
 fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
+    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     var title by remember { mutableStateOf("") }
     var selectedDays by remember { mutableStateOf(setOf<DayOfWeek>()) }
-    var startTime by remember { mutableStateOf(LocalTime(10, 30)) }
-    var endTime by remember { mutableStateOf(LocalTime(11, 45)) }
-    var startDate by remember { mutableStateOf(LocalDate(2024, 8, 26)) }
-    var endDate by remember { mutableStateOf(LocalDate(2024, 12, 13)) }
+    var startTime by remember { mutableStateOf(LocalTime(9, 0)) }
+    var endTime by remember { mutableStateOf(LocalTime(10, 0)) }
+    var startDate by remember { mutableStateOf(today) }
+    var endDate by remember { mutableStateOf(today) }
+
+    val isFormValid = title.isNotBlank() && selectedDays.isNotEmpty() && startTime < endTime && startDate <= endDate
 
     var showDatePicker by remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
     var showTimePicker by remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
@@ -62,11 +65,12 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
             ) {
                 Text("Add Routine Item", style = MaterialTheme.typography.headlineSmall)
 
-                TextField(
+                OutlinedTextField(
                     value = title,
                     onValueChange = { title = it },
                     label = { Text("Title") },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    singleLine = true
                 )
 
                 Text("Repeats on:", style = MaterialTheme.typography.bodyMedium)
@@ -120,24 +124,28 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.End,
                 ) {
-                    Button(onClick = onDismiss, modifier = Modifier.padding(end = 8.dp)) {
+                    TextButton(onClick = onDismiss, modifier = Modifier.padding(end = 8.dp)) {
                         Text("Cancel")
                     }
-                    Button(onClick = {
-                        val newEvent = TimeEvent(
-                            title = title,
-                            source = EventSource.ROUTINE,
-                            startTime = startTime,
-                            endTime = endTime,
-                            date = startDate,
-                            recurrence = Recurrence(
-                                daysOfWeek = selectedDays.toList(),
-                                startDate = startDate,
-                                endDate = endDate
+                    Button(
+                        onClick = {
+                            val newEvent = TimeEvent(
+                                title = title,
+                                source = EventSource.ROUTINE,
+                                startTime = startTime,
+                                endTime = endTime,
+                                date = startDate,
+                                recurrence = Recurrence(
+                                    daysOfWeek = selectedDays.toList(),
+                                    startDate = startDate,
+                                    endDate = endDate
+                                )
                             )
-                        )
-                        onSave(newEvent)
-                    }) {
+                            onSave(newEvent)
+                            onDismiss()
+                        },
+                        enabled = isFormValid
+                    ) {
                         Text("Save")
                     }
                 }
@@ -210,29 +218,19 @@ private fun ClickableField(
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Box(
-        modifier = modifier
-            .fillMaxWidth()
-            .border(
-                width = 1.dp,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.38f),
-                shape = MaterialTheme.shapes.small
-            )
-            .clickable(onClick = onClick)
-            .padding(horizontal = 8.dp, vertical = 4.dp)
-    ) {
-        Column {
-            Text(
-                label,
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            Text(
-                value,
-                style = MaterialTheme.typography.bodyLarge,
-                modifier = Modifier.padding(top = 4.dp)
-            )
-        }
+    Box(modifier = modifier) {
+        OutlinedTextField(
+            value = value,
+            onValueChange = {},
+            label = { Text(label) },
+            readOnly = true,
+            modifier = Modifier.fillMaxWidth()
+        )
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .clickable(onClick = onClick)
+        )
     }
 }
 

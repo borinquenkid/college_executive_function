@@ -13,7 +13,7 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.Serializable
@@ -162,6 +162,7 @@ class GoogleCalendarSyncService(
     /**
      * Fetches events from a specific Google Calendar (handles pagination).
      */
+    @OptIn(kotlin.time.ExperimentalTime::class)
     suspend fun getEvents(calendarId: String = "primary"): List<Event> {
         val allEvents = mutableListOf<Event>()
         var pageToken: String? = null

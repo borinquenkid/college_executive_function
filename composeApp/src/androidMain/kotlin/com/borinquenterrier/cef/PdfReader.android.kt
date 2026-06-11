@@ -1,7 +1,7 @@
 package com.borinquenterrier.cef
 
 import android.content.Context
-import android.net.Uri
+import androidx.core.net.toUri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
@@ -18,7 +18,7 @@ actual class PdfReader(private val context: Context) {
             try {
                 val fileToRead = if (path.startsWith("content://")) {
                     tempFile = File.createTempFile("cef_temp", ".pdf", context.cacheDir)
-                    context.contentResolver.openInputStream(Uri.parse(path))?.use { input ->
+                    context.contentResolver.openInputStream(path.toUri())?.use { input ->
                         tempFile.outputStream().use { output ->
                             input.copyTo(output)
                         }

@@ -10,14 +10,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 150
-- **High-Risk Files (CRAP > 30)**: 9
+- **High-Risk Files (CRAP > 30)**: 8
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| AcademicCalendar.kt | 22 | 34.9% | 155.48 | 🔴 HIGH |
-| AcademicCalendarComponents.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
+| AcademicCalendar.kt | 22 | 22.2% | 249.73 | 🔴 HIGH |
 | ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | CalendarSyncManager.kt | 8 | 16.0% | 45.93 | 🔴 HIGH |
 | GeminiRequestExecutor.kt | 25 | 69.4% | 42.96 | 🔴 HIGH |
@@ -31,14 +30,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.2% | 24.53 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 86.4% | 24.34 | 🟡 MEDIUM |
 | CommonSourceProviders.kt | 21 | 80.9% | 24.07 | 🟡 MEDIUM |
+| GeminiResponseParser.kt | 23 | 97.9% | 23.01 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
 
-### AcademicCalendar.kt (Score: 155.48 - 🔴 HIGH)
+### AcademicCalendar.kt (Score: 249.73 - 🔴 HIGH)
 - **Total Complexity**: 22
-- **Real Coverage**: 34.9%
+- **Real Coverage**: 22.2%
 
 #### Methods list:
 | Method | Complexity |
@@ -46,17 +46,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `EventItemView` | 7 |
 | `TaskDecompositionDialog` | 6 |
 | `AcademicCalendar` | 1 |
-
-### AcademicCalendarComponents.kt (Score: 110.00 - 🔴 HIGH)
-- **Total Complexity**: 10
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `GoogleLinkPrompt` | 1 |
-| `AcademicCalendarHeader` | 1 |
-| `EventListContent` | 1 |
 
 ### ConflictResolutionUI.kt (Score: 72.00 - 🔴 HIGH)
 - **Total Complexity**: 8
@@ -337,9 +326,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `blacklistModel` | 1 |
 | `negotiateBestModel` | 1 |
 
-### Event.kt (Score: 20.16 - 🟡 MEDIUM)
+### Event.kt (Score: 20.09 - 🟡 MEDIUM)
 - **Total Complexity**: 20
-- **Real Coverage**: 92.7%
+- **Real Coverage**: 94.0%
 
 #### Methods list:
 | Method | Complexity |
@@ -461,25 +450,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `activateRateLimitWindow` | 1 |
 | `wait` | 1 |
 
-### CalendarInterfaces.kt (Score: 16.43 - 🟡 MEDIUM)
-- **Total Complexity**: 13
-- **Real Coverage**: 72.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getEvents` | 1 |
-| `extract` | 1 |
-| `getSettings` | 1 |
-| `getAllEvents` | 1 |
-| `saveEvent` | 1 |
-| `updateEvent` | 1 |
-| `deleteEvent` | 1 |
-| `hardDeleteEvent` | 1 |
-| `getEventsInRange` | 1 |
-| `getEventsBySyncStatus` | 1 |
-| *... and 3 more* | |
-
 ### AppController.kt (Score: 16.10 - 🟡 MEDIUM)
 - **Total Complexity**: 15
 - **Real Coverage**: 83.0%
@@ -510,6 +480,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findNewSlotAndResolve` | 1 |
 | `shiftEvent` | 1 |
 | `findNextAvailableSlot` | 1 |
+
+### CalendarInterfaces.kt (Score: 15.08 - 🟡 MEDIUM)
+- **Total Complexity**: 13
+- **Real Coverage**: 76.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEvents` | 1 |
+| `extract` | 1 |
+| `getSettings` | 1 |
+| `getAllEvents` | 1 |
+| `saveEvent` | 1 |
+| `updateEvent` | 1 |
+| `deleteEvent` | 1 |
+| `hardDeleteEvent` | 1 |
+| `getEventsInRange` | 1 |
+| `getEventsBySyncStatus` | 1 |
+| *... and 3 more* | |
 
 ### SyncNegotiationApplier.kt (Score: 15.00 - 🟢 LOW)
 - **Total Complexity**: 15
@@ -592,6 +581,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `isComplex` | 3 |
 | `calculateSubDueDate` | 1 |
 | `calculateDaysBeforeDue` | 1 |
+
+### AcademicCalendarComponents.kt (Score: 12.59 - 🟢 LOW)
+- **Total Complexity**: 10
+- **Real Coverage**: 70.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `GoogleLinkPrompt` | 1 |
+| `AcademicCalendarHeader` | 1 |
+| `EventListContent` | 1 |
 
 ### SourceLoader.kt (Score: 12.49 - 🟢 LOW)
 - **Total Complexity**: 4

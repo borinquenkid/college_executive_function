@@ -1,6 +1,7 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
+import java.util.prefs.Preferences as JPrefs
 
 plugins {
     alias(libs.plugins.kotlinMultiplatform)
@@ -308,4 +309,44 @@ compose.desktop {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     maxHeapSize = "8g"
+}
+
+/**
+ * One-time helper: reads GOOGLE_ACCESS_TOKEN and GOOGLE_REFRESH_TOKEN from the app's
+ * Java Preferences node (written there after a successful sign-in) and patches .env so
+ * the values are available to integration tests locally and can be copied to GitHub Secrets.
+ *
+ * Usage:
+ *   1. Run the app and sign in with Google (2FA handled interactively in the browser).
+ *   2. ./gradlew :composeApp:exportTokens
+ */
+tasks.register("exportTokens") {
+    group = "credentials"
+    description = "Copies Google tokens from app Preferences into .env for test use."
+    doLast {
+        val prefs: JPrefs = JPrefs.userRoot().node("com/borinquenterrier/cef")
+        val accessToken: String  = prefs.get("GOOGLE_ACCESS_TOKEN",  "")
+        val refreshToken: String = prefs.get("GOOGLE_REFRESH_TOKEN", "")
+
+        if (accessToken.isEmpty())  error("GOOGLE_ACCESS_TOKEN not found in Preferences — sign in via the app first.")
+        if (refreshToken.isEmpty()) error("GOOGLE_REFRESH_TOKEN not found in Preferences — sign in via the app first.")
+
+        val envFile = rootProject.file(".env")
+        val lines: MutableList<String> = if (envFile.exists()) envFile.readLines().toMutableList() else mutableListOf()
+
+        fun upsert(key: String, value: String) {
+            val idx = lines.indexOfFirst { it.startsWith("$key=") }
+            if (idx >= 0) lines[idx] = "$key=$value" else lines += "$key=$value"
+        }
+
+        upsert("GOOGLE_ACCESS_TOKEN",  accessToken)
+        upsert("GOOGLE_REFRESH_TOKEN", refreshToken)
+        envFile.writeText(lines.joinToString("\n") + "\n")
+
+        println("✓ .env updated.")
+        println("  GOOGLE_ACCESS_TOKEN  = ${accessToken.substring(0, minOf(12, accessToken.length))}…")
+        println("  GOOGLE_REFRESH_TOKEN = ${refreshToken.substring(0, minOf(12, refreshToken.length))}…")
+        println()
+        println("Next: update the same values in GitHub → Settings → Secrets → Actions.")
+    }
 }

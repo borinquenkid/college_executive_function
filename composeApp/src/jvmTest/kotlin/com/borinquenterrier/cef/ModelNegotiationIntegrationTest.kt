@@ -1,57 +1,28 @@
 package com.borinquenterrier.cef
 
+import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
-import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldNotBeBlank
 import kotlinx.coroutines.runBlocking
-import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
 
+/**
+ * Release gate: verifies the OAuth client credentials baked into BuildSecrets are accepted
+ * by Google's token endpoint. Fails hard if GOOGLE_REFRESH_TOKEN is missing so that a
+ * misconfigured CI job is caught here rather than shipping a broken sign-in flow.
+ *
+ * Required secrets (OS env var or .env):
+ *   GOOGLE_REFRESH_TOKEN — paired with the GOOGLE_CLIENT_ID/SECRET that ship in the app
+ */
 class ModelNegotiationIntegrationTest : FunSpec({
 
-    // TODO: re-enable once a valid CEF_GEMINI_API_KEY/GOOGLE_ACCESS_TOKEN is restored to .env —
-    // currently fails with "Unauthorized" against the live Gemini API and blocks publishing.
-    test("GeminiAIService should successfully negotiate a model using .env credentials").config(
-        enabled = false
+    test("Google OAuth: app client credentials are accepted by Google token endpoint").config(
+        timeout = AI_INTEGRATION_TIMEOUT_MS.milliseconds
     ) {
-        // 1. Resolve Credentials
-        val envFile = listOf(File("../.env"), File(".env")).find { it.exists() }
-        val envMap = envFile?.readLines()?.associate {
-            val key = it.substringBefore("=").trim()
-            val value = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
-            key to value
-        } ?: emptyMap()
-
-        val apiKey =
-            (envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"])?.takeIf { it.isNotBlank() }
-        val accessToken = envMap["GOOGLE_ACCESS_TOKEN"]?.takeIf { it.isNotBlank() }
-
-        if (apiKey == null && accessToken == null) {
-            println("SKIPPING NEGOTIATION TEST: No credentials found in .env")
-            return@config
-        }
-
-        println("Testing negotiation with Key: ${apiKey?.take(8)}...")
-
-        // 2. Instantiate Service
-        val geminiService = GeminiAIService(apiKey = apiKey, accessToken = accessToken)
-
-        // 3. Trigger a call that requires negotiation
-        // Since negotiateModelName is private, we call generateCalendarEvents with minimal text
-        val events = try {
-            runBlocking {
-                geminiService.generateCalendarEvents(listOf(SourceFragment("Test event on 2024-12-01")))
-            }
-        } catch (e: Exception) {
-            if (e.message?.contains("QuotaExhausted") == true) {
-                println("SKIPPING NEGOTIATION TEST: Gemini quota/rate-limit exhausted.")
-                return@config
-            }
-            throw e
-        }
-
-        // 4. Verify results
-        events shouldNotBe null
-        println("Negotiation successful. Extracted ${events.size} events.")
-
-        // If it didn't crash and returned events, negotiation worked.
+        val creds = resolveLiveCredentials()
+        val settings = MapSettings()
+        val authService = GoogleAuthService(settings)
+        val newToken = runBlocking { authService.refreshAccessToken(creds.refreshToken) }
+        newToken.shouldNotBeBlank()
     }
 })

@@ -19,29 +19,60 @@ import io.kotest.core.test.TestScope
 const val AI_INTEGRATION_TIMEOUT_MS = 3 * 60 * 1000L
 
 /**
- * Reads the Gemini API key from the local `.env` file.
+ * Credentials required by [LiveApiIntegrationTest].
+ * All three fields must be non-null; [resolveLiveCredentials] fails fast otherwise.
+ */
+data class LiveCredentials(
+    val refreshToken: String,
+)
+
+/**
+ * Resolves a secret by checking, in order:
+ *  1. OS environment variable (set by GitHub Actions via `env:` in the workflow)
+ *  2. Local `.env` file (developer machine)
+ *
+ * Returns null if the key is absent or blank in both sources.
+ */
+private fun resolveSecret(key: String, envMap: Map<String, String>): String? =
+    System.getenv(key)?.takeIf { it.isNotBlank() }
+        ?: envMap[key]?.takeIf { it.isNotBlank() }
+
+private fun loadEnvFileMap(): Map<String, String> {
+    val envFile = listOf(java.io.File("../.env"), java.io.File(".env")).find { it.exists() }
+    return envFile?.readLines()
+        ?.filter { it.isNotBlank() && !it.trimStart().startsWith("#") }
+        ?.associate {
+            val k = it.substringBefore("=").trim()
+            val v = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
+            k to v
+        } ?: emptyMap()
+}
+
+/**
+ * Resolves all three live credentials required by [LiveApiIntegrationTest].
+ * Fails immediately with a clear message if any credential is missing so that
+ * CI surfaces a configuration problem rather than a cryptic test failure.
+ */
+fun resolveLiveCredentials(): LiveCredentials {
+    val envMap = loadEnvFileMap()
+    fun require(vararg keys: String): String {
+        for (key in keys) resolveSecret(key, envMap)?.let { return it }
+        error("Required secret not found in env vars or .env: ${keys.joinToString(" / ")}")
+    }
+    return LiveCredentials(
+        refreshToken = require("GOOGLE_REFRESH_TOKEN"),
+    )
+}
+
+/**
+ * Reads the Gemini API key from OS env vars or the local `.env` file.
  * Returns null (and prints a skip message) if no key is found.
  */
 fun resolveApiKey(testName: String): String? {
-    val envFile = listOf(
-        java.io.File("../.env"),
-        java.io.File(".env")
-    ).find { it.exists() }
-
-    val envMap = envFile?.readLines()?.associate {
-        val key = it.substringBefore("=").trim()
-        val value = it.substringAfter("=").trim()
-            .removeSurrounding("\"")
-            .removeSurrounding("'")
-        key to value
-    } ?: emptyMap()
-
-    val apiKey = (envMap["CEF_GEMINI_API_KEY"] ?: envMap["GEMINI_API_KEY"])
-        ?.takeIf { it.isNotBlank() }
-
-    if (apiKey == null) {
-        println("SKIPPING $testName: No Gemini API Key found in .env")
-    }
+    val envMap = loadEnvFileMap()
+    val apiKey = resolveSecret("CEF_GEMINI_API_KEY", envMap)
+        ?: resolveSecret("GEMINI_API_KEY", envMap)
+    if (apiKey == null) println("SKIPPING $testName: No Gemini API Key found in env or .env")
     return apiKey
 }
 

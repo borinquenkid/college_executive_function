@@ -14,15 +14,16 @@ import kotlinx.serialization.json.JsonObject
  * - GeminiRetryService: Retry delays and rate-limit windows
  */
 class GeminiRequestExecutor(
-    private val client: HttpClient,
-    private val apiKey: String?,
-    private val accessToken: String?,
+    client: HttpClient,
+    apiKey: String?,
+    accessToken: String?,
     private val logger: Logger?,
     private val telemetryManager: TelemetryManager?,
     private val modelNegotiator: GeminiModelNegotiator,
-    private val delayFn: suspend (Long) -> Unit
+    delayFn: suspend (Long) -> Unit,
 ) {
     private val tag = "GeminiAI"
+    private val json = Json { ignoreUnknownKeys = true }
     private val requestBuilder = GeminiRequestBuilder(client, apiKey, accessToken)
     private val errorHandler = GeminiErrorHandler(
         ErrorCategorizer(QuotaExhaustionDetector(), RetryAfterParser(), logger),
@@ -63,7 +64,7 @@ class GeminiRequestExecutor(
                 // Handle success immediately (2xx status codes)
                 if (httpResponse.status.isSuccess()) {
                     val geminiResponse =
-                        Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(
+                        json.decodeFromString<GeminiResponse>(
                             responseBody
                         )
                     val responseText =
@@ -82,14 +83,12 @@ class GeminiRequestExecutor(
                     val msg = when (errorType) {
                         ErrorCategorizer.ErrorType.Unauthorized -> "401 Unauthorized: Your API Key or Access Token is invalid/expired."
                         ErrorCategorizer.ErrorType.Forbidden -> "403 Forbidden: Ensure the Gemini API is enabled in your Google Cloud Project."
-                        else -> "Unknown auth error"
                     }
                     logger?.e(tag, msg)
                     throw Exception(
                         when (errorType) {
                             ErrorCategorizer.ErrorType.Unauthorized -> "Unauthorized"
                             ErrorCategorizer.ErrorType.Forbidden -> "Forbidden"
-                            else -> "UnknownAuthError"
                         }
                     )
                 }
@@ -155,11 +154,7 @@ class GeminiRequestExecutor(
 
                 // Handle other errors (should not reach here for 2xx responses)
                 if (errorType is ErrorCategorizer.ErrorType.OtherError) {
-                    val fullMessage = if (errorType.message.isNotBlank()) {
-                        errorType.message
-                    } else {
-                        "Unknown error. Response: $responseBody"
-                    }
+                    val fullMessage = errorType.message.ifBlank { "Unknown error. Response: $responseBody" }
                     logger?.e(tag, "API Error: $fullMessage")
                     throw Exception(fullMessage)
                 }

@@ -19,7 +19,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | AcademicCalendar.kt | 9 | 22.2% | 47.11 | 🔴 HIGH |
 | CalendarSyncManager.kt | 8 | 16.0% | 45.93 | 🔴 HIGH |
-| GeminiRequestExecutor.kt | 25 | 69.4% | 42.96 | 🔴 HIGH |
+| GeminiRequestExecutor.kt | 24 | 69.4% | 40.55 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 22 | 66.7% | 39.93 | 🔴 HIGH |
 | EventAgent.kt | 32 | 93.1% | 32.34 | 🔴 HIGH |
 | GoogleCalendarPanel.kt | 23 | 75.0% | 31.27 | 🔴 HIGH |
@@ -67,8 +67,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `initiateSyncIfNeeded` | 1 |
 | `applySyncProposal` | 1 |
 
-### GeminiRequestExecutor.kt (Score: 42.96 - 🔴 HIGH)
-- **Total Complexity**: 25
+### GeminiRequestExecutor.kt (Score: 40.55 - 🔴 HIGH)
+- **Total Complexity**: 24
 - **Real Coverage**: 69.4%
 
 #### Methods list:

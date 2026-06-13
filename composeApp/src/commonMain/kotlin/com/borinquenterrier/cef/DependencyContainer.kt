@@ -21,7 +21,6 @@ class DependencyContainer(
     val settings: Settings,
     val logger: Logger,
     val driverFactory: DriverFactory,
-    val modelBasePath: String,
     val fileReader: LocalFileReader,
     val docxReader: DocxReader,
     val pdfReader: PdfReader,
@@ -39,7 +38,6 @@ class DependencyContainer(
     }
 
     val database: AppDatabase by lazy { createDatabase(driverFactory) }
-    val modelManager by lazy { ModelManager(httpClient, modelBasePath, logger) }
     val tokenRepository by lazy { GoogleTokenRepository(settings) }
     val authService by lazy { GoogleAuthService(settings) }
     val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }
@@ -52,7 +50,6 @@ class DependencyContainer(
     val remoteRepository by lazy {
         GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             calendarIdResolver,
             conflictDetector,
             eventRangeFilter
@@ -283,10 +280,6 @@ class DependencyContainer(
             bugReporter
         )
     }
-
-    val googleAuthManager by lazy { GoogleAuthManager(authService, tokenRepository, logger) }
-
-    val calendarSyncManager by lazy { CalendarSyncManager(calendarAgent, logger) }
 
     val appController by lazy { AppController(this) }
 }

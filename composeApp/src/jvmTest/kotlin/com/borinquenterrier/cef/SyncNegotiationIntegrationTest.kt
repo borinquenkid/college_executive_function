@@ -109,7 +109,6 @@ class SyncNegotiationIntegrationTest : FunSpec({
         val eventFilter = EventRangeFilter()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             idResolver,
             conflictDetector,
             eventFilter

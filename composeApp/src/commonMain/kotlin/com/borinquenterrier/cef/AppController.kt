@@ -3,9 +3,6 @@ package com.borinquenterrier.cef
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.flow.MutableStateFlow
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 
 /**
@@ -31,10 +28,6 @@ class AppController(val container: DependencyContainer) {
         )
     val chatMessages: StateFlowReader<List<ChatMessage>> = _chatMessagesWrapper
 
-    // Listeners for platform-specific UI (like native iOS)
-    private var screenListener: ((AppScreen) -> Unit)? = null
-    private var eventsListener: ((List<Event>) -> Unit)? = null
-
     // Expose delegated services via StateFlowReader interfaces
     val currentScreen: StateFlowReader<AppScreen> = object : StateFlowReader<AppScreen> {
         override val value: AppScreen get() = navigationService.currentScreen.value
@@ -56,22 +49,6 @@ class AppController(val container: DependencyContainer) {
     val selectedSource: StateFlowReader<SourceItem?> = sourceManager.selectedSource
 
     init {
-        scope.launch {
-            currentScreen.collect { screen ->
-                screenListener?.invoke(screen)
-            }
-        }
-        scope.launch {
-            aiGeneratedEvents.collect { events ->
-                eventsListener?.invoke(events)
-            }
-        }
-        scope.launch {
-            sourceManager.loadSources()
-        }
-    }
-
-    fun loadSources() {
         scope.launch {
             sourceManager.loadSources()
         }
@@ -107,16 +84,6 @@ class AppController(val container: DependencyContainer) {
 
     fun addChatMessage(message: ChatMessage) {
         _chatMessagesWrapper.setValue(_chatMessagesWrapper.value + message)
-    }
-
-    fun setScreenListener(listener: (AppScreen) -> Unit) {
-        this.screenListener = listener
-        listener(currentScreen.value)
-    }
-
-    fun setEventsListener(listener: (List<Event>) -> Unit) {
-        this.eventsListener = listener
-        listener(aiGeneratedEvents.value)
     }
 }
 

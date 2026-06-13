@@ -20,13 +20,4 @@ class DriveQueryBuilder {
         )
         return "(" + mimeTypes.joinToString(" or ") + ")"
     }
-
-    fun getSupportedMimeTypes(): List<String> {
-        return listOf(
-            "application/vnd.google-apps.document",
-            "application/pdf",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-            "text/plain"
-        )
-    }
 }

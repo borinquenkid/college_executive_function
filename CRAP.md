@@ -448,25 +448,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `activateRateLimitWindow` | 1 |
 | `wait` | 1 |
 
-### AppController.kt (Score: 16.10 - 🟡 MEDIUM)
-- **Total Complexity**: 15
-- **Real Coverage**: 83.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `collect` | 1 |
-| `asStateFlow` | 1 |
-| `collect` | 1 |
-| `asStateFlow` | 1 |
-| `loadSources` | 1 |
-| `navigateTo` | 1 |
-| `addEvents` | 1 |
-| `clearEvents` | 1 |
-| `addSource` | 1 |
-| `launchInScope` | 1 |
-| *... and 5 more* | |
-
 ### SchedulingAlgorithm.kt (Score: 16.08 - 🟡 MEDIUM)
 - **Total Complexity**: 16
 - **Real Coverage**: 93.3%
@@ -579,6 +560,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `isComplex` | 3 |
 | `calculateSubDueDate` | 1 |
 | `calculateDaysBeforeDue` | 1 |
+
+### AppController.kt (Score: 12.71 - 🟢 LOW)
+- **Total Complexity**: 12
+- **Real Coverage**: 83.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `collect` | 1 |
+| `asStateFlow` | 1 |
+| `collect` | 1 |
+| `asStateFlow` | 1 |
+| `navigateTo` | 1 |
+| `addEvents` | 1 |
+| `clearEvents` | 1 |
+| `addSource` | 1 |
+| `launchInScope` | 1 |
+| `deleteSource` | 1 |
+| *... and 2 more* | |
 
 ### AcademicCalendarComponents.kt (Score: 12.59 - 🟢 LOW)
 - **Total Complexity**: 10
@@ -1498,16 +1498,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getRoutineEvents` | 2 |
 | `saveRoutineEvents` | 1 |
 
-### DriveFileFetcher.kt (Score: 2.09 - 🟢 LOW)
-- **Total Complexity**: 2
-- **Real Coverage**: 71.4%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `fetchFromFolders` | 1 |
-| `deduplicateFiles` | 1 |
-
 ### PlatformFileSystem.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1
 - **Real Coverage**: 0.0%
@@ -1605,6 +1595,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Total Complexity**: 1
 - **Real Coverage**: 61.5%
 
+
+### DriveFileFetcher.kt (Score: 1.02 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 71.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `fetchFromFolders` | 1 |
 
 ### CheckInDialog.kt (Score: 1.00 - 🟢 LOW)
 - **Total Complexity**: 1

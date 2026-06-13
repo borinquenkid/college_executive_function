@@ -32,7 +32,6 @@ class HeadlessLogicTest : FunSpec({
             settings = settings,
             logger = logger,
             driverFactory = driverFactory,
-            modelBasePath = "/tmp/models",
             fileReader = mockk(relaxed = true),
             docxReader = mockk(relaxed = true),
             pdfReader = mockk(relaxed = true)

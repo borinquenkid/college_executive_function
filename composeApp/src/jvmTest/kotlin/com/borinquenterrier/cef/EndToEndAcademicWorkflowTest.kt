@@ -36,7 +36,6 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             settings = settings,
             logger = logger,
             driverFactory = driverFactory,
-            modelBasePath = "/tmp/cef_models",
             fileReader = mockk(relaxed = true),
             docxReader = mockk(relaxed = true),
             pdfReader = mockk(relaxed = true)

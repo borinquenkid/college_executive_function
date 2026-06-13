@@ -22,8 +22,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRequestExecutor.kt | 25 | 69.4% | 42.96 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 22 | 66.7% | 39.93 | 🔴 HIGH |
 | EventAgent.kt | 32 | 93.1% | 32.34 | 🔴 HIGH |
-| GeminiAIService.kt | 26 | 78.9% | 32.31 | 🔴 HIGH |
 | GoogleCalendarPanel.kt | 23 | 75.0% | 31.27 | 🔴 HIGH |
+| GeminiAIService.kt | 25 | 78.9% | 30.83 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | CalendarPushResolver.kt | 21 | 73.3% | 29.36 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 93.9% | 29.19 | 🟡 MEDIUM |
@@ -116,8 +116,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `runAgentAction` | 1 |
 | *... and 7 more* | |
 
-### GeminiAIService.kt (Score: 32.31 - 🔴 HIGH)
-- **Total Complexity**: 26
+### GoogleCalendarPanel.kt (Score: 31.27 - 🔴 HIGH)
+- **Total Complexity**: 23
+- **Real Coverage**: 75.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `GoogleCalendarPanel` | 1 |
+| `GoogleCalendarSelector` | 1 |
+| `CreateCalendarDialog` | 1 |
+
+### GeminiAIService.kt (Score: 30.83 - 🔴 HIGH)
+- **Total Complexity**: 25
 - **Real Coverage**: 78.9%
 
 #### Methods list:
@@ -133,18 +144,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseEventsJson` | 1 |
 | `parseDecomposeTaskJson` | 1 |
 | `parseCategorizeSourceJson` | 1 |
-| *... and 6 more* | |
-
-### GoogleCalendarPanel.kt (Score: 31.27 - 🔴 HIGH)
-- **Total Complexity**: 23
-- **Real Coverage**: 75.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `GoogleCalendarPanel` | 1 |
-| `GoogleCalendarSelector` | 1 |
-| `CreateCalendarDialog` | 1 |
+| *... and 5 more* | |
 
 ### SourceItemView.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -1409,17 +1409,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getPreferences` | 3 |
 | `savePreferences` | 1 |
 
-### DriveQueryBuilder.kt (Score: 3.41 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 64.3%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `buildQueryForFolder` | 1 |
-| `buildMimeTypeCriteria` | 1 |
-| `getSupportedMimeTypes` | 1 |
-
 ### SourcesPanel.kt (Score: 3.26 - 🟢 LOW)
 - **Total Complexity**: 3
 - **Real Coverage**: 69.2%
@@ -1428,16 +1417,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `SourcesPanel` | 1 |
-
-### GeminiBodyBuilder.kt (Score: 3.21 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 71.4%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `buildJsonRequestBody` | 1 |
-| `buildTextRequestBody` | 1 |
 
 ### SourceFragment.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -1497,6 +1476,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getRoutineEvents` | 2 |
 | `saveRoutineEvents` | 1 |
+
+### DriveQueryBuilder.kt (Score: 2.18 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 64.3%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `buildQueryForFolder` | 1 |
+| `buildMimeTypeCriteria` | 1 |
+
+### GeminiBodyBuilder.kt (Score: 2.09 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 71.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `buildJsonRequestBody` | 1 |
 
 ### PlatformFileSystem.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1

@@ -20,7 +20,6 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import kotlinx.coroutines.delay
@@ -56,13 +55,13 @@ fun AppContent(container: DependencyContainer) {
     val aiGeneratedEvents by appController.aiGeneratedEvents.asStateFlow().collectAsState()
 
     val incompleteEvents by container.eventAgent.incompleteEvents.collectAsState()
-    var showCheckIn by remember { mutableStateOf(true) }
+    val showCheckInState = remember { mutableStateOf(true) }
 
-    if (showCheckIn && incompleteEvents.isNotEmpty()) {
+    if (showCheckInState.value && incompleteEvents.isNotEmpty()) {
         CheckInDialog(
             incompleteEvents = incompleteEvents,
             eventAgent = container.eventAgent,
-            onDismiss = { showCheckIn = false }
+            onDismiss = { showCheckInState.value = false }
         )
     }
 

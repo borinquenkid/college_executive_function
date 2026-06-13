@@ -34,12 +34,4 @@ object GeminiBodyBuilder {
             put("temperature", temperature)
         }
     }
-
-    /**
-     * Build a Gemini API request body for text (non-JSON) responses.
-     */
-    fun buildTextRequestBody(
-        prompt: String,
-        temperature: Double = 0.0
-    ): JsonObject = buildJsonRequestBody(prompt, temperature, responseMimeType = null)
 }

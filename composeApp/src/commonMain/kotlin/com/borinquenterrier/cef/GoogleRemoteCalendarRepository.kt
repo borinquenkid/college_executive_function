@@ -8,12 +8,10 @@ import kotlinx.datetime.LocalDate
  */
 class GoogleRemoteCalendarRepository(
     private val syncService: GoogleCalendarSyncService,
-    private val preferencesRepository: PreferencesRepository,
     private val calendarIdResolver: CalendarIdResolver,
     private val conflictDetector: EventConflictDetector,
     private val eventFilter: EventRangeFilter
 ) : RemoteCalendarRepository {
-    private val tag = "GoogleRemoteCalendarRepository"
 
     override fun getSettings(): com.russhwolf.settings.Settings? = null
 

@@ -39,7 +39,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
         modifier = Modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 4.dp)
-            .border(2.dp, borderColor, CardDefaults.shape)
+            .border(2.dp, borderColor, CardDefaults.shape),
     ) {
         Column(modifier = Modifier.padding(16.dp)) {
             Row(
@@ -52,7 +52,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                     style = MaterialTheme.typography.labelSmall,
                     color = borderColor
                 )
-                if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
+                if ((event.category == AcademicCategory.DEADLINE) || (event.category == AcademicCategory.FINALS)) {
                     val daysUntil =
                         Clock.System.todayIn(TimeZone.currentSystemDefault()).daysUntil(event.date)
                     val chipText =
@@ -95,7 +95,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                     Text("All day")
                 }
             }
-            if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
+            if ((event.category == AcademicCategory.DEADLINE) || (event.category == AcademicCategory.FINALS)) {
                 val progress = event.studyProgress()
                 Spacer(Modifier.height(8.dp))
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -116,7 +116,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                     }
                     Spacer(Modifier.height(4.dp))
                     LinearProgressIndicator(
-                        progress = progress,
+                        progress = { progress },
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant

@@ -3,7 +3,6 @@ package com.borinquenterrier.cef
 import com.borinquenterrier.cef.db.AppDatabase
 import io.ktor.client.HttpClient
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
-import io.ktor.client.statement.HttpResponse
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
@@ -14,14 +13,14 @@ import kotlinx.serialization.json.buildJsonArray
  * Common implementation for interacting with the Google Gemini API.
  */
 class GeminiAIService(
-    private val apiKey: String? = null,
-    private val accessToken: String? = null,
+    apiKey: String? = null,
+    accessToken: String? = null,
     private val logger: Logger? = null,
-    private val database: AppDatabase? = null,
-    private val settings: com.russhwolf.settings.Settings? = null,
-    private val customClient: HttpClient? = null,
+    database: AppDatabase? = null,
+    settings: com.russhwolf.settings.Settings? = null,
+    customClient: HttpClient? = null,
     /** Injectable delay — override in tests to skip real sleeps. */
-    private val delayFn: suspend (Long) -> Unit = { ms -> kotlinx.coroutines.delay(ms) }
+    delayFn: suspend (Long) -> Unit = { ms -> kotlinx.coroutines.delay(ms) }
 ) {
     private val tag = "GeminiAI"
     private val telemetryManager = settings?.let { TelemetryManager(it) }
@@ -55,11 +54,6 @@ class GeminiAIService(
     enum class TaskTier { HEAVY, LIGHT }
 
     companion object {
-        private val json = Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-        }
-
         fun extractSourceYears(sourceText: String): Set<Int> =
             GeminiResponseParser.extractSourceYears(sourceText)
 
@@ -89,9 +83,6 @@ class GeminiAIService(
         temperature: Double = 0.0,
         responseMimeType: String? = "application/json"
     ): JsonObject = GeminiBodyBuilder.buildJsonRequestBody(prompt, temperature, responseMimeType)
-
-    suspend fun postToModel(modelName: String, body: JsonObject): HttpResponse =
-        requestExecutor.postToModel(modelName, body)
 
     private suspend fun <T> executeWithRetry(
         maxAttempts: Int = 5,

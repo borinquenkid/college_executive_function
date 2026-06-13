@@ -86,7 +86,7 @@ class GeminiModelNegotiator(
         }
     }
 
-    suspend fun negotiateBestModel(
+    fun negotiateBestModel(
         available: List<ModelInfo>,
         tier: GeminiAIService.TaskTier = GeminiAIService.TaskTier.HEAVY
     ): String {

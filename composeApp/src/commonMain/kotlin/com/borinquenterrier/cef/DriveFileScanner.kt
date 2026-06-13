@@ -7,10 +7,10 @@ package com.borinquenterrier.cef
  * - DriveFileFetcher: Concurrent folder fetching and deduplication
  */
 class DriveFileScanner(
-    private val driveService: GoogleDriveService,
+    driveService: GoogleDriveService,
     private val tokenRepository: GoogleTokenRepository,
     private val directoryPreferences: DirectoryPreferencesManager,
-    private val logger: Logger
+    private val logger: Logger,
 ) {
     private val tag = "DriveFileScanner"
     private val queryBuilder = DriveQueryBuilder()

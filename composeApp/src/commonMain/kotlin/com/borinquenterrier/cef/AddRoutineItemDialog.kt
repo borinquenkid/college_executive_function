@@ -54,8 +54,8 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
 
     val isFormValid = title.isNotBlank() && selectedDays.isNotEmpty() && startTime < endTime && startDate <= endDate
 
-    var showDatePicker by remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
-    var showTimePicker by remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
+    val showDatePicker = remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
+    val showTimePicker = remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
 
     Dialog(onDismissRequest = onDismiss) {
         Card(modifier = Modifier.fillMaxWidth()) {
@@ -94,13 +94,13 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                     ClickableField(
                         value = startTime.toString(),
                         label = "Start Time",
-                        onClick = { showTimePicker = true },
+                        onClick = { showTimePicker.value = true },
                         modifier = Modifier.weight(1f)
                     )
                     ClickableField(
                         value = endTime.toString(),
                         label = "End Time",
-                        onClick = { showTimePicker = false },
+                        onClick = { showTimePicker.value = false },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -109,13 +109,13 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                     ClickableField(
                         value = startDate.toString(),
                         label = "Start Date",
-                        onClick = { showDatePicker = true },
+                        onClick = { showDatePicker.value = true },
                         modifier = Modifier.weight(1f)
                     )
                     ClickableField(
                         value = endDate.toString(),
                         label = "End Date",
-                        onClick = { showDatePicker = false },
+                        onClick = { showDatePicker.value = false },
                         modifier = Modifier.weight(1f)
                     )
                 }
@@ -153,8 +153,8 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
         }
     }
 
-    if (showDatePicker != null) {
-        val isStartDate = showDatePicker == true
+    if (showDatePicker.value != null) {
+        val isStartDate = showDatePicker.value == true
         val initialDate = if (isStartDate) startDate else endDate
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = initialDate.atStartOfDayIn(TimeZone.UTC)
@@ -162,7 +162,7 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
         )
 
         DatePickerDialog(
-            onDismissRequest = { showDatePicker = null },
+            onDismissRequest = { showDatePicker.value = null },
             confirmButton = {
                 TextButton(
                     onClick = {
@@ -175,14 +175,14 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                                 endDate = selectedDate
                             }
                         }
-                        showDatePicker = null
+                        showDatePicker.value = null
                     }
                 ) {
                     Text("OK")
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showDatePicker = null }) {
+                TextButton(onClick = { showDatePicker.value = null }) {
                     Text("Cancel")
                 }
             }
@@ -191,20 +191,20 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
         }
     }
 
-    if (showTimePicker != null) {
-        val isStartTime = showTimePicker == true
+    if (showTimePicker.value != null) {
+        val isStartTime = showTimePicker.value == true
         val initialTime = if (isStartTime) startTime else endTime
 
         TimePickerDialog(
             initialTime = initialTime,
-            onDismiss = { showTimePicker = null },
+            onDismiss = { showTimePicker.value = null },
             onConfirm = { newTime ->
                 if (isStartTime) {
                     startTime = newTime
                 } else {
                     endTime = newTime
                 }
-                showTimePicker = null
+                showTimePicker.value = null
             },
             title = if (isStartTime) "Select Start Time" else "Select End Time"
         )

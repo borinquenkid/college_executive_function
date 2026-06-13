@@ -184,7 +184,7 @@ class CriticActorAIService(
             val e2 = list2[i]
             if ((e1.title != e2.title) || (e1.date != e2.date) || (e1.category != e2.category)) return true
             if ((e1 is TimeEvent) && (e2 is TimeEvent)) {
-                if (e1.startTime != e2.startTime || e1.endTime != e2.endTime) return true
+                if ((e1.startTime != e2.startTime) || (e1.endTime != e2.endTime)) return true
             } else if (e1 is TimeEvent || e2 is TimeEvent) {
                 return true
             }

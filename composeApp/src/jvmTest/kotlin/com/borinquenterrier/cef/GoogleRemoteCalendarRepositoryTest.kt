@@ -18,13 +18,11 @@ import kotlinx.datetime.LocalTime
 class GoogleRemoteCalendarRepositoryTest : FunSpec({
 
     val syncService = mockk<GoogleCalendarSyncService>(relaxed = true)
-    val preferencesRepository = mockk<PreferencesRepository>(relaxed = true)
     val idResolver = mockk<CalendarIdResolver>(relaxed = true)
     val conflictDetector = mockk<EventConflictDetector>(relaxed = true)
     val eventFilter = mockk<EventRangeFilter>(relaxed = true)
     val repo = GoogleRemoteCalendarRepository(
         syncService,
-        preferencesRepository,
         idResolver,
         conflictDetector,
         eventFilter
@@ -55,7 +53,6 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
 
     beforeEach {
         clearAllMocks()
-        coEvery { preferencesRepository.getPreferences() } returns StudyPreferences()
         coEvery { idResolver.resolveCalendarId(any<String>()) } answers {
             val id = firstArg<String>()
             if (id == "default") cefCalId else id

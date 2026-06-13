@@ -18,7 +18,6 @@ fun App() {
     val settings = rememberSettings()
     val logger = rememberLogger()
     val driverFactory = rememberDriverFactory()
-    val modelBasePath = rememberModelDirectoryPath()
     val fileReader = rememberLocalFileReader()
     val docxReader = rememberDocxReader()
     val pdfReader = rememberPdfReader()
@@ -26,14 +25,13 @@ fun App() {
     // Initialize the container off the main thread to prevent ANRs
     val containerState = produceState<DependencyContainer?>(
         initialValue = null,
-        settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader
+        settings, logger, driverFactory, fileReader, docxReader, pdfReader,
     ) {
         value = withContext(Dispatchers.Default) {
             val c = DependencyContainer(
                 settings,
                 logger,
                 driverFactory,
-                modelBasePath,
                 fileReader,
                 docxReader,
                 pdfReader

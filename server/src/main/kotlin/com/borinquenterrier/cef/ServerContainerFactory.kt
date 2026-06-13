@@ -4,8 +4,7 @@ import com.borinquenterrier.cef.db.DriverFactory
 import java.io.File
 
 class ServerContainerFactory(
-    private val tenantBaseDir: String,
-    private val modelBasePath: String = File(System.getProperty("user.home"), ".cef/models").absolutePath
+    private val tenantBaseDir: String
 ) {
     private val dbFactory = TenantDatabaseFactory(tenantBaseDir)
     private val connectionCache = TenantConnectionCache(
@@ -26,7 +25,6 @@ class ServerContainerFactory(
             settings = settings,
             logger = Logger(settings),
             driverFactory = TenantDriverFactory(studentId, dbFactory),
-            modelBasePath = modelBasePath,
             fileReader = LocalFileReader(),
             docxReader = DocxReader(),
             pdfReader = PdfReader()

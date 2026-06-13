@@ -68,7 +68,7 @@ class AddRoutineItemDialogTest {
     fun testStartTimeFieldOpensPickerAndConfirmingClosesIt() = runComposeUiTest {
         setContent { AddRoutineItemDialog(onDismiss = {}, onSave = {}) }
 
-        onNodeWithText("10:30").performClick()
+        onNodeWithText("Start Time").performClick()
         onNodeWithText("Select Start Time").assertExists()
 
         onNodeWithText("OK").performClick()
@@ -79,7 +79,7 @@ class AddRoutineItemDialogTest {
     fun testEndTimeFieldOpensPickerWithEndTitleAndCanBeCancelled() = runComposeUiTest {
         setContent { AddRoutineItemDialog(onDismiss = {}, onSave = {}) }
 
-        onNodeWithText("11:45").performClick()
+        onNodeWithText("End Time").performClick()
         onNodeWithText("Select End Time").assertExists()
 
         onAllNodesWithText("Cancel")[1].performClick()
@@ -90,21 +90,21 @@ class AddRoutineItemDialogTest {
     fun testStartDateFieldOpensDatePickerAndConfirmingClosesIt() = runComposeUiTest {
         setContent { AddRoutineItemDialog(onDismiss = {}, onSave = {}) }
 
-        onNodeWithText("2024-08-26").performClick()
+        onNodeWithText("Start Date").performClick()
         onNodeWithText("OK").assertExists()
 
         onNodeWithText("OK").performClick()
-        onNodeWithText("2024-08-26").assertExists()
+        onNodeWithText("Start Date").assertExists()
     }
 
     @Test
     fun testEndDateFieldOpensDatePickerAndCanBeCancelled() = runComposeUiTest {
         setContent { AddRoutineItemDialog(onDismiss = {}, onSave = {}) }
 
-        onNodeWithText("2024-12-13").performClick()
+        onNodeWithText("End Date").performClick()
         onNodeWithText("OK").assertExists()
 
         onAllNodesWithText("Cancel")[1].performClick()
-        onNodeWithText("2024-12-13").assertExists()
+        onNodeWithText("End Date").assertExists()
     }
 }

@@ -176,7 +176,7 @@ class GoogleCalendarSyncService(
                 val updatedAt = item.updated?.let {
                     try {
                         Instant.parse(it).toEpochMilliseconds()
-                    } catch (e: Exception) {
+                    } catch (_: Exception) {
                         0L
                     }
                 } ?: 0L

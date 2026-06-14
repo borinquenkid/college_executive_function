@@ -41,7 +41,7 @@ class OAuthExchangeTest {
             redirectUri = "test-uri"
         )
 
-        assertEquals("mock-token", response.access_token)
-        assertEquals(3600, response.expires_in)
+        assertEquals("mock-token", response.accessToken)
+        assertEquals(3600, response.expiresIn)
     }
 }

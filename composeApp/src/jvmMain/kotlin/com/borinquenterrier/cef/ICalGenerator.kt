@@ -40,14 +40,14 @@ object ICalGenerator {
                     val endTime = event.endTime
 
                     val startDateTime = ZonedDateTime.of(
-                        date.year, date.monthNumber, date.dayOfMonth,
+                        date.year, date.month.ordinal + 1, date.day,
                         startTime.hour, startTime.minute, startTime.second, 0,
-                        ZoneId.systemDefault()
+                        ZoneId.systemDefault(),
                     )
                     val endDateTime = ZonedDateTime.of(
-                        date.year, date.monthNumber, date.dayOfMonth,
+                        date.year, date.month.ordinal + 1, date.day,
                         endTime.hour, endTime.minute, endTime.second, 0,
-                        ZoneId.systemDefault()
+                        ZoneId.systemDefault(),
                     )
 
                     val vEvent = VEvent(startDateTime, endDateTime, event.title)
@@ -63,7 +63,7 @@ object ICalGenerator {
                     vEvent.add<PropertyContainer>(Description(descriptionParts.joinToString("\n")))
 
                     if (event.recurrence != null) {
-                        val daysStr = event.recurrence.daysOfWeek.mapNotNull {
+                        val daysStr = event.recurrence.daysOfWeek.joinToString(",") {
                             when (it) {
                                 kotlinx.datetime.DayOfWeek.MONDAY -> "MO"
                                 kotlinx.datetime.DayOfWeek.TUESDAY -> "TU"
@@ -72,15 +72,14 @@ object ICalGenerator {
                                 kotlinx.datetime.DayOfWeek.FRIDAY -> "FR"
                                 kotlinx.datetime.DayOfWeek.SATURDAY -> "SA"
                                 kotlinx.datetime.DayOfWeek.SUNDAY -> "SU"
-                                else -> null
                             }
-                        }.joinToString(",")
+                        }
 
                         val untilStr = "${
                             event.recurrence.endDate.year.toString().padStart(4, '0')
                         }${
-                            event.recurrence.endDate.monthNumber.toString().padStart(2, '0')
-                        }${event.recurrence.endDate.dayOfMonth.toString().padStart(2, '0')}"
+                            (event.recurrence.endDate.month.ordinal + 1).toString().padStart(2, '0')
+                        }${event.recurrence.endDate.day.toString().padStart(2, '0')}"
                         val ruleBuilder = StringBuilder("FREQ=WEEKLY")
                         if (daysStr.isNotEmpty()) {
                             ruleBuilder.append(";BYDAY=").append(daysStr)
@@ -97,7 +96,7 @@ object ICalGenerator {
                 is DayEvent -> {
                     val date = event.date
                     val javaDate =
-                        java.time.LocalDate.of(date.year, date.monthNumber, date.dayOfMonth)
+                        java.time.LocalDate.of(date.year, date.month.ordinal + 1, date.day)
                     val javaNextDate = javaDate.plusDays(1)
 
                     val vEvent = VEvent(javaDate, javaNextDate, event.title)
@@ -113,7 +112,7 @@ object ICalGenerator {
                     vEvent.add<PropertyContainer>(Description(descriptionParts.joinToString("\n")))
 
                     if (event.recurrence != null) {
-                        val daysStr = event.recurrence.daysOfWeek.mapNotNull {
+                        val daysStr = event.recurrence.daysOfWeek.joinToString(",") {
                             when (it) {
                                 kotlinx.datetime.DayOfWeek.MONDAY -> "MO"
                                 kotlinx.datetime.DayOfWeek.TUESDAY -> "TU"
@@ -122,15 +121,14 @@ object ICalGenerator {
                                 kotlinx.datetime.DayOfWeek.FRIDAY -> "FR"
                                 kotlinx.datetime.DayOfWeek.SATURDAY -> "SA"
                                 kotlinx.datetime.DayOfWeek.SUNDAY -> "SU"
-                                else -> null
                             }
-                        }.joinToString(",")
+                        }
 
                         val untilStr = "${
                             event.recurrence.endDate.year.toString().padStart(4, '0')
                         }${
-                            event.recurrence.endDate.monthNumber.toString().padStart(2, '0')
-                        }${event.recurrence.endDate.dayOfMonth.toString().padStart(2, '0')}"
+                            (event.recurrence.endDate.month.ordinal + 1).toString().padStart(2, '0')
+                        }${event.recurrence.endDate.day.toString().padStart(2, '0')}"
                         val ruleBuilder = StringBuilder("FREQ=WEEKLY")
                         if (daysStr.isNotEmpty()) {
                             ruleBuilder.append(";BYDAY=").append(daysStr)

@@ -13,7 +13,7 @@ object IcsStringBuilder {
         for (event in events) {
             sb.append("BEGIN:VEVENT\r\n")
             val uid = event.id
-                ?: "cef-${event.hashCode()}-${event.date.year}${event.date.monthNumber}${event.date.dayOfMonth}"
+                ?: "cef-${event.hashCode()}-${event.date.year}${(event.date.month.ordinal + 1).toString().padStart(2, '0')}${event.date.day.toString().padStart(2, '0')}"
             sb.append("UID:").append(uid).append("\r\n")
 
             // Generate timestamp (DTSTAMP)
@@ -45,7 +45,7 @@ object IcsStringBuilder {
 
                 is DayEvent -> {
                     val startStr = formatDate(event.date)
-                    val endStr = formatDate(plusDays(event.date, 1))
+                    val endStr = formatDate(plusDay(event.date))
                     sb.append("DTSTART;VALUE=DATE:").append(startStr).append("\r\n")
                     sb.append("DTEND;VALUE=DATE:").append(endStr).append("\r\n")
 
@@ -63,11 +63,11 @@ object IcsStringBuilder {
 
     private fun formatDateTime(
         date: kotlinx.datetime.LocalDate,
-        time: kotlinx.datetime.LocalTime
+        time: kotlinx.datetime.LocalTime,
     ): String {
         val y = date.year.toString().padStart(4, '0')
-        val m = date.monthNumber.toString().padStart(2, '0')
-        val d = date.dayOfMonth.toString().padStart(2, '0')
+        val m = (date.month.ordinal + 1).toString().padStart(2, '0')
+        val d = date.day.toString().padStart(2, '0')
         val hr = time.hour.toString().padStart(2, '0')
         val min = time.minute.toString().padStart(2, '0')
         val sec = time.second.toString().padStart(2, '0')
@@ -76,18 +76,18 @@ object IcsStringBuilder {
 
     private fun formatDate(date: kotlinx.datetime.LocalDate): String {
         val y = date.year.toString().padStart(4, '0')
-        val m = date.monthNumber.toString().padStart(2, '0')
-        val d = date.dayOfMonth.toString().padStart(2, '0')
+        val m = (date.month.ordinal + 1).toString().padStart(2, '0')
+        val d = date.day.toString().padStart(2, '0')
         return "$y$m$d"
     }
 
-    private fun plusDays(date: kotlinx.datetime.LocalDate, days: Int): kotlinx.datetime.LocalDate {
+    private fun plusDay(date: kotlinx.datetime.LocalDate): kotlinx.datetime.LocalDate {
         val epochDays = date.toEpochDays()
-        return kotlinx.datetime.LocalDate.fromEpochDays(epochDays + days)
+        return kotlinx.datetime.LocalDate.fromEpochDays(epochDays + 1)
     }
 
     private fun buildRecurrenceRule(recurrence: Recurrence): String {
-        val daysStr = recurrence.daysOfWeek.mapNotNull {
+        val daysStr = recurrence.daysOfWeek.joinToString(",") {
             when (it) {
                 DayOfWeek.MONDAY -> "MO"
                 DayOfWeek.TUESDAY -> "TU"
@@ -96,9 +96,8 @@ object IcsStringBuilder {
                 DayOfWeek.FRIDAY -> "FR"
                 DayOfWeek.SATURDAY -> "SA"
                 DayOfWeek.SUNDAY -> "SU"
-                else -> null
             }
-        }.joinToString(",")
+        }
 
         val untilStr = formatDate(recurrence.endDate)
         val sb = StringBuilder("FREQ=WEEKLY")

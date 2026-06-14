@@ -2,6 +2,7 @@ package com.borinquenterrier.cef
 
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.Month
 import kotlinx.datetime.plus
 
 object SemesterResolver {
@@ -13,8 +14,8 @@ object SemesterResolver {
      */
     fun getSemesterRange(today: LocalDate): Pair<LocalDate, LocalDate> {
         val currentYear = today.year
-        val isFirstSemester = today.monthNumber in 8..12
-        val isSecondSemester = today.monthNumber in 1..5
+        val isFirstSemester = today.month >= Month.AUGUST
+        val isSecondSemester = today.month <= Month.MAY
 
         return when {
             isFirstSemester -> {

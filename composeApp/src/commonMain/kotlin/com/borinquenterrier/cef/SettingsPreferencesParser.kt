@@ -4,12 +4,14 @@ package com.borinquenterrier.cef
  * Pure, stateless helper that converts raw user-entered strings into a validated
  * [StudyPreferences] object. Extracted from [SettingsScreen] so that the parsing
  * logic can be unit-tested independently of Compose state.
- *
- * Any field whose string value cannot be parsed as an [Int] falls back to the
- * corresponding value from [currentPrefs].
  */
 object SettingsPreferencesParser {
 
+    /**
+     * Parses raw strings into [StudyPreferences].
+     * Any field whose string value cannot be parsed as an [Int] falls back to the
+     * corresponding value from [currentPrefs].
+     */
     fun parse(
         studyStartStr: String,
         studyEndStr: String,
@@ -22,7 +24,7 @@ object SettingsPreferencesParser {
         shareAnonymousBugReports: Boolean,
         googleCalendarId: String,
         googleCalendarName: String,
-        currentPrefs: StudyPreferences = StudyPreferences()
+        currentPrefs: StudyPreferences = StudyPreferences(),
     ): StudyPreferences = StudyPreferences(
         studyStartHour = studyStartStr.toIntOrNull() ?: currentPrefs.studyStartHour,
         studyEndHour = studyEndStr.toIntOrNull() ?: currentPrefs.studyEndHour,
@@ -35,6 +37,6 @@ object SettingsPreferencesParser {
             ?: currentPrefs.preferredBreakMinutes,
         shareAnonymousBugReports = shareAnonymousBugReports,
         googleCalendarId = googleCalendarId,
-        googleCalendarName = googleCalendarName
+        googleCalendarName = googleCalendarName,
     )
 }

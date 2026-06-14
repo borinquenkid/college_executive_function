@@ -241,20 +241,25 @@ fun StudioPanel(
                         Button(
                             onClick = {
                                 appController.launchInScope {
-                                    if (!isConnected) return@launchInScope
                                     eventAgent.pushToCalendar()
                                 }
                             },
                             modifier = Modifier.fillMaxWidth().testTag("push_calendar_button"),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (hasConflicts) MaterialTheme.colorScheme.error else if (isConnected) MaterialTheme.colorScheme.tertiary else MaterialTheme.colorScheme.surfaceVariant
+                                containerColor = if (hasConflicts) {
+                                    MaterialTheme.colorScheme.error
+                                } else if (isConnected) {
+                                    MaterialTheme.colorScheme.tertiary
+                                } else {
+                                    MaterialTheme.colorScheme.secondary
+                                }
                             ),
-                            enabled = !isLoading && isConnected
+                            enabled = !isLoading
                         ) {
                             Text(
                                 if (hasConflicts) "Force Sync Remaining"
                                 else if (isConnected) "Push to Google Calendar"
-                                else "Connect to Google to Push"
+                                else "Save to Local Calendar"
                             )
                         }
                     }

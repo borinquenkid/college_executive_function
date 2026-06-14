@@ -107,8 +107,8 @@ fun AcademicCalendar(
     }
 
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
-    val (viewStartDate, viewEndDate) = remember(today) {
-        SemesterResolver.getSemesterRange(today)
+    val (viewStartDate, viewEndDate) = remember(today, aiGeneratedEvents, displayedEvents) {
+        SemesterResolver.getExpandedRange(today, aiGeneratedEvents + displayedEvents)
     }
 
     val allExpandedEvents =

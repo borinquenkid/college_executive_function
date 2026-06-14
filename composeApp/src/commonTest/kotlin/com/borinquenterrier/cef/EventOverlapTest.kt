@@ -106,4 +106,46 @@ class EventOverlapTest : FunSpec({
 
         dayEvent.overlaps(timeEvent) shouldBe false
     }
+
+    test("Event.validate() throws IllegalArgumentException when title is blank") {
+        val invalidEvent = DayEvent(
+            title = "   ",
+            source = EventSource.MANUAL,
+            date = date
+        )
+        io.kotest.assertions.throwables.shouldThrow<IllegalArgumentException> {
+            invalidEvent.validate()
+        }.message shouldBe "Title cannot be blank"
+    }
+
+    test("Event.validate() throws IllegalArgumentException when startTime is not before endTime") {
+        val invalidEvent = TimeEvent(
+            title = "Class",
+            source = EventSource.CLASS,
+            date = date,
+            startTime = LocalTime(11, 0),
+            endTime = LocalTime(10, 0)
+        )
+        io.kotest.assertions.throwables.shouldThrow<IllegalArgumentException> {
+            invalidEvent.validate()
+        }.message shouldBe "Start time (11:00) must be before end time (10:00)"
+    }
+
+    test("Event.validate() passes for valid events") {
+        val validTimeEvent = TimeEvent(
+            title = "Class",
+            source = EventSource.CLASS,
+            date = date,
+            startTime = LocalTime(10, 0),
+            endTime = LocalTime(11, 0)
+        )
+        val validDayEvent = DayEvent(
+            title = "Holiday",
+            source = EventSource.SCHOOL,
+            date = date
+        )
+
+        validTimeEvent.validate() // should not throw
+        validDayEvent.validate() // should not throw
+    }
 })

@@ -16,6 +16,7 @@ class CalendarAgent(
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
     private val preferencesRepository: PreferencesRepository? = null
 ) {
+    private val tag = "CalendarAgent"
     private val negotiator =
         SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository)
     private val negotiationApplier =
@@ -35,14 +36,19 @@ class CalendarAgent(
      * If Remote fails, this method now throws the exception so the UI can handle it.
      */
     suspend fun saveEvent(event: Event, calendarId: String = "default") {
-        if (isLiveSyncEnabled()) {
-            // Attempt to save to remote first (Gold Standard)
-            remoteRepo.saveEvent(event, calendarId)
-
-            // If remote success, save locally as SYNCED
-            localRepo.saveEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+        event.validate()
+        if (isLiveSyncEnabled() && isGoogleLinked()) {
+            try {
+                // Attempt to save to remote first (Gold Standard)
+                remoteRepo.saveEvent(event, calendarId)
+                // If remote success, save locally as SYNCED
+                localRepo.saveEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+            } catch (e: Exception) {
+                logger?.e(tag, "Remote save failed, falling back to local-only save", e)
+                saveEventLocally(event, calendarId)
+            }
         } else {
-            // In test profile, skip remote and save locally only
+            // In test profile or unlinked, skip remote and save locally only
             saveEventLocally(event, calendarId)
         }
     }
@@ -52,6 +58,7 @@ class CalendarAgent(
      * If successful, saves/updates locally as SYNCED.
      */
     suspend fun updateEvent(event: Event, calendarId: String = "default") {
+        event.validate()
         val original = localRepo.getAllEvents(calendarId).find { it.id == event.id }
         if (original != null && original.category == AcademicCategory.STUDY_BLOCK) {
             val hasMoved =
@@ -61,9 +68,14 @@ class CalendarAgent(
             }
         }
 
-        if (isLiveSyncEnabled()) {
-            remoteRepo.saveEvent(event, calendarId)
-            localRepo.updateEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+        if (isLiveSyncEnabled() && isGoogleLinked()) {
+            try {
+                remoteRepo.saveEvent(event, calendarId)
+                localRepo.updateEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+            } catch (e: Exception) {
+                logger?.e(tag, "Remote update failed, falling back to local-only update", e)
+                localRepo.updateEvent(event.withSyncStatus(SyncStatus.LOCAL_ONLY), calendarId)
+            }
         } else {
             localRepo.updateEvent(event, calendarId)
         }
@@ -74,12 +86,10 @@ class CalendarAgent(
      * Used for offline support or when the user hasn't linked Workspace.
      */
     suspend fun saveEventLocally(event: Event, calendarId: String = "default") {
+        event.validate()
         localRepo.saveEvent(event.withSyncStatus(SyncStatus.LOCAL_ONLY), calendarId)
     }
 
-    /**
-     * Deletes an event. Soft-deletes locally and attempts remote delete if online.
-     */
     suspend fun deleteEvent(eventId: String, calendarId: String = "default") {
         val event = localRepo.getAllEvents(calendarId).find { it.id == eventId }
         if (event != null && event.category == AcademicCategory.STUDY_BLOCK) {
@@ -87,12 +97,15 @@ class CalendarAgent(
         }
 
         localRepo.deleteEvent(eventId, calendarId)
-        try {
-            remoteRepo.deleteEvent(eventId, calendarId)
-            // If remote success, hard delete locally
-            localRepo.hardDeleteEvent(eventId, calendarId)
-        } catch (e: Exception) {
-            // Stay as DELETED_LOCALLY for later sync
+        if (isLiveSyncEnabled() && isGoogleLinked()) {
+            try {
+                remoteRepo.deleteEvent(eventId, calendarId)
+                // If remote success, hard delete locally
+                localRepo.hardDeleteEvent(eventId, calendarId)
+            } catch (e: Exception) {
+                // Stay as DELETED_LOCALLY for later sync
+                logger?.e(tag, "Remote delete failed, leaving as DELETED_LOCALLY", e)
+            }
         }
     }
 
@@ -133,4 +146,9 @@ class CalendarAgent(
 
     private suspend fun isLiveSyncEnabled(): Boolean =
         (localRepo.getSettings()?.getString("run_profile", "local") ?: "local") != "test"
+
+    private fun isGoogleLinked(): Boolean {
+        val settings = localRepo.getSettings() ?: return false
+        return settings.getString("GOOGLE_ACCESS_TOKEN", "").isNotBlank()
+    }
 }

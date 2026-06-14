@@ -132,6 +132,13 @@ fun Event.withCompletionStatus(status: CompletionStatus): Event = when (this) {
     is DayEvent -> copy(completionStatus = status)
 }
 
+fun Event.validate() {
+    require(title.isNotBlank()) { "Title cannot be blank" }
+    if (this is TimeEvent) {
+        require(startTime < endTime) { "Start time ($startTime) must be before end time ($endTime)" }
+    }
+}
+
 fun Event.timeUntilDue(
     currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 ): Duration {

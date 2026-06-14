@@ -30,4 +30,21 @@ object SemesterResolver {
             }
         }
     }
+
+    /**
+     * Resolves the view range by taking the base semester/interim range and expanding it
+     * to include the dates of any provided events.
+     */
+    fun getExpandedRange(today: LocalDate, events: List<Event>): Pair<LocalDate, LocalDate> {
+        val baseRange = getSemesterRange(today)
+        if (events.isEmpty()) return baseRange
+
+        val dates = events.map { it.date }
+        val minEventDate = dates.minOrNull() ?: baseRange.first
+        val maxEventDate = dates.maxOrNull() ?: baseRange.second
+
+        val start = if (minEventDate < baseRange.first) minEventDate else baseRange.first
+        val end = if (maxEventDate > baseRange.second) maxEventDate else baseRange.second
+        return start to end
+    }
 }

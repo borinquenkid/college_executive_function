@@ -34,4 +34,43 @@ class SemesterResolverTest : FunSpec({
 
         range shouldBe (LocalDate(2026, 6, 15) to LocalDate(2026, 7, 15))
     }
+
+    test("getExpandedRange returns base range when events are empty") {
+        val today = LocalDate(2026, 6, 15)
+        val range = SemesterResolver.getExpandedRange(today, emptyList())
+
+        range shouldBe (LocalDate(2026, 6, 15) to LocalDate(2026, 7, 15))
+    }
+
+    test("getExpandedRange returns base range when all events lie inside base range") {
+        val today = LocalDate(2026, 6, 15)
+        val event = DayEvent(
+            id = "e1",
+            title = "Test",
+            source = EventSource.MANUAL,
+            date = LocalDate(2026, 6, 20)
+        )
+        val range = SemesterResolver.getExpandedRange(today, listOf(event))
+
+        range shouldBe (LocalDate(2026, 6, 15) to LocalDate(2026, 7, 15))
+    }
+
+    test("getExpandedRange expands range when events lie outside base range") {
+        val today = LocalDate(2026, 6, 15)
+        val event1 = DayEvent(
+            id = "e1",
+            title = "Past Event",
+            source = EventSource.MANUAL,
+            date = LocalDate(2026, 5, 1) // before base range start (June 15)
+        )
+        val event2 = DayEvent(
+            id = "e2",
+            title = "Future Event",
+            source = EventSource.MANUAL,
+            date = LocalDate(2026, 8, 10) // after base range end (July 15)
+        )
+        val range = SemesterResolver.getExpandedRange(today, listOf(event1, event2))
+
+        range shouldBe (LocalDate(2026, 5, 1) to LocalDate(2026, 8, 10))
+    }
 })

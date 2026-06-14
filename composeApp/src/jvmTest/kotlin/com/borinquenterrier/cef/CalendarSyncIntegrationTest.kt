@@ -191,7 +191,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         localRepo.getAllEvents() shouldHaveSize 0
     }
 
-    test("LocalScenario: Addition while online but NOT connected to Workspace fails with exception") {
+    test("LocalScenario: Addition while online but NOT connected to Workspace saves locally as LOCAL_ONLY") {
         val localRepo = SqlDelightLocalCalendarRepository(createTestDatabase())
         val tokenRepo = GoogleTokenRepository(MapSettings())
         // Explicitly NOT saving any tokens
@@ -221,19 +221,13 @@ class CalendarSyncIntegrationTest : FunSpec({
         val event =
             DayEvent(id = "local-1", title = "New Class", source = EventSource.CLASS, date = date)
 
-        // 1. Attempt to save - should now THROW
-        io.kotest.assertions.throwables.shouldThrow<Exception> {
-            unifiedRepo.saveEvent(event)
-        }
+        // 1. Attempt to save - should now save locally
+        unifiedRepo.saveEvent(event)
 
-        // 2. Verify it's NOT saved locally as SYNCED (it shouldn't be saved at all via saveEvent if remote fails)
+        // 2. Verify it's saved locally as LOCAL_ONLY
         val allEvents = localRepo.getAllEvents()
-        allEvents shouldHaveSize 0
-
-        // 3. Save explicitly locally
-        unifiedRepo.saveEventLocally(event)
-        localRepo.getAllEvents() shouldHaveSize 1
-        localRepo.getAllEvents().first().syncStatus shouldBe SyncStatus.LOCAL_ONLY
+        allEvents shouldHaveSize 1
+        allEvents.first().syncStatus shouldBe SyncStatus.LOCAL_ONLY
     }
 
     test("RemoteScenario: Remote changes supersede Local (Gold Standard)") {

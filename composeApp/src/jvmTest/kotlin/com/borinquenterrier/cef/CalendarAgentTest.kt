@@ -72,6 +72,7 @@ class CalendarAgentTest : FunSpec({
     test("saveEvent with local run profile should save to remote and local as SYNCED") {
         val mockSettings = MapSettings()
         mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
         coEvery { localRepo.getSettings() } returns mockSettings
         coEvery { remoteRepo.saveEvent(any(), any()) } just runs
         coEvery { localRepo.saveEvent(any(), any()) } just runs
@@ -98,17 +99,20 @@ class CalendarAgentTest : FunSpec({
         }
     }
 
-    test("saveEvent should throw exception if remote repo fails under local profile") {
+    test("saveEvent should fall back to local save as LOCAL_ONLY if remote repo fails under local profile") {
         val mockSettings = MapSettings()
         mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
         coEvery { localRepo.getSettings() } returns mockSettings
         coEvery { remoteRepo.saveEvent(any(), any()) } throws Exception("Remote failure")
+        coEvery { localRepo.saveEvent(any(), any()) } just runs
 
-        shouldThrow<Exception> {
-            calendarAgent.saveEvent(timeEvent, "default")
+        calendarAgent.saveEvent(timeEvent, "default")
+
+        coVerify(exactly = 1) { remoteRepo.saveEvent(timeEvent, "default") }
+        coVerify(exactly = 1) {
+            localRepo.saveEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default")
         }
-
-        coVerify(exactly = 0) { localRepo.saveEvent(any(), any()) }
     }
 
     test("saveEventLocally should save event to local repo as LOCAL_ONLY") {
@@ -124,6 +128,7 @@ class CalendarAgentTest : FunSpec({
     test("updateEvent with move should log override and save to remote and local under local profile") {
         val mockSettings = MapSettings()
         mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
         coEvery { localRepo.getSettings() } returns mockSettings
         coEvery { localRepo.getAllEvents("default") } returns listOf(studyBlockEvent)
         coEvery { remoteRepo.saveEvent(any(), any()) } just runs
@@ -152,6 +157,10 @@ class CalendarAgentTest : FunSpec({
     }
 
     test("deleteEvent should log override, delete locally, attempt remote delete, and hard delete local on remote success") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
+        coEvery { localRepo.getSettings() } returns mockSettings
         coEvery { localRepo.getAllEvents("default") } returns listOf(studyBlockEvent)
         coEvery { localRepo.deleteEvent(any(), any()) } just runs
         coEvery { remoteRepo.deleteEvent(any(), any()) } just runs
@@ -171,6 +180,10 @@ class CalendarAgentTest : FunSpec({
     }
 
     test("deleteEvent should leave soft deleted locally if remote delete fails") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
+        coEvery { localRepo.getSettings() } returns mockSettings
         coEvery { localRepo.getAllEvents("default") } returns listOf(studyBlockEvent)
         coEvery { localRepo.deleteEvent(any(), any()) } just runs
         coEvery { remoteRepo.deleteEvent(any(), any()) } throws Exception("Remote offline")
@@ -343,6 +356,34 @@ class CalendarAgentTest : FunSpec({
 
         shouldThrow<Exception> {
             calendarAgent.synchronize("default")
+        }
+    }
+
+    test("saveEvent should throw IllegalArgumentException when event has a blank title") {
+        val invalidEvent = timeEvent.copy(title = "   ")
+        shouldThrow<IllegalArgumentException> {
+            calendarAgent.saveEvent(invalidEvent, "default")
+        }
+    }
+
+    test("saveEvent should throw IllegalArgumentException when event startTime >= endTime") {
+        val invalidEvent = timeEvent.copy(startTime = LocalTime(10, 0), endTime = LocalTime(9, 0))
+        shouldThrow<IllegalArgumentException> {
+            calendarAgent.saveEvent(invalidEvent, "default")
+        }
+    }
+
+    test("updateEvent should throw IllegalArgumentException when event has a blank title") {
+        val invalidEvent = timeEvent.copy(title = "   ")
+        shouldThrow<IllegalArgumentException> {
+            calendarAgent.updateEvent(invalidEvent, "default")
+        }
+    }
+
+    test("saveEventLocally should throw IllegalArgumentException when event has a blank title") {
+        val invalidEvent = timeEvent.copy(title = "   ")
+        shouldThrow<IllegalArgumentException> {
+            calendarAgent.saveEventLocally(invalidEvent, "default")
         }
     }
 })

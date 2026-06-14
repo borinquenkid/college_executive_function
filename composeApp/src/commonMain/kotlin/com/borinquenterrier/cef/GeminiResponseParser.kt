@@ -17,14 +17,14 @@ private data class RawGeminiEvent(
     val warning: String? = null,
     val gradeWeight: Float? = null,
     val startTime: String = "09:00",
-    val endTime: String = "10:00"
+    val endTime: String = "10:00",
 )
 
 @Serializable
 private data class RawGeminiTask(
     val title: String = "Sub-task",
     val daysBeforeDue: Double = 1.0,
-    val description: String = ""
+    val description: String = "",
 )
 
 class SourceValidationException(message: String) : Exception(message)
@@ -33,7 +33,7 @@ class SourceValidationException(message: String) : Exception(message)
 private data class RawCategorization(
     val category: String = "OTHER",
     val isValid: Boolean = true,
-    val reason: String = ""
+    val reason: String = "",
 )
 
 object GeminiResponseParser {
@@ -69,12 +69,12 @@ object GeminiResponseParser {
     private fun toEvent(raw: RawGeminiEvent, telemetry: TelemetryManager?): Event {
         val category = try {
             AcademicCategory.valueOf(raw.category)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             AcademicCategory.REGULAR
         }
         val date = try {
             LocalDate.parse(raw.date)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             telemetry?.logJsonError()
             LocalDate(2024, 1, 1)
         }
@@ -88,7 +88,7 @@ object GeminiResponseParser {
                 endTime = parseClockTime(raw.endTime, LocalTime(10, 0), telemetry),
                 category = category,
                 warning = raw.warning,
-                gradeWeight = raw.gradeWeight
+                gradeWeight = raw.gradeWeight,
             )
         } else {
             DayEvent(
@@ -97,7 +97,7 @@ object GeminiResponseParser {
                 category = category,
                 date = date,
                 warning = raw.warning,
-                gradeWeight = raw.gradeWeight
+                gradeWeight = raw.gradeWeight,
             )
         }
     }
@@ -106,12 +106,12 @@ object GeminiResponseParser {
     private fun parseClockTime(
         value: String,
         default: LocalTime,
-        telemetry: TelemetryManager?
+        telemetry: TelemetryManager?,
     ): LocalTime =
         try {
             val parts = value.split(":")
             LocalTime(parts[0].toInt(), parts[1].toInt())
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             telemetry?.logJsonError()
             default
         }
@@ -123,7 +123,7 @@ object GeminiResponseParser {
             DecomposedTask(
                 title = raw.title,
                 daysBeforeDue = raw.daysBeforeDue.toInt(),
-                description = raw.description
+                description = raw.description,
             )
         }
     }
@@ -153,10 +153,9 @@ object GeminiResponseParser {
     /** Parses [responseText] as either a bare JSON array, or an object with the array nested under [arrayKey]. */
     private fun extractJsonArray(responseText: String, arrayKey: String): JsonArray {
         val cleanJson = stripCodeFences(responseText)
-        val root = json.parseToJsonElement(cleanJson)
-        return when {
-            root is JsonArray -> root
-            root is JsonObject && root.containsKey(arrayKey) -> root[arrayKey]!!.jsonArray
+        return when (val root = json.parseToJsonElement(cleanJson)) {
+            is JsonArray -> root
+            is JsonObject -> root[arrayKey]?.jsonArray ?: throw Exception("Unexpected JSON structure: $cleanJson")
             else -> throw Exception("Unexpected JSON structure: $cleanJson")
         }
     }

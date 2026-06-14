@@ -13,10 +13,4 @@ class LocalFileFilter {
             isNew
         }
     }
-
-    fun isSupportedFile(filePath: String): Boolean {
-        val supportedExtensions = listOf(".pdf", ".docx", ".doc", ".txt", ".ics")
-        val lowerPath = filePath.lowercase()
-        return supportedExtensions.any { lowerPath.endsWith(it) }
-    }
 }

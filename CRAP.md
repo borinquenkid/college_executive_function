@@ -536,7 +536,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `buildRecurrenceRule` | 3 |
 | `formatDateTime` | 1 |
 | `formatDate` | 1 |
-| `plusDays` | 1 |
+| `plusDay` | 1 |
 
 ### AddRoutineItemDialog.kt (Score: 13.00 - 🟢 LOW)
 - **Total Complexity**: 13
@@ -911,16 +911,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `addSource` | 1 |
 | `selectSource` | 1 |
 
-### ConcurrentFolderFetcher.kt (Score: 7.00 - 🟢 LOW)
-- **Total Complexity**: 7
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `fetchFromFolders` | 4 |
-| `fetchFromFolder` | 3 |
-
 ### TermNormalizer.kt (Score: 7.00 - 🟢 LOW)
 - **Total Complexity**: 7
 - **Real Coverage**: 100.0%
@@ -1183,14 +1173,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `UniversalHomeLayout` | 5 |
 
-### LocalFileFetcher.kt (Score: 5.00 - 🟢 LOW)
+### ConcurrentFolderFetcher.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 100.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `fetchFromDirectories` | 5 |
+| `fetchFromFolder` | 3 |
+| `fetchFromFolders` | 2 |
 
 ### CalendarIdResolver.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5
@@ -1212,16 +1203,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `autoSelectFirstFrom` | 2 |
 | `clearIfRemovedFrom` | 2 |
 | `selectSource` | 1 |
-
-### LocalFileFilter.kt (Score: 4.84 - 🟢 LOW)
-- **Total Complexity**: 4
-- **Real Coverage**: 62.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `filterNewFiles` | 2 |
-| `isSupportedFile` | 2 |
 
 ### LocalFileProcessor.kt (Score: 4.79 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -1414,6 +1395,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `SourcesPanel` | 1 |
 
+### LocalFileFetcher.kt (Score: 3.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `fetchFromDirectories` | 3 |
+
 ### SourceFragment.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3
 - **Real Coverage**: 100.0%
@@ -1472,6 +1462,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getRoutineEvents` | 2 |
 | `saveRoutineEvents` | 1 |
+
+### LocalFileFilter.kt (Score: 2.21 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 62.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `filterNewFiles` | 2 |
 
 ### GeminiBodyBuilder.kt (Score: 2.02 - 🟢 LOW)
 - **Total Complexity**: 2

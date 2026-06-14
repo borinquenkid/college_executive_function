@@ -7,7 +7,7 @@ package com.borinquenterrier.cef
  * - LocalFileFilter: Deduplication and filtering
  */
 class LocalFileScanner(
-    private val fileReader: LocalFileReader,
+    fileReader: LocalFileReader,
     private val directoryPreferences: DirectoryPreferencesManager,
     private val logger: Logger
 ) {

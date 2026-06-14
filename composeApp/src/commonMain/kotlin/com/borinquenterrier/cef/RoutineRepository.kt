@@ -13,13 +13,12 @@ class RoutineRepository(private val settings: Settings) {
         val jsonString = settings.getString(routineKey, "[]")
         try {
             Json.decodeFromString(jsonString)
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             emptyList()
         }
     }
 
     suspend fun saveRoutineEvents(events: List<TimeEvent>) = withContext(Dispatchers.Default) {
-        val jsonString = Json.encodeToString(events)
-        settings.putString(routineKey, jsonString)
+        settings.putString(routineKey, Json.encodeToString(events))
     }
 }

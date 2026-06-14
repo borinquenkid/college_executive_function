@@ -5,6 +5,7 @@ import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.Serializable
 
+@Suppress("unused") // Do not remove: Reserved for future use in simplified DTO scenarios
 @Serializable
 data class RoutineItem(
     val title: String,

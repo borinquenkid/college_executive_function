@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 /**
@@ -21,22 +22,12 @@ class ConcurrentFolderFetcher(
      * @param folderIds List of Google Drive folder IDs to fetch from
      * @return Aggregated list of files from all folders (empty list for failed folders)
      */
-    suspend fun fetchFromFolders(folderIds: List<String>): List<DriveFile> {
-        val allFiles = mutableListOf<DriveFile>()
-
-        coroutineScope {
-            val deferreds = folderIds.map { folderId ->
-                async {
-                    fetchFromFolder(folderId)
-                }
+    suspend fun fetchFromFolders(folderIds: List<String>): List<DriveFile> = coroutineScope {
+        folderIds.map { folderId ->
+            async {
+                fetchFromFolder(folderId)
             }
-
-            for (files in deferreds.map { it.await() }) {
-                allFiles.addAll(files)
-            }
-        }
-
-        return allFiles
+        }.awaitAll().flatten()
     }
 
     private suspend fun fetchFromFolder(folderId: String): List<DriveFile> {

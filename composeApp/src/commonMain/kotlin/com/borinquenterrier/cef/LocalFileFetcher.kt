@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 
 /**
@@ -13,26 +14,16 @@ class LocalFileFetcher(
 ) {
     private val tag = "LocalFileFetcher"
 
-    suspend fun fetchFromDirectories(dirPaths: List<String>): List<String> {
-        val allFiles = mutableListOf<String>()
-
-        coroutineScope {
-            val deferreds = dirPaths.map { dir ->
-                async {
-                    try {
-                        fileReader.listFiles(dir)
-                    } catch (e: Exception) {
-                        logger?.e(tag, "Failed to list local files in directory: $dir", e)
-                        emptyList()
-                    }
+    suspend fun fetchFromDirectories(dirPaths: List<String>): List<String> = coroutineScope {
+        dirPaths.map { dir ->
+            async {
+                try {
+                    fileReader.listFiles(dir)
+                } catch (e: Exception) {
+                    logger?.e(tag, "Failed to list local files in directory: $dir", e)
+                    emptyList()
                 }
             }
-
-            for (files in deferreds.map { it.await() }) {
-                allFiles.addAll(files)
-            }
-        }
-
-        return allFiles
+        }.awaitAll().flatten()
     }
 }

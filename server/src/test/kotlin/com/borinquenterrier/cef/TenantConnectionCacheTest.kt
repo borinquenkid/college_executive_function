@@ -4,6 +4,7 @@ import app.cash.sqldelight.db.SqlDriver
 import io.mockk.*
 import kotlin.test.*
 import kotlinx.coroutines.async
+import kotlinx.coroutines.awaitAll
 import kotlinx.coroutines.coroutineScope
 import kotlinx.coroutines.runBlocking
 
@@ -154,7 +155,7 @@ class TenantConnectionCacheTest {
     @Test
     fun `concurrent getOrOpen for the same studentId returns the same driver`() = runBlocking {
         val results = coroutineScope {
-            (1..50).map { async { cache.getOrOpen("student-1") } }.map { it.await() }
+            (1..50).map { async { cache.getOrOpen("student-1") } }.awaitAll()
         }
         assertEquals(1, results.distinct().size)
         assertEquals(1, createdDrivers.size)
@@ -164,7 +165,7 @@ class TenantConnectionCacheTest {
     fun `concurrent getOrOpen for different studentIds each get their own driver`() = runBlocking {
         val ids = (1..3).map { "student-$it" }
         val results = coroutineScope {
-            ids.map { id -> async { id to cache.getOrOpen(id) } }.map { it.await() }
+            ids.map { id -> async { id to cache.getOrOpen(id) } }.awaitAll()
         }
         val drivers = results.map { it.second }
         assertEquals(3, drivers.distinct().size)

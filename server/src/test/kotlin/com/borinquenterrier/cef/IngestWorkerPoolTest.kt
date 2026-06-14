@@ -43,7 +43,7 @@ class IngestWorkerPoolTest {
     @Test
     fun `multiple independent tasks all complete with their own results`() = runBlocking {
         val p = pool(workers = 4)
-        val results = (1..10).map { n -> p.submit { n * n } }.map { it.await() }
+        val results = (1..10).map { n -> p.submit { n * n } }.awaitAll()
         assertEquals((1..10).map { it * it }, results)
         p.shutdown()
     }

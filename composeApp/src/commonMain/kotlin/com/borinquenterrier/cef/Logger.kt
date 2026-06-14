@@ -8,7 +8,6 @@ import com.russhwolf.settings.Settings
 class Logger(private val settings: Settings) {
 
     private val debugModeKey = "DEBUG_MODE"
-    private var logFile: String? = null
 
     fun isDebugEnabled(): Boolean = settings.getBoolean(debugModeKey, isDebug)
 

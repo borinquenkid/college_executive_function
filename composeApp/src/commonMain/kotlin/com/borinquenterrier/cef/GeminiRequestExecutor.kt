@@ -28,7 +28,7 @@ class GeminiRequestExecutor(
     private val errorHandler = GeminiErrorHandler(
         ErrorCategorizer(QuotaExhaustionDetector(), RetryAfterParser(), logger),
         modelNegotiator,
-        logger
+        logger,
     )
     private val retryService = GeminiRetryService(logger, delayFn)
 
@@ -78,7 +78,7 @@ class GeminiRequestExecutor(
 
                 // Handle fatal errors
                 if (errorType == ErrorCategorizer.ErrorType.Unauthorized ||
-                    errorType == ErrorCategorizer.ErrorType.Forbidden
+                    (errorType == ErrorCategorizer.ErrorType.Forbidden)
                 ) {
                     val msg = when (errorType) {
                         ErrorCategorizer.ErrorType.Unauthorized -> "401 Unauthorized: Your API Key or Access Token is invalid/expired."

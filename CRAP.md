@@ -361,17 +361,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceById` | 1 |
 | `deleteSource` | 1 |
 
-### CollisionDetector.kt (Score: 19.02 - 🟡 MEDIUM)
-- **Total Complexity**: 17
-- **Real Coverage**: 80.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `findNextDaySlot` | 1 |
-| `findNextTimeSlot` | 1 |
-| `findTimeSlotOnDay` | 1 |
-
 ### CalendarAgent.kt (Score: 18.23 - 🟡 MEDIUM)
 - **Total Complexity**: 18
 - **Real Coverage**: 91.1%
@@ -447,6 +436,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `resolveRetryDelay` | 1 |
 | `activateRateLimitWindow` | 1 |
 | `wait` | 1 |
+
+### CollisionDetector.kt (Score: 16.57 - 🟡 MEDIUM)
+- **Total Complexity**: 15
+- **Real Coverage**: 80.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `findNextDaySlot` | 1 |
+| `findNextTimeSlot` | 1 |
+| `findTimeSlotOnDay` | 1 |
 
 ### SchedulingAlgorithm.kt (Score: 16.08 - 🟡 MEDIUM)
 - **Total Complexity**: 16

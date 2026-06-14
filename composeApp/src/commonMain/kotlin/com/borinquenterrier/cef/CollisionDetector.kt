@@ -7,7 +7,7 @@ import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 
 class CollisionDetector(
-    private val preferences: StudyPreferences = StudyPreferences()
+    preferences: StudyPreferences = StudyPreferences(),
 ) {
     private val workingHourStart: LocalTime = LocalTime(preferences.studyStartHour, 0)
     private val workingHourEnd: LocalTime = LocalTime(preferences.studyEndHour, 0)
@@ -16,12 +16,11 @@ class CollisionDetector(
         event: DayEvent,
         existingEvents: List<Event>,
         validator: ConstraintValidator,
-        skipCurrent: Boolean
+        @Suppress("UNUSED_PARAMETER") skipCurrent: Boolean
     ): DayEvent? {
         // Search backward up to 7 days
         for (i in 1..7) {
             val candidateDate = event.date.minus(i, DateTimeUnit.DAY)
-            if (skipCurrent && candidateDate == event.date) continue
             if (validator.isDayAvailable(candidateDate, event.priority, existingEvents)) {
                 return event.copy(date = candidateDate)
             }
@@ -30,7 +29,6 @@ class CollisionDetector(
         // Search forward up to 3 days (late leeway)
         for (i in 1..3) {
             val candidateDate = event.date.plus(i, DateTimeUnit.DAY)
-            if (skipCurrent && candidateDate == event.date) continue
             if (validator.isDayAvailable(candidateDate, event.priority, existingEvents)) {
                 return event.copy(
                     date = candidateDate,
@@ -111,7 +109,7 @@ class CollisionDetector(
             val candidateStart = LocalTime.fromSecondOfDay(currentStartSec)
             val candidateEnd = LocalTime.fromSecondOfDay(currentStartSec + durationSeconds)
 
-            if (skipCurrent && date == originalEvent.date && candidateStart == originalEvent.startTime) {
+            if (skipCurrent && (date == originalEvent.date && candidateStart == originalEvent.startTime)) {
                 currentStartSec += stepSeconds
                 continue
             }

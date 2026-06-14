@@ -8,12 +8,12 @@ sealed interface ResolutionResult {
 class SchedulingAlgorithm(
     private val maxDepth: Int = 3,
     private val validator: ConstraintValidator,
-    private val detector: CollisionDetector
+    private val detector: CollisionDetector,
 ) {
     fun resolve(
         event: Event,
         existingEvents: List<Event>,
-        depth: Int = 0
+        depth: Int = 0,
     ): ResolutionResult {
         if (depth > maxDepth) {
             return ResolutionResult.Conflict(event)
@@ -72,7 +72,7 @@ class SchedulingAlgorithm(
         existingEvents: List<Event>,
         depth: Int
     ): ResolutionResult {
-        val shifted = findNextAvailableSlot(event, existingEvents, skipCurrent = true)
+        val shifted = findNextAvailableSlot(event, existingEvents)
             ?: return ResolutionResult.Conflict(event)
 
         return resolve(shifted, existingEvents, depth)
@@ -83,7 +83,7 @@ class SchedulingAlgorithm(
         existingEvents: List<Event>,
         depth: Int
     ): ResolutionResult {
-        val shifted = findNextAvailableSlot(event, existingEvents, skipCurrent = true)
+        val shifted = findNextAvailableSlot(event, existingEvents)
             ?: return ResolutionResult.Conflict(event)
 
         return resolve(shifted, existingEvents, depth + 1)
@@ -91,12 +91,11 @@ class SchedulingAlgorithm(
 
     private fun findNextAvailableSlot(
         event: Event,
-        existingEvents: List<Event>,
-        skipCurrent: Boolean = false
+        existingEvents: List<Event>
     ): Event? {
         return when (event) {
-            is DayEvent -> detector.findNextDaySlot(event, existingEvents, validator, skipCurrent)
-            is TimeEvent -> detector.findNextTimeSlot(event, existingEvents, validator, skipCurrent)
+            is DayEvent -> detector.findNextDaySlot(event, existingEvents, validator, skipCurrent = true)
+            is TimeEvent -> detector.findNextTimeSlot(event, existingEvents, validator, skipCurrent = true)
         }
     }
 }

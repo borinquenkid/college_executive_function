@@ -28,9 +28,9 @@ import com.russhwolf.settings.Settings
 fun AdvancedSettingsPanel(
     settings: Settings,
     shareAnonymousBugReports: Boolean,
-    onBugReportsChange: (Boolean) -> Unit
+    onBugReportsChange: (Boolean) -> Unit,
 ) {
-    var debugMode by remember { mutableStateOf(settings.getBoolean("DEBUG_MODE", false)) }
+    var debugMode by remember { mutableStateOf(settings.getBoolean("DEBUG_MODE", defaultValue = false)) }
 
     Card(modifier = Modifier.fillMaxWidth()) {
         Column(
@@ -39,10 +39,13 @@ fun AdvancedSettingsPanel(
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Text("Debug Logs", modifier = Modifier.weight(1f))
-                Switch(checked = debugMode, onCheckedChange = {
-                    debugMode = it
-                    settings.putBoolean("DEBUG_MODE", it)
-                })
+                Switch(
+                    checked = debugMode,
+                    onCheckedChange = {
+                        debugMode = it
+                        settings.putBoolean("DEBUG_MODE", it)
+                    }
+                )
             }
 
             HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)

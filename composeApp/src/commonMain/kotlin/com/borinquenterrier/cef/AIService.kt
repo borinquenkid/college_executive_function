@@ -29,7 +29,7 @@ expect class RealAIService(
     override suspend fun generateStudyPlan(
         syllabusText: String,
         existingSchedule: String,
-        preferences: StudyPreferences
+        preferences: StudyPreferences,
     ): List<Event>
 
     override suspend fun analyzeDocument(text: String): String?

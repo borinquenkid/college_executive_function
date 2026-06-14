@@ -649,21 +649,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getCriticModified` | 1 |
 | `clear` | 1 |
 
-### AgentHarness.kt (Score: 10.46 - 🟢 LOW)
-- **Total Complexity**: 10
-- **Real Coverage**: 83.3%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `runHarness` | 4 |
-| `getLastPollTime` | 1 |
-| `setLastPollTime` | 1 |
-| `getWatchedLocalDirectories` | 1 |
-| `setWatchedLocalDirectories` | 1 |
-| `getWatchedGDriveFolders` | 1 |
-| `setWatchedGDriveFolders` | 1 |
-
 ### StudyPreferencesPanel.kt (Score: 10.21 - 🟢 LOW)
 - **Total Complexity**: 10
 - **Real Coverage**: 87.1%
@@ -847,6 +832,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateCalendarEvents` | 1 |
 | `analyzeDocument` | 1 |
 | `categorizeSource` | 1 |
+
+### AgentHarness.kt (Score: 7.23 - 🟢 LOW)
+- **Total Complexity**: 7
+- **Real Coverage**: 83.3%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `runHarness` | 4 |
+| `getLastPollTime` | 1 |
+| `getWatchedLocalDirectories` | 1 |
+| `getWatchedGDriveFolders` | 1 |
 
 ### OAuthExchange.kt (Score: 7.20 - 🟢 LOW)
 - **Total Complexity**: 6

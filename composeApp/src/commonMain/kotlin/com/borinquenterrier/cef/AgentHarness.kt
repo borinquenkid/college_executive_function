@@ -10,20 +10,18 @@ import kotlin.time.Clock
  * Delegates to PollScheduler, SourceScanner, and HarnessSourceProcessor.
  */
 class AgentHarness(
-    private val ingestionAgent: IngestionAgent,
     private val eventAgent: EventAgent,
-    private val contextAgent: ContextAgent,
     private val calendarAgent: CalendarAgent,
     private val sourceRepository: SourceRepository,
     private val pollScheduler: PollScheduler,
     private val sourceScanner: SourceScanner,
     private val sourceProcessor: HarnessSourceProcessor,
     private val logger: Logger,
-    private val bugReporter: BugReporter? = null
+    private val bugReporter: BugReporter? = null,
 ) {
     private val tag = "AgentHarness"
 
-    private val _isBusy = MutableStateFlow(false)
+    private val _isBusy = MutableStateFlow(value = false)
     val isBusy: StateFlow<Boolean> = _isBusy.asStateFlow()
 
     private val _status = MutableStateFlow("Idle")
@@ -31,17 +29,9 @@ class AgentHarness(
 
     fun getLastPollTime(): Long = pollScheduler.getLastPollTime()
 
-    fun setLastPollTime(timeMs: Long) = pollScheduler.setLastPollTime(timeMs)
-
     fun getWatchedLocalDirectories(): List<String> = sourceScanner.getWatchedLocalDirectories()
 
-    fun setWatchedLocalDirectories(dirs: List<String>) =
-        sourceScanner.setWatchedLocalDirectories(dirs)
-
     fun getWatchedGDriveFolders(): List<String> = sourceScanner.getWatchedGDriveFolders()
-
-    fun setWatchedGDriveFolders(folders: List<String>) =
-        sourceScanner.setWatchedGDriveFolders(folders)
 
     suspend fun runHarness(force: Boolean = false) {
         if (!pollScheduler.shouldPoll(force)) return
@@ -57,7 +47,7 @@ class AgentHarness(
 
         try {
             val existingSources = sourceRepository.getAllSources()
-            val existingUris = existingSources.mapNotNull { it.originUri }.toSet()
+            val existingUris = existingSources.asSequence().mapNotNull { it.originUri }.toSet()
 
             val newLocalFiles = sourceScanner.scanNewLocalFiles(existingUris)
             val newDriveFiles = sourceScanner.scanNewDriveFiles(existingUris)

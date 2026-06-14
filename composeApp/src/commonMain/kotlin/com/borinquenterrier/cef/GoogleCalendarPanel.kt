@@ -60,10 +60,10 @@ fun GoogleCalendarPanel(
     onCalendarLoadError: (String?) -> Unit,
     scope: CoroutineScope
 ) {
-    var showCreateCalendarDialog by remember { mutableStateOf(false) }
-    var newCalendarNameInput by remember { mutableStateOf("") }
-    var isCreatingCalendar by remember { mutableStateOf(false) }
-    var createCalendarError by remember { mutableStateOf<String?>(null) }
+    val showCreateCalendarDialogState = remember { mutableStateOf(false) }
+    val calendarNameState = remember { mutableStateOf("") }
+    val isCreatingCalendarState = remember { mutableStateOf(false) }
+    val createCalendarErrorState = remember { mutableStateOf<String?>(null) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -141,11 +141,8 @@ fun GoogleCalendarPanel(
                     isLoadingCalendars = isLoadingCalendars,
                     calendarLoadError = calendarLoadError,
                     onCalendarSelect = onCalendarIdChange,
-                    onCreateClick = { showCreateCalendarDialog = true },
-                    onRetryLoad = { scope.launch { onCalendarsRefresh() } },
-                    onLoadError = onCalendarLoadError,
-                    scope = scope,
-                    container = container
+                    onCreateClick = { showCreateCalendarDialogState.value = true },
+                    onRetryLoad = { scope.launch { onCalendarsRefresh() } }
                 )
             }
 
@@ -159,20 +156,21 @@ fun GoogleCalendarPanel(
         }
     }
 
-    if (showCreateCalendarDialog) {
+    if (showCreateCalendarDialogState.value) {
         CreateCalendarDialog(
-            newCalendarNameInput = newCalendarNameInput,
-            onNameChange = { newCalendarNameInput = it },
-            isCreating = isCreatingCalendar,
-            createError = createCalendarError,
+            newCalendarNameInput = calendarNameState.value,
+            onNameChange = { calendarNameState.value = it },
+            isCreating = isCreatingCalendarState.value,
+            createError = createCalendarErrorState.value,
             onConfirm = {
-                if (newCalendarNameInput.isNotBlank()) {
+                if (calendarNameState.value.isNotBlank()) {
                     scope.launch {
-                        isCreatingCalendar = true
-                        createCalendarError = null
+                        isCreatingCalendarState.value = true
+                        createCalendarErrorState.value = null
                         try {
-                            val newId = container.syncService.createCalendar(newCalendarNameInput)
-                            onCalendarIdChange(newId, newCalendarNameInput)
+                            val newName = calendarNameState.value
+                            val newId = container.syncService.createCalendar(newName)
+                            onCalendarIdChange(newId, newName)
 
                             try {
                                 onCalendarsRefresh()
@@ -180,21 +178,21 @@ fun GoogleCalendarPanel(
                                 onCalendarLoadError(CalendarErrorFormatter.format(e))
                             }
 
-                            showCreateCalendarDialog = false
-                            newCalendarNameInput = ""
+                            showCreateCalendarDialogState.value = false
+                            calendarNameState.value = ""
                         } catch (e: Exception) {
-                            createCalendarError = CalendarErrorFormatter.format(e)
+                            createCalendarErrorState.value = CalendarErrorFormatter.format(e)
                         } finally {
-                            isCreatingCalendar = false
+                            isCreatingCalendarState.value = false
                         }
                     }
                 }
             },
             onDismiss = {
-                if (!isCreatingCalendar) {
-                    showCreateCalendarDialog = false
-                    newCalendarNameInput = ""
-                    createCalendarError = null
+                if (!isCreatingCalendarState.value) {
+                    showCreateCalendarDialogState.value = false
+                    calendarNameState.value = ""
+                    createCalendarErrorState.value = null
                 }
             }
         )
@@ -210,10 +208,7 @@ private fun GoogleCalendarSelector(
     calendarLoadError: String?,
     onCalendarSelect: (String, String) -> Unit,
     onCreateClick: () -> Unit,
-    onRetryLoad: () -> Unit,
-    onLoadError: (String?) -> Unit,
-    scope: CoroutineScope,
-    container: DependencyContainer
+    onRetryLoad: () -> Unit
 ) {
     if (isLoadingCalendars) {
         Row(verticalAlignment = Alignment.CenterVertically) {

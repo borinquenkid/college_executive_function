@@ -9,7 +9,7 @@ class AiEventsService {
     val aiGeneratedEvents: StateFlow<List<Event>> = _aiGeneratedEvents.asStateFlow()
 
     fun addEvents(events: List<Event>) {
-        _aiGeneratedEvents.value = _aiGeneratedEvents.value + events
+        _aiGeneratedEvents.value += events
     }
 
     fun clearEvents() {

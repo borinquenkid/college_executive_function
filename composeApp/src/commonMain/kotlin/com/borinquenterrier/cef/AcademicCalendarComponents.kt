@@ -31,7 +31,7 @@ import kotlinx.datetime.LocalDate
 @Composable
 fun GoogleLinkPrompt(
     onLink: suspend () -> Boolean,
-    onLinked: () -> Unit
+    onLinked: () -> Unit,
 ) {
     val scope = rememberCoroutineScope()
 

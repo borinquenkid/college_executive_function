@@ -8,9 +8,7 @@ import io.mockk.mockk
 
 class AgentHarnessTest : FunSpec({
 
-    lateinit var ingestionAgent: IngestionAgent
     lateinit var eventAgent: EventAgent
-    lateinit var contextAgent: ContextAgent
     lateinit var calendarAgent: CalendarAgent
     lateinit var sourceRepository: SourceRepository
     lateinit var pollScheduler: PollScheduler
@@ -20,9 +18,7 @@ class AgentHarnessTest : FunSpec({
     lateinit var harness: AgentHarness
 
     beforeEach {
-        ingestionAgent = mockk(relaxed = true)
         eventAgent = mockk(relaxed = true)
-        contextAgent = mockk(relaxed = true)
         calendarAgent = mockk(relaxed = true)
         sourceRepository = mockk(relaxed = true)
         pollScheduler = mockk(relaxed = true)
@@ -31,9 +27,7 @@ class AgentHarnessTest : FunSpec({
         logger = mockk(relaxed = true)
 
         harness = AgentHarness(
-            ingestionAgent,
             eventAgent,
-            contextAgent,
             calendarAgent,
             sourceRepository,
             pollScheduler,

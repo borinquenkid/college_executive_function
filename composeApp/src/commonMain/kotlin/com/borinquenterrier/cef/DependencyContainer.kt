@@ -29,10 +29,12 @@ class DependencyContainer(
     val httpClient by lazy {
         HttpClient {
             install(ContentNegotiation) {
-                json(Json {
-                    ignoreUnknownKeys = true
-                    coerceInputValues = true
-                })
+                json(
+                    Json {
+                        ignoreUnknownKeys = true
+                        coerceInputValues = true
+                    },
+                )
             }
         }
     }
@@ -268,9 +270,7 @@ class DependencyContainer(
 
     val agentHarness by lazy {
         AgentHarness(
-            ingestionAgent,
             eventAgent,
-            contextAgent,
             calendarAgent,
             sourceRepository,
             pollScheduler,

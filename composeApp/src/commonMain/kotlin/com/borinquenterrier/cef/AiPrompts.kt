@@ -12,7 +12,7 @@ object AiPrompts {
     fun getSyllabusStudyPlanPrompt(
         syllabusText: String,
         existingSchedule: String = "",
-        preferences: StudyPreferences = StudyPreferences()
+        preferences: StudyPreferences = StudyPreferences(),
     ): String =
         StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule, preferences)
 

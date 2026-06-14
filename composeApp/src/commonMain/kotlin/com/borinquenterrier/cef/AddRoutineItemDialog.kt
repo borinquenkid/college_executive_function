@@ -52,7 +52,7 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
     var startDate by remember { mutableStateOf(today) }
     var endDate by remember { mutableStateOf(today) }
 
-    val isFormValid = title.isNotBlank() && selectedDays.isNotEmpty() && startTime < endTime && startDate <= endDate
+    val isFormValid = title.isNotBlank() && selectedDays.isNotEmpty() && (startTime < endTime) && (startDate <= endDate)
 
     val showDatePicker = remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
     val showTimePicker = remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
@@ -61,7 +61,7 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
         Card(modifier = Modifier.fillMaxWidth()) {
             Column(
                 modifier = Modifier.padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(12.dp)
+                verticalArrangement = Arrangement.spacedBy(12.dp),
             ) {
                 Text("Add Routine Item", style = MaterialTheme.typography.headlineSmall)
 
@@ -270,14 +270,16 @@ private fun TimePickerDialog(
                     TextButton(onClick = onDismiss) {
                         Text("Cancel")
                     }
-                    TextButton(onClick = {
-                        onConfirm(
-                            LocalTime(
-                                timePickerState.hour,
-                                timePickerState.minute
+                    TextButton(
+                        onClick = {
+                            onConfirm(
+                                LocalTime(
+                                    timePickerState.hour,
+                                    timePickerState.minute
+                                )
                             )
-                        )
-                    }) {
+                        }
+                    ) {
                         Text("OK")
                     }
                 }

@@ -26,13 +26,4 @@ class GoogleAuthManager(
     fun isLinked(): Boolean {
         return tokenRepository.hasTokens()
     }
-
-    fun unlinkAccount() {
-        try {
-            tokenRepository.clearTokens()
-            logger.d(tag, "Account unlinked")
-        } catch (e: Exception) {
-            logger.e(tag, "Failed to unlink account", e)
-        }
-    }
 }

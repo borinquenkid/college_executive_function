@@ -73,13 +73,13 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                                         redirectUri = redirectUri
                                     )
                                     tokenRepository.saveTokens(
-                                        tokenResponse.access_token,
-                                        tokenResponse.refresh_token
+                                        tokenResponse.accessToken,
+                                        tokenResponse.refreshToken
                                     )
                                     continuation.resume(
                                         Pair(
-                                            tokenResponse.access_token,
-                                            tokenResponse.refresh_token
+                                            tokenResponse.accessToken,
+                                            tokenResponse.refreshToken
                                         )
                                     )
                                 } catch (e: Exception) {
@@ -117,8 +117,8 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                 clientId = clientId,
                 clientSecret = null
             )
-            tokenRepository.saveTokens(response.access_token, refreshToken)
-            response.access_token
+            tokenRepository.saveTokens(response.accessToken, refreshToken)
+            response.accessToken
         } catch (e: Exception) {
             null
         }

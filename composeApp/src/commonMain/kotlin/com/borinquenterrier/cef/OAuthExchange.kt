@@ -7,18 +7,20 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.Parameters
 import io.ktor.http.isSuccess
 import io.ktor.http.parameters
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.json.Json
 
 @Serializable
 data class TokenResponse(
-    val access_token: String,
-    val refresh_token: String? = null,
-    val expires_in: Int
+    @SerialName("access_token")
+    val accessToken: String,
+    @SerialName("refresh_token")
+    val refreshToken: String? = null,
+    @SerialName("expires_in")
+    val expiresIn: Int
 )
 
 class OAuthExchange(private val httpClient: HttpClient) {
-    private val json = Json { ignoreUnknownKeys = true }
 
     suspend fun exchangeCodeForTokens(
         code: String,

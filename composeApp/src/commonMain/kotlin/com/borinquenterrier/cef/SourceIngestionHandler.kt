@@ -5,7 +5,7 @@ import kotlinx.coroutines.launch
 
 class SourceIngestionHandler(
     private val ingestionAgent: IngestionAgent,
-    private val scope: CoroutineScope
+    private val scope: CoroutineScope,
 ) {
     fun ingestLocalFile(
         path: String,
@@ -19,7 +19,7 @@ class SourceIngestionHandler(
             try {
                 val source = ingestionAgent.addLocalFile(path)
                 onSuccess(source)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 onFailure()
             } finally {
                 onFinish()
@@ -43,7 +43,7 @@ class SourceIngestionHandler(
             try {
                 val source = ingestionAgent.addUrl(url)
                 onSuccess(source)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 onFailure()
             } finally {
                 onFinish()
@@ -63,7 +63,7 @@ class SourceIngestionHandler(
             try {
                 val source = ingestionAgent.addDriveFile(file)
                 onSuccess(source)
-            } catch (e: Exception) {
+            } catch (_: Exception) {
                 onFailure()
             } finally {
                 onFinish()

@@ -886,17 +886,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `EventItemView` | 7 |
 
-### SettingsScreen.kt (Score: 7.01 - 🟢 LOW)
-- **Total Complexity**: 7
-- **Real Coverage**: 93.3%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `SettingsScreen` | 1 |
-| `savePreferences` | 1 |
-| `formatCalendarError` | 1 |
-
 ### SourceManager.kt (Score: 7.00 - 🟢 LOW)
 - **Total Complexity**: 7
 - **Real Coverage**: 96.2%
@@ -964,6 +953,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `asStateFlow` | 1 |
 | `setValue` | 1 |
 | `<T> mutableStateFlowWrapper` | 1 |
+
+### SettingsScreen.kt (Score: 6.01 - 🟢 LOW)
+- **Total Complexity**: 6
+- **Real Coverage**: 93.3%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `SettingsScreen` | 1 |
+| `savePreferences` | 1 |
 
 ### TaskDecompositionDialog.kt (Score: 6.01 - 🟢 LOW)
 - **Total Complexity**: 6

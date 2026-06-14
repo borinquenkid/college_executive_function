@@ -31,7 +31,7 @@ import kotlinx.coroutines.launch
 @Composable
 fun SettingsScreen(
     container: DependencyContainer,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
 ) {
     val settings = container.settings
     val scope = rememberCoroutineScope()
@@ -46,7 +46,7 @@ fun SettingsScreen(
             )
         )
     }
-    var showAdvanced by remember { mutableStateOf(false) }
+    var showAdvanced by remember { mutableStateOf(value = false) }
 
     val preferencesRepository = remember { container.preferencesRepository }
     var preferences by remember { mutableStateOf(StudyPreferences()) }
@@ -190,9 +190,8 @@ fun SettingsScreen(
             onLunchEndChange = { lunchEndStr = it; savePreferences(lunchEnd = it) },
             onDinnerStartChange = { dinnerStartStr = it; savePreferences(dinnerStart = it) },
             onDinnerEndChange = { dinnerEndStr = it; savePreferences(dinnerEnd = it) },
-            onMaxStudyBlockChange = { maxStudyBlockStr = it; savePreferences(maxBlock = it) },
-            onPreferredBreakChange = { preferredBreakStr = it; savePreferences(breakLen = it) }
-        )
+            onMaxStudyBlockChange = { maxStudyBlockStr = it; savePreferences(maxBlock = it) }
+        ) { preferredBreakStr = it; savePreferences(breakLen = it) }
 
         TextButton(
             onClick = { showAdvanced = !showAdvanced },
@@ -218,6 +217,3 @@ fun SettingsScreen(
         }
     }
 }
-
-private fun formatCalendarError(e: Throwable): String =
-    CalendarErrorFormatter.format(e)

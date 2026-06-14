@@ -32,12 +32,12 @@ class ModelManager(
     fun isModelDownloaded(): Boolean {
         return try {
             getFileSystem().exists(getModelFile())
-        } catch (e: Exception) {
+        } catch (_: Exception) {
             false
         }
     }
 
-    suspend fun downloadModel(): Flow<DownloadProgress> = flow {
+    fun downloadModel(): Flow<DownloadProgress> = flow {
         val destination = getModelFile()
         val fileSystem = getFileSystem()
 

@@ -75,7 +75,7 @@ object StudyPlanBuilder {
             - Use the year $currentYear unless specified.
             
             Existing Schedule (DO NOT OVERLAP WITH THESE):
-            ${if (existingSchedule.isBlank()) "None" else existingSchedule}
+            ${existingSchedule.ifBlank { "None" }}
             
             Syllabus Text:
             $syllabusText

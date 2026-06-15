@@ -41,11 +41,11 @@ class DependencyContainer(
 
     val database: AppDatabase by lazy { createDatabase(driverFactory) }
     val tokenRepository by lazy { GoogleTokenRepository(settings) }
-    val authService by lazy { GoogleAuthService(settings) }
+    val authService by lazy { GoogleAuthService(settings, logger) }
     val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }
-    val preferencesRepository by lazy { PreferencesRepository(settings) }
+    val preferencesRepository by lazy { PreferencesRepository(settings, logger) }
     val userPreferenceMemoryRepository by lazy { SqlDelightUserPreferenceMemoryRepository(database) }
-    val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenRepository, authService) }
+    val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenRepository, authService, logger) }
     val calendarIdResolver by lazy { CalendarIdResolver(syncService, preferencesRepository) }
     val conflictDetector by lazy { EventConflictDetector() }
     val eventRangeFilter by lazy { EventRangeFilter() }

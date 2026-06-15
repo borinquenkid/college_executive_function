@@ -48,7 +48,8 @@ class GoogleApiException(val statusCode: Int, val responseBody: String) :
 class GoogleCalendarSyncService(
     private val httpClient: HttpClient,
     private val tokenRepository: GoogleTokenRepository,
-    private val authService: GoogleAuthService
+    private val authService: GoogleAuthService,
+    private val logger: Logger? = null
 ) {
 
     private val baseUrl = "https://www.googleapis.com/calendar/v3"
@@ -176,6 +177,7 @@ class GoogleCalendarSyncService(
                     try {
                         Instant.parse(it).toEpochMilliseconds()
                     } catch (_: Exception) {
+                        logger?.d("GoogleCalendarSyncService", "Failed to parse updatedAt: $it")
                         0L
                     }
                 } ?: 0L

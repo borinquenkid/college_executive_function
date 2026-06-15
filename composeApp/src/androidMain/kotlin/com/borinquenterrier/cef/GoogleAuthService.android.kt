@@ -9,7 +9,10 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-actual class GoogleAuthService actual constructor(private val settings: Settings) {
+actual class GoogleAuthService actual constructor(
+    private val settings: Settings,
+    private val logger: Logger?
+) {
     actual suspend fun login(): Pair<String, String?> = withContext(Dispatchers.Main) {
         val context = AndroidAppContext.applicationContext
             ?: throw Exception("AndroidAppContext is not initialized. Cannot start login.")
@@ -36,7 +39,8 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                 val scopes =
                     "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
                 GoogleAuthUtil.getToken(context, account, scopes)
-            } catch (_: Throwable) {
+            } catch (e: Throwable) {
+                logger?.e("GoogleAuthService", "Failed to refresh access token", e)
                 null
             }
         }

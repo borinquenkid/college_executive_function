@@ -677,6 +677,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getCriticModified` | 1 |
 | `clear` | 1 |
 
+### ModelManager.kt (Score: 11.00 - 🟢 LOW)
+- **Total Complexity**: 11
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `downloadModel` | 7 |
+| `isModelDownloaded` | 3 |
+| `getModelFile` | 1 |
+
 ### StudyPreferencesPanel.kt (Score: 10.21 - 🟢 LOW)
 - **Total Complexity**: 10
 - **Real Coverage**: 87.1%
@@ -718,17 +729,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceById` | 1 |
 | `getFragmentsForSource` | 1 |
 | `deleteSource` | 1 |
-
-### ModelManager.kt (Score: 10.00 - 🟢 LOW)
-- **Total Complexity**: 10
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `downloadModel` | 7 |
-| `isModelDownloaded` | 2 |
-| `getModelFile` | 1 |
 
 ### IngestionAgent.kt (Score: 10.00 - 🟢 LOW)
 - **Total Complexity**: 10

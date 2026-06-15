@@ -5,7 +5,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
-class RoutineRepository(private val settings: Settings) {
+class RoutineRepository(
+    private val settings: Settings,
+    private val logger: Logger? = null
+) {
 
     private val routineKey = "ROUTINE_EVENTS_LIST"
 
@@ -13,7 +16,8 @@ class RoutineRepository(private val settings: Settings) {
         val jsonString = settings.getString(routineKey, "[]")
         try {
             Json.decodeFromString(jsonString)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            logger?.e("RoutineRepository", "Failed to decode routine events", e)
             emptyList()
         }
     }

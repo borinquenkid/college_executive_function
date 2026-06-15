@@ -135,8 +135,9 @@ class EventAgent(
         if (triggerSync) {
             try {
                 repository.synchronize("default")
-            } catch (_: Exception) {
-                // Ignore sync errors
+            } catch (e: Exception) {
+                logger?.e("EventAgent", "Background sync failed after completion update", e)
+                // Ignore sync errors for this UI action
             }
         }
     }

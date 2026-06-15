@@ -24,7 +24,10 @@ import com.borinquenterrier.cef.getAppDirectory
  * JVM Implementation using the Local Server Flow.
  * Note: This flow REQUIRES opening a web browser to complete the Google login.
  */
-actual class GoogleAuthService actual constructor(private val settings: Settings) {
+actual class GoogleAuthService actual constructor(
+    private val settings: Settings,
+    private val logger: Logger?
+) {
 
     private val tag = "GoogleAuth"
     private val jsonFactory = GsonFactory.getDefaultInstance()
@@ -36,22 +39,22 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
 
     actual suspend fun login(): Pair<String, String?> = withContext(Dispatchers.IO) {
         try {
-            println("[$tag] Preparing Google Login flow...")
+            logger?.d(tag, "Preparing Google Login flow...")
 
             val (credential, accessToken) = signInRetryingOnStaleCredential(
                 authorize = ::authorize,
                 obtainAccessToken = ::obtainAccessToken,
                 onStaleCredential = { e ->
-                    println("[$tag] Stored Google credentials look stale (${e.message}); clearing and retrying with a fresh sign-in...")
+                    logger?.i(tag, "Stored Google credentials look stale (${e.message}); clearing and retrying with a fresh sign-in...")
                     logout()
                 }
             )
 
-            println("[$tag] Google Login Successful!")
+            logger?.d(tag, "Google Login Successful!")
             Pair(accessToken, credential.refreshToken)
         } catch (e: Exception) {
             val errorMsg = "Login failed: ${e.message}"
-            println("[$tag] ERROR: $errorMsg")
+            logger?.e(tag, errorMsg, e)
             throw Exception(errorMsg)
         }
     }
@@ -59,7 +62,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     /** Runs the (browser-based, when needed) authorization flow and returns the resulting credential. */
     private fun authorize(): Credential {
         val flow = buildFlow()
-        println("[$tag] Attempting to open your default browser for sign-in on an ephemeral port...")
+        logger?.i(tag, "Attempting to open your default browser for sign-in on an ephemeral port...")
         val receiver = LocalServerReceiver.Builder()
             .build() // Default port is -1, which uses a random free port allocated by the OS
         return AuthorizationCodeInstalledApp(flow, receiver).authorize("user")
@@ -123,7 +126,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                     null
                 }
             } catch (e: Exception) {
-                println("[$tag] Automatic token refresh failed: ${e.message}")
+                logger?.e(tag, "Automatic token refresh failed", e)
                 null
             }
         }
@@ -132,9 +135,9 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         try {
             val flow = buildFlow()
             flow.credentialDataStore.delete("user")
-            println("[$tag] Local session cleared.")
+            logger?.i(tag, "Local session cleared.")
         } catch (e: Exception) {
-            println("[$tag] Logout error: ${e.message}")
+            logger?.e(tag, "Logout error", e)
         }
     }
 
@@ -154,7 +157,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                 }
             }
         } catch (e: Exception) {
-            println("[$tag] Failed to load .env file: ${e.message}")
+            logger?.e(tag, "Failed to load .env file", e)
         }
         return envMap
     }

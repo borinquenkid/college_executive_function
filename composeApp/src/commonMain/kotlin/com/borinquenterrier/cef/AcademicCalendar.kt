@@ -32,7 +32,7 @@ fun AcademicCalendar(
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
     val logger = rememberLogger()
-    val routineRepository = remember { RoutineRepository(settings) }
+    val routineRepository = remember { RoutineRepository(settings, logger) }
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
     val authService = remember(settings) { GoogleAuthService(settings) }
 

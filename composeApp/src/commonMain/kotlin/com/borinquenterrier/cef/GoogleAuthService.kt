@@ -45,7 +45,7 @@ class GoogleTokenRepository(private val settings: Settings) {
 /**
  * Platform-specific service to handle the OAuth2 flow.
  */
-expect class GoogleAuthService(settings: Settings) {
+expect class GoogleAuthService(settings: Settings, logger: Logger? = null) {
     suspend fun login(): Pair<String, String?> // Returns AccessToken and optional RefreshToken
     suspend fun refreshAccessToken(refreshToken: String): String?
     fun logout()

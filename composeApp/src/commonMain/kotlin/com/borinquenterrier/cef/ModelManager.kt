@@ -32,7 +32,8 @@ class ModelManager(
     fun isModelDownloaded(): Boolean {
         return try {
             getFileSystem().exists(getModelFile())
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            logger?.e(tag, "Error checking if model is downloaded", e)
             false
         }
     }

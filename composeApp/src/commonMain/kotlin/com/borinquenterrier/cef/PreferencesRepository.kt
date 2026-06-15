@@ -5,7 +5,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.serialization.json.Json
 
-class PreferencesRepository(private val settings: Settings) {
+class PreferencesRepository(
+    private val settings: Settings,
+    private val logger: Logger? = null
+) {
 
     private val preferencesKey = "STUDY_PREFERENCES"
 
@@ -17,6 +20,7 @@ class PreferencesRepository(private val settings: Settings) {
         try {
             Json.decodeFromString(jsonString)
         } catch (e: Exception) {
+            logger?.e("PreferencesRepository", "Failed to decode preferences", e)
             StudyPreferences()
         }
     }

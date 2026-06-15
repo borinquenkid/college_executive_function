@@ -55,8 +55,11 @@ class LocalFileSourceProvider(
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
+        val logger = rememberLogger()
         val handler =
-            remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
+            remember(ingestionAgent, scope, logger) {
+                SourceIngestionHandler(ingestionAgent, scope, logger)
+            }
         val hasTriggered = remember { mutableStateOf(value = false) }
         val isIngesting = remember { mutableStateOf(value = false) }
 
@@ -98,8 +101,11 @@ class UrlSourceProvider(
     @Composable
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val scope = rememberCoroutineScope()
+        val logger = rememberLogger()
         val handler =
-            remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
+            remember(ingestionAgent, scope, logger) {
+                SourceIngestionHandler(ingestionAgent, scope, logger)
+            }
         var url by remember { mutableStateOf("") }
         val isIngesting = remember { mutableStateOf(value = false) }
 
@@ -170,8 +176,11 @@ class GoogleDriveSourceProvider(
     override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
         val accessToken = tokenRepository.getAccessToken()
         val scope = rememberCoroutineScope()
+        val logger = rememberLogger()
         val handler =
-            remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
+            remember(ingestionAgent, scope, logger) {
+                SourceIngestionHandler(ingestionAgent, scope, logger)
+            }
         val isIngesting = remember { mutableStateOf(value = false) }
 
         if (isIngesting.value) {

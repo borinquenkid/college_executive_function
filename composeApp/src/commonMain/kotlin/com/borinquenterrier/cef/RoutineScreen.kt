@@ -24,7 +24,8 @@ import kotlinx.coroutines.launch
 @Composable
 fun RoutineScreen(modifier: Modifier = Modifier) {
     val settings = rememberSettings()
-    val repository = remember { RoutineRepository(settings) }
+    val logger = rememberLogger()
+    val repository = remember { RoutineRepository(settings, logger) }
     val scope = rememberCoroutineScope()
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
     var showAddDialog by remember { mutableStateOf(value = false) }

@@ -12,7 +12,7 @@ import kotlinx.datetime.LocalDate
 class CalendarAgent(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
-    logger: Logger? = null,
+    private val logger: Logger? = null,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
     preferencesRepository: PreferencesRepository? = null,
 ) {
@@ -43,7 +43,8 @@ class CalendarAgent(
 
                 // If remote success, save locally as SYNCED
                 localRepo.saveEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
-            } catch (_: Exception) {
+            } catch (e: Exception) {
+                logger?.d("CalendarAgent", "Remote save failed, falling back to local: ${e.message}")
                 // Fall back to local only if remote fails
                 saveEventLocally(event, calendarId)
             }
@@ -99,7 +100,8 @@ class CalendarAgent(
             remoteRepo.deleteEvent(eventId, calendarId)
             // If remote success, hard delete locally
             localRepo.hardDeleteEvent(eventId, calendarId)
-        } catch (_: Exception) {
+        } catch (e: Exception) {
+            logger?.d("CalendarAgent", "Remote delete failed, event kept as DELETED_LOCALLY: ${e.message}")
             // Stay as DELETED_LOCALLY for later sync
         }
     }

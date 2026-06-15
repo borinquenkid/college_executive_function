@@ -21,7 +21,10 @@ import platform.darwin.NSObject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
-actual class GoogleAuthService actual constructor(private val settings: Settings) {
+actual class GoogleAuthService actual constructor(
+    private val settings: Settings,
+    private val logger: Logger?
+) {
 
     private val clientId =
         "118849293337-tiambsi7u4hqq03rnaj0tohppqqu8fsa.apps.googleusercontent.com"
@@ -120,6 +123,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
             tokenRepository.saveTokens(response.accessToken, refreshToken)
             response.accessToken
         } catch (e: Exception) {
+            logger?.e("GoogleAuthService", "Failed to refresh access token", e)
             null
         }
     }

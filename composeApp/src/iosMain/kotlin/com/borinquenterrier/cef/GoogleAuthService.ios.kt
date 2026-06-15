@@ -86,6 +86,7 @@ actual class GoogleAuthService actual constructor(
                                         )
                                     )
                                 } catch (e: Exception) {
+                                    logger?.e("GoogleAuthService", "OAuth code exchange failed", e)
                                     continuation.resumeWithException(e)
                                 }
                             }

@@ -9,9 +9,11 @@ import kotlin.time.Clock
 
 class SqlDelightLocalCalendarRepository(
     private val database: AppDatabase,
-    private val settings: Settings? = null
+    private val settings: Settings? = null,
+    private val logger: Logger? = null
 ) : StudentCalendarRepository {
 
+    private val tag = "SqlDelightLocalCalendarRepository"
     private val json = Json { ignoreUnknownKeys = true }
 
     override fun getSettings(): Settings? = settings
@@ -112,6 +114,7 @@ class SqlDelightLocalCalendarRepository(
         val completionStatus = try {
             CompletionStatus.valueOf(entity.completionStatus)
         } catch (e: Exception) {
+            logger?.e(tag, "Failed to parse completion status: ${entity.completionStatus}", e)
             CompletionStatus.INCOMPLETE
         }
 

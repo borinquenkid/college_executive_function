@@ -21,6 +21,7 @@ suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> 
     val entities = try {
         container.sourceRepository.getAllSources()
     } catch (e: Exception) {
+        container.logger.e("Server", "Failed to fetch sources", e)
         emptyList()
     }
     
@@ -35,6 +36,7 @@ suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> 
                 )
             }
         } catch (e: Exception) {
+            container.logger.e("Server", "Failed to fetch fragments for source ${entity.id}", e)
             emptyList()
         }
         
@@ -146,8 +148,7 @@ fun Application.module(testContainer: DependencyContainer? = null) {
                     flush()
                     delay(50)
                 } catch (e: Throwable) {
-                    println("STREAM ERROR: ${e.message}")
-                    e.printStackTrace()
+                    getContainer().logger.e("Server", "Stream error", e as? Exception)
                     // Emit a fallback error event
                     writeStringUtf8("event: message\n")
                     writeStringUtf8("data: {\"type\":\"ERROR\",\"timestamp\":1717720000000,\"data\":{\"message\":\"${e.message}\"}}\n\n")

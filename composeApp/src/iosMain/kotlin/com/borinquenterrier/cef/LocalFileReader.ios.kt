@@ -13,7 +13,7 @@ import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.create
 import platform.Foundation.dataWithContentsOfURL
 
-actual class LocalFileReader {
+actual class LocalFileReader(private val logger: Logger? = null) {
     actual suspend fun readText(path: String): String = withContext(Dispatchers.Default) {
         try {
             val url = NSURL(string = path) ?: return@withContext "Invalid file path: $path"
@@ -29,6 +29,7 @@ actual class LocalFileReader {
                 if (success) url.stopAccessingSecurityScopedResource()
             }
         } catch (e: Exception) {
+            logger?.e("LocalFileReader", "Failed to read file at $path", e)
             "Error reading file: ${e.message}"
         }
     }
@@ -40,6 +41,7 @@ actual class LocalFileReader {
             val contents = fileManager.contentsOfDirectoryAtPath(dirPath, error = null)
             contents?.map { "$dirPath/$it" } ?: emptyList()
         } catch (e: Exception) {
+            logger?.e("LocalFileReader", "Failed to list files in $dirPath", e)
             emptyList()
         }
     }
@@ -47,5 +49,6 @@ actual class LocalFileReader {
 
 @Composable
 actual fun rememberLocalFileReader(): LocalFileReader {
-    return remember { LocalFileReader() }
+    val logger = rememberLogger()
+    return remember(logger) { LocalFileReader(logger) }
 }

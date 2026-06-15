@@ -8,7 +8,7 @@ import org.apache.pdfbox.Loader
 import org.apache.pdfbox.text.PDFTextStripper
 import java.io.File
 
-actual class PdfReader {
+actual class PdfReader(private val logger: Logger? = null) {
     actual suspend fun readSource(path: String): List<SourceFragment> =
         withContext(Dispatchers.IO) {
             val parts = mutableListOf<SourceFragment>()
@@ -33,6 +33,7 @@ actual class PdfReader {
                 }
                 document.close()
             } catch (e: Exception) {
+                logger?.e("PdfReader", "Failed to read PDF at $path", e)
                 parts.add(SourceFragment(text = "Error: ${e.message}", type = SourceType.TEXT))
             }
             parts
@@ -41,5 +42,6 @@ actual class PdfReader {
 
 @Composable
 actual fun rememberPdfReader(): PdfReader {
-    return remember { PdfReader() }
+    val logger = rememberLogger()
+    return remember(logger) { PdfReader(logger) }
 }

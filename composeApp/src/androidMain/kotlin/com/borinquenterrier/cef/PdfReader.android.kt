@@ -11,7 +11,7 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import java.io.File
 
-actual class PdfReader(private val context: Context) {
+actual class PdfReader(private val context: Context, private val logger: Logger? = null) {
     actual suspend fun readSource(path: String): List<SourceFragment> =
         withContext(Dispatchers.IO) {
             var tempFile: File? = null
@@ -65,6 +65,7 @@ actual class PdfReader(private val context: Context) {
                     fragments
                 }
             } catch (e: Exception) {
+                logger?.e("PdfReader", "Failed to read PDF at $path", e)
                 listOf(
                     SourceFragment(
                         text = "Error extracting text from PDF: ${e.message}",
@@ -81,5 +82,6 @@ actual class PdfReader(private val context: Context) {
 @Composable
 actual fun rememberPdfReader(): PdfReader {
     val context = LocalContext.current
-    return remember(context) { PdfReader(context) }
+    val logger = rememberLogger()
+    return remember(context, logger) { PdfReader(context, logger) }
 }

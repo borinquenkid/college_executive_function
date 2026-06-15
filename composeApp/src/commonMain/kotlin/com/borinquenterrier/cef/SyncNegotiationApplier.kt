@@ -71,6 +71,7 @@ class SyncNegotiationApplier(
                         remoteRepo.saveEvent(shifted, calendarId)
                         localRepo.updateEvent(shifted.withSyncStatus(SyncStatus.SYNCED), calendarId)
                     } catch (e: Exception) {
+                        logger?.e("SyncNegotiationApplier", "Failed to push shifted study block to remote: ${shifted.title}", e)
                         localRepo.updateEvent(
                             shifted.withSyncStatus(SyncStatus.LOCAL_ONLY),
                             calendarId

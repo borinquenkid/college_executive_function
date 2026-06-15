@@ -7,7 +7,7 @@ import kotlinx.coroutines.withContext
 import platform.Foundation.NSURL
 import platform.PDFKit.PDFDocument
 
-actual class PdfReader {
+actual class PdfReader(private val logger: Logger? = null) {
     actual suspend fun readSource(path: String): List<SourceFragment> =
         withContext(Dispatchers.Default) {
             try {
@@ -38,6 +38,7 @@ actual class PdfReader {
                     fragments
                 }
             } catch (e: Exception) {
+                logger?.e("PdfReader", "Failed to read PDF at $path", e)
                 listOf(SourceFragment("Error extracting PDF text: ${e.message}"))
             }
         }
@@ -45,5 +46,6 @@ actual class PdfReader {
 
 @Composable
 actual fun rememberPdfReader(): PdfReader {
-    return remember { PdfReader() }
+    val logger = rememberLogger()
+    return remember(logger) { PdfReader(logger) }
 }

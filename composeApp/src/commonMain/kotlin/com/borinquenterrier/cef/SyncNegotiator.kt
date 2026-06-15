@@ -9,8 +9,10 @@ class SyncNegotiator(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
-    private val preferencesRepository: PreferencesRepository? = null
+    private val preferencesRepository: PreferencesRepository? = null,
+    private val logger: Logger? = null
 ) {
+    private val tag = "SyncNegotiator"
     private val studyBlockShiftResolver =
         StudyBlockShiftResolver(userPreferenceMemoryRepository, preferencesRepository)
 
@@ -22,6 +24,7 @@ class SyncNegotiator(
         val remoteEvents = try {
             remoteRepo.getAllEvents(calendarId)
         } catch (e: Exception) {
+            logger?.e(tag, "Failed to fetch remote events during negotiation", e)
             // If offline, return empty negotiation
             return SyncNegotiation(emptyList(), emptyList(), emptyList())
         }
@@ -56,6 +59,7 @@ class SyncNegotiator(
                     remoteRepo.deleteEvent(id, calendarId)
                     localRepo.hardDeleteEvent(id, calendarId)
                 } catch (e: Exception) {
+                    logger?.e(tag, "Failed to push local deletion for event $id", e)
                     // Network failure, keep as DELETED_LOCALLY to try again later
                 }
             }
@@ -67,6 +71,7 @@ class SyncNegotiator(
                 remoteRepo.saveEvent(local, calendarId)
                 localRepo.hardDeleteEvent(local.id ?: "", calendarId)
             } catch (e: Exception) {
+                logger?.e(tag, "Failed to push local creation for event ${local.id}", e)
                 // Network failure or overlap on remote, keep as LOCAL_ONLY
             }
         }

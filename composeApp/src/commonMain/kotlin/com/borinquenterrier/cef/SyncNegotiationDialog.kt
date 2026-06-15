@@ -34,6 +34,7 @@ fun SyncNegotiationDialog(
     onDismiss: () -> Unit
 ) {
     val coroutineScope = rememberCoroutineScope()
+    val logger = rememberLogger()
 
     Dialog(onDismissRequest = onDismiss) {
         Card(
@@ -134,7 +135,7 @@ fun SyncNegotiationDialog(
                                     calendarAgent.applySyncNegotiation(negotiation)
                                     onApplied()
                                 } catch (e: Exception) {
-                                    // Handle or log error
+                                    logger.e("SyncNegotiationDialog", "Failed to apply sync negotiation", e)
                                 }
                             }
                         },

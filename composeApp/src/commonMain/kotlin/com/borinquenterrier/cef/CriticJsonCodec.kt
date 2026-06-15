@@ -78,11 +78,13 @@ object CriticJsonCodec {
             val category = try {
                 AcademicCategory.valueOf(raw.category)
             } catch (e: Exception) {
+                logger?.e("CriticActor", "Failed to parse category: ${raw.category}", e)
                 AcademicCategory.REGULAR
             }
             val date = try {
                 kotlinx.datetime.LocalDate.parse(raw.date)
             } catch (e: Exception) {
+                logger?.e("CriticActor", "Failed to parse date: ${raw.date}", e)
                 kotlinx.datetime.LocalDate(2024, 1, 1)
             }
 
@@ -90,11 +92,13 @@ object CriticJsonCodec {
                 val start = try {
                     kotlinx.datetime.LocalTime.parse(raw.startTime)
                 } catch (e: Exception) {
+                    logger?.e("CriticActor", "Failed to parse startTime: ${raw.startTime}", e)
                     kotlinx.datetime.LocalTime(9, 0)
                 }
                 val end = try {
                     kotlinx.datetime.LocalTime.parse(raw.endTime)
                 } catch (e: Exception) {
+                    logger?.e("CriticActor", "Failed to parse endTime: ${raw.endTime}", e)
                     kotlinx.datetime.LocalTime(10, 0)
                 }
                 TimeEvent(
@@ -108,7 +112,7 @@ object CriticJsonCodec {
                 )
             }
         } catch (e: Exception) {
-            logger?.e("CriticActor", "Failed to parse event element: ${e.message}")
+            logger?.e("CriticActor", "Failed to parse event element: ${e.message}", e)
             null
         }
     }
@@ -148,7 +152,7 @@ object CriticJsonCodec {
                 description = raw.description
             )
         } catch (e: Exception) {
-            logger?.e("CriticActor", "Failed to parse task element: ${e.message}")
+            logger?.e("CriticActor", "Failed to parse task element: ${e.message}", e)
             null
         }
     }

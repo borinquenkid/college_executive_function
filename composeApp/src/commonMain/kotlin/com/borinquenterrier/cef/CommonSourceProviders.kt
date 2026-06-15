@@ -225,11 +225,13 @@ fun DrivePickerDialog(
     var isLoading by remember { mutableStateOf(value = true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
 
+    val logger = rememberLogger()
     LaunchedEffect(Unit) {
         try {
             val query = GoogleDriveQueryBuilder.buildIngestibleFilesQuery()
             files = driveService.listFiles(query)
         } catch (e: Exception) {
+            logger.e("DrivePickerDialog", "Failed to list Drive files", e)
             errorMessage = e.message ?: "Failed to list files from Google Drive."
         } finally {
             isLoading = false

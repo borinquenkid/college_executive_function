@@ -34,7 +34,7 @@ fun AppContent(container: DependencyContainer) {
             try {
                 container.agentHarness.runHarness(force = false)
             } catch (e: Exception) {
-                println("[App] Harness startup run failed: ${e.message}")
+                container.logger.e("App", "Harness startup run failed", e)
             }
         }
         // Periodic daily check (polling hourly)
@@ -44,7 +44,7 @@ fun AppContent(container: DependencyContainer) {
                 try {
                     container.agentHarness.runHarness(force = false)
                 } catch (e: Exception) {
-                    println("[App] Periodic harness run failed: ${e.message}")
+                    container.logger.e("App", "Periodic harness run failed", e)
                 }
             }
         }

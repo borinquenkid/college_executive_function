@@ -29,8 +29,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiAIService.kt | 25 | 84.5% | 27.31 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.2% | 24.53 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 87.0% | 24.15 | 🟡 MEDIUM |
+| SyncNegotiator.kt | 24 | 96.4% | 24.03 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 24 | 96.8% | 24.02 | 🟡 MEDIUM |
-| CommonSourceProviders.kt | 21 | 81.5% | 23.78 | 🟡 MEDIUM |
 
 ---
 
@@ -216,6 +216,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateStudyPlan` | 1 |
 | `<T> runCritiqueLoop` | 1 |
 
+### SyncNegotiator.kt (Score: 24.03 - 🟡 MEDIUM)
+- **Total Complexity**: 24
+- **Real Coverage**: 96.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `pushLocalChanges` | 9 |
+| `buildNegotiation` | 2 |
+| `findRemoteUpdatesAndConflicts` | 1 |
+| `findDeletedLocalIds` | 1 |
+| `buildProposedBaseCalendar` | 1 |
+
 ### GeminiResponseParser.kt (Score: 24.02 - 🟡 MEDIUM)
 - **Total Complexity**: 24
 - **Real Coverage**: 96.8%
@@ -264,19 +277,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `overlaps` | 1 |
 | `Event.timeUntilDue` | 1 |
 | `Event.studyProgress` | 1 |
-
-### SyncNegotiator.kt (Score: 22.02 - 🟡 MEDIUM)
-- **Total Complexity**: 22
-- **Real Coverage**: 96.4%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `pushLocalChanges` | 7 |
-| `buildNegotiation` | 2 |
-| `findRemoteUpdatesAndConflicts` | 1 |
-| `findDeletedLocalIds` | 1 |
-| `buildProposedBaseCalendar` | 1 |
 
 ### CriticJsonCodec.kt (Score: 21.01 - 🟡 MEDIUM)
 - **Total Complexity**: 21
@@ -526,6 +526,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findConflict` | 1 |
 | `isMovable` | 1 |
 
+### DecompositionOrchestrator.kt (Score: 13.85 - 🟢 LOW)
+- **Total Complexity**: 13
+- **Real Coverage**: 82.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `decompose` | 8 |
+| `isComplex` | 3 |
+| `calculateSubDueDate` | 1 |
+| `calculateDaysBeforeDue` | 1 |
+
 ### SourceLoader.kt (Score: 13.83 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 15.0%
@@ -558,18 +570,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `formatDateTime` | 1 |
 | `formatDate` | 1 |
 | `plusDay` | 1 |
-
-### DecompositionOrchestrator.kt (Score: 12.73 - 🟢 LOW)
-- **Total Complexity**: 12
-- **Real Coverage**: 82.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `decompose` | 7 |
-| `isComplex` | 3 |
-| `calculateSubDueDate` | 1 |
-| `calculateDaysBeforeDue` | 1 |
 
 ### AcademicCalendarComponents.kt (Score: 12.59 - 🟢 LOW)
 - **Total Complexity**: 10

@@ -175,12 +175,14 @@ fun GoogleCalendarPanel(
                             try {
                                 onCalendarsRefresh()
                             } catch (e: Exception) {
+                                container.logger.e("GoogleCalendarPanel", "Failed to refresh calendars", e)
                                 onCalendarLoadError(CalendarErrorFormatter.format(e))
                             }
 
                             showCreateCalendarDialogState.value = false
                             calendarNameState.value = ""
                         } catch (e: Exception) {
+                            container.logger.e("GoogleCalendarPanel", "Failed to create calendar", e)
                             createCalendarErrorState.value = CalendarErrorFormatter.format(e)
                         } finally {
                             isCreatingCalendarState.value = false

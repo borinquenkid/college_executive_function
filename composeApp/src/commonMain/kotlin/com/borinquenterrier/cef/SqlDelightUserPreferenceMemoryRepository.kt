@@ -7,8 +7,11 @@ import kotlinx.datetime.DayOfWeek
 import kotlin.time.Clock
 
 class SqlDelightUserPreferenceMemoryRepository(
-    private val database: AppDatabase
+    private val database: AppDatabase,
+    private val logger: Logger? = null
 ) : UserPreferenceMemoryRepository {
+
+    private val tag = "SqlDelightUserPreferenceMemoryRepository"
 
     override suspend fun logOverride(action: OverrideAction, event: Event) =
         withContext(Dispatchers.Default) {
@@ -61,6 +64,7 @@ class SqlDelightUserPreferenceMemoryRepository(
                 val day = try {
                     DayOfWeek.valueOf(log.dayOfWeek)
                 } catch (e: Exception) {
+                    logger?.e(tag, "Failed to parse DayOfWeek: ${log.dayOfWeek}", e)
                     continue
                 }
                 val start = log.startHour.toInt().coerceIn(0, 23)

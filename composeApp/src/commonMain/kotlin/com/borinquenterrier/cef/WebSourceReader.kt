@@ -6,8 +6,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.request.get
 import io.ktor.serialization.kotlinx.json.json
 
-class WebSourceReader {
+class WebSourceReader(private val logger: Logger? = null) {
 
+    private val tag = "WebSourceReader"
     private val client = HttpClient {
         install(ContentNegotiation) {
             json()
@@ -20,7 +21,7 @@ class WebSourceReader {
             cleanHtml(rawBody)
         } catch (e: Exception) {
             // In a real app, we would want more sophisticated error handling
-            e.printStackTrace()
+            logger?.e(tag, "Error loading content from URL: $url", e)
             "Error loading content from URL: ${e.message}"
         }
     }

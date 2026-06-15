@@ -42,9 +42,9 @@ class DependencyContainer(
     val database: AppDatabase by lazy { createDatabase(driverFactory) }
     val tokenRepository by lazy { GoogleTokenRepository(settings) }
     val authService by lazy { GoogleAuthService(settings, logger) }
-    val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }
+    val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings, logger) }
     val preferencesRepository by lazy { PreferencesRepository(settings, logger) }
-    val userPreferenceMemoryRepository by lazy { SqlDelightUserPreferenceMemoryRepository(database) }
+    val userPreferenceMemoryRepository by lazy { SqlDelightUserPreferenceMemoryRepository(database, logger) }
     val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenRepository, authService, logger) }
     val calendarIdResolver by lazy { CalendarIdResolver(syncService, preferencesRepository) }
     val conflictDetector by lazy { EventConflictDetector() }
@@ -67,7 +67,7 @@ class DependencyContainer(
         )
     }
 
-    val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository) }
+    val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository, logger) }
 
     val driveService: GoogleDriveService by lazy {
         GoogleDriveService(
@@ -77,7 +77,7 @@ class DependencyContainer(
             { googleAccountFlow.reportAuthError(it) })
     }
 
-    val webReader by lazy { WebSourceReader() }
+    val webReader by lazy { WebSourceReader(logger) }
 
     init {
         googleAccountFlow.driveService = driveService
@@ -96,7 +96,7 @@ class DependencyContainer(
     val aiService: AIService by lazy {
         GroundingGuardAIService(
             CriticActorAIService(
-                RecursiveDecompositionAIService(RealAIService(settings, logger, database)),
+                RecursiveDecompositionAIService(RealAIService(settings, logger, database), logger),
                 logger,
                 telemetryManager
             ),

@@ -14,7 +14,7 @@ class DecompositionOrchestratorTest : FunSpec({
 
     test("DecompositionOrchestrator should decompose flat tasks successfully") {
         val mockAi = mockk<AIService>()
-        val orchestrator = DecompositionOrchestrator(mockAi, maxDepth = 3)
+        val orchestrator = DecompositionOrchestrator(mockAi, null, maxDepth = 3)
 
         val subtasks = listOf(
             DecomposedTask("Pick a topic", 5, "Choose a narrow topic"),
@@ -36,7 +36,7 @@ class DecompositionOrchestratorTest : FunSpec({
 
     test("DecompositionOrchestrator should recursively decompose complex sub-tasks") {
         val mockAi = mockk<AIService>()
-        val orchestrator = DecompositionOrchestrator(mockAi, maxDepth = 3)
+        val orchestrator = DecompositionOrchestrator(mockAi, null, maxDepth = 3)
 
         // Root task: "Research Paper" (due 2026-12-10)
         // Generates:
@@ -85,7 +85,7 @@ class DecompositionOrchestratorTest : FunSpec({
     test("DecompositionOrchestrator should stop at max depth limit") {
         val mockAi = mockk<AIService>()
         // Set maxDepth to 1 to verify it stops immediately at depth 1
-        val orchestrator = DecompositionOrchestrator(mockAi, maxDepth = 1)
+        val orchestrator = DecompositionOrchestrator(mockAi, null, maxDepth = 1)
 
         val rootSubtasks = listOf(
             DecomposedTask("Draft first essay section", 5, "Write introduction and thesis")

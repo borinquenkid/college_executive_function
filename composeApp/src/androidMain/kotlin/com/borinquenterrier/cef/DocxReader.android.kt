@@ -10,7 +10,7 @@ import kotlinx.coroutines.withContext
 import java.io.File
 import java.util.zip.ZipFile
 
-actual class DocxReader(private val context: Context) {
+actual class DocxReader(private val context: Context, private val logger: Logger? = null) {
     actual suspend fun readSource(path: String): List<SourceFragment> =
         withContext(Dispatchers.IO) {
             var tempFile: File? = null
@@ -46,6 +46,7 @@ actual class DocxReader(private val context: Context) {
 
                 SourceProcessor.process(text, SourceType.TEXT)
             } catch (e: Exception) {
+                logger?.e("DocxReader", "Failed to read DOCX at $path", e)
                 listOf(
                     SourceFragment(
                         text = "Error extracting text from DOCX: ${e.message}",
@@ -62,5 +63,6 @@ actual class DocxReader(private val context: Context) {
 @Composable
 actual fun rememberDocxReader(): DocxReader {
     val context = LocalContext.current
-    return remember(context) { DocxReader(context) }
+    val logger = rememberLogger()
+    return remember(context, logger) { DocxReader(context, logger) }
 }

@@ -130,6 +130,7 @@ fun SettingsScreen(
             try {
                 calendars = container.remoteRepository.getAvailableCalendars()
             } catch (e: Exception) {
+                container.logger.e("SettingsScreen", "Failed to load calendars", e)
                 calendarLoadError = CalendarErrorFormatter.format(e)
             } finally {
                 isLoadingCalendars = false

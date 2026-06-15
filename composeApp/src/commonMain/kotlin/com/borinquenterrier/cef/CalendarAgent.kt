@@ -17,7 +17,13 @@ class CalendarAgent(
     preferencesRepository: PreferencesRepository? = null,
 ) {
     private val negotiator =
-        SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository)
+        SyncNegotiator(
+            localRepo,
+            remoteRepo,
+            userPreferenceMemoryRepository,
+            preferencesRepository,
+            logger
+        )
     private val negotiationApplier =
         SyncNegotiationApplier(localRepo, remoteRepo, logger, userPreferenceMemoryRepository)
 
@@ -44,7 +50,7 @@ class CalendarAgent(
                 // If remote success, save locally as SYNCED
                 localRepo.saveEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
             } catch (e: Exception) {
-                logger?.d("CalendarAgent", "Remote save failed, falling back to local: ${e.message}")
+                logger?.e("CalendarAgent", "Remote save failed, falling back to local: ${e.message}", e)
                 // Fall back to local only if remote fails
                 saveEventLocally(event, calendarId)
             }
@@ -101,7 +107,11 @@ class CalendarAgent(
             // If remote success, hard delete locally
             localRepo.hardDeleteEvent(eventId, calendarId)
         } catch (e: Exception) {
-            logger?.d("CalendarAgent", "Remote delete failed, event kept as DELETED_LOCALLY: ${e.message}")
+            logger?.e(
+                "CalendarAgent",
+                "Remote delete failed, event kept as DELETED_LOCALLY: ${e.message}",
+                e
+            )
             // Stay as DELETED_LOCALLY for later sync
         }
     }
@@ -126,6 +136,7 @@ class CalendarAgent(
             val negotiation = checkSyncProposals(calendarId)
             applySyncNegotiation(negotiation, calendarId)
         } catch (e: Exception) {
+            logger?.e("CalendarAgent", "Full synchronization failed", e)
             // Sync failed (likely offline), keep working with local data
             throw e
         }

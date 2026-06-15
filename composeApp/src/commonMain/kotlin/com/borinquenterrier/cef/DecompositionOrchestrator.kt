@@ -26,8 +26,10 @@ sealed interface WorkUnit {
 
 class DecompositionOrchestrator(
     private val delegate: AIService,
+    private val logger: Logger? = null,
     private val maxDepth: Int = 3
 ) {
+    private val tag = "DecompositionOrchestrator"
 
     suspend fun decompose(rootTitle: String, rootDueDate: String): List<DecomposedTask> {
         val queue = ArrayDeque<WorkUnit>()
@@ -88,6 +90,7 @@ class DecompositionOrchestrator(
                     }
                 }
             } catch (e: Exception) {
+                logger?.e(tag, "Decomposition failed for $current", e)
                 val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
                 finalLeaves.add(
                     DecomposedTask(

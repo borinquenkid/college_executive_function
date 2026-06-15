@@ -149,7 +149,7 @@ class GeminiAIService(
                 parseResponse = { responseText -> responseText }
             )
         } catch (e: Exception) {
-            logger?.e(tag, "Failed to generate chat response: ${e.message}")
+            logger?.e(tag, "Failed to generate chat response: ${e.message}", e)
             "Error: ${e.message}"
         }
     }
@@ -171,7 +171,7 @@ class GeminiAIService(
             if (e.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
                 throw e
             }
-            logger?.e(tag, "Failed to analyze document: ${e.message}")
+            logger?.e(tag, "Failed to analyze document: ${e.message}", e)
             null
         }
     }
@@ -193,7 +193,8 @@ class GeminiAIService(
             }
             logger?.e(
                 tag,
-                "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}"
+                "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}",
+                e
             )
             SourceCategory.OTHER
         }

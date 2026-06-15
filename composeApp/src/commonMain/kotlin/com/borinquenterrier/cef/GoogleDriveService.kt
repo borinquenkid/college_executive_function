@@ -72,7 +72,7 @@ class GoogleDriveService(
                     throw refreshError
                 }
             } else {
-                logger?.e("GoogleDriveService", "API call failed with: ${e.message}")
+                logger?.e("GoogleDriveService", "API call failed with: ${e.message}", e)
                 throw e
             }
         }
@@ -90,12 +90,11 @@ class GoogleDriveService(
             }
             if (!response.status.isSuccess()) {
                 val errorBody = response.bodyAsText()
-                println("[GoogleDriveService] Validation status is not success: ${response.status}. Body: $errorBody")
+                logger?.e("GoogleDriveService", "Validation status is not success: ${response.status}. Body: $errorBody")
             }
             response.status.isSuccess()
         } catch (e: Exception) {
-            println("[GoogleDriveService] Validation threw exception: ${e.message}")
-            e.printStackTrace()
+            logger?.e("GoogleDriveService", "Validation threw exception: ${e.message}", e)
             false
         }
     }

@@ -12,7 +12,7 @@ class NormalizationService : EventExtractor {
     override fun extract(events: List<Event>): List<Event> {
         return events.map { event ->
             // Do not override categories that AI has explicitly tagged as STUDY_BLOCK or CLASS
-            if (event.category == AcademicCategory.STUDY_BLOCK || event.category == AcademicCategory.CLASS) {
+            if ((event.category == AcademicCategory.STUDY_BLOCK) || (event.category == AcademicCategory.CLASS)) {
                 return@map sanitizeTimes(event)
             }
 
@@ -49,7 +49,7 @@ class NormalizationService : EventExtractor {
         val newEnd = if (event.startTime == LocalTime(23, 59)) {
             return event.copy(
                 startTime = LocalTime(23, 58),
-                endTime = LocalTime(23, 59)
+                endTime = LocalTime(23, 59),
             )
         } else {
             val nextHour = (event.startTime.hour + 1).coerceAtMost(23)

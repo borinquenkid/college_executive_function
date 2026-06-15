@@ -121,10 +121,9 @@ fun AcademicCalendar(
                     displayedEvents = syncManager.refreshEvents()
                 }
             },
-            onDismiss = {
-                activeSyncNegotiation.value = null
-            }
-        )
+        ) {
+            activeSyncNegotiation.value = null
+        }
     }
 
     if (showConflictDialog.value) {
@@ -143,15 +142,16 @@ fun AcademicCalendar(
                 AnimatedErrorBanner(
                     error = errorState,
                     onDismiss = { eventAgent.clearError() },
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
+                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp),
                 )
             }
             if (!isGoogleLinked) {
                 item {
                     GoogleLinkPrompt(
                         onLink = { authManager.loginAndLink() },
-                        onLinked = { isGoogleLinked = true },
-                    )
+                    ) {
+                        isGoogleLinked = true
+                    }
                 }
             }
 
@@ -161,29 +161,30 @@ fun AcademicCalendar(
                     isSyncing = isSyncing,
                     onNavigateRoutine = { onNavigate(AppScreen.Routine) },
                     onNavigateHome = { onNavigate(AppScreen.Home) },
-                    onSync = {
-                        scope.launch {
-                            isSyncing = true
-                            try {
-                                val negotiation = syncManager.initiateSyncIfNeeded(isGoogleLinked = true)
-                                if (negotiation != null) {
-                                    activeSyncNegotiation.value = negotiation
-                                } else {
-                                    displayedEvents = syncManager.refreshEvents()
-                                }
-                            } finally {
-                                isSyncing = false
+                ) {
+                    scope.launch {
+                        isSyncing = true
+                        try {
+                            val negotiation =
+                                syncManager.initiateSyncIfNeeded(isGoogleLinked = true)
+                            if (negotiation != null) {
+                                activeSyncNegotiation.value = negotiation
+                            } else {
+                                displayedEvents = syncManager.refreshEvents()
                             }
+                        } finally {
+                            isSyncing = false
                         }
                     }
-                )
+                }
             }
 
             item {
                 EventListContent(
                     groupedEvents = groupedEvents,
-                    onEventSelected = { selectedEventForDecomposition.value = it }
-                )
+                ) {
+                    selectedEventForDecomposition.value = it
+                }
             }
         }
     }

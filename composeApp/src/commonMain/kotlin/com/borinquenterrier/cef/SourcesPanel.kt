@@ -14,10 +14,8 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
-import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 
@@ -29,9 +27,9 @@ fun SourcesPanel(
     onSourceSelected: (SourceItem) -> Unit,
     onSourceAdded: (SourceItem) -> Unit,
     onSourceDeleted: (SourceItem) -> Unit,
-    providers: List<SourceProvider>
+    providers: List<SourceProvider>,
 ) {
-    var activeProviderId by remember { mutableStateOf<String?>(null) }
+    val activeProviderId = remember { mutableStateOf<String?>(null) }
 
     Column(
         modifier = modifier
@@ -42,7 +40,7 @@ fun SourcesPanel(
         Text(
             "Sources",
             style = MaterialTheme.typography.titleMedium,
-            modifier = Modifier.padding(horizontal = 4.dp)
+            modifier = Modifier.padding(horizontal = 4.dp),
         )
 
         FlowRow(
@@ -51,7 +49,7 @@ fun SourcesPanel(
         ) {
             providers.forEach { provider ->
                 AssistChip(
-                    onClick = { activeProviderId = provider.id },
+                    onClick = { activeProviderId.value = provider.id },
                     enabled = provider.isAuthorized(),
                     label = {
                         Text(
@@ -75,21 +73,23 @@ fun SourcesPanel(
                 SourceItemView(
                     item = item,
                     isSelected = item == selectedSource,
-                    onClick = { onSourceSelected(item) },
-                    onDelete = { onSourceDeleted(item) }
-                )
+                    onClick = { onSourceSelected(item) }
+                ) {
+                    onSourceDeleted(item)
+                }
             }
         }
     }
 
-    activeProviderId?.let { providerId ->
+    activeProviderId.value?.let { providerId ->
         val provider = providers.find { it.id == providerId }
         provider?.SelectorUI(
             onSourceAdded = {
-                activeProviderId = null
+                activeProviderId.value = null
                 onSourceAdded(it)
-            },
-            onDismiss = { activeProviderId = null }
-        )
+            }
+        ) {
+            activeProviderId.value = null
+        }
     }
 }

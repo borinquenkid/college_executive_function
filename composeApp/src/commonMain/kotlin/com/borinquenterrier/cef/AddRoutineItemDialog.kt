@@ -69,7 +69,7 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                     onValueChange = { title = it },
                     label = { Text("Title") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true
+                    singleLine = true,
                 )
 
                 Text("Repeats on:", style = MaterialTheme.typography.bodyMedium)
@@ -84,7 +84,7 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                                     selectedDays + day
                                 }
                             },
-                            label = { Text(day.name.take(3)) }
+                            label = { Text(day.name.take(3)) },
                         )
                     }
                 }
@@ -94,13 +94,13 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                         value = startTime.toString(),
                         label = "Start Time",
                         onClick = { showTimePicker.value = true },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     ClickableField(
                         value = endTime.toString(),
                         label = "End Time",
                         onClick = { showTimePicker.value = false },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
 
@@ -109,13 +109,13 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                         value = startDate.toString(),
                         label = "Start Date",
                         onClick = { showDatePicker.value = true },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                     ClickableField(
                         value = endDate.toString(),
                         label = "End Date",
                         onClick = { showDatePicker.value = false },
-                        modifier = Modifier.weight(1f)
+                        modifier = Modifier.weight(1f),
                     )
                 }
 
@@ -137,13 +137,13 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                                 recurrence = Recurrence(
                                     daysOfWeek = selectedDays.toList(),
                                     startDate = startDate,
-                                    endDate = endDate
-                                )
+                                    endDate = endDate,
+                                ),
                             )
                             onSave(newEvent)
                             onDismiss()
                         },
-                        enabled = isFormValid
+                        enabled = isFormValid,
                     ) {
                         Text("Save")
                     }
@@ -157,7 +157,7 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
         val initialDate = if (isStartDate) startDate else endDate
         val datePickerState = rememberDatePickerState(
             initialSelectedDateMillis = initialDate.atStartOfDayIn(TimeZone.UTC)
-                .toEpochMilliseconds()
+                .toEpochMilliseconds(),
         )
 
         DatePickerDialog(
@@ -184,7 +184,7 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                 TextButton(onClick = { showDatePicker.value = null }) {
                     Text("Cancel")
                 }
-            }
+            },
         ) {
             DatePicker(state = datePickerState)
         }
@@ -275,7 +275,7 @@ private fun TimePickerDialog(
                                 LocalTime(
                                     timePickerState.hour,
                                     timePickerState.minute
-                                )
+                                ),
                             )
                         }
                     ) {

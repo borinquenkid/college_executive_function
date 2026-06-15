@@ -3,8 +3,8 @@ package com.borinquenterrier.cef
 import com.borinquenterrier.cef.db.AppDatabase
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlin.time.Clock
 import kotlinx.datetime.DayOfWeek
+import kotlin.time.Clock
 
 class SqlDelightUserPreferenceMemoryRepository(
     private val database: AppDatabase

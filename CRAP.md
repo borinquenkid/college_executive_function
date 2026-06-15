@@ -380,18 +380,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `applySyncNegotiation` | 1 |
 | `getIncompleteEventsBefore` | 1 |
 
-### StudyPlanBuilder.kt (Score: 18.00 - 🟡 MEDIUM)
-- **Total Complexity**: 18
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `formatHour` | 3 |
-| `getSyllabusStudyPlanPrompt` | 1 |
-| `getTaskDecompositionPrompt` | 1 |
-| `getDecompositionCritiquePrompt` | 1 |
-
 ### EventPresenter.kt (Score: 18.00 - 🟡 MEDIUM)
 - **Total Complexity**: 18
 - **Real Coverage**: 100.0%
@@ -424,6 +412,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `StudioPanel` | 1 |
+
+### StudyPlanBuilder.kt (Score: 17.00 - 🟡 MEDIUM)
+- **Total Complexity**: 17
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `formatHour` | 3 |
+| `getSyllabusStudyPlanPrompt` | 1 |
+| `getTaskDecompositionPrompt` | 1 |
+| `getDecompositionCritiquePrompt` | 1 |
 
 ### GeminiRetryService.kt (Score: 16.61 - 🟡 MEDIUM)
 - **Total Complexity**: 16

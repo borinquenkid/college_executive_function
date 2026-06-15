@@ -126,10 +126,15 @@ tasks.register<JavaExec>("generateCrapReport") {
 }
 
 kotlin {
-    jvmToolchain(17)
+    jvmToolchain(21)
+
+    compilerOptions {
+        freeCompilerArgs.add("-Xexpect-actual-classes")
+    }
+
     androidTarget {
         compilerOptions {
-            jvmTarget.set(JvmTarget.JVM_11)
+            jvmTarget.set(JvmTarget.JVM_21)
         }
     }
     
@@ -195,6 +200,7 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(libs.kotest.runner.junit5)
+                implementation(kotlin("test-junit5"))
                 implementation(libs.mockk)
                 implementation(libs.kotlinx.datetime)
             }
@@ -248,8 +254,8 @@ android {
         }
     }
     compileOptions {
-        sourceCompatibility = JavaVersion.VERSION_11
-        targetCompatibility = JavaVersion.VERSION_11
+        sourceCompatibility = JavaVersion.VERSION_21
+        targetCompatibility = JavaVersion.VERSION_21
     }
     testOptions {
         unitTests.all {
@@ -309,6 +315,7 @@ compose.desktop {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     maxHeapSize = "8g"
+    outputs.upToDateWhen { false }
 }
 
 /**

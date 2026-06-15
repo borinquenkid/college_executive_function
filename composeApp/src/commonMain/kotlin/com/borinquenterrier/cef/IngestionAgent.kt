@@ -38,6 +38,7 @@ class IngestionAgent(
 
                 else -> SourceProcessor.process(fileReader.readText(path))
             }
+            ContributionValidator.validate(fragments)
             val isIcs = fileName.lowercase().endsWith(".ics")
             val sourceItem = SourceItem(fileName, fragments, resolveCategory(isIcs, fragments))
             persistSource(sourceItem, path)

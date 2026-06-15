@@ -1,0 +1,37 @@
+name: PR Check (Build + Contributions)
+
+# Runs on every pull request targeting main, including forks.
+# Forks intentionally have no access to repo secrets — AI tests skip gracefully
+# via resolveApiKey() returning null, so the build still passes.
+on:
+  pull_request:
+    branches: [main]
+
+jobs:
+
+  validate-contributions:
+    name: Validate contributions/ namespace & content
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run contributions validator
+        run: python3 scripts/validate_contributions.py
+
+  build-and-test:
+    name: Build and run JVM tests
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+      - name: Run JVM tests
+        # Secrets are unavailable for fork PRs; AI integration tests skip gracefully.
+        # GOOGLE_CLIENT_ID / SECRET are needed only to compile OAuth constants — not
+        # to run non-live tests — so we fall back to empty strings for fork builds.
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID || '' }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET || '' }}
+        run: ./gradlew :composeApp:jvmTest

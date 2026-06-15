@@ -84,6 +84,6 @@ class SyncNegotiationApplier(
         }
     }
 
-    private suspend fun isLiveSyncEnabled(): Boolean =
+    private fun isLiveSyncEnabled(): Boolean =
         (localRepo.getSettings()?.getString("run_profile", "local") ?: "local") != "test"
 }

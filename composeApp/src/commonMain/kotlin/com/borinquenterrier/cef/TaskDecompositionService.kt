@@ -10,8 +10,11 @@ import kotlinx.datetime.minus
  */
 class TaskDecompositionService(
     private val aiService: AIService,
-    private val repository: CalendarAgent
+    private val repository: CalendarAgent,
+    private val logger: Logger? = null
 ) {
+    private val tag = "TaskDecompositionService"
+
     suspend fun decompose(event: Event): List<DecomposedTask> =
         aiService.decomposeTask(event.title, event.date.toString())
 
@@ -47,6 +50,7 @@ class TaskDecompositionService(
                 repository.saveEvent(event, calendarId)
                 count++
             } catch (e: OverlapException) {
+                logger?.e(tag, "Conflict detected while applying decomposition for task: ${task.title}", e)
                 // Skip conflicting steps and continue
             }
         }

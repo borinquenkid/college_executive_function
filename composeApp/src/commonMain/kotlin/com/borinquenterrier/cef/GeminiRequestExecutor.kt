@@ -172,7 +172,7 @@ class GeminiRequestExecutor(
                 }
 
                 lastError = e
-                logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
+                logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}", e)
                 attempts++
                 val delayMs = 1000L * (1 shl (attempts - 1))
                 retryService.wait(delayMs)

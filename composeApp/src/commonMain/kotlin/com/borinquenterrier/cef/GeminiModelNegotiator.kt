@@ -56,7 +56,7 @@ class GeminiModelNegotiator(
         try {
             database?.appDatabaseQueries?.deleteModel(PREFERRED_MODEL_KEY)
         } catch (e: Exception) {
-            logger?.e(tag, "Failed to evict model $modelName from cache: ${e.message}")
+            logger?.e(tag, "Failed to evict model $modelName from cache: ${e.message}", e)
         }
     }
 
@@ -80,7 +80,7 @@ class GeminiModelNegotiator(
             val modelList = json.decodeFromString<ModelListResponse>(response.bodyAsText())
             modelList.models
         } catch (e: Exception) {
-            logger?.e(tag, "Exception fetching models: ${e.message}")
+            logger?.e(tag, "Exception fetching models: ${e.message}", e)
             emptyList()
         }
     }
@@ -145,7 +145,7 @@ class GeminiModelNegotiator(
             database?.appDatabaseQueries?.insertModel(PREFERRED_MODEL_KEY, selected, currentTime)
             logger?.d(tag, "Saved newly negotiated model to database: $selected")
         } catch (e: Exception) {
-            logger?.e(tag, "Failed to save model to cache: ${e.message}")
+            logger?.e(tag, "Failed to save model to cache: ${e.message}", e)
         }
 
         return selected

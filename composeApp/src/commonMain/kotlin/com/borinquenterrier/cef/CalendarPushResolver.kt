@@ -134,7 +134,7 @@ class CalendarPushResolver(
                 repository.saveEvent(resolved, calendarId)
                 successCount++
             } catch (e: OverlapException) {
-                logger?.d(tag, "Conflict detected for: ${resolved.title}")
+                logger?.e(tag, "Conflict detected while persisting resolved event: ${resolved.title}", e)
                 conflicts.add(resolved)
             }
         }

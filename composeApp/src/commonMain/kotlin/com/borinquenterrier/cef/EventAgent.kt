@@ -46,7 +46,7 @@ class EventAgent(
         preferencesRepository,
         userPreferenceMemoryRepository
     )
-    private val decompositionService = TaskDecompositionService(aiService, repository)
+    private val decompositionService = TaskDecompositionService(aiService, repository, logger)
 
     private val _isLoading = MutableStateFlow(value = false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()

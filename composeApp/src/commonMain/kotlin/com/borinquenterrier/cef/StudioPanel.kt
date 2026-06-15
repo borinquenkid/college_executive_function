@@ -42,7 +42,7 @@ import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun StudioPanel(
@@ -67,7 +67,7 @@ fun StudioPanel(
         eventsList = calendarAgent.getEvents("default")
     }
 
-    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+    val today = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date }
     val next7DaysRange = today..today.plus(7, DateTimeUnit.DAY)
     val next30DaysRange = today..today.plus(30, DateTimeUnit.DAY)
 

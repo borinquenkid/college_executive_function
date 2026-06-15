@@ -23,7 +23,7 @@ import androidx.compose.ui.unit.dp
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
-import kotlinx.datetime.todayIn
+import kotlinx.datetime.toLocalDateTime
 
 @Composable
 fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
@@ -54,7 +54,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                 )
                 if ((event.category == AcademicCategory.DEADLINE) || (event.category == AcademicCategory.FINALS)) {
                     val daysUntil =
-                        Clock.System.todayIn(TimeZone.currentSystemDefault()).daysUntil(event.date)
+                        Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date.daysUntil(event.date)
                     val chipText =
                         remember(daysUntil) { EventPresenter.getDeadlineChipText(daysUntil) }
                     val status = remember(daysUntil) { EventPresenter.getDeadlineStatus(daysUntil) }

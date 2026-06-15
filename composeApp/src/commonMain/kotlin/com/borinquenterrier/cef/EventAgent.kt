@@ -5,7 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
+import kotlinx.datetime.toLocalDateTime
 
 /**
  * Typed error states surfaced from [EventAgent] to the UI.
@@ -254,7 +254,7 @@ class EventAgent(
     val incompleteEvents: StateFlow<List<Event>> = _incompleteEvents.asStateFlow()
 
     suspend fun loadIncompleteEvents() {
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
         try {
             val list = repository.getIncompleteEventsBefore(today, "default")
             _incompleteEvents.value = list
@@ -282,7 +282,7 @@ class EventAgent(
 
     suspend fun rescheduleEvent(event: Event) {
         runAgentAction("Failed to reschedule event") {
-            val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            val today = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
             val updated = when (event) {
                 is TimeEvent -> event.copy(date = today)
                 is DayEvent -> event.copy(date = today)

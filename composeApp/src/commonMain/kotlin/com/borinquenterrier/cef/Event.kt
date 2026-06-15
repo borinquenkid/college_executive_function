@@ -7,7 +7,7 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.minus
-import kotlinx.datetime.todayIn
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 import kotlin.time.Clock
 import kotlin.time.Duration
@@ -141,15 +141,13 @@ fun Event.validate() {
 }
 
 fun Event.timeUntilDue(
-    @OptIn(kotlin.time.ExperimentalTime::class)
-    currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    currentDate: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 ): Duration {
     return currentDate.daysUntil(this.date).days
 }
 
 fun Event.studyProgress(
-    @OptIn(kotlin.time.ExperimentalTime::class)
-    currentDate: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    currentDate: LocalDate = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date
 ): Float {
     if (category != AcademicCategory.DEADLINE && category != AcademicCategory.FINALS) {
         return 0f

@@ -2,7 +2,7 @@ package com.borinquenterrier.cef
 
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
+import kotlinx.datetime.toLocalDateTime
 
 /**
  * Builder for event extraction and critique prompts.
@@ -10,8 +10,7 @@ import kotlinx.datetime.todayIn
  */
 object EventBuilder {
 
-    @OptIn(kotlin.time.ExperimentalTime::class)
-    private val currentYear = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
+    private val currentYear = Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).year
 
     private val SOURCE_FRAGMENT_INSTRUCTIONS = """
         # Source Fragment Interpretation Instructions

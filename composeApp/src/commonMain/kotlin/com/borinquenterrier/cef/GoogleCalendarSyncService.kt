@@ -162,7 +162,6 @@ class GoogleCalendarSyncService(
     /**
      * Fetches events from a specific Google Calendar (handles pagination).
      */
-    @OptIn(kotlin.time.ExperimentalTime::class)
     suspend fun getEvents(calendarId: String = "primary"): List<Event> {
         val allEvents = mutableListOf<Event>()
         var pageToken: String? = null

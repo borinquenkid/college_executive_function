@@ -18,9 +18,9 @@ import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
+import kotlinx.datetime.toLocalDateTime
 
-@OptIn(ExperimentalFoundationApi::class, kotlin.time.ExperimentalTime::class)
+@OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AcademicCalendar(
     modifier: Modifier = Modifier,
@@ -83,7 +83,7 @@ fun AcademicCalendar(
         }
     }
 
-    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
+    val today = remember { Clock.System.now().toLocalDateTime(TimeZone.currentSystemDefault()).date }
     val (viewStartDate, viewEndDate) = remember(today, aiGeneratedEvents, displayedEvents) {
         SemesterResolver.getExpandedRange(today, aiGeneratedEvents + displayedEvents)
     }

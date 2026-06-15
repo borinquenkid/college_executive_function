@@ -12,7 +12,7 @@ import io.mockk.slot
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.plus
-import kotlinx.datetime.todayIn
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 /**
@@ -463,7 +463,7 @@ class HeadlessLogicTest : FunSpec({
         )
 
         val today =
-            Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
+            Clock.System.now().toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()).date
         val event = TimeEvent(
             id = "event1",
             title = "Missed Study Block",

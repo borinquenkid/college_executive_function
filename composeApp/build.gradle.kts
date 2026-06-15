@@ -11,6 +11,8 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.kover)
+    alias(libs.plugins.kotest)
+    alias(libs.plugins.ksp)
 }
 
 val generateBuildSecrets = tasks.register("generateBuildSecrets") {
@@ -201,6 +203,8 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(libs.kotest.runner.junit5)
+                implementation(kotlin("test-junit5"))
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:5.10.2")
                 implementation(libs.mockk)
                 implementation(libs.kotlinx.datetime)
             }
@@ -315,6 +319,11 @@ compose.desktop {
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     maxHeapSize = "8g"
+    testLogging {
+        events("passed", "skipped", "failed")
+        showStandardStreams = true
+        exceptionFormat = org.gradle.api.tasks.testing.logging.TestExceptionFormat.FULL
+    }
 }
 
 tasks.withType<org.jetbrains.kotlin.gradle.tasks.KotlinCompilationTask<*>>().configureEach {

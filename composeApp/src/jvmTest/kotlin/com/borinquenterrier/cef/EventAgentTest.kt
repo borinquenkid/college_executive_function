@@ -19,7 +19,7 @@ import kotlin.time.Clock
  * Demonstrates that the application logic can now run "Headless"
  * without any Compose UI dependencies.
  */
-class HeadlessLogicTest : FunSpec({
+class EventAgentTest : FunSpec({
 
     test("Should be able to instantiate and run logic via DependencyContainer") {
         // 1. Setup Headless Dependencies

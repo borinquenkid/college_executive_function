@@ -231,7 +231,7 @@ fun StudioPanel(
                         }
                     }
 
-                    val hasConflicts = lastGeneratedEvents.any { event ->
+                    val hasConflicts = lastGeneratedEvents.any { _ ->
                         // Logic to detect if this event was already rejected 
                         // (In this pass, if it's still in the list after a sync attempt, it's a conflict)
                         statusMessage.contains("conflicts need review")

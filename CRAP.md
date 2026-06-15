@@ -916,6 +916,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `EventItemView` | 7 |
 
+### TaskDecompositionService.kt (Score: 7.00 - 🟢 LOW)
+- **Total Complexity**: 7
+- **Real Coverage**: 95.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `decompose` | 1 |
+| `applyDecomposition` | 1 |
+
 ### SourceManager.kt (Score: 7.00 - 🟢 LOW)
 - **Total Complexity**: 7
 - **Real Coverage**: 96.2%
@@ -1173,16 +1183,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `buildPostUrl` | 2 |
 | `postToModel` | 2 |
 | `hasApiKey` | 1 |
-
-### TaskDecompositionService.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 95.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `decompose` | 1 |
-| `applyDecomposition` | 1 |
 
 ### UniversalHomeLayout.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5

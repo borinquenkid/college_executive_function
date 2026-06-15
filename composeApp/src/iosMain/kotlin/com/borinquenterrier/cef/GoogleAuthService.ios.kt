@@ -5,14 +5,13 @@ import io.ktor.client.HttpClient
 import io.ktor.client.engine.darwin.Darwin
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
-import kotlinx.coroutines.GlobalScope
+import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.suspendCancellableCoroutine
 import kotlinx.serialization.json.Json
 import platform.AuthenticationServices.ASPresentationAnchor
 import platform.AuthenticationServices.ASWebAuthenticationPresentationContextProvidingProtocol
 import platform.AuthenticationServices.ASWebAuthenticationSession
-import platform.Foundation.NSError
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLComponents
 import platform.Foundation.NSURLQueryItem
@@ -22,8 +21,8 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
 
 actual class GoogleAuthService actual constructor(
-    private val settings: Settings,
-    private val logger: Logger?
+    settings: Settings,
+    private val logger: Logger?,
 ) {
 
     private val clientId =
@@ -59,15 +58,15 @@ actual class GoogleAuthService actual constructor(
                     "prompt=consent"
 
             val session = ASWebAuthenticationSession(
-                uRL = NSURL(string = authUrlString)!!,
-                callbackURLScheme = "com.googleusercontent.apps.118849293337-tiambsi7u4hqq03rnaj0tohppqqu8fsa",
-                completionHandler = { callbackUrl: NSURL?, error: NSError? ->
-                    activeSession = null // Release reference
+                uRL = NSURL(string = authUrlString),
+                callbackURLScheme = "com.googleusercontent.apps.118849293337-tiambsi7u4hqq03rnaj0tohppqqu8fsa"
+            ) { callbackUrl, error ->
+                activeSession = null // Release reference
 
-                    if (callbackUrl != null) {
+                if (callbackUrl != null) {
                         val code = extractCode(callbackUrl.absoluteString()!!)
                         if (code != null) {
-                            GlobalScope.launch {
+                            CoroutineScope(continuation.context).launch {
                                 try {
                                     val tokenResponse = oauthExchange.exchangeCodeForTokens(
                                         code = code,
@@ -101,7 +100,6 @@ actual class GoogleAuthService actual constructor(
                         )
                     }
                 }
-            )
 
             session.presentationContextProvider = presentationProvider
             activeSession = session

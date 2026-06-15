@@ -21,7 +21,7 @@ class SqlDelightSourceRepository(
                 type = if (sourceItem.fragments.any { it.type == SourceType.CALENDAR }) "CALENDAR" else "TEXT",
                 category = sourceItem.category.name,
                 metadata = null,
-                updatedAt = @OptIn(kotlin.time.ExperimentalTime::class) Clock.System.now().toEpochMilliseconds()
+                updatedAt = Clock.System.now().toEpochMilliseconds()
             )
 
             sourceItem.fragments.forEachIndexed { index, fragment ->
@@ -48,7 +48,7 @@ class SqlDelightSourceRepository(
                     type = source.type,
                     category = source.category,
                     metadata = metadata,
-                    updatedAt = @OptIn(kotlin.time.ExperimentalTime::class) Clock.System.now().toEpochMilliseconds()
+                    updatedAt = Clock.System.now().toEpochMilliseconds()
                 )
             } else {
                 database.appDatabaseQueries.insertSource(
@@ -58,7 +58,7 @@ class SqlDelightSourceRepository(
                     type = "TEXT",
                     category = "OTHER",
                     metadata = metadata,
-                    updatedAt = @OptIn(kotlin.time.ExperimentalTime::class) Clock.System.now().toEpochMilliseconds()
+                    updatedAt = Clock.System.now().toEpochMilliseconds()
                 )
             }
         }

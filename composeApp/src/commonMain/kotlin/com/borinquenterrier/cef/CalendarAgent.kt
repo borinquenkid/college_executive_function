@@ -32,15 +32,21 @@ class CalendarAgent(
     /**
      * Saves a new event. Attempts to save to Remote first (unless in test profile).
      * If successful, saves to Local as SYNCED.
-     * If Remote fails, this method now throws the exception so the UI can handle it.
+     * If Remote fails under a local profile, falls back to saving locally as LOCAL_ONLY.
      */
     suspend fun saveEvent(event: Event, calendarId: String = "default") {
+        event.validate()
         if (isLiveSyncEnabled()) {
-            // Attempt to save to remote first (Gold Standard)
-            remoteRepo.saveEvent(event, calendarId)
+            try {
+                // Attempt to save to remote first (Gold Standard)
+                remoteRepo.saveEvent(event, calendarId)
 
-            // If remote success, save locally as SYNCED
-            localRepo.saveEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+                // If remote success, save locally as SYNCED
+                localRepo.saveEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+            } catch (_: Exception) {
+                // Fall back to local only if remote fails
+                saveEventLocally(event, calendarId)
+            }
         } else {
             // In test profile, skip remote and save locally only
             saveEventLocally(event, calendarId)
@@ -52,6 +58,7 @@ class CalendarAgent(
      * If successful, saves/updates locally as SYNCED.
      */
     suspend fun updateEvent(event: Event, calendarId: String = "default") {
+        event.validate()
         val original = localRepo.getAllEvents(calendarId).find { it.id == event.id }
         if ((original != null) && (original.category == AcademicCategory.STUDY_BLOCK)) {
             val hasMoved =
@@ -74,6 +81,7 @@ class CalendarAgent(
      * Used for offline support or when the user hasn't linked Workspace.
      */
     suspend fun saveEventLocally(event: Event, calendarId: String = "default") {
+        event.validate()
         localRepo.saveEvent(event.withSyncStatus(SyncStatus.LOCAL_ONLY), calendarId)
     }
 

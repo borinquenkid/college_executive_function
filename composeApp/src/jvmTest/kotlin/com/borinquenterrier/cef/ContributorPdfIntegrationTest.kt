@@ -89,7 +89,7 @@ class ContributorPdfIntegrationTest : FunSpec({
         val eventAgent = EventAgent(
             aiService,
             calendarAgent,
-            database,
+            NormalizationService(),
             logger = logger
         )
 

@@ -25,7 +25,6 @@ class GeminiRetryService(
      * Check if rate limit is active. Throws if quota is exhausted.
      */
     fun checkRateLimitWindow() {
-        @OptIn(kotlin.time.ExperimentalTime::class)
         val now = Clock.System.now().toEpochMilliseconds()
         if (now < rateLimitResetTime) {
             val remainingSeconds = ((rateLimitResetTime - now) + 999L) / 1000L
@@ -62,7 +61,6 @@ class GeminiRetryService(
         if (resetHeader != null) {
             val resetEpoch = resetHeader.toLongOrNull()
             if (resetEpoch != null) {
-                @OptIn(kotlin.time.ExperimentalTime::class)
                 val nowSeconds = Clock.System.now().toEpochMilliseconds() / 1000L
                 val waitSeconds = (resetEpoch - nowSeconds).coerceAtLeast(1L)
                 val ms = waitSeconds * 1000L + 500L
@@ -99,7 +97,6 @@ class GeminiRetryService(
      * Activate rate limit window for quota exhaustion (typically 5 minutes).
      */
     fun activateRateLimitWindow() {
-        @OptIn(kotlin.time.ExperimentalTime::class)
         rateLimitResetTime = Clock.System.now().toEpochMilliseconds() + (5 * 60 * 1000L)
     }
 

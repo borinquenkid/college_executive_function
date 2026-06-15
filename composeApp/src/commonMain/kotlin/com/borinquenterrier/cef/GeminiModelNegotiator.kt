@@ -48,7 +48,6 @@ class GeminiModelNegotiator(
     }
 
     fun blacklistModel(modelName: String) {
-        @OptIn(kotlin.time.ExperimentalTime::class)
         val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
         blacklistedModels[modelName] = expiry
     }
@@ -90,7 +89,6 @@ class GeminiModelNegotiator(
         available: List<ModelInfo>,
         tier: GeminiAIService.TaskTier = GeminiAIService.TaskTier.HEAVY
     ): String {
-        @OptIn(kotlin.time.ExperimentalTime::class)
         val currentTime = Clock.System.now().toEpochMilliseconds()
 
         val cachedModel = database?.appDatabaseQueries?.getSelectedModel(PREFERRED_MODEL_KEY)

@@ -12,7 +12,6 @@ class SqlDelightUserPreferenceMemoryRepository(
 
     override suspend fun logOverride(action: OverrideAction, event: Event) =
         withContext(Dispatchers.Default) {
-            @OptIn(kotlin.time.ExperimentalTime::class)
             val now = Clock.System.now().toEpochMilliseconds()
             val id = "${now}_${event.id ?: "unknown"}"
             val dayOfWeek = when (event) {
@@ -51,7 +50,6 @@ class SqlDelightUserPreferenceMemoryRepository(
     override suspend fun getDerivedConstraints(overrideThreshold: Int): List<UserPreferenceConstraint> =
         withContext(Dispatchers.Default) {
             // Prune logs older than 30 days
-            @OptIn(kotlin.time.ExperimentalTime::class)
             val thirtyDaysAgo =
                 Clock.System.now().toEpochMilliseconds() - (30L * 24 * 60 * 60 * 1000)
             database.appDatabaseQueries.deleteOverrideLogsOlderThan(thirtyDaysAgo)

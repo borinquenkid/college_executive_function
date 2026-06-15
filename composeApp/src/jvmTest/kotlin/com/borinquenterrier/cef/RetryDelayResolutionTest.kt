@@ -74,7 +74,6 @@ class RetryDelayResolutionTest : FunSpec({
 
     test("x-ratelimit-reset epoch header computes delta from now") {
         val service = makeService()
-        @OptIn(kotlin.time.ExperimentalTime::class)
         val resetEpoch = (Clock.System.now().toEpochMilliseconds() / 1000L) + 20L // 20s from now
         val h = headers("x-ratelimit-reset" to resetEpoch.toString())
         val delay = service.resolveRetryDelay(
@@ -90,7 +89,6 @@ class RetryDelayResolutionTest : FunSpec({
 
     test("x-ratelimit-reset in the past is coerced to at least 1s") {
         val service = makeService()
-        @OptIn(kotlin.time.ExperimentalTime::class)
         val pastEpoch = (Clock.System.now().toEpochMilliseconds() / 1000L) - 60L // 60s ago
         val h = headers("x-ratelimit-reset" to pastEpoch.toString())
         val delay = service.resolveRetryDelay(

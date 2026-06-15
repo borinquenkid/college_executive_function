@@ -25,6 +25,7 @@ class SqlDelightLocalCalendarRepository(
     }
 
     override suspend fun saveEvent(event: Event, calendarId: String) {
+        event.validate()
         // 1. Perform overlap check locally
         val existingEvents = getAllEvents(calendarId)
         val conflict = existingEvents.find { it.id != event.id && it.overlaps(event) }
@@ -37,16 +38,14 @@ class SqlDelightLocalCalendarRepository(
     }
 
     override suspend fun updateEvent(event: Event, calendarId: String) {
+        event.validate()
         val recurrenceStr = when (event) {
             is TimeEvent -> event.recurrence?.let { r -> json.encodeToString(r) }
             is DayEvent -> event.recurrence?.let { r -> json.encodeToString(r) }
         }
 
         database.appDatabaseQueries.insertEvent(
-            id = event.id ?: "${
-                @OptIn(kotlin.time.ExperimentalTime::class)
-                Clock.System.now().toEpochMilliseconds()
-            }-${(1000..9999).random()}",
+            id = event.id ?: "${Clock.System.now().toEpochMilliseconds()}-${(1000..9999).random()}",
             title = event.title,
             source = event.source.name,
             category = event.category.name,
@@ -67,7 +66,7 @@ class SqlDelightLocalCalendarRepository(
 
     override suspend fun deleteEvent(eventId: String, calendarId: String) {
         database.appDatabaseQueries.markAsDeleted(
-            updatedAt = @OptIn(kotlin.time.ExperimentalTime::class) Clock.System.now().toEpochMilliseconds(),
+            updatedAt = Clock.System.now().toEpochMilliseconds(),
             id = eventId
         )
     }

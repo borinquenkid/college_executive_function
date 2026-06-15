@@ -63,7 +63,6 @@ class UserPreferenceMemoryRepositoryTest : FunSpec({
         repository.logOverride(OverrideAction.DELETE, testEvent)
 
         // Wait a millisecond to make sure log timestamp is older than prune time
-        @OptIn(kotlin.time.ExperimentalTime::class)
         val pruneTime = Clock.System.now().toEpochMilliseconds() + 10
 
         repository.pruneOldLogs(pruneTime)

@@ -23,12 +23,12 @@ sealed class AgentError {
  * separating AI processing and event management from the UI.
  */
 class EventAgent(
-    aiService: AIService,
+    private val aiService: AIService,
     private val repository: CalendarAgent,
-    normalizationService: NormalizationService = NormalizationService(),
-    preferencesRepository: PreferencesRepository? = null,
+    private val normalizationService: NormalizationService = NormalizationService(),
+    private val preferencesRepository: PreferencesRepository? = null,
     private val logger: Logger? = null,
-    userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
 ) {
     private val tag = "EventAgent"
 
@@ -254,7 +254,6 @@ class EventAgent(
     val incompleteEvents: StateFlow<List<Event>> = _incompleteEvents.asStateFlow()
 
     suspend fun loadIncompleteEvents() {
-        @OptIn(kotlin.time.ExperimentalTime::class)
         val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
         try {
             val list = repository.getIncompleteEventsBefore(today, "default")
@@ -283,7 +282,6 @@ class EventAgent(
 
     suspend fun rescheduleEvent(event: Event) {
         runAgentAction("Failed to reschedule event") {
-            @OptIn(kotlin.time.ExperimentalTime::class)
             val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
             val updated = when (event) {
                 is TimeEvent -> event.copy(date = today)

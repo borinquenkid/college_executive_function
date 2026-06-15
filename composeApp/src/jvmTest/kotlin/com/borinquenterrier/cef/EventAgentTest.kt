@@ -462,7 +462,6 @@ class HeadlessLogicTest : FunSpec({
             logger = logger
         )
 
-        @OptIn(kotlin.time.ExperimentalTime::class)
         val today =
             Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
         val event = TimeEvent(

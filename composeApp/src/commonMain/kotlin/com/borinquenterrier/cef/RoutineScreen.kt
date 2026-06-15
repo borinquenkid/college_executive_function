@@ -28,7 +28,7 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
     val repository = remember { RoutineRepository(settings, logger) }
     val scope = rememberCoroutineScope()
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
-    var showAddDialog by remember { mutableStateOf(value = false) }
+    val showAddDialog = remember { mutableStateOf(value = false) }
 
     LaunchedEffect(Unit) {
         routineEvents = repository.getRoutineEvents()
@@ -43,8 +43,9 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
         )
 
         Button(
-            onClick = { showAddDialog = true },
-            modifier = Modifier.fillMaxWidth()
+            onClick = { showAddDialog.value = true },
+            modifier = Modifier.fillMaxWidth(),
+            enabled = !showAddDialog.value,
         ) {
             Text("Add Routine Item")
         }
@@ -56,14 +57,15 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    if (showAddDialog) {
+    if (showAddDialog.value) {
         AddRoutineItemDialog(
-            onDismiss = { showAddDialog = false }
+            onDismiss = { showAddDialog.value = false },
         ) { newEvent ->
             scope.launch {
                 repository.saveRoutineEvents(routineEvents + newEvent)
             }
-            routineEvents = routineEvents + newEvent
+            routineEvents += newEvent
+            showAddDialog.value = false
         }
     }
 }

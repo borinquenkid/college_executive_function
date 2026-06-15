@@ -13,7 +13,7 @@ class GoogleAccountFlow(
 ) {
     lateinit var driveService: GoogleDriveService
 
-    private val _state = MutableStateFlow(
+    private val _state = MutableStateFlow<GoogleConnectionState>(
         if (tokenRepository.hasTokens()) GoogleConnectionState.Linked else GoogleConnectionState.Unlinked
     )
     val state: StateFlow<GoogleConnectionState> = _state.asStateFlow()

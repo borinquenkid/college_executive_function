@@ -5,7 +5,6 @@ package com.borinquenterrier.cef
  * Context analysis → Deliverable extraction → Study plan generation.
  */
 class SourceProcessingPipeline(
-    private val ingestionAgent: IngestionAgent,
     private val eventAgent: EventAgent,
     private val contextAgent: ContextAgent,
     private val logger: Logger,

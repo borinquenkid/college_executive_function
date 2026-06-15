@@ -7,14 +7,12 @@ import io.mockk.mockk
 class SourceProcessingPipelineTest : StringSpec({
 
     "processSource completes all 3 analysis steps" {
-        val ingestionAgent = mockk<IngestionAgent>()
         val eventAgent = mockk<EventAgent>()
         val contextAgent = mockk<ContextAgent>()
         val logger = mockk<Logger>()
         val bugReporter = mockk<BugReporter>(relaxed = true)
 
         val pipeline = SourceProcessingPipeline(
-            ingestionAgent,
             eventAgent,
             contextAgent,
             logger,
@@ -31,14 +29,12 @@ class SourceProcessingPipelineTest : StringSpec({
     }
 
     "processSource reports errors to bugReporter" {
-        val ingestionAgent = mockk<IngestionAgent>()
         val eventAgent = mockk<EventAgent>()
         val contextAgent = mockk<ContextAgent>()
         val logger = mockk<Logger>()
         val bugReporter = mockk<BugReporter>()
 
         val pipeline = SourceProcessingPipeline(
-            ingestionAgent,
             eventAgent,
             contextAgent,
             logger,
@@ -54,13 +50,11 @@ class SourceProcessingPipelineTest : StringSpec({
     }
 
     "processSource logs each step" {
-        val ingestionAgent = mockk<IngestionAgent>()
         val eventAgent = mockk<EventAgent>()
         val contextAgent = mockk<ContextAgent>()
         val logger = mockk<Logger>()
 
         val pipeline = SourceProcessingPipeline(
-            ingestionAgent,
             eventAgent,
             contextAgent,
             logger

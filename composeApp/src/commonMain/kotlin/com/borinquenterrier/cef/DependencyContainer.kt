@@ -200,7 +200,6 @@ class DependencyContainer(
 
     val sourceProcessingPipeline by lazy {
         SourceProcessingPipeline(
-            ingestionAgent,
             eventAgent,
             contextAgent,
             logger,

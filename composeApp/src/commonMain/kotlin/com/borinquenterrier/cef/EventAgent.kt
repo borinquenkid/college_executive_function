@@ -173,11 +173,20 @@ class EventAgent(
      * Returns a list of events that COULD NOT be pushed due to overlaps.
      */
     suspend fun pushToCalendar(calendarId: String = "default"): List<Event> {
-        val events = _lastGeneratedEvents.value
-        if (events.isEmpty()) return emptyList()
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val allEvents = _lastGeneratedEvents.value
+        val events = allEvents.filter { it.date >= today }
+        val skippedCount = allEvents.size - events.size
+        if (allEvents.isEmpty()) return emptyList()
+        if (events.isEmpty()) {
+            _statusMessage.value = "No future events to sync ($skippedCount past events skipped)."
+            _lastGeneratedEvents.value = emptyList()
+            return emptyList()
+        }
 
         _isLoading.value = true
-        _statusMessage.value = "Syncing ${events.size} events to your calendar..."
+        val skippedNote = if (skippedCount > 0) " ($skippedCount past events skipped)" else ""
+        _statusMessage.value = "Syncing ${events.size} events to your calendar...$skippedNote"
 
         var conflicts: List<Event> = emptyList()
 
@@ -196,12 +205,12 @@ class EventAgent(
             }
 
             if (conflicts.isEmpty() && outcome.unresolvableConflicts.isEmpty()) {
-                _statusMessage.value = "Success! All ${outcome.successCount} events pushed."
+                _statusMessage.value = "Success! All ${outcome.successCount} events pushed.$skippedNote"
                 _lastGeneratedEvents.value = emptyList()
             } else {
                 val unresolvableCount = outcome.unresolvableConflicts.size
                 _statusMessage.value =
-                    "Synced ${outcome.successCount} events. $unresolvableCount require professor contact, ${conflicts.size} other conflicts."
+                    "Synced ${outcome.successCount} events. $unresolvableCount require professor contact, ${conflicts.size} other conflicts.$skippedNote"
                 _lastGeneratedEvents.value = conflicts
             }
         } catch (e: CalendarNotFoundException) {

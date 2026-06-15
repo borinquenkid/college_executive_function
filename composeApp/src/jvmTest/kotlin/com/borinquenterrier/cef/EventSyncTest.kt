@@ -86,7 +86,7 @@ class EventSyncTest : FunSpec({
             title = "Test",
             source = EventSource.AI_GENERATED,
             category = AcademicCategory.REGULAR,
-            date = LocalDate(2026, 1, 1)
+            date = LocalDate(2027, 1, 1)
         )
 
         // Inject state

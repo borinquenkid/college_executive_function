@@ -398,22 +398,130 @@ class HeadlessLogicTest : FunSpec({
             logger = Logger(MapSettings())
         )
 
-        val event = DayEvent(
+        val futureEvent = DayEvent(
             title = "Temp Event",
             source = EventSource.AI_GENERATED,
             category = AcademicCategory.REGULAR,
-            date = LocalDate(2026, 1, 1)
+            date = LocalDate(2027, 1, 1)
         )
         val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
         lastGeneratedProp.isAccessible = true
         (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
-            listOf(event)
+            listOf(futureEvent)
 
         coEvery { mockCalendarAgent.getEvents(any()) } throws Exception("Database failure")
 
         val result = eventAgent.pushToCalendar()
         result shouldBe emptyList()
         eventAgent.statusMessage.value shouldBe "Sync Error: Database failure"
+    }
+
+    test("EventAgent pushToCalendar filters out past events and only pushes future ones") {
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val eventAgent = EventAgent(
+            mockk(),
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = Logger(MapSettings())
+        )
+
+        val pastEvent = DayEvent(
+            title = "Past Deadline",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2026, 1, 1)
+        )
+        val futureEvent = DayEvent(
+            title = "Future Exam",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2027, 1, 1)
+        )
+
+        val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
+        lastGeneratedProp.isAccessible = true
+        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(pastEvent, futureEvent)
+
+        coEvery { mockCalendarAgent.getEvents(any()) } returns emptyList()
+        coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
+
+        eventAgent.pushToCalendar()
+
+        coVerify(exactly = 0) { mockCalendarAgent.saveEvent(match { it.title == "Past Deadline" }, any()) }
+        coVerify(exactly = 1) { mockCalendarAgent.saveEvent(match { it.title == "Future Exam" }, any()) }
+    }
+
+    test("EventAgent pushToCalendar with only past events returns empty list and sets skip status") {
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val eventAgent = EventAgent(
+            mockk(),
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = Logger(MapSettings())
+        )
+
+        val pastEvent1 = DayEvent(
+            title = "Old Midterm",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2025, 6, 1)
+        )
+        val pastEvent2 = DayEvent(
+            title = "Old Final",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2026, 1, 1)
+        )
+
+        val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
+        lastGeneratedProp.isAccessible = true
+        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(pastEvent1, pastEvent2)
+
+        val result = eventAgent.pushToCalendar()
+
+        result shouldBe emptyList()
+        eventAgent.statusMessage.value shouldBe "No future events to sync (2 past events skipped)."
+        coVerify(exactly = 0) { mockCalendarAgent.saveEvent(any(), any()) }
+    }
+
+    test("EventAgent pushToCalendar status message includes skipped count when mix of past and future") {
+        val mockCalendarAgent = mockk<CalendarAgent>()
+        val eventAgent = EventAgent(
+            mockk(),
+            mockCalendarAgent,
+            null,
+            NormalizationService(),
+            logger = Logger(MapSettings())
+        )
+
+        val pastEvent = DayEvent(
+            title = "Past Event",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2026, 1, 1)
+        )
+        val futureEvent = DayEvent(
+            title = "Future Event",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2027, 6, 1)
+        )
+
+        val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
+        lastGeneratedProp.isAccessible = true
+        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
+            listOf(pastEvent, futureEvent)
+
+        coEvery { mockCalendarAgent.getEvents(any()) } returns emptyList()
+        coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
+
+        eventAgent.pushToCalendar()
+
+        eventAgent.statusMessage.value.contains("1 past events skipped") shouldBe true
     }
 
     test("EventAgent operations should handle exceptions gracefully") {

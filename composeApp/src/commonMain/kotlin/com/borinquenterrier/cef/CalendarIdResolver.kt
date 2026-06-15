@@ -28,6 +28,8 @@ class CalendarIdResolver(
         val targetName = prefs.googleCalendarName.ifEmpty { "CEF Academic" }
         val calendars = syncService.listCalendars()
         val cefCal = calendars.find { it.name == targetName }
-        return cefCal?.id ?: syncService.createCalendar(targetName)
+        val resolvedId = cefCal?.id ?: syncService.createCalendar(targetName)
+        preferencesRepository.savePreferences(prefs.copy(googleCalendarId = resolvedId))
+        return resolvedId
     }
 }

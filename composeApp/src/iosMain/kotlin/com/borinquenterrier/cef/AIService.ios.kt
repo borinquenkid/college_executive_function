@@ -1,7 +1,5 @@
 package com.borinquenterrier.cef
 
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.remember
 import com.borinquenterrier.cef.db.AppDatabase
 import com.russhwolf.settings.Settings
 

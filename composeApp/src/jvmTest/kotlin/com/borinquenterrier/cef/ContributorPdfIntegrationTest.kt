@@ -50,17 +50,17 @@ class ContributorPdfIntegrationTest : FunSpec({
         val contributionsDir = findContributionsDir()
         if (contributionsDir == null) {
             println("SKIPPING: No contributions/ directory found.")
-            return@test
+            return@config
         }
 
         val pdfFiles = contributionsDir.contributionPdfs()
         if (pdfFiles.isEmpty()) {
             println("SKIPPING: No PDFs in ${contributionsDir.canonicalPath}.")
             println("  Add PDFs under contributions/{state}/{college}/{year}/{period}/")
-            return@test
+            return@config
         }
 
-        val apiKey = resolveApiKey("CONTRIBUTOR PDF INTEGRATION TEST") ?: return@test
+        val apiKey = resolveApiKey("CONTRIBUTOR PDF INTEGRATION TEST") ?: return@config
 
         val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
         AppDatabase.Schema.create(driver)
@@ -87,9 +87,9 @@ class ContributorPdfIntegrationTest : FunSpec({
         )
 
         val eventAgent = EventAgent(
-            aiService = aiService,
-            repository = calendarAgent,
-            database = database,
+            aiService,
+            calendarAgent,
+            database,
             logger = logger
         )
 

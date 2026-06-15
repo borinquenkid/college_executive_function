@@ -27,7 +27,7 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
     val repository = remember { RoutineRepository(settings) }
     val scope = rememberCoroutineScope()
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
-    var showAddDialog by remember { mutableStateOf(false) }
+    val showAddDialog = remember { mutableStateOf(value = false) }
 
     LaunchedEffect(Unit) {
         routineEvents = repository.getRoutineEvents()
@@ -38,12 +38,12 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
         Text(
             "Define your recurring weekly schedule, like classes, meals, or gym time.",
             style = MaterialTheme.typography.bodyMedium,
-            modifier = Modifier.padding(bottom = 8.dp)
+            modifier = Modifier.padding(bottom = 8.dp),
         )
 
         Button(
-            onClick = { showAddDialog = true },
-            modifier = Modifier.fillMaxWidth()
+            onClick = { showAddDialog.value = true },
+            modifier = Modifier.fillMaxWidth(),
         ) {
             Text("Add Routine Item")
         }
@@ -55,18 +55,17 @@ fun RoutineScreen(modifier: Modifier = Modifier) {
         }
     }
 
-    if (showAddDialog) {
+    if (showAddDialog.value) {
         AddRoutineItemDialog(
-            onDismiss = { showAddDialog = false },
-            onSave = { newEvent ->
-                val updatedList = routineEvents + newEvent
-                scope.launch {
-                    repository.saveRoutineEvents(updatedList)
-                }
-                routineEvents = updatedList
-                showAddDialog = false
+            onDismiss = { showAddDialog.value = false },
+        ) { newEvent ->
+            val updatedList = routineEvents + newEvent
+            scope.launch {
+                repository.saveRoutineEvents(updatedList)
             }
-        )
+            routineEvents = updatedList
+            showAddDialog.value = false
+        }
     }
 }
 

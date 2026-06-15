@@ -8,8 +8,8 @@ package com.borinquenterrier.cef
 class SyncNegotiator(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
-    private val preferencesRepository: PreferencesRepository? = null,
+    userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
+    preferencesRepository: PreferencesRepository? = null,
     private val logger: Logger? = null
 ) {
     private val tag = "SyncNegotiator"

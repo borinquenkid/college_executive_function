@@ -1,15 +1,12 @@
 package com.borinquenterrier.cef
 
-import kotlinx.coroutines.CoroutineScope
-
 /**
  * Loads sources from the database and reconstructs SourceItem objects with fragments.
  * Handles initial population of the source list and auto-selection of first item.
  */
 class SourceLoader(
     private val sourceRepository: SqlDelightSourceRepository,
-    private val logger: Logger,
-    private val scope: CoroutineScope
+    private val logger: Logger
 ) {
     suspend fun loadSources(): List<SourceItem> {
         return try {

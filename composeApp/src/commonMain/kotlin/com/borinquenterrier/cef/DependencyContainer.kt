@@ -235,7 +235,7 @@ class DependencyContainer(
         )
     }
 
-    val sourceLoader by lazy { SourceLoader(sourceRepository, logger, globalScope) }
+    val sourceLoader by lazy { SourceLoader(sourceRepository, logger) }
 
     val sourceAdder by lazy {
         SourceAdder(

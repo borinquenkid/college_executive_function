@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: 0.22** — Completed ContextAgent decomposition
+**Current Phase: 0.22 complete / Phase 6 next** — ContextAgent decomposition done; Phase 6 (token-efficient source processing) is the next planned work
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -273,9 +273,9 @@ These are user-reported issues and feature requests targeted for the next develo
 * **Target Google Calendar Creation Capability** (Feature Request)
   * **Description**: The app currently only allows picking from existing calendars retrieved from the user's Google Account. There is no option in the settings UI to create a *new* calendar.
   * **Proposed Solution**: Add a "Create New Calendar" button/dialog in `SettingsScreen.kt` that calls `GoogleCalendarSyncService.createCalendar(name)` to instantiate a fresh calendar directly from the app.
-* **Gemini API Daily Quota Rate Limit Issue**
+* **Gemini API Daily Quota Rate Limit Issue** — ⚠️ **Superseded by Phase 6** (see below)
   * **Description**: Ingesting a calendar and two syllabi simultaneously frequently triggers a `QuotaExhausted: Rate limit reached` error due to multiple concurrent requests.
-  * **Proposed Solution**: Improve the Critic-Actor and Event generation loops to stagger requests, run sequential retries with exponential backoff, and notify the user with a clearer countdown.
+  * **Superseded solution**: Full plan in **Phase 6** — content-addressable cache (6.1), sequential processing queue (6.2), global rate-limit hold strategy (6.3).
 * **Google OAuth Stale Connection / JSON Auth Error**
   * **Description**: On startup, if local session tokens are stale/expired, the connection shows a raw JSON authentication error. Disconnecting and reconnecting resolves it.
   * **Proposed Solution**: Auto-detect invalid refresh tokens at startup inside `GoogleAccountFlow` and transition the status cleanly to `Unlinked` instead of throwing raw JSON error messages.
@@ -648,6 +648,242 @@ Pure Compose UI files (`App.kt`, `AddRoutineItemDialog.kt`, `AcademicCalendar.kt
 
 #### Phase 8 — `AiPrompts.kt` (CRAP 42.06)
 - **Actions**: Added coverage for hour formatting edge cases (midnight=0, noon=12, PM hours).
+
+---
+
+---
+
+## Phase 6 — Token-Efficient Source Processing
+
+> **Status:** ⏳ Planned — not started. Implement 6.1 → 6.2 → 6.3 in strict order; each step's tests must pass before proceeding.
+
+### Background & Motivation
+
+Observed failure mode (June 2026): user deleted all STLCC sources and re-added them. Four documents dropped simultaneously triggered ~20 API calls in under a minute. All HEAVY-tier models (gemini-2.5-flash → gemini-2.0-flash → gemini-2.5-flash-lite → gemini-2.0-flash-lite → gemini-2.0-flash-001) hit free-tier RPM limits in rapid sequence. `GeminiRequestExecutor` blacklisted each one and cascaded to the next, exhausting all fallbacks. The 5-minute global rate-limit window activated, leaving the last two sources entirely unprocessed.
+
+Two root causes:
+1. **No analysis cache** — deleting and re-adding an unchanged PDF reruns the full AI pipeline from scratch (CriticActor 2-3 passes + SyllabusAuditor + ContextAgent = 4-5 API calls per doc)
+2. **Concurrent processing** — `SourceAdder.addSource()` launches one coroutine per file with no serialization; N simultaneous drops = N concurrent AI pipelines sharing one API key
+
+Secondary issue: when RPM limits hit, the executor treats "delay too long → blacklist model → try next" as a per-model problem, but on a free-tier key **all models share the same quota** — cascading blacklisting makes it worse.
+
+**Human caveat (important):** Professors update syllabi; users may receive addenda. The cache must key on document **content**, not filename. A modified file (even one byte different) produces a different SHA-256 → automatic cache miss → AI reruns. A "Re-analyze" escape hatch bypasses the cache when the user wants fresh analysis of technically-unchanged content (e.g., AI model improved, prior analysis missed something).
+
+---
+
+### Phase 6.1 — Content-Addressable Analysis Cache
+
+**Goal:** Delete + re-add of unchanged PDF → zero AI calls. Modified file → automatic cache miss → full AI reruns. No stale analysis possible under normal use.
+
+#### New artifacts
+
+| File | Type | Purpose |
+|---|---|---|
+| `AppDatabase.sq` | modify | Add `AnalysisCacheEntity` table and 3 queries |
+| `DriverFactory.kt` | modify | Add `ALTER TABLE SourceEntity ADD COLUMN contentHash TEXT` migration |
+| `ContentHasher.kt` | new, `commonMain` | `fun hash(fragments: List<SourceFragment>): String` — SHA-256 using `okio.ByteString.encodeUtf8().sha256().hex()` (same pattern as `EventGenerationService.kt:110`) |
+| `CachedAnalysis.kt` | new, `commonMain` | `@Serializable data class CachedAnalysis(val sourceHash: String, val cachedEventsJson: String, val cachedMetadataJson: String?, val createdAt: Long)` |
+| `AnalysisCacheRepository.kt` | new, `commonMain` | Interface: `suspend fun getCached(hash: String): CachedAnalysis?` / `suspend fun putCache(analysis: CachedAnalysis)` / `suspend fun evict(hash: String)` |
+| `SqlDelightAnalysisCacheRepository.kt` | new, `commonMain` | SqlDelight impl of `AnalysisCacheRepository` |
+| `SourceAdder.kt` | modify | Add `forceRefresh: Boolean = false` param; hash-check before AI; cache write after AI |
+| `DependencyContainer.kt` | modify | Wire `ContentHasher` and `AnalysisCacheRepository` into `SourceAdder` |
+| Source item UI (SourceItemView or SourcesPanel) | modify | "Re-analyze" action → `sourceManager.reanalyze(source)` which calls `addSource(source, forceRefresh = true)` |
+
+#### DB additions — add to `AppDatabase.sq`
+
+```sql
+CREATE TABLE IF NOT EXISTS AnalysisCacheEntity (
+    sourceHash TEXT PRIMARY KEY NOT NULL,
+    cachedEventsJson TEXT NOT NULL,
+    cachedMetadataJson TEXT,
+    createdAt INTEGER NOT NULL
+);
+
+getCachedAnalysis:
+SELECT * FROM AnalysisCacheEntity WHERE sourceHash = ?;
+
+insertCachedAnalysis:
+INSERT OR REPLACE INTO AnalysisCacheEntity(sourceHash, cachedEventsJson, cachedMetadataJson, createdAt)
+VALUES (?, ?, ?, ?);
+
+deleteCachedAnalysis:
+DELETE FROM AnalysisCacheEntity WHERE sourceHash = ?;
+```
+
+Also add to `DriverFactory.kt` in the migration block (after the existing `ALTER TABLE` statements):
+```kotlin
+driver.execute(null, "ALTER TABLE SourceEntity ADD COLUMN contentHash TEXT", 0)
+```
+
+#### Event JSON serialization for the cache
+
+`TimeEvent` and `DayEvent` are both `@Serializable`. To serialize `List<Event>` (sealed interface) to JSON, add a `@SerialName` discriminator to each concrete type and register the polymorphic module:
+
+```kotlin
+// In Event.kt — add to each concrete class
+@Serializable
+@SerialName("TimeEvent")
+data class TimeEvent(...) : Event
+
+@Serializable
+@SerialName("DayEvent")
+data class DayEvent(...) : Event
+```
+
+Register the module wherever `Json {}` is constructed for cache serialization:
+```kotlin
+val cacheJson = Json {
+    ignoreUnknownKeys = true
+    serializersModule = SerializersModule {
+        polymorphic(Event::class) {
+            subclass(TimeEvent::class)
+            subclass(DayEvent::class)
+        }
+    }
+}
+```
+
+Use `cacheJson.encodeToString(ListSerializer(PolymorphicSerializer(Event::class)), events)` to write and `cacheJson.decodeFromString(...)` to read. Verify the existing `EventGenerationService.kt` serialization pattern first — do not duplicate the Json configuration; extract it to a shared `CefJson` object if needed.
+
+#### Implementation steps (in strict order)
+
+1. Add `AnalysisCacheEntity` table and queries to `AppDatabase.sq`
+2. Add `contentHash TEXT` migration to `DriverFactory.kt`
+3. Implement `ContentHasher.kt` (compute `okio.ByteString.encodeUtf8(fragments.joinToString("\n\n") { it.text }).sha256().hex()`)
+4. Add `@SerialName` to `TimeEvent` and `DayEvent`; create or extend `CefJson` configuration with polymorphic module
+5. Implement `CachedAnalysis` data class
+6. Implement `AnalysisCacheRepository` interface
+7. Implement `SqlDelightAnalysisCacheRepository`
+8. Modify `SourceAdder.addSource(source: SourceItem, forceRefresh: Boolean = false)`:
+   - Compute `val hash = ContentHasher.hash(source.fragments)`
+   - If `!forceRefresh`: `val cached = cacheRepository.getCached(hash)` → if non-null, deserialize events from `cached.cachedEventsJson`, call `onEventsAdded(events)`, skip all AI, return
+   - If miss (or `forceRefresh`): run existing AI pipeline; on success, serialize events and metadata to JSON, call `cacheRepository.putCache(CachedAnalysis(hash, eventsJson, metadataJson, Clock.System.now().toEpochMilliseconds()))`
+9. Wire `ContentHasher` and `SqlDelightAnalysisCacheRepository` in `DependencyContainer`; update `SourceAdder` construction there
+10. Add "Re-analyze" action to source item UI
+
+#### Tests required
+
+- `ContentHasherTest`: same input → same hash; different input → different hash; hash is stable across JVM restarts (test twice in same process); empty fragments → non-empty stable hash
+- `SqlDelightAnalysisCacheRepositoryTest`: put → get round-trip; evict removes entry; miss returns null; two different hashes don't collide
+- `SourceAdderTest` additions:
+  - Cache hit: `aiService.generateCalendarEvents` NOT called; `onEventsAdded` receives deserialized cached events
+  - Cache miss: AI called; `cacheRepository.putCache` called with correct hash
+  - `forceRefresh = true`: AI called even when cache has entry; cache overwritten with new result
+  - Different hash (modified content): AI reruns, cache updated with new hash
+
+**Acceptance criteria:** Delete + re-add of identical PDF file → exactly 0 AI calls. Re-add of modified file (any change) → full pipeline. Force-refresh on identical file → full pipeline, cache updated.
+
+---
+
+### Phase 6.2 — Sequential Source Processing Queue
+
+**Goal:** Multiple files dropped simultaneously process one at a time, eliminating concurrent AI call cascades.
+
+**Current behavior:** `SourceAdder.addSource()` launches a new coroutine per call. Four files dropped → four coroutines enter the AI block simultaneously → ~20 API calls in under a minute on a shared key.
+
+**Fix:** A `Mutex` inside `SourceAdder` serializes AI access. Callers are non-blocking (the coroutine suspends inside `launch`, not at the call site), so the UI remains responsive. With 6.1 in place, cache hits acquire and release the mutex immediately — the queue drains fast for already-analyzed docs.
+
+#### Files changed
+
+| File | Change |
+|---|---|
+| `SourceAdder.kt` | Add `private val processingMutex = Mutex()` (kotlinx.coroutines); wrap the AI block in `processingMutex.withLock { ... }` — cache check and AI call both inside the lock to prevent two concurrent cache-miss writes for the same hash |
+| `SourceAdderTest.kt` | Add test: two concurrent `addSource` calls → AI invoked exactly twice but never overlapping (use `CountDownLatch` or `Channel` to verify sequential ordering) |
+
+**Acceptance criteria:** Dropping N files simultaneously → AI calls execute strictly one at a time. No change in external behavior beyond ordering.
+
+---
+
+### Phase 6.3 — Global Rate-Limit Hold Strategy
+
+**Goal:** When all models report long rate-limit delays (indicating API-key-level saturation, not per-model limits), wait for the delay and retry the preferred model — instead of cascading through all fallbacks and activating the 5-minute global window.
+
+**Root cause in `GeminiRequestExecutor.executeWithRetry()`:** Line ~140:
+```kotlin
+if (delayMs > 10_000L) {
+    modelNegotiator.blacklistModel(modelName)
+    continue  // tries next model — which is also rate-limited
+}
+```
+On a free-tier key, **all models share the same per-minute quota**. Two consecutive long-delay events signals key-level saturation. Continuing to the next model wastes an attempt and accelerates total model exhaustion.
+
+#### Changes to `GeminiRetryService`
+
+Add alongside existing `rateLimitResetTime`:
+```kotlin
+companion object {
+    private var rateLimitResetTime: Long = 0L
+    private var globalHoldUntil: Long = 0L  // NEW
+
+    fun clearRateLimitResetForTesting() { rateLimitResetTime = 0L }
+    fun clearGlobalHoldForTesting() { globalHoldUntil = 0L }  // NEW
+}
+
+fun activateGlobalHold(delayMs: Long) {  // NEW
+    globalHoldUntil = Clock.System.now().toEpochMilliseconds() + delayMs + 2_000L
+}
+```
+
+Update `checkRateLimitWindow()` to also throw if `now < globalHoldUntil`:
+```kotlin
+fun checkRateLimitWindow() {
+    val now = Clock.System.now().toEpochMilliseconds()
+    if (now < rateLimitResetTime) { ... }  // existing
+    if (now < globalHoldUntil) {           // NEW
+        val remainingSeconds = ((globalHoldUntil - now) + 999L) / 1000L
+        throw Exception("QuotaExhausted: Rate limit reached. Please wait $remainingSeconds seconds before trying again.")
+    }
+}
+```
+
+#### Changes to `GeminiRequestExecutor.executeWithRetry()`
+
+Add `var consecutiveRateLimitCount = 0` local to the retry loop. In the `delayMs > 10_000L` branch:
+```kotlin
+if (delayMs > 10_000L) {
+    consecutiveRateLimitCount++
+    if (consecutiveRateLimitCount >= 2) {
+        // All models rate-limited — this is key-level saturation, not a per-model problem
+        logger?.e(tag, "⚠️ API key saturated (${consecutiveRateLimitCount} consecutive long rate limits). Holding ${delayMs}ms before retry.")
+        retryService.activateGlobalHold(delayMs)
+        retryService.wait(delayMs)
+        consecutiveRateLimitCount = 0
+        continue  // retry preferred model after hold, not next fallback
+    }
+    // Single long delay — still treat as per-model, blacklist and try next
+    modelNegotiator.blacklistModel(modelName)
+    modelNegotiator.evictFromCache(modelName)
+    logger?.e(tag, "⚠️ Model $modelName rate limit delay ${delayMs}ms too long. Blacklisted. Trying next model...")
+    ...
+    continue
+}
+```
+
+On any successful response, reset `consecutiveRateLimitCount = 0`.
+
+#### Tests required
+
+- Single long rate-limit event → model blacklisted, `consecutiveRateLimitCount = 1`, no global hold
+- Two consecutive long rate-limits → `activateGlobalHold` called, executor waits, no further model cascade
+- Success between two long delays → count resets; second long delay treated as a fresh single event
+- `checkRateLimitWindow` throws during active global hold; passes after hold expires
+- `clearGlobalHoldForTesting()` clears hold for test isolation
+
+**Acceptance criteria:** When free-tier models hit RPM simultaneously, the executor waits for the reported delay and retries without cascading to further models or activating the 5-minute global window.
+
+---
+
+### Implementation Order for Phase 6
+
+Execute strictly in this sequence. Do not start the next step until the previous step's tests pass and `./gradlew :composeApp:jvmTest` is green.
+
+| Step | Phase | Rationale |
+|---|---|---|
+| 1 | **6.2 — Mutex queue** | One-file change, immediate impact; prevents races in 6.1 cache writes |
+| 2 | **6.1 — Analysis cache** | Multi-file; eliminates most redundant AI calls; 6.2 must be in place first |
+| 3 | **6.3 — Global hold** | Supplements 6.1+6.2; less critical once cache eliminates most re-analysis |
+
+**CRAP targets:** `SourceAdder` complexity must stay ≤ 5 after modifications. If the hash+cache logic raises it above 5, extract a `CacheAwareSourceAdder` decorator that wraps `SourceAdder` and handles cache checks, leaving `SourceAdder` as a pure AI caller.
 
 ---
 

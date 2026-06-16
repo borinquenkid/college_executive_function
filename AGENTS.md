@@ -226,3 +226,4 @@ All business logic classes (Models, Agents, Services, and Utilities) MUST have a
 *   Stateful User Preference Memory — track manual edits, derive implicit constraints, inject as prompt rules
 *   Sync Re-negotiation UI — interactive proposal diff dialog replacing silent conflict resolution
 *   Active Lifecycle Agent Harness — `AgentHarness` polling at startup and once daily
+*   Token-Efficient Source Processing — analysis cache, mutex sequential queue, and global hold strategy

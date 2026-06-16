@@ -245,7 +245,9 @@ class DependencyContainer(
             contextAgent,
             logger,
             globalScope,
-            { events -> /* events will be handled by EventAgent */ })
+            onEventsAdded = { events -> eventAgent.setGeneratedEvents(events) },
+            onError = { error -> eventAgent.reportError(error) }
+        )
     }
 
     val sourceDeleter by lazy {

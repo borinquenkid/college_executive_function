@@ -81,6 +81,15 @@ class EventAgent(
         _errorState.value = null
     }
 
+    fun reportError(error: AgentError) {
+        _errorState.value = error
+    }
+
+    fun setGeneratedEvents(events: List<Event>) {
+        _lastGeneratedEvents.value = events
+        _statusMessage.value = "${events.size} events ready to sync."
+    }
+
     fun clearUnresolvedConflicts() {
         _unresolvedConflicts.value = emptyList()
     }

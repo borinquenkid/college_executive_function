@@ -12,7 +12,8 @@ class SourceAdder(
     private val contextAgent: ContextAgent,
     private val logger: Logger,
     private val scope: CoroutineScope,
-    private val onEventsAdded: (List<Event>) -> Unit
+    private val onEventsAdded: (List<Event>) -> Unit,
+    private val onError: (AgentError) -> Unit = {}
 ) {
     fun addSource(source: SourceItem) {
         scope.launch {
@@ -24,6 +25,11 @@ class SourceAdder(
                     contextAgent.analyzeSource(source)
                 } catch (e: Exception) {
                     logger.e("SourceAdder", "Failed to process added source: ${source.title}", e)
+                    if (e.message?.startsWith("QuotaExhausted") == true) {
+                        onError(AgentError.QuotaExhausted)
+                    } else {
+                        onError(AgentError.GenericError(e.message ?: "Unknown error"))
+                    }
                 }
             }
         }

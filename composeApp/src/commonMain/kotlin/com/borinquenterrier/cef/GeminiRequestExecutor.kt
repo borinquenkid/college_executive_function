@@ -34,6 +34,7 @@ class GeminiRequestExecutor(
     companion object {
         fun clearRateLimitResetForTesting() {
             GeminiRetryService.clearRateLimitResetForTesting()
+            GeminiRetryService.clearGlobalHoldForTesting()
         }
     }
 
@@ -52,6 +53,7 @@ class GeminiRequestExecutor(
         var attempts = 0
         var lastError: Exception? = null
         var lastNegotiatedModel: String? = null
+        var consecutiveRateLimitCount = 0
 
         while (attempts < maxAttempts) {
             val modelName = modelNegotiator.negotiateBestModel(available, tier)
@@ -62,6 +64,7 @@ class GeminiRequestExecutor(
 
                 // Handle success immediately (2xx status codes)
                 if (httpResponse.status.isSuccess()) {
+                    consecutiveRateLimitCount = 0
                     val geminiResponse =
                         Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(
                             responseBody
@@ -138,6 +141,14 @@ class GeminiRequestExecutor(
 
                     val delayMs = errorType.delayMs
                     if (delayMs > 10000L) {
+                        consecutiveRateLimitCount++
+                        if (consecutiveRateLimitCount >= 2) {
+                            logger?.e(tag, "⚠️ API key saturated (${consecutiveRateLimitCount} consecutive long rate limits). Holding ${delayMs}ms before retry.")
+                            retryService.activateGlobalHold(delayMs)
+                            retryService.wait(delayMs)
+                            consecutiveRateLimitCount = 0
+                            continue
+                        }
                         modelNegotiator.blacklistModel(modelName)
                         modelNegotiator.evictFromCache(modelName)
                         logger?.e(
@@ -149,6 +160,7 @@ class GeminiRequestExecutor(
                         continue
                     }
 
+                    consecutiveRateLimitCount = 0
                     retryService.wait(delayMs)
                     continue
                 }

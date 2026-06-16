@@ -19,6 +19,10 @@ class ModelNegotiationIntegrationTest : FunSpec({
     test("Google OAuth: app client credentials are accepted by Google token endpoint").config(
         timeout = AI_INTEGRATION_TIMEOUT_MS.milliseconds
     ) {
+        if (isTestProfile()) {
+            println("SKIPPING Google OAuth: Disabled in test/offline profile.")
+            return@config
+        }
         val creds = resolveLiveCredentials()
         val settings = MapSettings()
         val authService = GoogleAuthService(settings)

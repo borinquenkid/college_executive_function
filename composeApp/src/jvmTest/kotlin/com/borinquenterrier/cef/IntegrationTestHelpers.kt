@@ -64,11 +64,21 @@ fun resolveLiveCredentials(): LiveCredentials {
     )
 }
 
+fun isTestProfile(): Boolean {
+    val runProfile = System.getenv("RUN_PROFILE") ?: System.getProperty("runProfile") ?: ""
+    val offline = System.getenv("OFFLINE") ?: System.getProperty("offline") ?: ""
+    return runProfile.equals("test", ignoreCase = true) || offline.equals("true", ignoreCase = true)
+}
+
 /**
  * Reads the Gemini API key from OS env vars or the local `.env` file.
  * Returns null (and prints a skip message) if no key is found.
  */
 fun resolveApiKey(testName: String): String? {
+    if (isTestProfile()) {
+        println("SKIPPING $testName: Disabled in test/offline profile.")
+        return null
+    }
     val envMap = loadEnvFileMap()
     val apiKey = resolveSecret("CEF_GEMINI_API_KEY", envMap)
         ?: resolveSecret("GEMINI_API_KEY", envMap)

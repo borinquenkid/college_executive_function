@@ -15,10 +15,22 @@ class GeminiRetryService(
 
     companion object {
         private var rateLimitResetTime: Long = 0L
+        private var globalHoldUntil: Long = 0L
 
         fun clearRateLimitResetForTesting() {
             rateLimitResetTime = 0L
         }
+
+        fun clearGlobalHoldForTesting() {
+            globalHoldUntil = 0L
+        }
+    }
+
+    /**
+     * Activate global hold window. Add 2 seconds grace period to wait time.
+     */
+    fun activateGlobalHold(delayMs: Long) {
+        globalHoldUntil = Clock.System.now().toEpochMilliseconds() + delayMs + 2000L
     }
 
     /**
@@ -28,6 +40,10 @@ class GeminiRetryService(
         val now = Clock.System.now().toEpochMilliseconds()
         if (now < rateLimitResetTime) {
             val remainingSeconds = ((rateLimitResetTime - now) + 999L) / 1000L
+            throw Exception("QuotaExhausted: Rate limit reached. Please wait $remainingSeconds seconds before trying again.")
+        }
+        if (now < globalHoldUntil) {
+            val remainingSeconds = ((globalHoldUntil - now) + 999L) / 1000L
             throw Exception("QuotaExhausted: Rate limit reached. Please wait $remainingSeconds seconds before trying again.")
         }
     }

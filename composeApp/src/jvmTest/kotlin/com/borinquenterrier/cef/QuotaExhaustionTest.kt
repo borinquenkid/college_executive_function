@@ -227,4 +227,124 @@ class QuotaExhaustionTest : FunSpec({
         result shouldContain "ok"
         callCount shouldBe 2
     }
+
+    test("single long rate-limit event blacklists model but does not trigger global hold") {
+        GeminiRequestExecutor.clearRateLimitResetForTesting()
+        val longRetryBody = """{"error":{"code":429,"message":"Quota exceeded. Please retry in 15s.","status":"RESOURCE_EXHAUSTED"}}"""
+        val twoModelsResponse = """
+            {"models":[
+                {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
+                {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
+            ]}
+        """.trimIndent()
+
+        var callCount = 0
+        var waitDelay: Long? = null
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.contains("/models") && !request.url.encodedPath.contains(":generateContent")) {
+                respond(twoModelsResponse, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            } else {
+                callCount++
+                if (request.url.encodedPath.contains("gemini-2.0-flash")) {
+                    respond(longRetryBody, HttpStatusCode.TooManyRequests, headersOf(HttpHeaders.ContentType, "application/json"))
+                } else {
+                    respond("""{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}""", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+                }
+            }
+        }
+
+        val service = GeminiAIService(
+            apiKey = "test-key",
+            customClient = HttpClient(engine) { install(ContentNegotiation) { json() } },
+            delayFn = { waitDelay = it }
+        )
+
+        val result = service.generateChatResponse("hello")
+        result shouldContain "ok"
+        callCount shouldBe 2
+        waitDelay shouldBe null
+    }
+
+    test("two consecutive long rate-limits activate global hold and retry preferred model after delay") {
+        GeminiRequestExecutor.clearRateLimitResetForTesting()
+        val longRetryBody = """{"error":{"code":429,"message":"Quota exceeded. Please retry in 15s.","status":"RESOURCE_EXHAUSTED"}}"""
+        val twoModelsResponse = """
+            {"models":[
+                {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
+                {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
+            ]}
+        """.trimIndent()
+
+        var callCount = 0
+        val waitDelays = mutableListOf<Long>()
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.contains("/models") && !request.url.encodedPath.contains(":generateContent")) {
+                respond(twoModelsResponse, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            } else {
+                callCount++
+                if (callCount < 3) {
+                    respond(longRetryBody, HttpStatusCode.TooManyRequests, headersOf(HttpHeaders.ContentType, "application/json"))
+                } else {
+                    respond("""{"candidates":[{"content":{"parts":[{"text":"finally ok"}]}}]}""", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+                }
+            }
+        }
+
+        val service = GeminiAIService(
+            apiKey = "test-key",
+            customClient = HttpClient(engine) { install(ContentNegotiation) { json() } },
+            delayFn = { waitDelays.add(it) }
+        )
+
+        val result = service.generateChatResponse("hello")
+        result shouldContain "finally ok"
+        callCount shouldBe 3
+        waitDelays.size shouldBe 1
+        waitDelays[0] shouldBe 15000L
+    }
+
+    test("global hold reset on success") {
+        GeminiRequestExecutor.clearRateLimitResetForTesting()
+        val longRetryBody = """{"error":{"code":429,"message":"Quota exceeded. Please retry in 15s.","status":"RESOURCE_EXHAUSTED"}}"""
+        val twoModelsResponse = """
+            {"models":[
+                {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
+                {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
+            ]}
+        """.trimIndent()
+
+        var callCount = 0
+        val waitDelays = mutableListOf<Long>()
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.contains("/models") && !request.url.encodedPath.contains(":generateContent")) {
+                respond(twoModelsResponse, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            } else {
+                callCount++
+                if (callCount == 1) {
+                    respond(longRetryBody, HttpStatusCode.TooManyRequests, headersOf(HttpHeaders.ContentType, "application/json"))
+                } else if (callCount == 2) {
+                    respond("""{"candidates":[{"content":{"parts":[{"text":"first ok"}]}}]}""", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+                } else if (callCount == 3) {
+                    respond(longRetryBody, HttpStatusCode.TooManyRequests, headersOf(HttpHeaders.ContentType, "application/json"))
+                } else {
+                    respond("""{"candidates":[{"content":{"parts":[{"text":"second ok"}]}}]}""", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+                }
+            }
+        }
+
+        val service = GeminiAIService(
+            apiKey = "test-key",
+            customClient = HttpClient(engine) { install(ContentNegotiation) { json() } },
+            delayFn = { waitDelays.add(it) }
+        )
+
+        val result1 = service.generateChatResponse("hello")
+        result1 shouldContain "first ok"
+
+        val result2 = service.generateChatResponse("hello")
+        result2 shouldContain "second ok"
+
+        callCount shouldBe 4
+        waitDelays.size shouldBe 0
+    }
 })

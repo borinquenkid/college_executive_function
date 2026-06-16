@@ -58,8 +58,6 @@ fun StudioPanel(
     val isLoading by eventAgent.isLoading.collectAsState()
     val statusMessage by eventAgent.statusMessage.collectAsState()
     val lastGeneratedEvents by eventAgent.lastGeneratedEvents.collectAsState()
-    val errorState by eventAgent.errorState.collectAsState()
-
     val isConnected by container.tokenRepository.isLinked.collectAsState()
 
     var eventsList by remember { mutableStateOf(emptyList<Event>()) }
@@ -101,12 +99,6 @@ fun StudioPanel(
             style = MaterialTheme.typography.titleMedium,
             modifier = Modifier.padding(horizontal = 4.dp)
         )
-
-        AnimatedErrorBanner(
-            error = errorState,
-            onDismiss = { eventAgent.clearError() }
-        )
-
 
         Card(
             modifier = Modifier

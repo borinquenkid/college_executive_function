@@ -74,7 +74,6 @@ fun AcademicCalendar(
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
     var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
     var showConflictDialog by remember { mutableStateOf(false) }
-    val errorState by eventAgent.errorState.collectAsState()
     val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
 
     LaunchedEffect(routineRepository) {
@@ -163,13 +162,6 @@ fun AcademicCalendar(
 
     Column(modifier = modifier) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {
-            stickyHeader {
-                AnimatedErrorBanner(
-                    error = errorState,
-                    onDismiss = { eventAgent.clearError() },
-                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 2.dp)
-                )
-            }
             if (!isGoogleLinked) {
                 item {
                     GoogleLinkPrompt(

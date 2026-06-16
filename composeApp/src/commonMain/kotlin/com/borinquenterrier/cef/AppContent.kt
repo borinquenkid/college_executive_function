@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
@@ -55,6 +56,7 @@ fun AppContent(container: DependencyContainer) {
     val currentScreen by appController.currentScreen.asStateFlow().collectAsState()
     val aiGeneratedEvents by appController.aiGeneratedEvents.asStateFlow().collectAsState()
 
+    val errorState by container.eventAgent.errorState.collectAsState()
     val incompleteEvents by container.eventAgent.incompleteEvents.collectAsState()
     var showCheckIn by remember { mutableStateOf(true) }
 
@@ -98,7 +100,12 @@ fun AppContent(container: DependencyContainer) {
             )
         }
     ) { paddingValues ->
-        Box(Modifier.fillMaxSize().padding(paddingValues)) {
+        Column(Modifier.fillMaxSize().padding(paddingValues)) {
+            AnimatedErrorBanner(
+                error = errorState,
+                onDismiss = { container.eventAgent.clearError() }
+            )
+            Box(Modifier.fillMaxSize()) {
             when (currentScreen) {
                 is AppScreen.Home -> {
                     UniversalHomeLayout(container)
@@ -120,6 +127,7 @@ fun AppContent(container: DependencyContainer) {
                 is AppScreen.Routine -> {
                     RoutineScreen(Modifier.fillMaxSize())
                 }
+            }
             }
         }
     }

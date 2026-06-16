@@ -17,9 +17,8 @@ import kotlin.test.Test
 class AppContentTest {
 
     private fun buildMockContainer(
-        incompleteEvents: MutableStateFlow<List<Event>> = MutableStateFlow(
-            emptyList()
-        )
+        incompleteEvents: MutableStateFlow<List<Event>> = MutableStateFlow(emptyList()),
+        errorState: MutableStateFlow<AgentError?> = MutableStateFlow(null)
     ): DependencyContainer {
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
@@ -34,7 +33,7 @@ class AppContentTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Select a source and an action.")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
-        every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.errorState } returns errorState
         every { mockEventAgent.incompleteEvents } returns incompleteEvents
 
         coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
@@ -134,5 +133,33 @@ class AppContentTest {
         setContent { AppContent(container) }
 
         onNodeWithText("Startup Check-In").assertDoesNotExist()
+    }
+
+    @Test
+    fun testQuotaErrorBannerAppearsOnHomeScreen() = runComposeUiTest {
+        val errorFlow = MutableStateFlow<AgentError?>(null)
+        val container = buildMockContainer(errorState = errorFlow)
+
+        setContent { AppContent(container) }
+
+        // On the Home screen (default), no banner yet
+        onNodeWithText("Daily AI Quota Reached").assertDoesNotExist()
+
+        // Simulate quota exhaustion from background harness
+        errorFlow.value = AgentError.QuotaExhausted
+
+        // Banner must appear without navigating away from Home
+        onNodeWithText("Daily AI Quota Reached").assertExists()
+    }
+
+    @Test
+    fun testQuotaErrorBannerAppearsOnSettingsScreen() = runComposeUiTest {
+        val container = buildMockContainer(errorState = MutableStateFlow(AgentError.QuotaExhausted))
+
+        setContent { AppContent(container) }
+
+        // Navigate to Settings — banner must still be visible
+        onNodeWithTag("nav_settings_button").performClick()
+        onNodeWithText("Daily AI Quota Reached").assertExists()
     }
 }

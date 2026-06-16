@@ -42,11 +42,18 @@ class SourceManager(
         }
     }
 
-    fun addSource(source: SourceItem) {
-        val updatedItems = _sourceItemsWrapper.value + source
-        _sourceItemsWrapper.setValue(updatedItems)
-        selector.autoSelectFirstFrom(updatedItems)
-        adder.addSource(source)
+    fun addSource(source: SourceItem, forceRefresh: Boolean = false) {
+        val current = _sourceItemsWrapper.value
+        if (!current.any { it.title == source.title }) {
+            val updatedItems = current + source
+            _sourceItemsWrapper.setValue(updatedItems)
+            selector.autoSelectFirstFrom(updatedItems)
+        }
+        adder.addSource(source, forceRefresh)
+    }
+
+    fun reanalyzeSource(source: SourceItem) {
+        adder.addSource(source, forceRefresh = true)
     }
 
     fun deleteSource(source: SourceItem) {

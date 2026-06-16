@@ -36,5 +36,26 @@ fun createDatabase(driverFactory: DriverFactory): AppDatabase {
     } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }
+    try {
+        driver.execute(null, "ALTER TABLE SourceEntity ADD COLUMN contentHash TEXT", 0)
+    } catch (e: Exception) {
+        // Column may already exist, or table might not have been created yet, ignore.
+    }
+    try {
+        driver.execute(
+            null,
+            """
+            CREATE TABLE IF NOT EXISTS AnalysisCacheEntity (
+                sourceHash TEXT PRIMARY KEY NOT NULL,
+                cachedEventsJson TEXT NOT NULL,
+                cachedMetadataJson TEXT,
+                createdAt INTEGER NOT NULL
+            )
+            """.trimIndent(),
+            0
+        )
+    } catch (e: Exception) {
+        // Table may already exist, ignore.
+    }
     return AppDatabase(driver)
 }

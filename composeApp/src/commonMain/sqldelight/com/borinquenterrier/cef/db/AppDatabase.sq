@@ -65,7 +65,8 @@ CREATE TABLE IF NOT EXISTS SourceEntity (
     type TEXT NOT NULL, -- TEXT, CALENDAR
     category TEXT NOT NULL DEFAULT 'OTHER', -- SYLLABUS, READING_MATERIAL, LAB_MANUAL, LECTURE_NOTES, OTHER
     metadata TEXT, -- JSON map containing AI-extracted policies, grading scales, etc.
-    updatedAt INTEGER NOT NULL
+    updatedAt INTEGER NOT NULL,
+    contentHash TEXT
 );
 
 CREATE TABLE IF NOT EXISTS FragmentEntity (
@@ -79,9 +80,16 @@ CREATE TABLE IF NOT EXISTS FragmentEntity (
     FOREIGN KEY(sourceId) REFERENCES SourceEntity(id) ON DELETE CASCADE
 );
 
+CREATE TABLE IF NOT EXISTS AnalysisCacheEntity (
+    sourceHash TEXT PRIMARY KEY NOT NULL,
+    cachedEventsJson TEXT NOT NULL,
+    cachedMetadataJson TEXT,
+    createdAt INTEGER NOT NULL
+);
+
 insertSource:
-INSERT OR REPLACE INTO SourceEntity(id, title, originUri, type, category, metadata, updatedAt)
-VALUES (?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SourceEntity(id, title, originUri, type, category, metadata, updatedAt, contentHash)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?);
 
 insertFragment:
 INSERT OR REPLACE INTO FragmentEntity(id, sourceId, text, pageNumber, sectionTitle, type, metadata)
@@ -104,6 +112,16 @@ DELETE FROM FragmentEntity WHERE sourceId = ?;
 
 deleteAllSources:
 DELETE FROM SourceEntity;
+
+getCachedAnalysis:
+SELECT * FROM AnalysisCacheEntity WHERE sourceHash = ?;
+
+insertCachedAnalysis:
+INSERT OR REPLACE INTO AnalysisCacheEntity(sourceHash, cachedEventsJson, cachedMetadataJson, createdAt)
+VALUES (?, ?, ?, ?);
+
+deleteCachedAnalysis:
+DELETE FROM AnalysisCacheEntity WHERE sourceHash = ?;
 
 CREATE TABLE IF NOT EXISTS UserOverrideLogEntity (
     id TEXT PRIMARY KEY NOT NULL,

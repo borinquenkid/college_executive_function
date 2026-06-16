@@ -8,6 +8,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Refresh
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
@@ -23,7 +24,8 @@ fun SourceItemView(
     item: SourceItem,
     isSelected: Boolean,
     onClick: () -> Unit,
-    onDelete: () -> Unit
+    onDelete: () -> Unit,
+    onReanalyze: () -> Unit
 ) {
     val backgroundColor =
         if (isSelected) MaterialTheme.colorScheme.primaryContainer else Color.Transparent
@@ -53,6 +55,13 @@ fun SourceItemView(
             }
             val summary = "$categoryText • $partsText"
             Text(summary, style = MaterialTheme.typography.bodySmall)
+        }
+        IconButton(onClick = onReanalyze) {
+            Icon(
+                imageVector = Icons.Default.Refresh,
+                contentDescription = "Re-analyze Source",
+                tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+            )
         }
         IconButton(onClick = onDelete) {
             Icon(

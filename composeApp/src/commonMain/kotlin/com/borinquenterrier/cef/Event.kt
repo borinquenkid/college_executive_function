@@ -10,6 +10,7 @@ import kotlinx.datetime.daysUntil
 import kotlinx.datetime.minus
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerialName
 import kotlin.time.Duration
 import kotlin.time.Duration.Companion.days
 
@@ -49,6 +50,7 @@ data class Recurrence(
     val endDate: LocalDate
 )
 
+@Serializable
 sealed interface Event {
     val id: String?
     val title: String
@@ -72,6 +74,7 @@ sealed interface Event {
 }
 
 @Serializable
+@SerialName("TimeEvent")
 data class TimeEvent(
     override val id: String? = null,
     override val title: String,
@@ -102,6 +105,7 @@ data class TimeEvent(
 }
 
 @Serializable
+@SerialName("DayEvent")
 data class DayEvent(
     override val id: String? = null,
     override val title: String,

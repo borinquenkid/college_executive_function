@@ -29,6 +29,7 @@ fun SourcesPanel(
     onSourceSelected: (SourceItem) -> Unit,
     onSourceAdded: (SourceItem) -> Unit,
     onSourceDeleted: (SourceItem) -> Unit,
+    onSourceReanalyzed: (SourceItem) -> Unit,
     providers: List<SourceProvider>
 ) {
     var activeProviderId by remember { mutableStateOf<String?>(null) }
@@ -76,7 +77,8 @@ fun SourcesPanel(
                     item = item,
                     isSelected = item == selectedSource,
                     onClick = { onSourceSelected(item) },
-                    onDelete = { onSourceDeleted(item) }
+                    onDelete = { onSourceDeleted(item) },
+                    onReanalyze = { onSourceReanalyzed(item) }
                 )
             }
         }

@@ -105,6 +105,7 @@ class DependencyContainer(
         )
     }
     val sourceRepository by lazy { SqlDelightSourceRepository(database) }
+    val analysisCacheRepository by lazy { SqlDelightAnalysisCacheRepository(database) }
     val ingestionAgent by lazy {
         IngestionAgent(
             fileReader,
@@ -245,6 +246,8 @@ class DependencyContainer(
             contextAgent,
             logger,
             globalScope,
+            analysisCacheRepository,
+            sourceRepository,
             onEventsAdded = { events -> eventAgent.setGeneratedEvents(events) },
             onError = { error -> eventAgent.reportError(error) }
         )

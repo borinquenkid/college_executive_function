@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **0.00%** (0/0 lines)
-- **Total Source Files**: 151
+- **Total Source Files**: 155
 
 ## Coverage by File
 
@@ -19,6 +19,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | LocalFileFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AgentHarness.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | HarnessSourceProcessor.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | ContentHasher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | StudyPreferencesPanel.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | StateFlowWrapper.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AppContent.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -54,6 +55,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | DriveFileFetcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceItem.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | FragmentRanker.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | CachedAnalysis.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | CalendarIdResolver.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | TermNormalizer.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceProcessor.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -74,6 +76,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | GeminiErrorHandler.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ConflictResolver.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | EventRangeFilter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | AnalysisCacheRepository.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | DirectoryPreferencesManager.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | StudyPreferences.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ChatPanel.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
@@ -122,6 +125,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | IngestionAgent.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | GoogleCalendarPanel.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AiEventsService.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | SqlDelightAnalysisCacheRepository.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourcesPanel.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceLoader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |

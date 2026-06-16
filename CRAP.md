@@ -9,8 +9,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 151
-- **High-Risk Files (CRAP > 30)**: 76
+- **Total Files Analyzed**: 155
+- **High-Risk Files (CRAP > 30)**: 77
 
 ### Top 15 High-Risk Files
 
@@ -401,8 +401,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `shiftEvent` | 1 |
 | `findNextAvailableSlot` | 1 |
 
-### AppController.kt (Score: 240.00 - 🔴 HIGH)
-- **Total Complexity**: 15
+### AppController.kt (Score: 272.00 - 🔴 HIGH)
+- **Total Complexity**: 16
 - **Real Coverage**: 0.0%
 
 #### Methods list:
@@ -417,8 +417,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `addEvents` | 1 |
 | `clearEvents` | 1 |
 | `addSource` | 1 |
-| `launchInScope` | 1 |
-| *... and 5 more* | |
+| `reanalyzeSource` | 1 |
+| *... and 6 more* | |
 
 ### SyncNegotiationApplier.kt (Score: 240.00 - 🔴 HIGH)
 - **Total Complexity**: 15
@@ -561,6 +561,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getCriticModified` | 1 |
 | `clear` | 1 |
 
+### SourceAdder.kt (Score: 132.00 - 🔴 HIGH)
+- **Total Complexity**: 11
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `processSourceWithCache` | 5 |
+| `addSource` | 3 |
+| `handleFailure` | 3 |
+
 ### AgentHarness.kt (Score: 110.00 - 🔴 HIGH)
 - **Total Complexity**: 10
 - **Real Coverage**: 0.0%
@@ -584,6 +595,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `StudyPreferencesPanel` | 1 |
+
+### SourceManager.kt (Score: 110.00 - 🔴 HIGH)
+- **Total Complexity**: 10
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `addSource` | 3 |
+| `deleteSource` | 2 |
+| `collect` | 1 |
+| `asStateFlow` | 1 |
+| `loadSources` | 1 |
+| `reanalyzeSource` | 1 |
+| `selectSource` | 1 |
 
 ### AcademicCalendarComponents.kt (Score: 110.00 - 🔴 HIGH)
 - **Total Complexity**: 10
@@ -824,20 +850,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `fetchFromFolders` | 4 |
 | `fetchFromFolder` | 3 |
 
-### SourceManager.kt (Score: 56.00 - 🔴 HIGH)
-- **Total Complexity**: 7
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `deleteSource` | 2 |
-| `collect` | 1 |
-| `asStateFlow` | 1 |
-| `loadSources` | 1 |
-| `addSource` | 1 |
-| `selectSource` | 1 |
-
 ### TermNormalizer.kt (Score: 56.00 - 🔴 HIGH)
 - **Total Complexity**: 7
 - **Real Coverage**: 0.0%
@@ -1064,15 +1076,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `QuotaErrorBanner` | 1 |
 | `AnimatedErrorBanner` | 1 |
 
-### SourceAdder.kt (Score: 30.00 - 🟡 MEDIUM)
-- **Total Complexity**: 5
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `addSource` | 5 |
-
 ### TaskDecompositionService.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
 - **Real Coverage**: 0.0%
@@ -1258,6 +1261,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getPreferences` | 3 |
 | `savePreferences` | 1 |
+
+### SqlDelightAnalysisCacheRepository.kt (Score: 20.00 - 🟡 MEDIUM)
+- **Total Complexity**: 4
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getCached` | 2 |
+| `putCache` | 1 |
+| `evict` | 1 |
 
 ### SourceLoader.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
@@ -1495,6 +1509,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readSource` | 1 |
 | `rememberDocxReader` | 1 |
 
+### AnalysisCacheRepository.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getCached` | 1 |
+| `evict` | 1 |
+
 ### UserPreferenceMemoryRepository.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2
 - **Real Coverage**: 0.0%
@@ -1549,6 +1573,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Real Coverage**: 0.0%
 
 
+### ContentHasher.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `hash` | 1 |
+
 ### DependencyContainer.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1
 - **Real Coverage**: 0.0%
@@ -1587,6 +1620,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `decomposeTask` | 1 |
 
 ### SourceItem.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 0.0%
+
+
+### CachedAnalysis.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1
 - **Real Coverage**: 0.0%
 

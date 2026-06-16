@@ -90,6 +90,9 @@ fun UniversalHomeLayout(container: DependencyContainer) {
                         onSourceDeleted = { source ->
                             appController.deleteSource(source)
                         },
+                        onSourceReanalyzed = { source ->
+                            appController.reanalyzeSource(source)
+                        },
                         providers = sourceProviders
                     )
                     // Close shortcut

@@ -14,6 +14,7 @@ class SqlDelightSourceRepository(
     override suspend fun saveSource(sourceItem: SourceItem, originUri: String?) =
         withContext(Dispatchers.Default) {
             val sourceId = sourceItem.title
+            val hash = ContentHasher.hash(sourceItem.fragments)
             database.appDatabaseQueries.insertSource(
                 id = sourceId,
                 title = sourceItem.title,
@@ -21,7 +22,8 @@ class SqlDelightSourceRepository(
                 type = if (sourceItem.fragments.any { it.type == SourceType.CALENDAR }) "CALENDAR" else "TEXT",
                 category = sourceItem.category.name,
                 metadata = null,
-                updatedAt = Clock.System.now().toEpochMilliseconds()
+                updatedAt = Clock.System.now().toEpochMilliseconds(),
+                contentHash = hash
             )
 
             sourceItem.fragments.forEachIndexed { index, fragment ->
@@ -48,7 +50,8 @@ class SqlDelightSourceRepository(
                     type = source.type,
                     category = source.category,
                     metadata = metadata,
-                    updatedAt = Clock.System.now().toEpochMilliseconds()
+                    updatedAt = Clock.System.now().toEpochMilliseconds(),
+                    contentHash = source.contentHash
                 )
             } else {
                 database.appDatabaseQueries.insertSource(
@@ -58,7 +61,8 @@ class SqlDelightSourceRepository(
                     type = "TEXT",
                     category = "OTHER",
                     metadata = metadata,
-                    updatedAt = Clock.System.now().toEpochMilliseconds()
+                    updatedAt = Clock.System.now().toEpochMilliseconds(),
+                    contentHash = null
                 )
             }
         }

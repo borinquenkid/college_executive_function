@@ -89,8 +89,12 @@ class AppController(val container: DependencyContainer) {
         eventsService.clearEvents()
     }
 
-    fun addSource(source: SourceItem) {
-        sourceManager.addSource(source)
+    fun addSource(source: SourceItem, forceRefresh: Boolean = false) {
+        sourceManager.addSource(source, forceRefresh)
+    }
+
+    fun reanalyzeSource(source: SourceItem) {
+        sourceManager.reanalyzeSource(source)
     }
 
     fun launchInScope(block: suspend CoroutineScope.() -> Unit) {

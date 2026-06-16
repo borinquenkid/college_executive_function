@@ -1,7 +1,5 @@
 package com.borinquenterrier.cef
 
-import io.ktor.client.HttpClient
-import io.ktor.client.request.get
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -11,8 +9,7 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class GoogleAccountFlow(
     private val authService: GoogleAuthService,
-    private val tokenRepository: GoogleTokenRepository,
-    private val httpClient: HttpClient
+    private val tokenRepository: GoogleTokenRepository
 ) {
     lateinit var driveService: GoogleDriveService
 
@@ -70,29 +67,29 @@ class GoogleAccountFlow(
 
     suspend fun checkConnectionOnStartup() {
         val accessToken = tokenRepository.getAccessToken() ?: return
-        if (driveService.validateConnection(accessToken)) {
-            _state.value = GoogleConnectionState.Linked
-            return
+        
+        when (val validation = driveService.validateConnectionResult(accessToken)) {
+            is GoogleDriveService.ValidationResult.Success -> {
+                _state.value = GoogleConnectionState.Linked
+            }
+            is GoogleDriveService.ValidationResult.NetworkError -> {
+                println("[GoogleAccountFlow] Startup validation failed with network error: ${validation.message}. Retaining Linked state.")
+            }
+            is GoogleDriveService.ValidationResult.InvalidCredentials -> {
+                println("[GoogleAccountFlow] Startup validation: invalid access token. Attempting refresh...")
+                handleInvalidAccessToken()
+            }
         }
-        handleInvalidAccessToken()
     }
 
     private suspend fun handleInvalidAccessToken() {
         val refreshToken = tokenRepository.getRefreshToken()
         if (refreshToken == null) {
-            disconnectIfOnline()
+            println("[GoogleAccountFlow] Startup validation: no refresh token. Disconnecting.")
+            disconnect()
             return
         }
-        refreshOrDisconnect(refreshToken)
-    }
-
-    private suspend fun disconnectIfOnline() {
-        if (isOnline()) {
-            disconnect()
-        }
-    }
-
-    private suspend fun refreshOrDisconnect(refreshToken: String) {
+        
         val newAccessToken = try {
             authService.refreshAccessToken(refreshToken)
         } catch (e: Exception) {
@@ -100,19 +97,12 @@ class GoogleAccountFlow(
         }
 
         if (newAccessToken != null) {
+            println("[GoogleAccountFlow] Startup validation: successfully refreshed token.")
             tokenRepository.saveTokens(newAccessToken, refreshToken)
             _state.value = GoogleConnectionState.Linked
         } else {
-            disconnectIfOnline()
-        }
-    }
-
-    private suspend fun isOnline(): Boolean {
-        return try {
-            httpClient.get("https://www.google.com")
-            true
-        } catch (e: Exception) {
-            false
+            println("[GoogleAccountFlow] Startup validation: refresh token invalid/expired. Disconnecting.")
+            disconnect()
         }
     }
 }

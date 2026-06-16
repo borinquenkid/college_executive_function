@@ -6,9 +6,6 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
-import io.ktor.client.HttpClient
-import io.ktor.client.engine.mock.MockEngine
-import io.ktor.client.engine.mock.respond
 
 class GoogleConnectionFsmTest : FunSpec({
 
@@ -21,7 +18,7 @@ class GoogleConnectionFsmTest : FunSpec({
         coEvery { authService.login() } returns Pair("valid-token", "refresh-token")
         coEvery { driveService.validateConnection("valid-token") } returns true
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(authService, tokenRepo)
         fsm.driveService = driveService
 
         fsm.state.value shouldBe GoogleConnectionState.Unlinked
@@ -41,7 +38,7 @@ class GoogleConnectionFsmTest : FunSpec({
         coEvery { authService.login() } returns Pair("valid-token", "refresh-token")
         coEvery { driveService.validateConnection("valid-token") } returns false
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(authService, tokenRepo)
         fsm.driveService = driveService
 
         fsm.connect()
@@ -58,7 +55,7 @@ class GoogleConnectionFsmTest : FunSpec({
 
         coEvery { authService.login() } throws Exception("Network Error")
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(authService, tokenRepo)
         // driveService not needed for this path
 
         fsm.connect()
@@ -72,7 +69,7 @@ class GoogleConnectionFsmTest : FunSpec({
         val tokenRepo = GoogleTokenRepository(settings)
         tokenRepo.saveTokens("old-token", "refresh")
 
-        val fsm = GoogleAccountFlow(mockk(), tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(mockk(), tokenRepo)
         fsm.state.value shouldBe GoogleConnectionState.Linked
 
         fsm.reportAuthError("Session expired")
@@ -86,7 +83,7 @@ class GoogleConnectionFsmTest : FunSpec({
         val tokenRepo = GoogleTokenRepository(settings)
         tokenRepo.saveTokens("token", "refresh")
 
-        val fsm = GoogleAccountFlow(mockk(relaxed = true), tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(mockk(relaxed = true), tokenRepo)
         fsm.state.value shouldBe GoogleConnectionState.Linked
 
         fsm.disconnect()
@@ -101,7 +98,7 @@ class GoogleConnectionFsmTest : FunSpec({
         val authService = mockk<GoogleAuthService>(relaxed = true)
         val driveService = mockk<GoogleDriveService>(relaxed = true)
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(authService, tokenRepo)
         fsm.driveService = driveService
 
         fsm.state.value shouldBe GoogleConnectionState.Unlinked
@@ -118,9 +115,9 @@ class GoogleConnectionFsmTest : FunSpec({
 
         val authService = mockk<GoogleAuthService>(relaxed = true)
         val driveService = mockk<GoogleDriveService>(relaxed = true)
-        coEvery { driveService.validateConnection("valid-token") } returns true
+        coEvery { driveService.validateConnectionResult("valid-token") } returns GoogleDriveService.ValidationResult.Success
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(authService, tokenRepo)
         fsm.driveService = driveService
 
         fsm.state.value shouldBe GoogleConnectionState.Linked
@@ -138,10 +135,10 @@ class GoogleConnectionFsmTest : FunSpec({
 
         val authService = mockk<GoogleAuthService>(relaxed = true)
         val driveService = mockk<GoogleDriveService>(relaxed = true)
-        coEvery { driveService.validateConnection("expired-token") } returns false
+        coEvery { driveService.validateConnectionResult("expired-token") } returns GoogleDriveService.ValidationResult.InvalidCredentials
         coEvery { authService.refreshAccessToken("refresh-token") } returns "new-token"
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(authService, tokenRepo)
         fsm.driveService = driveService
 
         fsm.checkConnectionOnStartup()
@@ -157,10 +154,10 @@ class GoogleConnectionFsmTest : FunSpec({
 
         val authService = mockk<GoogleAuthService>(relaxed = true)
         val driveService = mockk<GoogleDriveService>(relaxed = true)
-        coEvery { driveService.validateConnection("expired-token") } returns false
+        coEvery { driveService.validateConnectionResult("expired-token") } returns GoogleDriveService.ValidationResult.InvalidCredentials
         coEvery { authService.refreshAccessToken("refresh-token") } returns null
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo, HttpClient(MockEngine { respond("OK") }))
+        val fsm = GoogleAccountFlow(authService, tokenRepo)
         fsm.driveService = driveService
 
         fsm.checkConnectionOnStartup()
@@ -176,11 +173,10 @@ class GoogleConnectionFsmTest : FunSpec({
 
         val authService = mockk<GoogleAuthService>(relaxed = true)
         val driveService = mockk<GoogleDriveService>(relaxed = true)
-        coEvery { driveService.validateConnection("expired-token") } returns false
+        coEvery { driveService.validateConnectionResult("expired-token") } returns GoogleDriveService.ValidationResult.NetworkError("No Internet")
         coEvery { authService.refreshAccessToken("refresh-token") } returns null
 
-        // Simulate offline by throwing a network exception
-        val fsm = GoogleAccountFlow(authService, tokenRepo, HttpClient(MockEngine { throw Exception("No Internet") }))
+        val fsm = GoogleAccountFlow(authService, tokenRepo)
         fsm.driveService = driveService
 
         fsm.checkConnectionOnStartup()

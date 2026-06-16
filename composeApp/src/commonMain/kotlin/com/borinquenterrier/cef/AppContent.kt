@@ -24,6 +24,12 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.unit.dp
+import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.height
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import kotlinx.datetime.Clock
 import kotlinx.coroutines.delay
 import kotlinx.coroutines.launch
 
@@ -65,6 +71,50 @@ fun AppContent(container: DependencyContainer) {
             incompleteEvents = incompleteEvents,
             eventAgent = container.eventAgent,
             onDismiss = { showCheckIn = false }
+        )
+    }
+
+    val globalHoldState by GeminiRetryService.globalHoldState.collectAsState()
+
+    globalHoldState?.let { untilEpochMs ->
+        var remainingSeconds by remember(untilEpochMs) {
+            val now = Clock.System.now().toEpochMilliseconds()
+            mutableStateOf(((untilEpochMs - now) + 999L) / 1000L)
+        }
+
+        LaunchedEffect(untilEpochMs) {
+            while (true) {
+                delay(500L)
+                val now = Clock.System.now().toEpochMilliseconds()
+                remainingSeconds = ((untilEpochMs - now) + 999L) / 1000L
+                if (remainingSeconds <= 0) {
+                    break
+                }
+            }
+        }
+
+        AlertDialog(
+            onDismissRequest = {},
+            title = { Text("AI Key Saturated (Rate Limited)") },
+            text = {
+                Column {
+                    Text("All available Gemini models have hit their free-tier rate limits. To avoid request failures, the app is holding further requests.")
+                    Spacer(Modifier.height(12.dp))
+                    Text(
+                        "Resuming automatically in ${remainingSeconds.coerceAtLeast(0)} seconds...",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.primary
+                    )
+                }
+            },
+            confirmButton = {},
+            dismissButton = {
+                TextButton(
+                    onClick = { GeminiRetryService.cancelHold() }
+                ) {
+                    Text("Cancel Wait")
+                }
+            }
         )
     }
 

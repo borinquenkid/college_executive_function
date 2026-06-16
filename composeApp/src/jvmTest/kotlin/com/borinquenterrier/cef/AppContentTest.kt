@@ -11,10 +11,16 @@ import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)
 class AppContentTest {
+
+    @BeforeTest
+    fun setUp() {
+        GeminiRetryService.clearGlobalHoldForTesting()
+    }
 
     private fun buildMockContainer(
         incompleteEvents: MutableStateFlow<List<Event>> = MutableStateFlow(emptyList()),

@@ -2,6 +2,10 @@ package com.borinquenterrier.cef
 
 import io.ktor.http.HttpStatusCode
 import kotlinx.datetime.Clock
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.launch
 
 /**
  * Encapsulates retry delay calculation, rate limit tracking, and backoff strategy.
@@ -16,6 +20,14 @@ class GeminiRetryService(
     companion object {
         private var rateLimitResetTime: Long = 0L
         private var globalHoldUntil: Long = 0L
+        private var isHoldCancelled = false
+
+        private val _globalHoldState = MutableStateFlow<Long?>(null)
+        val globalHoldState: StateFlow<Long?> = _globalHoldState.asStateFlow()
+
+        private var activeDeferred: kotlinx.coroutines.CompletableDeferred<Unit>? = null
+
+        var skipLongDelaysInTests = false
 
         fun clearRateLimitResetForTesting() {
             rateLimitResetTime = 0L
@@ -23,6 +35,18 @@ class GeminiRetryService(
 
         fun clearGlobalHoldForTesting() {
             globalHoldUntil = 0L
+            isHoldCancelled = false
+            activeDeferred = null
+            _globalHoldState.value = null
+            skipLongDelaysInTests = false
+        }
+
+        fun cancelHold() {
+            isHoldCancelled = true
+            globalHoldUntil = 0L
+            _globalHoldState.value = null
+            activeDeferred?.completeExceptionally(kotlinx.coroutines.CancellationException("Rate limit hold cancelled by user"))
+            activeDeferred = null
         }
     }
 
@@ -30,7 +54,10 @@ class GeminiRetryService(
      * Activate global hold window. Add 2 seconds grace period to wait time.
      */
     fun activateGlobalHold(delayMs: Long) {
-        globalHoldUntil = Clock.System.now().toEpochMilliseconds() + delayMs + 2000L
+        val until = Clock.System.now().toEpochMilliseconds() + delayMs + 2000L
+        globalHoldUntil = until
+        isHoldCancelled = false
+        _globalHoldState.value = until
     }
 
     /**
@@ -120,6 +147,42 @@ class GeminiRetryService(
      * Wait for calculated delay using injectable delay function (testable).
      */
     suspend fun wait(delayMs: Long) {
-        delayFn(delayMs)
+        if (isHoldCancelled) {
+            isHoldCancelled = false
+            throw kotlinx.coroutines.CancellationException("Rate limit hold cancelled by user")
+        }
+        if (skipLongDelaysInTests && delayMs >= 5000L) {
+            throw Exception("QuotaExhausted: Rate limit delay of $delayMs ms is too long for integration tests.")
+        }
+
+        val deferred = kotlinx.coroutines.CompletableDeferred<Unit>()
+        activeDeferred = deferred
+
+        try {
+            kotlinx.coroutines.coroutineScope {
+                val delayJob = launch {
+                    try {
+                        delayFn(delayMs)
+                        deferred.complete(Unit)
+                    } catch (e: Exception) {
+                        deferred.completeExceptionally(e)
+                    }
+                }
+                
+                try {
+                    deferred.await()
+                } finally {
+                    delayJob.cancel()
+                }
+            }
+        } finally {
+            if (activeDeferred === deferred) {
+                activeDeferred = null
+            }
+            val now = Clock.System.now().toEpochMilliseconds()
+            if (now >= globalHoldUntil) {
+                _globalHoldState.value = null
+            }
+        }
     }
 }

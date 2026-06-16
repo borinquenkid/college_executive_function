@@ -180,6 +180,9 @@ class GeminiRequestExecutor(
                 throw Exception("Unexpected response status: ${httpResponse.status}")
 
             } catch (e: Exception) {
+                if (e is kotlinx.coroutines.CancellationException) {
+                    throw e
+                }
                 if (e.message?.let {
                         it.contains("Unauthorized") || it.contains("Forbidden") || it.contains(
                             "QuotaExhausted"

@@ -52,7 +52,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | DriveFileFetcher.kt | 71.4% (10/14) | N/A | 81.6% | DriveFileFetcher |
 | 🟡 | CalendarInterfaces.kt | 72.7% (16/22) | N/A | 82.3% | OverlapException, RemoteCalendarMetadata, StudentCalendarRepository |
 | 🟡 | CalendarPushResolver.kt | 73.3% (88/120) | 50.0% (32/64) | 75.6% | CalendarPushResolver, PushOutcome |
-| 🟡 | GeminiRequestExecutor.kt | 73.6% (178/242) | 50.0% (86/172) | 72.2% | GeminiRequestExecutor, GeminiRequestExecutor$Companion |
+| 🟡 | GeminiRequestExecutor.kt | 73.6% (178/242) | 51.2% (88/172) | 72.4% | GeminiRequestExecutor, GeminiRequestExecutor$Companion |
 | 🟡 | SyncProposal.kt | 75.0% (36/48) | 25.0% (4/16) | 55.3% | SyncNegotiation, SyncProposal$DirectConflict, SyncProposal$StudyBlockShift |
 | 🟡 | GoogleCalendarPanel.kt | 75.0% (336/448) | 67.0% (150/224) | 78.0% | ComposableSingletons$GoogleCalendarPanelKt, GoogleCalendarPanelKt, GoogleCalendarPanelKt$GoogleCalendarPanel$1$1$2$1$1, GoogleCalendarPanelKt$GoogleCalendarPanel$1$1$6$1$1, GoogleCalendarPanelKt$GoogleCalendarPanel$3$1$1 |
 | 🟡 | ContributionValidator.kt | 78.1% (50/64) | 75.0% (6/8) | 83.8% | ContributionPoisonException, ContributionValidator |

@@ -78,26 +78,38 @@ class GoogleDriveService(
         }
     }
 
-    /**
-     * Verifies that the connection is working by fetching a single file metadata.
-     * Returns true if successful, false otherwise.
-     */
-    suspend fun validateConnection(accessToken: String): Boolean {
+    sealed interface ValidationResult {
+        data object Success : ValidationResult
+        data object InvalidCredentials : ValidationResult
+        data class NetworkError(val message: String) : ValidationResult
+    }
+
+    suspend fun validateConnectionResult(accessToken: String): ValidationResult {
         return try {
             val response = httpClient.get("$baseUrl/files") {
                 header("Authorization", "Bearer $accessToken")
                 parameter("pageSize", 1)
             }
-            if (!response.status.isSuccess()) {
+            if (response.status.isSuccess()) {
+                ValidationResult.Success
+            } else {
                 val errorBody = response.bodyAsText()
                 println("[GoogleDriveService] Validation status is not success: ${response.status}. Body: $errorBody")
+                ValidationResult.InvalidCredentials
             }
-            response.status.isSuccess()
         } catch (e: Exception) {
             println("[GoogleDriveService] Validation threw exception: ${e.message}")
             e.printStackTrace()
-            false
+            ValidationResult.NetworkError(e.message ?: "Network error")
         }
+    }
+
+    /**
+     * Verifies that the connection is working by fetching a single file metadata.
+     * Returns true if successful, false otherwise.
+     */
+    suspend fun validateConnection(accessToken: String): Boolean {
+        return validateConnectionResult(accessToken) is ValidationResult.Success
     }
 
     /**

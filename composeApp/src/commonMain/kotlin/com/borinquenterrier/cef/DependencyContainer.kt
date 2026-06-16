@@ -69,7 +69,7 @@ class DependencyContainer(
         )
     }
 
-    val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository, httpClient) }
+    val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository) }
 
     val driveService: GoogleDriveService by lazy {
         GoogleDriveService(

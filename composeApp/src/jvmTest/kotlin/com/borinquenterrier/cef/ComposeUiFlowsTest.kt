@@ -15,10 +15,16 @@ import io.mockk.mockk
 import kotlinx.coroutines.GlobalScope
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
+import kotlin.test.BeforeTest
 import kotlin.test.Test
 
 @OptIn(ExperimentalTestApi::class)
 class ComposeUiFlowsTest {
+
+    @BeforeTest
+    fun setUp() {
+        GeminiRetryService.clearGlobalHoldForTesting()
+    }
 
     private fun createMockContainer(): DependencyContainer {
         val mockContainer = mockk<DependencyContainer>(relaxed = true)

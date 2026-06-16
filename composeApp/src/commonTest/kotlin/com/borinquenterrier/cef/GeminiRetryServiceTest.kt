@@ -60,4 +60,33 @@ class GeminiRetryServiceTest : StringSpec({
             e.message?.contains("rate limit") == true
         }
     }
+
+    "activateGlobalHold sets globalHoldState flow" {
+        val logger = mockk<Logger>(relaxed = true)
+        val service = GeminiRetryService(logger, {})
+        
+        GeminiRetryService.clearGlobalHoldForTesting()
+        GeminiRetryService.globalHoldState.value shouldBe null
+        
+        service.activateGlobalHold(5000L)
+        (GeminiRetryService.globalHoldState.value != null) shouldBe true
+    }
+
+    "cancelHold clears globalHoldState and causes wait to throw CancellationException" {
+        val logger = mockk<Logger>(relaxed = true)
+        var delayMs = 0L
+        val delayFn: suspend (Long) -> Unit = { ms -> delayMs = ms }
+        val service = GeminiRetryService(logger, delayFn)
+
+        GeminiRetryService.clearGlobalHoldForTesting()
+        service.activateGlobalHold(10000L)
+
+        GeminiRetryService.cancelHold()
+
+        io.kotest.assertions.throwables.shouldThrow<kotlinx.coroutines.CancellationException> {
+            service.wait(5000L)
+        }
+        
+        GeminiRetryService.globalHoldState.value shouldBe null
+    }
 })

@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: Phase 6 complete / Phase 1 next** — Token-efficient source processing (Phase 6) completed; Phase 1 (custom Google Calendar selection UI) is the next planned work
+**Current Phase: Phase 1 complete / Phase 2 next** — Custom Google Calendar selection UI (Phase 1) completed; Phase 2 (Google Calendar, Gemini Quota, and OAuth Improvements) is the next planned work
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -257,9 +257,9 @@ High CRAP scores indicate high risk of bugs. Per `AGENTS.md`, high-complexity fi
 
 ## 🆕 Planned Work & User-Reported Issues
 
-### Phase 1 — Custom Google Calendar Selection UI
+### Phase 1 — Custom Google Calendar Selection UI ✅ **COMPLETED**
 Add ability to fetch available Google Calendars, save the selected calendar ID/name to preferences, and configure the synchronization pipeline to target the chosen calendar. This enables flexible desktop testing using specific test calendars instead of hardcoding target IDs.
-* **Status**: ⏳ Planned
+* **Status**: ✅ Completed
 * **Tasks**:
   1. Fetch available calendars via `RemoteCalendarRepository.getAvailableCalendars()` (wired through `syncService.listCalendars()`).
   2. Add preference keys (`google_calendar_id`, `google_calendar_name`) to `PreferencesRepository` / `StudyPreferences`.

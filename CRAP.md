@@ -10,7 +10,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 155
-- **High-Risk Files (CRAP > 30)**: 9
+- **High-Risk Files (CRAP > 30)**: 8
 
 ### Top 15 High-Risk Files
 
@@ -20,14 +20,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | AcademicCalendarComponents.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | CalendarSyncManager.kt | 8 | 16.0% | 45.93 | 🔴 HIGH |
-| GeminiRequestExecutor.kt | 26 | 71.9% | 41.00 | 🔴 HIGH |
-| GoogleRemoteCalendarRepository.kt | 22 | 66.7% | 39.93 | 🔴 HIGH |
-| EventAgent.kt | 39 | 92.3% | 39.69 | 🔴 HIGH |
-| GeminiAIService.kt | 26 | 78.9% | 32.31 | 🔴 HIGH |
+| EventAgent.kt | 39 | 94.2% | 39.29 | 🔴 HIGH |
+| GeminiRequestExecutor.kt | 26 | 73.6% | 38.50 | 🔴 HIGH |
+| GoogleRemoteCalendarRepository.kt | 22 | 68.6% | 36.94 | 🔴 HIGH |
 | GoogleCalendarPanel.kt | 23 | 75.0% | 31.27 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | CalendarPushResolver.kt | 21 | 73.3% | 29.36 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 93.9% | 29.19 | 🟡 MEDIUM |
+| GeminiAIService.kt | 26 | 85.1% | 28.24 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.2% | 24.53 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 86.4% | 24.34 | 🟡 MEDIUM |
 | CommonSourceProviders.kt | 21 | 80.9% | 24.07 | 🟡 MEDIUM |
@@ -80,39 +80,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `initiateSyncIfNeeded` | 1 |
 | `applySyncProposal` | 1 |
 
-### GeminiRequestExecutor.kt (Score: 41.00 - 🔴 HIGH)
-- **Total Complexity**: 26
-- **Real Coverage**: 71.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearRateLimitResetForTesting` | 1 |
-| `postToModel` | 1 |
-| `<T> executeWithRetry` | 1 |
-
-### GoogleRemoteCalendarRepository.kt (Score: 39.93 - 🔴 HIGH)
-- **Total Complexity**: 22
-- **Real Coverage**: 66.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearCalendar` | 5 |
-| `deleteEvent` | 3 |
-| `getAllEvents` | 2 |
-| `saveEvent` | 2 |
-| `updateEvent` | 2 |
-| `mapCalendarException` | 2 |
-| `getSettings` | 1 |
-| `getAvailableCalendars` | 1 |
-| `hardDeleteEvent` | 1 |
-| `getEventsInRange` | 1 |
-| *... and 2 more* | |
-
-### EventAgent.kt (Score: 39.69 - 🔴 HIGH)
+### EventAgent.kt (Score: 39.29 - 🔴 HIGH)
 - **Total Complexity**: 39
-- **Real Coverage**: 92.3%
+- **Real Coverage**: 94.2%
 
 #### Methods list:
 | Method | Complexity |
@@ -129,24 +99,35 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `updateStatus` | 1 |
 | *... and 9 more* | |
 
-### GeminiAIService.kt (Score: 32.31 - 🔴 HIGH)
+### GeminiRequestExecutor.kt (Score: 38.50 - 🔴 HIGH)
 - **Total Complexity**: 26
-- **Real Coverage**: 78.9%
+- **Real Coverage**: 73.6%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `categorizeSource` | 4 |
-| `analyzeDocument` | 3 |
-| `generateCalendarEvents` | 2 |
-| `generateCalendarEventsFromPrompt` | 2 |
-| `generateChatResponse` | 2 |
-| `extractSourceYears` | 1 |
-| `filterToSourceYears` | 1 |
-| `parseEventsJson` | 1 |
-| `parseDecomposeTaskJson` | 1 |
-| `parseCategorizeSourceJson` | 1 |
-| *... and 6 more* | |
+| `clearRateLimitResetForTesting` | 1 |
+| `postToModel` | 1 |
+| `<T> executeWithRetry` | 1 |
+
+### GoogleRemoteCalendarRepository.kt (Score: 36.94 - 🔴 HIGH)
+- **Total Complexity**: 22
+- **Real Coverage**: 68.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearCalendar` | 5 |
+| `deleteEvent` | 3 |
+| `getAllEvents` | 2 |
+| `saveEvent` | 2 |
+| `updateEvent` | 2 |
+| `mapCalendarException` | 2 |
+| `getSettings` | 1 |
+| `getAvailableCalendars` | 1 |
+| `hardDeleteEvent` | 1 |
+| `getEventsInRange` | 1 |
+| *... and 2 more* | |
 
 ### GoogleCalendarPanel.kt (Score: 31.27 - 🔴 HIGH)
 - **Total Complexity**: 23
@@ -196,6 +177,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `createCalendar` | 1 |
 | `deleteEvent` | 1 |
 | `fetchEventsPage` | 1 |
+
+### GeminiAIService.kt (Score: 28.24 - 🟡 MEDIUM)
+- **Total Complexity**: 26
+- **Real Coverage**: 85.1%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `categorizeSource` | 4 |
+| `analyzeDocument` | 3 |
+| `generateCalendarEvents` | 2 |
+| `generateCalendarEventsFromPrompt` | 2 |
+| `generateChatResponse` | 2 |
+| `extractSourceYears` | 1 |
+| `filterToSourceYears` | 1 |
+| `parseEventsJson` | 1 |
+| `parseDecomposeTaskJson` | 1 |
+| `parseCategorizeSourceJson` | 1 |
+| *... and 6 more* | |
 
 ### SqlDelightLocalCalendarRepository.kt (Score: 24.53 - 🟡 MEDIUM)
 - **Total Complexity**: 24
@@ -376,6 +376,22 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `clearBlacklistForTesting` | 1 |
 | `blacklistModel` | 1 |
 | `negotiateBestModel` | 1 |
+
+### GoogleAccountFlow.kt (Score: 20.02 - 🟡 MEDIUM)
+- **Total Complexity**: 20
+- **Real Coverage**: 96.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `connect` | 5 |
+| `checkConnectionOnStartup` | 3 |
+| `refreshOrDisconnect` | 3 |
+| `handleInvalidAccessToken` | 2 |
+| `disconnectIfOnline` | 2 |
+| `isOnline` | 2 |
+| `disconnect` | 1 |
+| `reportAuthError` | 1 |
 
 ### RoutineScreen.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
@@ -890,17 +906,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getRefreshToken` | 1 |
 | `login` | 1 |
 | `logout` | 1 |
-
-### GoogleAccountFlow.kt (Score: 8.00 - 🟢 LOW)
-- **Total Complexity**: 8
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `connect` | 5 |
-| `disconnect` | 1 |
-| `reportAuthError` | 1 |
 
 ### OAuthExchange.kt (Score: 7.20 - 🟢 LOW)
 - **Total Complexity**: 6
@@ -1611,11 +1616,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `FilePicker` | 1 |
 
-### DependencyContainer.kt (Score: 1.13 - 🟢 LOW)
-- **Total Complexity**: 1
-- **Real Coverage**: 49.7%
-
-
 ### RecursiveDecompositionAIService.kt (Score: 1.13 - 🟢 LOW)
 - **Total Complexity**: 1
 - **Real Coverage**: 50.0%
@@ -1624,6 +1624,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `decomposeTask` | 1 |
+
+### DependencyContainer.kt (Score: 1.12 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 50.2%
+
 
 ### GoogleConnectionState.kt (Score: 1.06 - 🟢 LOW)
 - **Total Complexity**: 1

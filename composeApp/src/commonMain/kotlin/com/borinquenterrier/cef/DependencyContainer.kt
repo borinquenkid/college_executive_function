@@ -10,6 +10,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.launch
 import kotlinx.serialization.json.Json
 
 /**
@@ -68,7 +69,7 @@ class DependencyContainer(
         )
     }
 
-    val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository) }
+    val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository, httpClient) }
 
     val driveService: GoogleDriveService by lazy {
         GoogleDriveService(
@@ -82,6 +83,9 @@ class DependencyContainer(
 
     init {
         googleAccountFlow.driveService = driveService
+        globalScope.launch {
+            googleAccountFlow.checkConnectionOnStartup()
+        }
     }
 
     val telemetryManager by lazy { TelemetryManager(settings) }

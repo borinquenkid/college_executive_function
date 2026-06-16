@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import io.ktor.client.HttpClient
+import io.ktor.client.request.get
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -9,7 +11,8 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class GoogleAccountFlow(
     private val authService: GoogleAuthService,
-    private val tokenRepository: GoogleTokenRepository
+    private val tokenRepository: GoogleTokenRepository,
+    private val httpClient: HttpClient
 ) {
     lateinit var driveService: GoogleDriveService
 
@@ -63,5 +66,53 @@ class GoogleAccountFlow(
     fun reportAuthError(message: String) {
         println("[GoogleAccountFlow] Transition: Linked -> Error ($message)")
         _state.value = GoogleConnectionState.Error(message)
+    }
+
+    suspend fun checkConnectionOnStartup() {
+        val accessToken = tokenRepository.getAccessToken() ?: return
+        if (driveService.validateConnection(accessToken)) {
+            _state.value = GoogleConnectionState.Linked
+            return
+        }
+        handleInvalidAccessToken()
+    }
+
+    private suspend fun handleInvalidAccessToken() {
+        val refreshToken = tokenRepository.getRefreshToken()
+        if (refreshToken == null) {
+            disconnectIfOnline()
+            return
+        }
+        refreshOrDisconnect(refreshToken)
+    }
+
+    private suspend fun disconnectIfOnline() {
+        if (isOnline()) {
+            disconnect()
+        }
+    }
+
+    private suspend fun refreshOrDisconnect(refreshToken: String) {
+        val newAccessToken = try {
+            authService.refreshAccessToken(refreshToken)
+        } catch (e: Exception) {
+            null
+        }
+
+        if (newAccessToken != null) {
+            tokenRepository.saveTokens(newAccessToken, refreshToken)
+            _state.value = GoogleConnectionState.Linked
+        } else {
+            disconnectIfOnline()
+        }
+    }
+
+    private suspend fun isOnline(): Boolean {
+        return try {
+            httpClient.get("https://www.google.com")
+            true
+        } catch (e: Exception) {
+            false
+        }
     }
 }

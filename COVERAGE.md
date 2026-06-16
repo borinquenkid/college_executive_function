@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **79.12%** (9834/12430 lines)
+- **Overall Line Coverage**: **79.37%** (9902/12476 lines)
 - **Total Source Files**: 155
 
 ## Coverage by File
@@ -38,25 +38,24 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | GoogleAuthManager.kt | 40.0% (12/30) | N/A | 20.7% | GoogleAuthManager |
 | 🔴 | LocalFileProcessor.kt | 41.7% (10/24) | 0.0% (0/8) | 13.4% | LocalFileProcessor |
 | 🔴 | DriveFileProcessor.kt | 41.7% (10/24) | 0.0% (0/8) | 13.5% | DriveFileProcessor |
-| 🔴 | DependencyContainer.kt | 49.7% (198/398) | N/A | 79.0% | DependencyContainer |
 | 🟡 | HarnessSourceProcessor.kt | 50.0% (12/24) | N/A | 23.3% | HarnessSourceProcessor |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% | RecursiveDecompositionAIService |
+| 🟡 | DependencyContainer.kt | 50.2% (202/402) | N/A | 79.5% | DependencyContainer, DependencyContainer$1 |
 | 🟡 | PollScheduler.kt | 56.3% (18/32) | 25.0% (2/8) | 50.8% | PollScheduler |
 | 🟡 | GoogleConnectionState.kt | 61.5% (16/26) | 0.0% (0/20) | 79.4% | GoogleConnectionEvent, GoogleConnectionEvent$ConnectionFailed, GoogleConnectionEvent$ConnectionSuccess, GoogleConnectionEvent$Disconnect, GoogleConnectionEvent$StartConnection, GoogleConnectionState, GoogleConnectionState$Companion, GoogleConnectionState$Connecting, GoogleConnectionState$Error, GoogleConnectionState$Error$Companion, GoogleConnectionState$Linked, GoogleConnectionState$Unlinked |
 | 🟡 | LocalFileFilter.kt | 62.5% (10/16) | 100.0% (4/4) | 33.3% | LocalFileFilter |
 | 🟡 | DriveQueryBuilder.kt | 64.3% (18/28) | N/A | 68.2% | DriveQueryBuilder |
-| 🟡 | GoogleRemoteCalendarRepository.kt | 66.7% (68/102) | 62.5% (10/16) | 88.0% | CalendarNotFoundException, GoogleRemoteCalendarRepository |
 | 🟡 | SourcesPanel.kt | 66.7% (72/108) | 63.2% (48/76) | 77.6% | SourcesPanelKt, SourcesPanelKt$SourcesPanel$1$2$1$1$1$1, SourcesPanelKt$SourcesPanel$1$2$1$1$2$1, SourcesPanelKt$SourcesPanel$1$2$1$1$3$1 |
 | 🟡 | OAuthExchange.kt | 67.9% (38/56) | 25.0% (8/32) | 59.3% | OAuthExchange, TokenResponse, TokenResponse$Companion |
+| 🟡 | GoogleRemoteCalendarRepository.kt | 68.6% (70/102) | 62.5% (10/16) | 88.8% | CalendarNotFoundException, GoogleRemoteCalendarRepository |
 | 🟡 | GeminiBodyBuilder.kt | 71.4% (20/28) | 100.0% (4/4) | 83.1% | GeminiBodyBuilder |
 | 🟡 | DriveFileFetcher.kt | 71.4% (10/14) | N/A | 81.6% | DriveFileFetcher |
-| 🟡 | GeminiRequestExecutor.kt | 71.9% (174/242) | 46.5% (80/172) | 70.3% | GeminiRequestExecutor, GeminiRequestExecutor$Companion |
 | 🟡 | CalendarInterfaces.kt | 72.7% (16/22) | N/A | 82.3% | OverlapException, RemoteCalendarMetadata, StudentCalendarRepository |
 | 🟡 | CalendarPushResolver.kt | 73.3% (88/120) | 50.0% (32/64) | 75.6% | CalendarPushResolver, PushOutcome |
+| 🟡 | GeminiRequestExecutor.kt | 73.6% (178/242) | 50.0% (86/172) | 72.2% | GeminiRequestExecutor, GeminiRequestExecutor$Companion |
 | 🟡 | SyncProposal.kt | 75.0% (36/48) | 25.0% (4/16) | 55.3% | SyncNegotiation, SyncProposal$DirectConflict, SyncProposal$StudyBlockShift |
 | 🟡 | GoogleCalendarPanel.kt | 75.0% (336/448) | 67.0% (150/224) | 78.0% | ComposableSingletons$GoogleCalendarPanelKt, GoogleCalendarPanelKt, GoogleCalendarPanelKt$GoogleCalendarPanel$1$1$2$1$1, GoogleCalendarPanelKt$GoogleCalendarPanel$1$1$6$1$1, GoogleCalendarPanelKt$GoogleCalendarPanel$3$1$1 |
 | 🟡 | ContributionValidator.kt | 78.1% (50/64) | 75.0% (6/8) | 83.8% | ContributionPoisonException, ContributionValidator |
-| 🟡 | GeminiAIService.kt | 78.9% (180/228) | 30.0% (24/80) | 69.7% | Candidate, Candidate$Companion, Content, Content$Companion, GeminiAIService, GeminiAIService$1, GeminiAIService$Companion, GeminiAIService$TaskTier, GeminiResponse, GeminiResponse$Companion, Part, Part$Companion |
 | 🟢 | CollisionDetector.kt | 80.9% (110/136) | 50.0% (36/72) | 70.5% | CollisionDetector |
 | 🟢 | CommonSourceProviders.kt | 80.9% (288/356) | 43.4% (66/152) | 82.1% | CommonSourceProvidersKt, CommonSourceProvidersKt$DrivePickerDialog$1$1, CommonSourceProvidersKt$DrivePickerDialog$3$1$1$1$1$1$1, ComposableSingletons$CommonSourceProvidersKt, GoogleDriveSourceProvider, LocalFileSourceProvider, UrlSourceProvider, UrlSourceProvider$SelectorUI$3$1$1 |
 | 🟢 | AppContent.kt | 81.4% (114/140) | 75.0% (24/32) | 87.4% | AppContentKt, AppContentKt$AppContent$1$1, AppContentKt$AppContent$1$1$1, AppContentKt$AppContent$1$1$2, ComposableSingletons$AppContentKt |
@@ -67,7 +66,8 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | WebSourceReader.kt | 83.3% (40/48) | N/A | 86.6% | WebSourceReader |
 | 🟢 | EventGenerationService.kt | 83.6% (92/110) | 64.3% (36/56) | 78.5% | EventGenerationService |
 | 🟢 | GeminiRetryService.kt | 84.0% (84/100) | 76.7% (46/60) | 87.6% | GeminiRetryService, GeminiRetryService$Companion |
-| 🟢 | Logger.kt | 85.0% (34/40) | 50.0% (6/12) | 89.9% | Logger, LoggerKt |
+| 🟢 | Logger.kt | 85.0% (34/40) | 66.7% (8/12) | 90.8% | Logger, LoggerKt |
+| 🟢 | GeminiAIService.kt | 85.1% (194/228) | 40.0% (32/80) | 77.8% | Candidate, Candidate$Companion, Content, Content$Companion, GeminiAIService, GeminiAIService$1, GeminiAIService$Companion, GeminiAIService$TaskTier, GeminiResponse, GeminiResponse$Companion, Part, Part$Companion |
 | 🟢 | StateFlowWrapper.kt | 85.7% (12/14) | N/A | 46.7% | StateFlowWrapperImpl, StateFlowWrapperKt |
 | 🟢 | CriticActorAIService.kt | 86.4% (190/220) | 44.7% (68/152) | 85.5% | CriticActorAIService |
 | 🟢 | StudyPreferencesPanel.kt | 87.1% (216/248) | 66.7% (64/96) | 91.1% | ComposableSingletons$StudyPreferencesPanelKt, StudyPreferencesPanelKt |
@@ -78,14 +78,13 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | ErrorCategorizer.kt | 89.4% (84/94) | 78.9% (60/76) | 88.5% | ErrorCategorizer, ErrorCategorizer$ErrorType, ErrorCategorizer$ErrorType$Forbidden, ErrorCategorizer$ErrorType$OtherError, ErrorCategorizer$ErrorType$QuotaExhausted, ErrorCategorizer$ErrorType$StructuralError, ErrorCategorizer$ErrorType$TransientRateLimit, ErrorCategorizer$ErrorType$TransientServerError, ErrorCategorizer$ErrorType$Unauthorized |
 | 🟢 | GoogleDriveService.kt | 89.5% (136/152) | 64.6% (62/96) | 89.3% | DriveFile, DriveFile$Companion, DriveFileListResponse, DriveFileListResponse$Companion, GoogleDriveService, GoogleDriveService$getFileContent$2, GoogleDriveService$listFiles$2 |
 | 🟢 | SqlDelightUserPreferenceMemoryRepository.kt | 89.7% (104/116) | 75.0% (54/72) | 86.1% | SqlDelightUserPreferenceMemoryRepository, SqlDelightUserPreferenceMemoryRepository$clearAllLogs$2, SqlDelightUserPreferenceMemoryRepository$getDerivedConstraints$2, SqlDelightUserPreferenceMemoryRepository$logOverride$2, SqlDelightUserPreferenceMemoryRepository$pruneOldLogs$2 |
-| 🟢 | GeminiModelNegotiator.kt | 90.0% (162/180) | 69.5% (114/164) | 87.5% | GeminiModelNegotiator, GeminiModelNegotiator$Companion, ModelInfo, ModelInfo$Companion, ModelListResponse, ModelListResponse$Companion |
+| 🟢 | GeminiModelNegotiator.kt | 90.0% (162/180) | 74.4% (122/164) | 88.3% | GeminiModelNegotiator, GeminiModelNegotiator$Companion, ModelInfo, ModelInfo$Companion, ModelListResponse, ModelListResponse$Companion |
 | 🟢 | SqlDelightLocalCalendarRepository.kt | 90.2% (148/164) | 73.8% (62/84) | 86.7% | SqlDelightLocalCalendarRepository |
 | 🟢 | SyllabusAuditor.kt | 90.9% (40/44) | 46.2% (24/52) | 85.0% | SyllabusAuditor |
 | 🟢 | SourceProcessor.kt | 91.7% (22/24) | 83.3% (10/12) | 86.6% | SourceProcessor |
 | 🟢 | SourceIngestionHandler.kt | 91.7% (44/48) | 100.0% (4/4) | 95.9% | GoogleDriveQueryBuilder, SourceIngestionHandler, SourceIngestionHandler$ingestDriveFile$1, SourceIngestionHandler$ingestLocalFile$1, SourceIngestionHandler$ingestUrl$1 |
 | 🟢 | ErrorBanner.kt | 91.8% (112/122) | 81.8% (36/44) | 95.7% | ComposableSingletons$ErrorBannerKt, ErrorBannerKt |
 | 🟢 | ContextAgent.kt | 92.1% (70/76) | 50.0% (14/28) | 91.8% | ContextAgent, ContextAgent$queryAllSources$sourceBlocks$1 |
-| 🟢 | EventAgent.kt | 92.3% (288/312) | 58.7% (54/92) | 92.9% | AgentError, AgentError$GenericError, AgentError$QuotaExhausted, EventAgent, EventAgent$acceptDecomposition$2, EventAgent$decomposeTask$2, EventAgent$extractDeliverables$2, EventAgent$generateStudyPlan$2, EventAgent$markEventCompleted$2, EventAgent$rescheduleEvent$2, EventAgent$skipEvent$2 |
 | 🟢 | EventDisplayPipeline.kt | 92.9% (26/28) | 66.7% (8/12) | 94.8% | EventDisplayPipeline |
 | 🟢 | NormalizationService.kt | 92.9% (52/56) | 75.0% (48/64) | 98.5% | NormalizationService |
 | 🟢 | Event.kt | 93.0% (160/172) | 57.8% (216/374) | 78.3% | AcademicCategory, CompletionStatus, DayEvent, DayEvent$Companion, Event, Event$Companion, Event$DefaultImpls, EventKt, EventSource, Recurrence, Recurrence$Companion, SyncStatus, TimeEvent, TimeEvent$Companion |
@@ -95,10 +94,12 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | GeminiRequestBuilder.kt | 93.8% (30/32) | 70.0% (14/20) | 86.8% | GeminiRequestBuilder |
 | 🟢 | GoogleCalendarSyncService.kt | 93.9% (246/262) | 44.4% (128/288) | 78.5% | GoogleApiException, GoogleCalendarDiscoveryItem, GoogleCalendarDiscoveryItem$Companion, GoogleCalendarEventsResponse, GoogleCalendarEventsResponse$Companion, GoogleCalendarItem, GoogleCalendarItem$Companion, GoogleCalendarListDiscoveryResponse, GoogleCalendarListDiscoveryResponse$Companion, GoogleCalendarSyncService, GoogleCalendarSyncService$createCalendar$2, GoogleCalendarSyncService$deleteEvent$2, GoogleCalendarSyncService$fetchEventsPage$2, GoogleCalendarSyncService$listCalendars$2, GoogleCalendarSyncService$syncEvent$2, GoogleEvent, GoogleEvent$Companion, GoogleEventDateTime, GoogleEventDateTime$Companion |
 | 🟢 | StudioPanel.kt | 94.1% (386/410) | 75.0% (66/88) | 95.2% | ComposableSingletons$StudioPanelKt, StudioPanelKt, StudioPanelKt$StudioPanel$1$1, StudioPanelKt$StudioPanel$2$1, StudioPanelKt$StudioPanel$3$2$1$1$1$1$1, StudioPanelKt$StudioPanel$3$2$1$3$1$1$1, StudioPanelKt$StudioPanel$3$2$1$4$1$1$1, StudioPanelKt$StudioPanel$3$2$1$5$1, StudioPanelKt$StudioPanel$3$2$1$5$1$1 |
+| 🟢 | EventAgent.kt | 94.2% (294/312) | 67.4% (62/92) | 94.9% | AgentError, AgentError$GenericError, AgentError$QuotaExhausted, EventAgent, EventAgent$acceptDecomposition$2, EventAgent$decomposeTask$2, EventAgent$extractDeliverables$2, EventAgent$generateStudyPlan$2, EventAgent$markEventCompleted$2, EventAgent$rescheduleEvent$2, EventAgent$skipEvent$2 |
 | 🟢 | CheckInDialog.kt | 94.4% (204/216) | 40.0% (8/20) | 91.0% | CheckInDialogKt, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$1$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$2$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$2$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$3$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$3$1$1, ComposableSingletons$CheckInDialogKt |
 | 🟢 | SourceDeleter.kt | 94.4% (34/36) | 50.0% (10/20) | 88.8% | SourceDeleter, SourceDeleter$deleteSource$1 |
 | 🟢 | TaskDecompositionService.kt | 95.5% (42/44) | 64.3% (18/28) | 91.1% | TaskDecompositionService |
 | 🟢 | BugReporter.kt | 95.5% (84/88) | 50.0% (8/16) | 84.1% | BugReporter, BugReporter$reportError$1, TelemetryStats, TelemetryStats$Companion |
+| 🟢 | GoogleAccountFlow.kt | 96.2% (102/106) | 83.3% (30/36) | 96.3% | GoogleAccountFlow |
 | 🟢 | SyncNegotiator.kt | 96.4% (106/110) | 63.2% (48/76) | 93.5% | SyncNegotiator |
 | 🟢 | SqlDelightSourceRepository.kt | 96.4% (108/112) | 100.0% (20/20) | 93.5% | SqlDelightSourceRepository, SqlDelightSourceRepository$deleteSource$2, SqlDelightSourceRepository$getAllSources$2, SqlDelightSourceRepository$getFragmentsForSource$2, SqlDelightSourceRepository$getSourceById$2, SqlDelightSourceRepository$getSourceMetadata$2, SqlDelightSourceRepository$saveSource$2, SqlDelightSourceRepository$updateSourceMetadata$2 |
 | 🟢 | SyncNegotiationDialog.kt | 96.6% (168/174) | 50.0% (16/32) | 96.8% | ComposableSingletons$SyncNegotiationDialogKt, SyncNegotiationDialogKt, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$1$1$1$1, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$2$1$1$1 |
@@ -131,7 +132,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | EventGenerator.kt | 100.0% (54/54) | 88.5% (46/52) | 98.9% | EventGenerator |
 | 🟢 | GeminiSetupPanel.kt | 100.0% (118/118) | 88.9% (32/36) | 99.6% | ComposableSingletons$GeminiSetupPanelKt, GeminiSetupPanelKt |
 | 🟢 | GeminiErrorHandler.kt | 100.0% (24/24) | 75.0% (6/8) | 98.2% | GeminiErrorHandler |
-| 🟢 | ConflictResolver.kt | 100.0% (114/114) | 75.0% (60/80) | 98.4% | ConflictResolver, ConflictResolver$ConflictResolution, ConflictResolver$UnresolvedConflict |
+| 🟢 | ConflictResolver.kt | 100.0% (114/114) | 77.5% (62/80) | 98.7% | ConflictResolver, ConflictResolver$ConflictResolution, ConflictResolver$UnresolvedConflict |
 | 🟢 | EventRangeFilter.kt | 100.0% (18/18) | 100.0% (16/16) | 100.0% | EventRangeFilter |
 | 🟢 | DirectoryPreferencesManager.kt | 100.0% (14/14) | N/A | 100.0% | DirectoryPreferencesManager |
 | 🟢 | StudyPreferences.kt | 100.0% (26/26) | 58.3% (98/168) | 74.3% | StudyPreferences, StudyPreferences$Companion |
@@ -139,7 +140,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | DriveDirectoryPreferences.kt | 100.0% (24/24) | 66.7% (8/12) | 98.3% | DriveDirectoryPreferences |
 | 🟢 | SemesterResolver.kt | 100.0% (34/34) | 81.8% (36/44) | 92.2% | SemesterResolver |
 | 🟢 | CategorizationBuilder.kt | 100.0% (12/12) | N/A | 100.0% | CategorizationBuilder |
-| 🟢 | GoogleAuthService.kt | 100.0% (34/34) | 50.0% (10/20) | 96.3% | GoogleTokenRepository |
+| 🟢 | GoogleAuthService.kt | 100.0% (34/34) | 70.0% (14/20) | 98.2% | GoogleTokenRepository |
 | 🟢 | UserPreferenceMemoryRepository.kt | 100.0% (2/2) | N/A | 100.0% | UserPreferenceMemoryRepository |
 | 🟢 | SourceAdder.kt | 100.0% (84/84) | 81.3% (26/32) | 99.0% | SourceAdder, SourceAdder$addSource$1 |
 | 🟢 | DriveFileScanner.kt | 100.0% (40/40) | 100.0% (8/8) | 100.0% | DriveFileScanner |
@@ -148,9 +149,8 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟢 | UserOverrideLog.kt | 100.0% (10/10) | N/A | 100.0% | OverrideAction, UserPreferenceConstraint |
 | 🟢 | CalendarEventGrouper.kt | 100.0% (22/22) | 87.5% (14/16) | 93.3% | CalendarEventGrouper |
 | 🟢 | PreferencesRepository.kt | 100.0% (22/22) | 100.0% (4/4) | 100.0% | PreferencesRepository, PreferencesRepository$getPreferences$2, PreferencesRepository$savePreferences$2 |
-| 🟢 | GoogleAccountFlow.kt | 100.0% (64/64) | 75.0% (12/16) | 98.3% | GoogleAccountFlow |
 | 🟢 | SourceScanner.kt | 100.0% (20/20) | N/A | 100.0% | SourceScanner |
-| 🟢 | IngestionAgent.kt | 100.0% (104/104) | 81.3% (26/32) | 95.8% | IngestionAgent |
+| 🟢 | IngestionAgent.kt | 100.0% (104/104) | 87.5% (28/32) | 97.8% | IngestionAgent |
 | 🟢 | AiEventsService.kt | 100.0% (10/10) | N/A | 100.0% | AiEventsService |
 | 🟢 | SqlDelightAnalysisCacheRepository.kt | 100.0% (38/38) | 100.0% (4/4) | 100.0% | SqlDelightAnalysisCacheRepository, SqlDelightAnalysisCacheRepository$evict$2, SqlDelightAnalysisCacheRepository$getCached$2, SqlDelightAnalysisCacheRepository$putCache$2 |
 | 🟢 | SourceContextBuilder.kt | 100.0% (46/46) | 62.5% (10/16) | 98.9% | SourceContextBuilder |

@@ -16,7 +16,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| EventAgent.kt | 37 | 0.0% | 1406.00 | 🔴 HIGH |
+| EventAgent.kt | 39 | 0.0% | 1560.00 | 🔴 HIGH |
 | GoogleCalendarSyncService.kt | 29 | 0.0% | 870.00 | 🔴 HIGH |
 | GeminiAIService.kt | 26 | 0.0% | 702.00 | 🔴 HIGH |
 | GeminiRequestExecutor.kt | 25 | 0.0% | 650.00 | 🔴 HIGH |
@@ -36,8 +36,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Detailed File Breakdown
 
-### EventAgent.kt (Score: 1406.00 - 🔴 HIGH)
-- **Total Complexity**: 37
+### EventAgent.kt (Score: 1560.00 - 🔴 HIGH)
+- **Total Complexity**: 39
 - **Real Coverage**: 0.0%
 
 #### Methods list:
@@ -49,11 +49,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateStudyPlan` | 2 |
 | `loadIncompleteEvents` | 2 |
 | `clearError` | 1 |
+| `reportError` | 1 |
+| `setGeneratedEvents` | 1 |
 | `clearUnresolvedConflicts` | 1 |
 | `updateStatus` | 1 |
-| `Exception.isQuotaError` | 1 |
-| `runAgentAction` | 1 |
-| *... and 7 more* | |
+| *... and 9 more* | |
 
 ### GoogleCalendarSyncService.kt (Score: 870.00 - 🔴 HIGH)
 - **Total Complexity**: 29
@@ -1064,6 +1064,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `QuotaErrorBanner` | 1 |
 | `AnimatedErrorBanner` | 1 |
 
+### SourceAdder.kt (Score: 30.00 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `addSource` | 5 |
+
 ### TaskDecompositionService.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
 - **Real Coverage**: 0.0%
@@ -1349,15 +1358,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `validate` | 3 |
-
-### SourceAdder.kt (Score: 12.00 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `addSource` | 3 |
 
 ### SourcesPanel.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 3

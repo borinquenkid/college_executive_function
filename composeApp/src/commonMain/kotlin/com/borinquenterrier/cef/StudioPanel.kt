@@ -2,6 +2,7 @@ package com.borinquenterrier.cef
 
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -192,8 +193,9 @@ fun StudioPanel(
                     val eventsWithWarnings = lastGeneratedEvents.filter { it.warning != null }
                     if (eventsWithWarnings.isNotEmpty()) {
                         item {
+                            val uniqueWarnings = eventsWithWarnings.mapNotNull { it.warning }.distinct()
                             Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.errorContainer),
+                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                                 modifier = Modifier.fillMaxWidth()
                                     .testTag("source_discrepancies_card")
                             ) {
@@ -202,20 +204,20 @@ fun StudioPanel(
                                         Icon(
                                             Icons.Default.Warning,
                                             contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.error
+                                            tint = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
                                         Spacer(Modifier.width(8.dp))
                                         Text(
-                                            "Source Discrepancies Found",
+                                            "Source Notes",
                                             style = MaterialTheme.typography.titleSmall,
-                                            color = MaterialTheme.colorScheme.error
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
                                     }
-                                    eventsWithWarnings.forEach { event ->
+                                    uniqueWarnings.forEach { warning ->
                                         Text(
-                                            "- ${event.title}: ${event.warning}",
+                                            "- $warning",
                                             style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.error
+                                            color = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
                                     }
                                 }
@@ -293,12 +295,14 @@ fun StudioPanel(
 
                     items(lastGeneratedEvents) { event ->
                         Card(modifier = Modifier.fillMaxWidth()) {
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                Text(event.title, style = MaterialTheme.typography.bodyMedium)
-                                Text(
-                                    event.date.toString(),
-                                    style = MaterialTheme.typography.bodySmall
-                                )
+                            SelectionContainer {
+                                Column(modifier = Modifier.padding(8.dp)) {
+                                    Text(event.title, style = MaterialTheme.typography.bodyMedium)
+                                    Text(
+                                        event.date.toString(),
+                                        style = MaterialTheme.typography.bodySmall
+                                    )
+                                }
                             }
                         }
                     }

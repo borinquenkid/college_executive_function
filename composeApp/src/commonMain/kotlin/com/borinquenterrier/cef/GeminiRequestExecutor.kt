@@ -5,6 +5,8 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Lightweight facade orchestrating Gemini API request execution with retry logic.
@@ -32,9 +34,26 @@ class GeminiRequestExecutor(
     private val retryService = GeminiRetryService(logger, delayFn)
 
     companion object {
+        private val pacingMutex = Mutex()
+        private var nextAllowedRequestTime: Long = 0L
+        var isPacingEnabled = true
+
         fun clearRateLimitResetForTesting() {
             GeminiRetryService.clearRateLimitResetForTesting()
             GeminiRetryService.clearGlobalHoldForTesting()
+            nextAllowedRequestTime = 0L
+            isPacingEnabled = false
+        }
+
+        suspend fun pushNextAllowedRequestTime(delayMs: Long) {
+            if (isPacingEnabled) {
+                pacingMutex.withLock {
+                    val target = kotlinx.datetime.Clock.System.now().toEpochMilliseconds() + delayMs
+                    if (target > nextAllowedRequestTime) {
+                        nextAllowedRequestTime = target
+                    }
+                }
+            }
         }
     }
 
@@ -48,6 +67,20 @@ class GeminiRequestExecutor(
         parseResponse: (responseText: String) -> T
     ): T {
         retryService.checkRateLimitWindow()
+
+        // Pacing logic: ensure at least 5000ms between consecutive request starts to stay safely under 15 RPM
+        if (isPacingEnabled) {
+            val delayMs = pacingMutex.withLock {
+                val now = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+                val scheduledTime = maxOf(now, nextAllowedRequestTime)
+                val minInterval = 5000L
+                nextAllowedRequestTime = scheduledTime + minInterval
+                scheduledTime - now
+            }
+            if (delayMs > 0) {
+                delayFn(delayMs)
+            }
+        }
 
         val available = modelNegotiator.getAvailableModels()
         var attempts = 0
@@ -145,6 +178,7 @@ class GeminiRequestExecutor(
                         if (consecutiveRateLimitCount >= 2) {
                             logger?.e(tag, "⚠️ API key saturated (${consecutiveRateLimitCount} consecutive long rate limits). Holding ${delayMs}ms before retry.")
                             retryService.activateGlobalHold(delayMs)
+                            pushNextAllowedRequestTime(delayMs)
                             retryService.wait(delayMs)
                             consecutiveRateLimitCount = 0
                             continue
@@ -161,6 +195,7 @@ class GeminiRequestExecutor(
                     }
 
                     consecutiveRateLimitCount = 0
+                    pushNextAllowedRequestTime(delayMs)
                     retryService.wait(delayMs)
                     continue
                 }
@@ -195,6 +230,7 @@ class GeminiRequestExecutor(
                 logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
                 attempts++
                 val delayMs = 1000L * (1 shl (attempts - 1))
+                pushNextAllowedRequestTime(delayMs)
                 retryService.wait(delayMs)
             }
         }

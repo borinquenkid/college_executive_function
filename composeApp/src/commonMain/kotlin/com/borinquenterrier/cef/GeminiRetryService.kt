@@ -33,6 +33,11 @@ class GeminiRetryService(
             rateLimitResetTime = 0L
         }
 
+        fun clearGlobalHold() {
+            globalHoldUntil = 0L
+            _globalHoldState.value = null
+        }
+
         fun clearGlobalHoldForTesting() {
             globalHoldUntil = 0L
             isHoldCancelled = false

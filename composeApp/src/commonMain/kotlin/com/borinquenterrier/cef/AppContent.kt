@@ -88,34 +88,37 @@ fun AppContent(container: DependencyContainer) {
                 val now = Clock.System.now().toEpochMilliseconds()
                 remainingSeconds = ((untilEpochMs - now) + 999L) / 1000L
                 if (remainingSeconds <= 0) {
+                    GeminiRetryService.clearGlobalHold()
                     break
                 }
             }
         }
 
-        AlertDialog(
-            onDismissRequest = {},
-            title = { Text("AI Key Saturated (Rate Limited)") },
-            text = {
-                Column {
-                    Text("All available Gemini models have hit their free-tier rate limits. To avoid request failures, the app is holding further requests.")
-                    Spacer(Modifier.height(12.dp))
-                    Text(
-                        "Resuming automatically in ${remainingSeconds.coerceAtLeast(0)} seconds...",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+        if (remainingSeconds > 0) {
+            AlertDialog(
+                onDismissRequest = {},
+                title = { Text("AI Key Saturated (Rate Limited)") },
+                text = {
+                    Column {
+                        Text("All available Gemini models have hit their free-tier rate limits. To avoid request failures, the app is holding further requests.")
+                        Spacer(Modifier.height(12.dp))
+                        Text(
+                            "Resuming automatically in ${remainingSeconds.coerceAtLeast(0)} seconds...",
+                            style = MaterialTheme.typography.titleMedium,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                },
+                confirmButton = {},
+                dismissButton = {
+                    TextButton(
+                        onClick = { GeminiRetryService.cancelHold() }
+                    ) {
+                        Text("Cancel Wait")
+                    }
                 }
-            },
-            confirmButton = {},
-            dismissButton = {
-                TextButton(
-                    onClick = { GeminiRetryService.cancelHold() }
-                ) {
-                    Text("Cancel Wait")
-                }
-            }
-        )
+            )
+        }
     }
 
     Scaffold(

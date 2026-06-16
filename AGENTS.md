@@ -228,3 +228,4 @@ All business logic classes (Models, Agents, Services, and Utilities) MUST have a
 *   Active Lifecycle Agent Harness — `AgentHarness` polling at startup and once daily
 *   Token-Efficient Source Processing — analysis cache, mutex sequential queue, and global hold strategy
 *   Custom Google Calendar Selection UI — fetch available calendars, save selection to preferences, and target chosen calendar during sync
+*   Stale OAuth Connection Resolution — automatically detect invalid refresh tokens at startup in GoogleAccountFlow and transition cleanly to Unlinked

@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: Phase 1 complete / Phase 2 next** — Custom Google Calendar selection UI (Phase 1) completed; Phase 2 (Google Calendar, Gemini Quota, and OAuth Improvements) is the next planned work
+**Current Phase: All Phases Complete** — All core roadmap phases (Phases 1–6) are fully completed, verified, and integrated.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -268,15 +268,15 @@ Add ability to fetch available Google Calendars, save the selected calendar ID/n
 
 ---
 
-### Phase 2 — Google Calendar, Gemini Quota, and OAuth Improvements
+### Phase 2 — Google Calendar, Gemini Quota, and OAuth Improvements ✅ **COMPLETED**
 These are user-reported issues and feature requests targeted for the next development cycles:
-* **Target Google Calendar Creation Capability** (Feature Request)
+* **Target Google Calendar Creation Capability** (Feature Request) ✅ **COMPLETED**
   * **Description**: The app currently only allows picking from existing calendars retrieved from the user's Google Account. There is no option in the settings UI to create a *new* calendar.
   * **Proposed Solution**: Add a "Create New Calendar" button/dialog in `SettingsScreen.kt` that calls `GoogleCalendarSyncService.createCalendar(name)` to instantiate a fresh calendar directly from the app.
-* **Gemini API Daily Quota Rate Limit Issue** — ⚠️ **Superseded by Phase 6** (see below)
+* **Gemini API Daily Quota Rate Limit Issue** — ⚠️ **Superseded by Phase 6** (see below) ✅ **COMPLETED**
   * **Description**: Ingesting a calendar and two syllabi simultaneously frequently triggers a `QuotaExhausted: Rate limit reached` error due to multiple concurrent requests.
   * **Superseded solution**: Full plan in **Phase 6** — content-addressable cache (6.1), sequential processing queue (6.2), global rate-limit hold strategy (6.3).
-* **Google OAuth Stale Connection / JSON Auth Error**
+* **Google OAuth Stale Connection / JSON Auth Error** ✅ **COMPLETED**
   * **Description**: On startup, if local session tokens are stale/expired, the connection shows a raw JSON authentication error. Disconnecting and reconnecting resolves it.
   * **Proposed Solution**: Auto-detect invalid refresh tokens at startup inside `GoogleAccountFlow` and transition the status cleanly to `Unlinked` instead of throwing raw JSON error messages.
 

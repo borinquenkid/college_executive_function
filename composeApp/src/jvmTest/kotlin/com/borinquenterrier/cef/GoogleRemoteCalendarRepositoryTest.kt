@@ -91,6 +91,18 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         coVerify(exactly = 1) { syncService.getEvents(specificId) }
     }
 
+    // ─── getAvailableCalendars ───────────────────────────────────────────────
+
+    test("getAvailableCalendars delegates to syncService.listCalendars") {
+        val calendars = listOf(RemoteCalendarMetadata("cal-1", "Calendar 1"))
+        coEvery { syncService.listCalendars() } returns calendars
+
+        val result = repo.getAvailableCalendars()
+
+        result shouldBe calendars
+        coVerify(exactly = 1) { syncService.listCalendars() }
+    }
+
     // ─── saveEvent ───────────────────────────────────────────────────────────
 
     test("saveEvent syncs event when no overlap exists") {

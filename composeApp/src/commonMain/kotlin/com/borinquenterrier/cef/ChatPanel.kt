@@ -27,6 +27,7 @@ import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -58,7 +59,14 @@ fun ChatPanel(
     val messages by appController.chatMessages.asStateFlow().collectAsState()
     val sourceItems by appController.sourceItems.asStateFlow().collectAsState()
     val contextAgent = appController.container.contextAgent
-    val ingestionWarnings by appController.container.eventAgent.persistedWarnings.collectAsState()
+    val eventAgent = appController.container.eventAgent
+    val persistedWarnings by eventAgent.persistedWarnings.collectAsState()
+    val liveWarnings by eventAgent.lastGeneratedEvents.collectAsState()
+    val ingestionWarnings = remember(persistedWarnings, liveWarnings) {
+        (liveWarnings.mapNotNull { it.warning } + persistedWarnings).distinct()
+    }
+
+    LaunchedEffect(Unit) { eventAgent.loadPersistedWarnings() }
 
     var newMessage by remember { mutableStateOf("") }
     // true  = reason across every loaded source (multi-source mode)

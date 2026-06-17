@@ -36,7 +36,7 @@ class IngestionAgent(
                 fileName.lowercase()
                     .endsWith(".ics") -> IcsCalendarSource(fileReader.readText(path)).readSource()
 
-                else -> SourceProcessor.process(fileReader.readText(path))
+                else -> SourceProcessor.split(fileReader.readText(path))
             }
             ContributionValidator.validate(fragments)
             val isIcs = fileName.lowercase().endsWith(".ics")
@@ -54,7 +54,7 @@ class IngestionAgent(
             val rawContent = webReader.readTextFromUrl(url)
             val isIcs = url.lowercase().endsWith(".ics")
             val fragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
-            else SourceProcessor.process(rawContent)
+            else SourceProcessor.split(rawContent)
             val sourceItem = SourceItem(url, fragments, resolveCategory(isIcs, fragments))
             persistSource(sourceItem, url)
             sourceItem
@@ -69,7 +69,7 @@ class IngestionAgent(
             val rawContent = driveService.getFileContent(file.id, file.mimeType)
             val isIcs = file.name.lowercase().endsWith(".ics")
             val fragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
-            else SourceProcessor.process(rawContent)
+            else SourceProcessor.split(rawContent)
             val sourceItem = SourceItem(file.name, fragments, resolveCategory(isIcs, fragments))
             persistSource(sourceItem, "google_drive://${file.id}")
             sourceItem

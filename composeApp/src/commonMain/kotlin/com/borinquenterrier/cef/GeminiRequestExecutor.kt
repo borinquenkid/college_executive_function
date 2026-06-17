@@ -87,6 +87,7 @@ class GeminiRequestExecutor(
         var lastError: Exception? = null
         var lastNegotiatedModel: String? = null
         var consecutiveRateLimitCount = 0
+        var consecutiveExtremeCount = 0
 
         while (attempts < maxAttempts) {
             val modelName = modelNegotiator.negotiateBestModel(available, tier)
@@ -170,27 +171,46 @@ class GeminiRequestExecutor(
                 // Handle transient rate limits (429)
                 if (errorType is ErrorCategorizer.ErrorType.TransientRateLimit) {
                     telemetryManager?.logRateLimitError()
+                    val delayMs = errorType.delayMs
+
+                    // Delays >2 min signal the model's daily quota is effectively exhausted.
+                    // Blacklist for the session and immediately try the next model — never wait this long.
+                    // Does NOT count against maxAttempts so we can cycle through all exhausted models for free.
+                    if (delayMs > 120_000L) {
+                        modelNegotiator.blacklistModel(modelName)
+                        modelNegotiator.evictFromCache(modelName)
+                        consecutiveExtremeCount++
+                        logger?.e(tag, "⚠️ Model $modelName has extreme rate limit (${delayMs / 1000}s). Treating as exhausted. Trying next model...")
+                        lastError = Exception("RateLimited: Extreme rate limit for model $modelName. Delay: ${delayMs / 1000}s.")
+                        // Safety valve: if all models are extreme-limited, burn an attempt to prevent infinite loop
+                        if (consecutiveExtremeCount >= 10) {
+                            attempts++
+                            consecutiveExtremeCount = 0
+                        }
+                        continue
+                    }
+                    consecutiveExtremeCount = 0
+
                     attempts++
 
-                    val delayMs = errorType.delayMs
                     if (delayMs > 10000L) {
                         consecutiveRateLimitCount++
                         if (consecutiveRateLimitCount >= 2) {
                             logger?.e(tag, "⚠️ API key saturated (${consecutiveRateLimitCount} consecutive long rate limits). Holding ${delayMs}ms before retry.")
+                            // Blacklist BEFORE waiting so expiry is anchored from when the rate limit was received
+                            modelNegotiator.blacklistModel(modelName, delayMs + 2000L)
+                            modelNegotiator.evictFromCache(modelName)
                             retryService.activateGlobalHold(delayMs)
                             pushNextAllowedRequestTime(delayMs)
                             retryService.wait(delayMs)
                             consecutiveRateLimitCount = 0
                             continue
                         }
-                        modelNegotiator.blacklistModel(modelName)
+                        // Temporary blacklist matching the rate-limit window so the model re-enters the pool once it recovers
+                        modelNegotiator.blacklistModel(modelName, delayMs + 2000L)
                         modelNegotiator.evictFromCache(modelName)
-                        logger?.e(
-                            tag,
-                            "⚠️ Model $modelName rate limit delay ${delayMs}ms too long. Blacklisted. Trying next model..."
-                        )
-                        lastError =
-                            Exception("QuotaExhausted: Rate limit reached for model $modelName. Delay: ${delayMs / 1000}s.")
+                        logger?.e(tag, "⚠️ Model $modelName rate limit delay ${delayMs}ms too long. Blacklisted for ${delayMs / 1000}s. Trying next model...")
+                        lastError = Exception("RateLimited: Temporary rate limit for model $modelName. Delay: ${delayMs / 1000}s.")
                         continue
                     }
 

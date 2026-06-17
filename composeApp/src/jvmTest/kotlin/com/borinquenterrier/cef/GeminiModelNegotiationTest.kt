@@ -244,4 +244,27 @@ class GeminiModelNegotiationTest : FunSpec({
         // maxAttempts for categorizeSource is 3
         getAttempts() shouldBe 3
     }
+
+    test("generateCalendarEvents batches large list of fragments") {
+        val (client, getAttempts) = makeMockClient { _, _ ->
+            HttpStatusCode.OK to successJson("[]")
+        }
+
+        val logger = mockk<Logger>(relaxed = true)
+        val geminiService = GeminiAIService(
+            apiKey = "fake-key",
+            logger = logger,
+            customClient = client,
+            delayFn = {}
+        )
+
+        // 5 text fragments -> should result in 2 batches (1-3, 3-5)
+        val fragments = List(5) { i ->
+            SourceFragment(text = "Fragment ${i + 1}", type = SourceType.TEXT)
+        }
+
+        val events = geminiService.generateCalendarEvents(fragments)
+        events shouldBe emptyList()
+        getAttempts() shouldBe 2
+    }
 })

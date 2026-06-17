@@ -100,17 +100,57 @@ class GeminiAIService(
         parseResponse: (responseText: String) -> T
     ): T = requestExecutor.executeWithRetry(maxAttempts, tier, body, parseResponse)
 
-    suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
-        val combinedJson = buildJsonArray {
-            fragments.forEach { fragment ->
-                add(Json.parseToJsonElement(fragment.toJson()))
+    private fun batchFragments(
+        fragments: List<SourceFragment>,
+        batchSize: Int = 3,
+        overlap: Int = 1
+    ): List<List<SourceFragment>> {
+        if (fragments.isEmpty()) return emptyList()
+        val batches = mutableListOf<List<SourceFragment>>()
+        var startIndex = 0
+        while (startIndex < fragments.size) {
+            val endIndex = (startIndex + batchSize).coerceAtMost(fragments.size)
+            val batch = fragments.subList(startIndex, endIndex)
+            batches.add(batch)
+            if (endIndex == fragments.size) {
+                break
             }
-        }.toString()
-        return generateCalendarEventsFromPrompt(
-            AiPrompts.getSourceEventExtractionPrompt(
-                combinedJson
+            val nextIndex = startIndex + batchSize - overlap
+            if (nextIndex <= startIndex || nextIndex >= fragments.size) {
+                break
+            }
+            startIndex = nextIndex
+        }
+        return batches
+    }
+
+    suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
+        val isText = fragments.firstOrNull()?.type == SourceType.TEXT
+        if (isText && fragments.size > 3) {
+            val batches = batchFragments(fragments, batchSize = 3, overlap = 1)
+            val allEvents = mutableListOf<Event>()
+            for (batch in batches) {
+                val combinedJson = buildJsonArray {
+                    batch.forEach { fragment ->
+                        add(Json.parseToJsonElement(fragment.toJson()))
+                    }
+                }.toString()
+                val events = generateCalendarEventsFromPrompt(
+                    AiPrompts.getSourceEventExtractionPrompt(combinedJson)
+                )
+                allEvents.addAll(events)
+            }
+            return allEvents
+        } else {
+            val combinedJson = buildJsonArray {
+                fragments.forEach { fragment ->
+                    add(Json.parseToJsonElement(fragment.toJson()))
+                }
+            }.toString()
+            return generateCalendarEventsFromPrompt(
+                AiPrompts.getSourceEventExtractionPrompt(combinedJson)
             )
-        )
+        }
     }
 
     suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
@@ -191,7 +231,7 @@ class GeminiAIService(
 
         return try {
             executeWithRetry(
-                maxAttempts = 3,
+                maxAttempts = 10,
                 tier = TaskTier.LIGHT,
                 body = { _ -> buildGeminiBody(prompt) },
                 parseResponse = { responseText -> parseCategorizeSourceJson(responseText) }

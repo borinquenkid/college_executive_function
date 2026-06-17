@@ -7,7 +7,7 @@ object ContributionValidator {
     private val POISON_PATTERNS: List<Pair<String, Regex>> = listOf(
         // Command/Shell Injection
         "command substitution \$(…)"       to Regex("""\$\(.*\)"""),
-        "backtick execution"               to Regex("""`[^`]+`"""),
+        "backtick execution"               to Regex("""(?<![a-zA-Z])`[^`]+`"""),
         "rm -rf"                           to Regex("""\brm\s+-rf\b""", RegexOption.IGNORE_CASE),
         "sudo"                             to Regex("""\bsudo\s+""", RegexOption.IGNORE_CASE),
         "chmod/chown"                      to Regex("""\b(chmod|chown)\s+""", RegexOption.IGNORE_CASE),

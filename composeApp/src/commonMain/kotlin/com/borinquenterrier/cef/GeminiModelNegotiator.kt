@@ -47,8 +47,8 @@ class GeminiModelNegotiator(
         isLenient = true
     }
 
-    fun blacklistModel(modelName: String) {
-        val expiry = Clock.System.now().toEpochMilliseconds() + BLACKLIST_DURATION_MS
+    fun blacklistModel(modelName: String, durationMs: Long = BLACKLIST_DURATION_MS) {
+        val expiry = Clock.System.now().toEpochMilliseconds() + durationMs
         blacklistedModels[modelName] = expiry
     }
 

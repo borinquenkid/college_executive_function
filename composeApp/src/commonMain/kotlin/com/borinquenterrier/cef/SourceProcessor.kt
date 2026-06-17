@@ -16,13 +16,20 @@ object SourceProcessor {
     /**
      * Splits text into smaller fragments if necessary (e.g. for extremely large files).
      */
-    fun split(text: String, size: Int = 10000): List<SourceFragment> {
+    fun split(text: String, size: Int = 3000): List<SourceFragment> {
         if (text.isBlank()) return emptyList()
         val fragments = mutableListOf<SourceFragment>()
         var start = 0
+        var pageNum = 1
         while (start < text.length) {
             val end = (start + size).coerceAtMost(text.length)
-            fragments.add(SourceFragment(text = text.substring(start, end), type = SourceType.TEXT))
+            fragments.add(
+                SourceFragment(
+                    text = text.substring(start, end),
+                    pageNumber = pageNum++,
+                    type = SourceType.TEXT
+                )
+            )
             start = end
         }
         return fragments

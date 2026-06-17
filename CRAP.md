@@ -10,7 +10,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 155
-- **High-Risk Files (CRAP > 30)**: 8
+- **High-Risk Files (CRAP > 30)**: 9
 
 ### Top 15 High-Risk Files
 
@@ -23,12 +23,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRequestExecutor.kt | 32 | 80.7% | 39.37 | 🔴 HIGH |
 | EventAgent.kt | 39 | 94.2% | 39.29 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 22 | 68.6% | 36.94 | 🔴 HIGH |
+| GeminiAIService.kt | 34 | 86.5% | 36.83 | 🔴 HIGH |
 | GoogleCalendarPanel.kt | 23 | 75.0% | 31.27 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
+| CalendarPushResolver.kt | 21 | 73.3% | 29.36 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 93.9% | 29.19 | 🟡 MEDIUM |
-| GeminiAIService.kt | 26 | 85.1% | 28.24 | 🟡 MEDIUM |
 | GeminiRetryService.kt | 27 | 89.7% | 27.81 | 🟡 MEDIUM |
-| CalendarPushResolver.kt | 21 | 76.7% | 26.60 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 90.2% | 24.53 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 86.4% | 24.34 | 🟡 MEDIUM |
 
@@ -130,6 +130,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getEventsInRange` | 1 |
 | *... and 2 more* | |
 
+### GeminiAIService.kt (Score: 36.83 - 🔴 HIGH)
+- **Total Complexity**: 34
+- **Real Coverage**: 86.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `generateCalendarEvents` | 5 |
+| `categorizeSource` | 4 |
+| `analyzeDocument` | 3 |
+| `generateCalendarEventsFromPrompt` | 2 |
+| `generateChatResponse` | 2 |
+| `extractSourceYears` | 1 |
+| `filterToSourceYears` | 1 |
+| `parseEventsJson` | 1 |
+| `parseDecomposeTaskJson` | 1 |
+| `parseCategorizeSourceJson` | 1 |
+| *... and 7 more* | |
+
 ### GoogleCalendarPanel.kt (Score: 31.27 - 🔴 HIGH)
 - **Total Complexity**: 23
 - **Real Coverage**: 75.0%
@@ -150,6 +169,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `SourceItemView` | 1 |
 
+### CalendarPushResolver.kt (Score: 29.36 - 🟡 MEDIUM)
+- **Total Complexity**: 21
+- **Real Coverage**: 73.3%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `buildResolver` | 3 |
+| `resolveAndPush` | 1 |
+| `resolveAndReschedule` | 1 |
+| `resolveConflicts` | 1 |
+| `persistResolvedEvents` | 1 |
+
 ### GoogleCalendarSyncService.kt (Score: 29.19 - 🟡 MEDIUM)
 - **Total Complexity**: 29
 - **Real Coverage**: 93.9%
@@ -165,25 +197,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `createCalendar` | 1 |
 | `deleteEvent` | 1 |
 | `fetchEventsPage` | 1 |
-
-### GeminiAIService.kt (Score: 28.24 - 🟡 MEDIUM)
-- **Total Complexity**: 26
-- **Real Coverage**: 85.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `categorizeSource` | 4 |
-| `analyzeDocument` | 3 |
-| `generateCalendarEvents` | 2 |
-| `generateCalendarEventsFromPrompt` | 2 |
-| `generateChatResponse` | 2 |
-| `extractSourceYears` | 1 |
-| `filterToSourceYears` | 1 |
-| `parseEventsJson` | 1 |
-| `parseDecomposeTaskJson` | 1 |
-| `parseCategorizeSourceJson` | 1 |
-| *... and 6 more* | |
 
 ### GeminiRetryService.kt (Score: 27.81 - 🟡 MEDIUM)
 - **Total Complexity**: 27
@@ -201,19 +214,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `activateGlobalHold` | 1 |
 | `resolveRetryDelay` | 1 |
 | `activateRateLimitWindow` | 1 |
-
-### CalendarPushResolver.kt (Score: 26.60 - 🟡 MEDIUM)
-- **Total Complexity**: 21
-- **Real Coverage**: 76.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `buildResolver` | 3 |
-| `resolveAndPush` | 1 |
-| `resolveAndReschedule` | 1 |
-| `resolveConflicts` | 1 |
-| `persistResolvedEvents` | 1 |
 
 ### SqlDelightLocalCalendarRepository.kt (Score: 24.53 - 🟡 MEDIUM)
 - **Total Complexity**: 24
@@ -299,9 +299,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseClockTime` | 1 |
 | `stripCodeFences` | 1 |
 
-### Event.kt (Score: 22.10 - 🟡 MEDIUM)
+### Event.kt (Score: 22.16 - 🟡 MEDIUM)
 - **Total Complexity**: 22
-- **Real Coverage**: 94.2%
+- **Real Coverage**: 93.0%
 
 #### Methods list:
 | Method | Complexity |
@@ -342,6 +342,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseTasks` | 2 |
 | `parseTaskFromJson` | 2 |
 
+### EventGenerationService.kt (Score: 20.58 - 🟡 MEDIUM)
+- **Total Complexity**: 19
+- **Real Coverage**: 83.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extractDeliverables` | 6 |
+| `normalize` | 6 |
+| `buildScheduleContext` | 4 |
+| `generateStudyPlan` | 2 |
+| `generateDeterministicId` | 1 |
+
 ### SqlDelightUserPreferenceMemoryRepository.kt (Score: 20.44 - 🟡 MEDIUM)
 - **Total Complexity**: 20
 - **Real Coverage**: 89.7%
@@ -366,19 +379,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `clearBlacklistForTesting` | 1 |
 | `blacklistModel` | 1 |
 | `negotiateBestModel` | 1 |
-
-### EventGenerationService.kt (Score: 20.11 - 🟡 MEDIUM)
-- **Total Complexity**: 19
-- **Real Coverage**: 85.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `extractDeliverables` | 6 |
-| `normalize` | 6 |
-| `buildScheduleContext` | 4 |
-| `generateStudyPlan` | 2 |
-| `generateDeterministicId` | 1 |
 
 ### RoutineScreen.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
@@ -804,9 +804,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `writeLogToFile` | 1 |
 | `rememberLogger` | 1 |
 
-### NormalizationService.kt (Score: 9.00 - 🟢 LOW)
+### NormalizationService.kt (Score: 9.03 - 🟢 LOW)
 - **Total Complexity**: 9
-- **Real Coverage**: 100.0%
+- **Real Coverage**: 92.9%
 
 #### Methods list:
 | Method | Complexity |
@@ -1175,16 +1175,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readText` | 1 |
 | `rememberLocalFileReader` | 1 |
 
-### SourceProcessor.kt (Score: 5.01 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 91.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `split` | 3 |
-| `process` | 2 |
-
 ### ErrorBanner.kt (Score: 5.01 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 91.8%
@@ -1243,6 +1233,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getCEFCalendarId` | 3 |
 | `resolveCalendarId` | 2 |
+
+### SourceProcessor.kt (Score: 5.00 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `split` | 3 |
+| `process` | 2 |
 
 ### SourceSelector.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5

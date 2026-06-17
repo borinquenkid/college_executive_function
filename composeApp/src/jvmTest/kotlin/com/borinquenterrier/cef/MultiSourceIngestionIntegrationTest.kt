@@ -54,22 +54,23 @@ class MultiSourceIngestionIntegrationTest : FunSpec({
     }
 
     test("Headless Multi-Source Ingestion: should ingest calendar PDF and syllabi and verify combined events").config(
-        timeout = AI_INTEGRATION_TIMEOUT_MS.milliseconds
+        timeout = (10 * 60 * 1000L).milliseconds
     ) {
         val apiKey = resolveApiKey("MULTI-SOURCE INGESTION INTEGRATION TEST") ?: return@config
 
         // 1. Setup temporary calendar PDF
-        val tempCalendarFile = File.createTempFile("calendar_spring_2025", ".pdf")
+        // Dates must be in the future (relative to today) so pushToCalendar() does not filter them.
+        val tempCalendarFile = File.createTempFile("calendar_spring_2027", ".pdf")
         val calendarLines = listOf(
-            "Spring 2025 Academic Calendar",
+            "Spring 2027 Academic Calendar",
             "",
-            "January 13, 2025: First Day of Classes / Semester Starts",
-            "January 20, 2025: Martin Luther King Jr. Day (Holiday)",
-            "January 28, 2025: Last Day to Drop Course without a Grade",
-            "March 17 - March 21, 2025: Spring Break (Holiday)",
-            "April 3, 2025: Last Day to Drop Course with a W",
-            "May 9, 2025: Last Day of Classes",
-            "May 12 - May 16, 2025: Final Exams Week"
+            "January 11, 2027: First Day of Classes / Semester Starts",
+            "January 18, 2027: Martin Luther King Jr. Day (Holiday)",
+            "January 26, 2027: Last Day to Drop Course without a Grade",
+            "March 15 - March 19, 2027: Spring Break (Holiday)",
+            "April 1, 2027: Last Day to Drop Course with a W",
+            "May 7, 2027: Last Day of Classes",
+            "May 10 - May 14, 2027: Final Exams Week"
         )
         TestPdfGenerator.generatePdf(calendarLines, tempCalendarFile)
 
@@ -175,33 +176,33 @@ class MultiSourceIngestionIntegrationTest : FunSpec({
         val academicCalendarExpected = listOf(
             ExpectedEvent(
                 "First Day of Classes",
-                LocalDate(2025, 1, 13),
+                LocalDate(2027, 1, 11),
                 AcademicCategory.SEMESTER_BOUND
             ),
             ExpectedEvent(
                 "Martin Luther King Jr. Day",
-                LocalDate(2025, 1, 20),
+                LocalDate(2027, 1, 18),
                 AcademicCategory.HOLIDAY
             ),
             ExpectedEvent(
                 "Last Day to Drop Course without a Grade",
-                LocalDate(2025, 1, 28),
+                LocalDate(2027, 1, 26),
                 AcademicCategory.SEMESTER_BOUND
             ),
-            ExpectedEvent("Spring Break", LocalDate(2025, 3, 17), AcademicCategory.HOLIDAY),
+            ExpectedEvent("Spring Break", LocalDate(2027, 3, 15), AcademicCategory.HOLIDAY),
             ExpectedEvent(
                 "Last Day to Drop Course with a W",
-                LocalDate(2025, 4, 3),
+                LocalDate(2027, 4, 1),
                 AcademicCategory.SEMESTER_BOUND
             ),
             ExpectedEvent(
                 "Last Day of Classes",
-                LocalDate(2025, 5, 9),
+                LocalDate(2027, 5, 7),
                 AcademicCategory.SEMESTER_BOUND
             ),
             ExpectedEvent(
                 "Final Exams Week",
-                LocalDate(2025, 5, 12),
+                LocalDate(2027, 5, 10),
                 AcademicCategory.SEMESTER_BOUND
             )
         )

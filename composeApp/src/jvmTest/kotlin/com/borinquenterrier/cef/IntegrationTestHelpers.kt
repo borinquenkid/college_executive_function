@@ -79,7 +79,6 @@ fun resolveApiKey(testName: String): String? {
         println("SKIPPING $testName: Disabled in test/offline profile.")
         return null
     }
-    GeminiRetryService.skipLongDelaysInTests = true
     val envMap = loadEnvFileMap()
     val apiKey = resolveSecret("CEF_GEMINI_API_KEY", envMap)
         ?: resolveSecret("GEMINI_API_KEY", envMap)

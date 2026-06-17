@@ -32,8 +32,9 @@ object AiPrompts {
     fun getMultiSourceChatPrompt(
         sourceBlocks: List<SourceContextBlock>,
         conversationHistory: List<Pair<String, String>>,
-        question: String
-    ): String = ChatBuilder.getMultiSourceChatPrompt(sourceBlocks, conversationHistory, question)
+        question: String,
+        warnings: List<String> = emptyList()
+    ): String = ChatBuilder.getMultiSourceChatPrompt(sourceBlocks, conversationHistory, question, warnings)
 
     fun getEventCritiquePrompt(sourceText: String, eventsJson: String): String =
         EventBuilder.getEventCritiquePrompt(sourceText, eventsJson)

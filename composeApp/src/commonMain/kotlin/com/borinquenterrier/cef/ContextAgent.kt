@@ -68,7 +68,8 @@ class ContextAgent(
     suspend fun queryAllSources(
         sources: List<SourceItem>,
         conversationHistory: List<ChatMessage>,
-        question: String
+        question: String,
+        warnings: List<String> = emptyList()
     ): String {
         if (sources.isEmpty()) {
             return "No sources are loaded yet. Please add a syllabus or document from the Sources panel first."
@@ -81,7 +82,7 @@ class ContextAgent(
         }
 
         val historyPairs = conversationHistory.map { it.author to it.content }
-        val prompt = AiPrompts.getMultiSourceChatPrompt(sourceBlocks, historyPairs, question)
+        val prompt = AiPrompts.getMultiSourceChatPrompt(sourceBlocks, historyPairs, question, warnings)
 
         logger?.d(
             tag,

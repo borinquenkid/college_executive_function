@@ -12,7 +12,8 @@ object ChatBuilder {
     fun getMultiSourceChatPrompt(
         sourceBlocks: List<SourceContextBlock>,
         conversationHistory: List<Pair<String, String>>,
-        question: String
+        question: String,
+        warnings: List<String> = emptyList()
     ): String {
         val sourcesSection = if (sourceBlocks.isEmpty()) {
             "No course materials are loaded yet. Ask the student to add a source first."
@@ -43,6 +44,13 @@ object ChatBuilder {
                 }
         }
 
+        val warningsSection = if (warnings.isEmpty()) "" else buildString {
+            appendLine()
+            appendLine("# Source Processing Notes")
+            appendLine("The following issues were flagged during ingestion and may require follow-up:")
+            warnings.forEach { appendLine("- $it") }
+        }
+
         return """
             You are an Academic Success Assistant with full access to a student's course materials.
             Answer questions by reasoning across ALL provided sources and synthesizing information.
@@ -50,7 +58,7 @@ object ChatBuilder {
             # Course Materials (${sourceBlocks.size} source(s))
 
             $sourcesSection
-
+            $warningsSection
             # Prior Conversation
             $historySection
 

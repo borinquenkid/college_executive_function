@@ -58,6 +58,7 @@ fun ChatPanel(
     val messages by appController.chatMessages.asStateFlow().collectAsState()
     val sourceItems by appController.sourceItems.asStateFlow().collectAsState()
     val contextAgent = appController.container.contextAgent
+    val ingestionWarnings by appController.container.eventAgent.persistedWarnings.collectAsState()
 
     var newMessage by remember { mutableStateOf("") }
     // true  = reason across every loaded source (multi-source mode)
@@ -134,7 +135,8 @@ fun ChatPanel(
                             useAllSources -> contextAgent.queryAllSources(
                                 sources = sourceItems,
                                 conversationHistory = history,
-                                question = userText
+                                question = userText,
+                                warnings = ingestionWarnings
                             )
 
                             selectedSource != null -> contextAgent.querySource(

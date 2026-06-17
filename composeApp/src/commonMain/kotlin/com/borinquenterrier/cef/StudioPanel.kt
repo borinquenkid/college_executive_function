@@ -59,7 +59,12 @@ fun StudioPanel(
     val isLoading by eventAgent.isLoading.collectAsState()
     val statusMessage by eventAgent.statusMessage.collectAsState()
     val lastGeneratedEvents by eventAgent.lastGeneratedEvents.collectAsState()
+    val persistedWarnings by eventAgent.persistedWarnings.collectAsState()
     val isConnected by container.tokenRepository.isLinked.collectAsState()
+
+    LaunchedEffect(Unit) {
+        eventAgent.loadPersistedWarnings()
+    }
 
     var eventsList by remember { mutableStateOf(emptyList<Event>()) }
     LaunchedEffect(selectedSource, lastGeneratedEvents) {
@@ -190,10 +195,9 @@ fun StudioPanel(
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     }
 
-                    val eventsWithWarnings = lastGeneratedEvents.filter { it.warning != null }
-                    if (eventsWithWarnings.isNotEmpty()) {
+                    val allWarnings = (lastGeneratedEvents.mapNotNull { it.warning } + persistedWarnings).distinct()
+                    if (allWarnings.isNotEmpty()) {
                         item {
-                            val uniqueWarnings = eventsWithWarnings.mapNotNull { it.warning }.distinct()
                             Card(
                                 colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
                                 modifier = Modifier.fillMaxWidth()
@@ -213,12 +217,16 @@ fun StudioPanel(
                                             color = MaterialTheme.colorScheme.onSecondaryContainer
                                         )
                                     }
-                                    uniqueWarnings.forEach { warning ->
-                                        Text(
-                                            "- $warning",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                                        )
+                                    SelectionContainer {
+                                        Column {
+                                            allWarnings.forEach { warning ->
+                                                Text(
+                                                    "- $warning",
+                                                    style = MaterialTheme.typography.bodySmall,
+                                                    color = MaterialTheme.colorScheme.onSecondaryContainer
+                                                )
+                                            }
+                                        }
                                     }
                                 }
                             }

@@ -77,6 +77,21 @@ class EventAgent(
     val unresolvedConflicts: StateFlow<List<ConflictResolver.UnresolvedConflict>> =
         _unresolvedConflicts.asStateFlow()
 
+    private val _persistedWarnings = MutableStateFlow<List<String>>(emptyList())
+
+    /** Unique AI warnings from all previously pushed events, surviving app restarts. */
+    val persistedWarnings: StateFlow<List<String>> = _persistedWarnings.asStateFlow()
+
+    suspend fun loadPersistedWarnings() {
+        try {
+            _persistedWarnings.value = repository.getEvents("default")
+                .mapNotNull { it.warning }
+                .distinct()
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to load persisted warnings", e)
+        }
+    }
+
     fun clearError() {
         _errorState.value = null
     }
@@ -233,6 +248,7 @@ class EventAgent(
         } finally {
             _isLoading.value = false
         }
+        loadPersistedWarnings()
         return conflicts
     }
 

@@ -16,16 +16,14 @@ actual class DriverFactory {
 
         val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${databaseFile.absolutePath}")
 
-        try {
-            if (!exists) {
-                AppDatabase.Schema.create(driver)
-            } else {
-                // Simplest way for dev: if a table is missing, try to create it
-                // In a production app, we would use proper versioned migrations.
-                AppDatabase.Schema.create(driver)
+        if (!exists) {
+            AppDatabase.Schema.create(driver)
+        } else {
+            try {
+                AppDatabase.Schema.migrate(driver, 1, AppDatabase.Schema.version)
+            } catch (e: Exception) {
+                // Migration already applied or not needed — safe to ignore
             }
-        } catch (e: Exception) {
-            // If create fails because tables already exist, it's fine (using IF NOT EXISTS in .sq)
         }
 
         return driver

@@ -63,7 +63,10 @@ fun ChatPanel(
     val persistedWarnings by eventAgent.persistedWarnings.collectAsState()
     val liveWarnings by eventAgent.lastGeneratedEvents.collectAsState()
     val ingestionWarnings = remember(persistedWarnings, liveWarnings) {
-        (liveWarnings.mapNotNull { it.warning } + persistedWarnings).distinct()
+        val activeSemester = WarningClassifier.activeSemesterFrom(liveWarnings)
+        (liveWarnings.mapNotNull { it.warning } + persistedWarnings)
+            .distinct()
+            .map { WarningClassifier.classify(it, activeSemester) }
     }
 
     LaunchedEffect(Unit) { eventAgent.loadPersistedWarnings() }

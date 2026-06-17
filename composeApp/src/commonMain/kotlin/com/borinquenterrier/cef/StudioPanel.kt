@@ -85,6 +85,15 @@ fun StudioPanel(
                 it.date in next30DaysRange
     }
 
+    val activeSemester = remember(lastGeneratedEvents) {
+        WarningClassifier.activeSemesterFrom(lastGeneratedEvents)
+    }
+    val allWarnings = remember(lastGeneratedEvents, persistedWarnings, activeSemester) {
+        (lastGeneratedEvents.mapNotNull { it.warning } + persistedWarnings)
+            .distinct()
+            .map { WarningClassifier.classify(it, activeSemester) }
+    }
+
     // Push events back to parent when they are generated in the flow
     LaunchedEffect(lastGeneratedEvents) {
         if (lastGeneratedEvents.isNotEmpty()) {
@@ -195,7 +204,6 @@ fun StudioPanel(
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     }
 
-                    val allWarnings = (lastGeneratedEvents.mapNotNull { it.warning } + persistedWarnings).distinct()
                     if (allWarnings.isNotEmpty()) {
                         item {
                             Card(

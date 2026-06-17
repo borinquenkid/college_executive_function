@@ -68,15 +68,16 @@ class GeminiRetryService(
     /**
      * Check if rate limit is active. Throws if quota is exhausted.
      */
-    fun checkRateLimitWindow() {
+    suspend fun checkRateLimitWindow() {
         val now = Clock.System.now().toEpochMilliseconds()
         if (now < rateLimitResetTime) {
             val remainingSeconds = ((rateLimitResetTime - now) + 999L) / 1000L
             throw Exception("QuotaExhausted: Rate limit reached. Please wait $remainingSeconds seconds before trying again.")
         }
         if (now < globalHoldUntil) {
-            val remainingSeconds = ((globalHoldUntil - now) + 999L) / 1000L
-            throw Exception("QuotaExhausted: Rate limit reached. Please wait $remainingSeconds seconds before trying again.")
+            val waitMs = globalHoldUntil - now
+            logger?.d(tag, "⏳ Request block: active global hold until $globalHoldUntil. Waiting ${waitMs}ms.")
+            wait(waitMs)
         }
     }
 

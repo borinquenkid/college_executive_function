@@ -89,4 +89,20 @@ class GeminiRetryServiceTest : StringSpec({
         
         GeminiRetryService.globalHoldState.value shouldBe null
     }
+
+    "checkRateLimitWindow suspends during global hold" {
+        val logger = mockk<Logger>(relaxed = true)
+        var delayMs = 0L
+        val delayFn: suspend (Long) -> Unit = { ms -> delayMs = ms }
+        val service = GeminiRetryService(logger, delayFn)
+
+        GeminiRetryService.clearGlobalHoldForTesting()
+        GeminiRetryService.clearRateLimitResetForTesting()
+        service.activateGlobalHold(10000L)
+        service.checkRateLimitWindow()
+
+        (delayMs > 0) shouldBe true
+        GeminiRetryService.clearGlobalHoldForTesting()
+        GeminiRetryService.clearRateLimitResetForTesting()
+    }
 })

@@ -62,10 +62,31 @@ class ContributorPdfIntegrationTest : FunSpec({
             println("SKIPPING: No contributions/ directory found."); return@config
         }
 
-        val pdfFiles = contributionsDir.contributionPdfs()
+        // -PcontributionFilter=STLCC_ENG101_WEEKLY runs just that one entry.
+        // Without the flag, all entries in ContributionIndex are run.
+        val filterName = System.getProperty("contributionFilter")?.takeIf { it.isNotBlank() }
+        val entries = if (filterName != null) {
+            val entry = runCatching { ContributionIndex.valueOf(filterName) }.getOrNull()
+            if (entry == null) {
+                println("ERROR: Unknown contributionFilter '$filterName'.")
+                println("  Valid values: ${ContributionIndex.entries.joinToString { it.name }}")
+                return@config
+            }
+            println("Running single entry: ${entry.name} — ${entry.description}")
+            listOf(entry)
+        } else {
+            ContributionIndex.entries
+        }
+
+        val pdfFiles = entries.mapNotNull { entry ->
+            val file = File(contributionsDir, entry.relativePath)
+            if (!file.exists()) {
+                println("WARN: ${entry.name} — file not found at ${file.canonicalPath}")
+                null
+            } else file
+        }
         if (pdfFiles.isEmpty()) {
-            println("SKIPPING: No PDFs in ${contributionsDir.canonicalPath}.")
-            println("  Add PDFs under contributions/{state}/{college}/{year}/{period}/")
+            println("SKIPPING: No matching PDFs found in ${contributionsDir.canonicalPath}.")
             return@config
         }
 

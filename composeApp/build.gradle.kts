@@ -324,6 +324,11 @@ tasks.withType<Test>().configureEach {
             excludeTestsMatching("*ContributorPdf*")
         }
     }
+    // Pass -PcontributionFilter=<ContributionIndex name> to run a single PDF entry.
+    // e.g. ./gradlew :composeApp:jvmTest -PcontributionFilter=STLCC_ENG101_WEEKLY
+    project.findProperty("contributionFilter")?.let {
+        systemProperty("contributionFilter", it)
+    }
 }
 
 /**

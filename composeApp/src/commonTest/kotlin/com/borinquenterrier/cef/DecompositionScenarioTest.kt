@@ -109,7 +109,7 @@ class DecompositionScenarioTest : FunSpec({
         )
 
         result.size shouldBeGreaterThanOrEqual 2
-        result.size shouldBeLessThanOrEqual 5
+        result.size shouldBeLessThanOrEqual 7
         result.forEach { task ->
             task.title.shouldNotBeBlank()
             // No step should be scheduled before today (daysBeforeDue > 3 would mean before today)

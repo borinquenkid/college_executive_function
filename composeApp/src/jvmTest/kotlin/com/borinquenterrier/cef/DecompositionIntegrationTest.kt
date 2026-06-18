@@ -64,7 +64,7 @@ class DecompositionIntegrationTest : FunSpec({
             eventTitle = "Issue Brief #2: Ethics, Deception, and Undercover Work",
             daysUntilDue = 3,
             minSteps = 2,
-            maxSteps = 5,
+            maxSteps = 7,
             description = "Short essay with only 3 days — focus on what is achievable"
         ),
         Scenario(

@@ -18,16 +18,42 @@ class EventGenerationService(
     /**
      * Extracts deliverables from [source]'s full text, auditing syllabi for ambiguities
      * first and appending any findings as warnings on the generated events.
+     *
+     * [onProgress] receives a human-readable status string after each batch so callers
+     * can show per-page progress rather than a static spinner.
      */
-    suspend fun extractDeliverables(source: SourceItem): List<Event> {
+    suspend fun extractDeliverables(
+        source: SourceItem,
+        onProgress: ((message: String) -> Unit)? = null
+    ): List<Event> {
         val syllabusText = source.fragments.joinToString("\n\n") { it.text }
         val auditWarnings = if (source.category == SourceCategory.SYLLABUS) {
+            onProgress?.invoke("Auditing source for ambiguities...")
             syllabusAuditor.audit(syllabusText)
         } else {
             emptyList()
         }
 
-        val allEvents = aiService.generateCalendarEvents(source.fragments)
+        val fragments = source.fragments
+        val isText = fragments.firstOrNull()?.type == SourceType.TEXT
+        val batches = if (isText && fragments.size > SourceFragmentBatcher.BATCH_SIZE) {
+            SourceFragmentBatcher.batch(fragments)
+        } else {
+            listOf(fragments)
+        }
+
+        val allEvents = mutableListOf<Event>()
+        batches.forEachIndexed { i, batch ->
+            val pageRange = batch.mapNotNull { it.pageNumber }
+            val pageLabel = if (pageRange.isNotEmpty()) {
+                "pages ${pageRange.min()}–${pageRange.max()}"
+            } else {
+                "section ${i + 1}"
+            }
+            onProgress?.invoke("Extracting events from $pageLabel (${i + 1}/${batches.size})...")
+            allEvents.addAll(aiService.generateCalendarEvents(batch))
+        }
+
         val normalized = normalize(allEvents)
 
         return if (auditWarnings.isNotEmpty()) {

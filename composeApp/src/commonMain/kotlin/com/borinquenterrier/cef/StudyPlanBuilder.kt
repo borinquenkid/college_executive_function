@@ -154,8 +154,8 @@ object StudyPlanBuilder {
         tasksJson: String
     ): String {
         val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-        val due = LocalDate.parse(dueDate)
-        val daysAvailable = today.daysUntil(due).coerceAtLeast(0)
+        val due = runCatching { LocalDate.parse(dueDate) }.getOrNull()
+        val daysAvailable = due?.let { today.daysUntil(it).coerceAtLeast(0) } ?: 30
 
         return """
             You are an executive function coach and quality auditor.

@@ -193,7 +193,9 @@ class EventAgent(
         runAgentAction("Error extracting deliverables", handleQuotaErrors = true) {
             _statusMessage.value = "Analyzing ${source.title}..."
             _extractionWarning.value = null
-            val processed = generationService.extractDeliverables(source)
+            val processed = generationService.extractDeliverables(source) { message ->
+                _statusMessage.value = message
+            }
             _lastGeneratedEvents.value = processed
             if (processed.isEmpty()) {
                 _extractionWarning.value = "No events found in \"${source.title}\". " +

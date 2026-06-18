@@ -100,34 +100,12 @@ class GeminiAIService(
         parseResponse: (responseText: String) -> T
     ): T = requestExecutor.executeWithRetry(maxAttempts, tier, body, parseResponse)
 
-    private fun batchFragments(
-        fragments: List<SourceFragment>,
-        batchSize: Int = 3,
-        overlap: Int = 1
-    ): List<List<SourceFragment>> {
-        if (fragments.isEmpty()) return emptyList()
-        val batches = mutableListOf<List<SourceFragment>>()
-        var startIndex = 0
-        while (startIndex < fragments.size) {
-            val endIndex = (startIndex + batchSize).coerceAtMost(fragments.size)
-            val batch = fragments.subList(startIndex, endIndex)
-            batches.add(batch)
-            if (endIndex == fragments.size) {
-                break
-            }
-            val nextIndex = startIndex + batchSize - overlap
-            if (nextIndex <= startIndex || nextIndex >= fragments.size) {
-                break
-            }
-            startIndex = nextIndex
-        }
-        return batches
-    }
-
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         val isText = fragments.firstOrNull()?.type == SourceType.TEXT
-        if (isText && fragments.size > 3) {
-            val batches = batchFragments(fragments, batchSize = 3, overlap = 1)
+        if (isText && fragments.size > SourceFragmentBatcher.BATCH_SIZE) {
+            // Direct callers (tests, legacy paths) that pass all fragments at once still get
+            // correct batching. EventGenerationService pre-batches and calls with small slices.
+            val batches = SourceFragmentBatcher.batch(fragments)
             val allEvents = mutableListOf<Event>()
             for (batch in batches) {
                 val combinedJson = buildJsonArray {
@@ -135,10 +113,9 @@ class GeminiAIService(
                         add(Json.parseToJsonElement(fragment.toJson()))
                     }
                 }.toString()
-                val events = generateCalendarEventsFromPrompt(
+                allEvents.addAll(generateCalendarEventsFromPrompt(
                     AiPrompts.getSourceEventExtractionPrompt(combinedJson)
-                )
-                allEvents.addAll(events)
+                ))
             }
             return allEvents
         } else {

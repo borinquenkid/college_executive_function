@@ -115,14 +115,14 @@ class DecompositionOrchestrator(
         // Single-action steps (≤ 3 days before sub-due) are always leaves.
         if (task.daysBeforeDue <= 3) return false
         val title = task.title.lowercase()
-        val coarseSignals = listOf(
-            "literature review",
-            "research paper",
-            "complete analysis",
-            "full draft",
-            "entire section"
+        // Multi-word phrases that signal a broad phase, not an action step.
+        // Keep these specific enough that action steps like "Revise first draft" don't match.
+        val phaseSignals = listOf(
+            "literature review", "research paper", "complete analysis",
+            "full draft", "entire section", "essay section",
+            "research phase", "writing phase"
         )
-        return coarseSignals.any { title.contains(it) }
+        return phaseSignals.any { title.contains(it) }
     }
 
     private fun calculateSubDueDate(parentDueDate: String, daysBeforeDue: Int): String {

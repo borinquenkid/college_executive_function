@@ -21,11 +21,16 @@ object EventBuilder {
         - `pageNumber`: (Optional) The page of the document this text came from.
         - `sectionTitle`: (Optional) The title of the document section.
         - `type`: Either `TEXT` (general material) or `CALENDAR` (RFC 5545 format).
-        - `metadata`: A map of additional context.
+        - `metadata`: A map of additional context. Key `weekAnchors` (when present) contains
+          the full week-to-date anchor table extracted from the rest of the document, e.g.:
+            Week 1: June 8–14
+            Week 4: June 29–July 5, 2026
+          Use this table to resolve "Week N" references in the text to calendar dates.
 
         ## Instructions:
         1. If `type` is `CALENDAR`, the `text` is an iCalendar VEVENT. Map it directly to the target schema.
         2. If `type` is `TEXT`, perform extraction from the `text` field using any provided `pageNumber` or `sectionTitle` as additional context for locating the event in time or importance.
+        3. If `metadata.weekAnchors` is present, use it as the authoritative week-to-date mapping when the text contains "Week N" references without explicit calendar dates.
     """.trimIndent()
 
     fun getSourceEventExtractionPrompt(fragmentJson: String): String {

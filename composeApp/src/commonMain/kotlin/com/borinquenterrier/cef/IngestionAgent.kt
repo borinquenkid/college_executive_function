@@ -30,16 +30,15 @@ class IngestionAgent(
         _isBusy.value = true
         return try {
             val fileName = path.substringAfterLast("/").substringAfterLast("\\")
-            val fragments = when {
+            val isIcs = fileName.lowercase().endsWith(".ics")
+            val rawFragments = when {
                 fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
                 fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
-                fileName.lowercase()
-                    .endsWith(".ics") -> IcsCalendarSource(fileReader.readText(path)).readSource()
-
+                isIcs -> IcsCalendarSource(fileReader.readText(path)).readSource()
                 else -> SourceProcessor.split(fileReader.readText(path))
             }
+            val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
             ContributionValidator.validate(fragments)
-            val isIcs = fileName.lowercase().endsWith(".ics")
             val sourceItem = SourceItem(fileName, fragments, resolveCategory(isIcs, fragments))
             persistSource(sourceItem, path)
             sourceItem
@@ -53,8 +52,9 @@ class IngestionAgent(
         return try {
             val rawContent = webReader.readTextFromUrl(url)
             val isIcs = url.lowercase().endsWith(".ics")
-            val fragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
+            val rawFragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
             else SourceProcessor.split(rawContent)
+            val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
             val sourceItem = SourceItem(url, fragments, resolveCategory(isIcs, fragments))
             persistSource(sourceItem, url)
             sourceItem
@@ -68,8 +68,9 @@ class IngestionAgent(
         return try {
             val rawContent = driveService.getFileContent(file.id, file.mimeType)
             val isIcs = file.name.lowercase().endsWith(".ics")
-            val fragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
+            val rawFragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
             else SourceProcessor.split(rawContent)
+            val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
             val sourceItem = SourceItem(file.name, fragments, resolveCategory(isIcs, fragments))
             persistSource(sourceItem, "google_drive://${file.id}")
             sourceItem

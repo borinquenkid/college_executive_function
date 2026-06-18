@@ -25,6 +25,7 @@ google-oauth-jetty = "1.39.0"
 google-http-client-gson = "1.44.1"
 kotlinx-datetime = "0.7.1-0.6.x-compat"
 mockk = "1.14.9"
+dotenv-kotlin = "6.4.1"
 sqldelight = "2.0.2"
 llamatik = "1.2.0"
 okio = "3.4.0"
@@ -71,6 +72,7 @@ ktor-server-test-host = { module = "io.ktor:ktor-server-test-host-jvm", version.
 multiplatform-settings = { module = "com.russhwolf:multiplatform-settings", version.ref = "multiplatform-settings" }
 multiplatform-settings-test = { module = "com.russhwolf:multiplatform-settings-test", version.ref = "multiplatform-settings" }
 mockk = { module = "io.mockk:mockk", version.ref = "mockk" }
+dotenv-kotlin = { module = "io.github.cdimascio:dotenv-kotlin", version.ref = "dotenv-kotlin" }
 ical4j = { module = "org.mnode.ical4j:ical4j", version.ref = "ical4j" }
 google-api-services-calendar = { module = "com.google.apis:google-api-services-calendar", version.ref = "google-calendar" }
 google-api-client = { module = "com.google.api-client:google-api-client", version.ref = "google-api-client" }

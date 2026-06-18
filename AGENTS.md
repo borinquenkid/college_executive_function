@@ -19,8 +19,8 @@ To regenerate and verify the CRAP index scores in `CRAP.md` after code changes o
 # Step 1: Run all JVM tests to generate fresh coverage data
 ./gradlew :composeApp:jvmTest --no-daemon
 
-# Step 2: Generate Kover code coverage XML report
-./gradlew :composeApp:koverXmlReport -q
+# Step 2: Generate Kover code coverage XML report (JVM variant — Android variant needs a device)
+./gradlew :composeApp:koverXmlReportJvm -q
 
 # Step 3: Generate CRAP.md from coverage data
 ./gradlew generateCrapReport -q
@@ -117,6 +117,29 @@ Prevent high-CRAP code by designing for decomposition and testability **from the
    - Use `generateCrapReport` as part of CI/CD validation, not post-hoc analysis.
 
 **Pattern:** The three-service structure that emerged in Phase 0.23 (`CalendarIdResolver`, `EventConflictDetector`, `EventRangeFilter`) is what should have been in the original spec — not derived through refactoring. Spec decomposition prevents CRAP; metrics review only measures what you missed.
+
+### Confabulation Gate Protocol
+
+Every method on `AIService` that returns **structured output** (events, metadata, tasks, or any typed result persisted or displayed to the user) **must have explicit gate coverage** in `GroundingGuardAIService`. Delegation-by-default through the `by delegate` interface is not a gate — it is the absence of one.
+
+**Gate levels (apply the strictest level that the output type supports):**
+
+1. **Year-level grounding** — required for all event-producing methods (`generateCalendarEvents`, `generateStudyPlan`). After extraction, filter events to **years explicitly mentioned in the source text**. An event dated 2099 from a source that only mentions 2026 is a confabulation and is dropped. Students may load syllabi from any semester (past, current, or future) and all events grounded in the source's years are kept. Do not filter by today's date — a Fall syllabus loaded in June should return Fall events.
+
+2. **Source-fact grounding** — required for free-text output that will be persisted or injected into chat context (`analyzeDocument`, `generateChatResponse`). A gate here only has value when the loaded corpus contains concrete factual anchors — specific due dates, assignment weights, course policies. Without those anchors there is no ground truth to check against, and the gate would be checking form, not fact. Apply this level once students are loading syllabi with structured deadlines.
+
+3. **Critic-only** — acceptable for generative outputs where grounding to source dates is not meaningful (`decomposeTask`, `categorizeSource`). The Critic-Actor loop is still required.
+
+**Checklist for any new `AIService` method:**
+- [ ] Method is overridden in `GroundingGuardAIService` (not delegated silently)
+- [ ] Gate level is explicitly chosen and justified in a comment
+- [ ] Unit test covers the gate: a confabulated value that should be dropped is dropped
+
+**Known gaps and their readiness conditions:**
+
+1. ~~`generateCalendarEvents` / `generateStudyPlan` — year-level grounding~~ ✅ Closed. Events whose year does not appear in the source text are dropped. Semester-level filtering was attempted but reverted: filtering by today's date is wrong because students load past and future syllabi intentionally.
+
+2. ~~`analyzeDocument` / `generateChatResponse` — defer until the corpus has factual anchors.~~ ✅ Closed via `SourceFactGrounder`. Gate extracts date and grade-weight claims from free-text AI output and cross-checks each against the source text provided to the model. Ungrounded claims trigger a structured warning appended to the response; the response is not dropped (sentence-level surgery is out of scope). Corpus: 13 real UT Austin Fall 2025 syllabi in `contributions/tx/ut_austin/2025-2026/fall/` provided the factual-anchor readiness condition.
 
 ### Native Dependency Management
 Manual modification of Xcode project files (`.pbxproj`) and adding external Swift packages is strictly prohibited due to their brittleness in KMP builds. All native features MUST be implemented using platform-native APIs already available in the system frameworks, accessible via pure Kotlin/Native interop, to ensure build stability.

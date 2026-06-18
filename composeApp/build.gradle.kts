@@ -203,6 +203,7 @@ kotlin {
                 implementation(kotlin("test-junit5"))
                 implementation(libs.mockk)
                 implementation(libs.kotlinx.datetime)
+                implementation(libs.dotenv.kotlin)
             }
         }
         val androidUnitTest by getting {

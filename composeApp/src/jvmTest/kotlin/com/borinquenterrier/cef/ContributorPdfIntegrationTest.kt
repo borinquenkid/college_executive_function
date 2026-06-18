@@ -54,7 +54,8 @@ class ContributorPdfIntegrationTest : FunSpec({
     }
 
     test("Contributor PDFs: each syllabus extracts 3+ events including at least one non-exam entry").config(
-        timeout = (AI_INTEGRATION_TIMEOUT_MS * 20).milliseconds
+        timeout = (AI_INTEGRATION_TIMEOUT_MS * 20).milliseconds,
+        invocationTimeout = (AI_INTEGRATION_TIMEOUT_MS * 20).milliseconds
     ) {
         val contributionsDir = findContributionsDir()
         if (contributionsDir == null) {

@@ -98,7 +98,12 @@ class ContributorPdfIntegrationTest : FunSpec({
         val settings = MapSettings()
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
         val logger = Logger(settings)
-        val aiService: AIService = RealAIService(settings, logger, database)
+        // Use the full production chain (same as DependencyContainer) so tests catch
+        // any filtering or critique behaviour that the app chain applies.
+        val aiService: AIService = GroundingGuardAIService(
+            CriticActorAIService(RealAIService(settings, logger, database), logger),
+            logger
+        )
         val sourceRepository = SqlDelightSourceRepository(database)
         val localCalendarRepo = SqlDelightLocalCalendarRepository(database, settings)
         val calendarAgent = CalendarAgent(

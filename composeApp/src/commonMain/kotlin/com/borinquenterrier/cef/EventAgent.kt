@@ -199,10 +199,17 @@ class EventAgent(
             _lastGeneratedEvents.value = processed
             if (processed.isEmpty()) {
                 _extractionWarning.value = "No events found in \"${source.title}\". " +
-                    "This can happen when due dates are listed as \"Week N\" without an anchor " +
-                    "like \"Week 1: Aug 24–28\", or when the document has no specific calendar dates. " +
-                    "If your syllabus uses week numbers, look for a course schedule table that " +
-                    "maps weeks to date ranges — that table must be in the document for dates to be inferred."
+                    "This is common with formal institutional syllabi — they contain policies " +
+                    "(attendance, academic honesty, ADA, etc.) but not the actual course schedule. " +
+                    "Look for a separate weekly schedule or course calendar document from your professor. " +
+                    "If your syllabus uses week numbers like \"Due Week 4\", it also needs a table " +
+                    "mapping weeks to dates (e.g. \"Week 1: Aug 24–28\") somewhere in the same document."
+            } else if (processed.size < 5 && source.category == SourceCategory.OTHER) {
+                _extractionWarning.value = "Only ${processed.size} event(s) found in \"${source.title}\". " +
+                    "This document appears to be an institutional syllabus with policies rather than a " +
+                    "course schedule. If you are looking for assignment deadlines, check whether your " +
+                    "professor also provides a separate weekly schedule or course calendar — that document " +
+                    "will contain the due dates."
             }
             _statusMessage.value = "${processed.size} deadlines and exams found from entire source."
         }

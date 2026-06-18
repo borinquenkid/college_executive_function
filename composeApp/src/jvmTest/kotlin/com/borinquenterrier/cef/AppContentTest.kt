@@ -39,6 +39,7 @@ class AppContentTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Select a source and an action.")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns errorState
         every { mockEventAgent.incompleteEvents } returns incompleteEvents
 

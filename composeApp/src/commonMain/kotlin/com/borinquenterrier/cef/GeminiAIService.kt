@@ -231,7 +231,7 @@ class GeminiAIService(
 
         return try {
             executeWithRetry(
-                maxAttempts = 10,
+                maxAttempts = 3,
                 tier = TaskTier.LIGHT,
                 body = { _ -> buildGeminiBody(prompt) },
                 parseResponse = { responseText -> parseCategorizeSourceJson(responseText) }

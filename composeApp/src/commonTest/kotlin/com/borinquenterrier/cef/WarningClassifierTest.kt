@@ -82,27 +82,38 @@ class WarningClassifierTest {
     // ── activeSemesterFrom ────────────────────────────────────────────────
 
     @Test
-    fun `activeSemesterFrom returns fall range for October event`() {
-        val events = listOf(
-            makeDayEvent(LocalDate(2026, 10, 15)),
-            makeDayEvent(LocalDate(2026, 11, 20))
-        )
-        val range = WarningClassifier.activeSemesterFrom(events)
+    fun `activeSemesterFrom returns fall range when today is in fall`() {
+        val today = LocalDate(2026, 10, 1)
+        val events = listOf(makeDayEvent(LocalDate(2026, 10, 15)))
+        val range = WarningClassifier.activeSemesterFrom(events, today)
         assertEquals(LocalDate(2026, 8, 1), range?.first)
         assertEquals(LocalDate(2026, 12, 31), range?.second)
     }
 
     @Test
-    fun `activeSemesterFrom returns spring range for February event`() {
+    fun `activeSemesterFrom returns summer range when today is in summer even with fall events`() {
+        val today = LocalDate(2026, 6, 17)
+        val events = listOf(
+            makeDayEvent(LocalDate(2026, 10, 15)),
+            makeDayEvent(LocalDate(2026, 11, 20))
+        )
+        val range = WarningClassifier.activeSemesterFrom(events, today)
+        // Summer/interim: today to today+30, NOT fall
+        assertEquals(today, range?.first)
+    }
+
+    @Test
+    fun `activeSemesterFrom returns spring range when today is in spring`() {
+        val today = LocalDate(2027, 2, 10)
         val events = listOf(makeDayEvent(LocalDate(2027, 2, 10)))
-        val range = WarningClassifier.activeSemesterFrom(events)
+        val range = WarningClassifier.activeSemesterFrom(events, today)
         assertEquals(LocalDate(2027, 1, 1), range?.first)
         assertEquals(LocalDate(2027, 5, 31), range?.second)
     }
 
     @Test
     fun `activeSemesterFrom returns null for empty list`() {
-        assertEquals(null, WarningClassifier.activeSemesterFrom(emptyList()))
+        assertEquals(null, WarningClassifier.activeSemesterFrom(emptyList(), LocalDate(2026, 10, 1)))
     }
 
     private fun makeDayEvent(date: LocalDate) = DayEvent(

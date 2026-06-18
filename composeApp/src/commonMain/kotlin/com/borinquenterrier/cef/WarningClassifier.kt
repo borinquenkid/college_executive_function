@@ -45,12 +45,12 @@ object WarningClassifier {
     }
 
     /**
-     * Derives the semester date range from a list of events instead of from today,
-     * so that a user in June preparing a Fall syllabus gets the Fall range rather
-     * than summer/interim.
+     * Returns the current semester range based on [today], or null if [events] is empty.
+     * The semester is always derived from today, not from event dates — a user in summer
+     * processing a Fall syllabus stays in the summer/interim window until Fall actually begins.
      */
-    fun activeSemesterFrom(events: List<Event>): Pair<LocalDate, LocalDate>? {
-        val maxDate = events.mapNotNull { it.date }.maxOrNull() ?: return null
-        return SemesterResolver.getSemesterRange(maxDate)
+    fun activeSemesterFrom(events: List<Event>, today: LocalDate): Pair<LocalDate, LocalDate>? {
+        if (events.isEmpty()) return null
+        return SemesterResolver.getSemesterRange(today)
     }
 }

@@ -1,5 +1,6 @@
 package com.borinquenterrier.cef
 
+import io.github.cdimascio.dotenv.dotenv
 import io.kotest.core.test.TestScope
 
 /**
@@ -33,20 +34,17 @@ data class LiveCredentials(
  *
  * Returns null if the key is absent or blank in both sources.
  */
-private fun resolveSecret(key: String, envMap: Map<String, String>): String? =
-    System.getenv(key)?.takeIf { it.isNotBlank() }
-        ?: envMap[key]?.takeIf { it.isNotBlank() }
-
-private fun loadEnvFileMap(): Map<String, String> {
-    val envFile = listOf(java.io.File("../.env"), java.io.File(".env")).find { it.exists() }
-    return envFile?.readLines()
-        ?.filter { it.isNotBlank() && !it.trimStart().startsWith("#") }
-        ?.associate {
-            val k = it.substringBefore("=").trim()
-            val v = it.substringAfter("=").trim().removeSurrounding("\"").removeSurrounding("'")
-            k to v
-        } ?: emptyMap()
+private val dotenvInstance by lazy {
+    dotenv {
+        directory = listOf("../", "./").firstOrNull { java.io.File(it, ".env").exists() } ?: "./"
+        ignoreIfMissing = true
+        ignoreIfMalformed = true
+    }
 }
+
+private fun resolveSecret(key: String): String? =
+    System.getenv(key)?.takeIf { it.isNotBlank() }
+        ?: runCatching { dotenvInstance[key] }.getOrNull()?.takeIf { it.isNotBlank() }
 
 /**
  * Resolves all three live credentials required by [LiveApiIntegrationTest].
@@ -54,9 +52,8 @@ private fun loadEnvFileMap(): Map<String, String> {
  * CI surfaces a configuration problem rather than a cryptic test failure.
  */
 fun resolveLiveCredentials(): LiveCredentials {
-    val envMap = loadEnvFileMap()
     fun require(vararg keys: String): String {
-        for (key in keys) resolveSecret(key, envMap)?.let { return it }
+        for (key in keys) resolveSecret(key)?.let { return it }
         error("Required secret not found in env vars or .env: ${keys.joinToString(" / ")}")
     }
     return LiveCredentials(
@@ -79,9 +76,7 @@ fun resolveApiKey(testName: String): String? {
         println("SKIPPING $testName: Disabled in test/offline profile.")
         return null
     }
-    val envMap = loadEnvFileMap()
-    val apiKey = resolveSecret("CEF_GEMINI_API_KEY", envMap)
-        ?: resolveSecret("GEMINI_API_KEY", envMap)
+    val apiKey = resolveSecret("CEF_GEMINI_API_KEY") ?: resolveSecret("GEMINI_API_KEY")
     if (apiKey == null) println("SKIPPING $testName: No Gemini API Key found in env or .env")
     return apiKey
 }

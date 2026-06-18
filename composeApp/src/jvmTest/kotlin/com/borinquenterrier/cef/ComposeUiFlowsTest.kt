@@ -28,12 +28,18 @@ class ComposeUiFlowsTest {
 
     private fun createMockContainer(): DependencyContainer {
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockEventAgent = mockk<EventAgent>(relaxed = true)
         val mockSourceLoader = mockk<SourceLoader>(relaxed = true)
         val mockSourceAdder = mockk<SourceAdder>(relaxed = true)
         val mockSourceRepository = mockk<SqlDelightSourceRepository>(relaxed = true)
         val mockLocalRepository = mockk<SqlDelightLocalCalendarRepository>(relaxed = true)
         val mockLogger = mockk<Logger>(relaxed = true)
         val realSourceSelector = SourceSelector()
+
+        every { mockContainer.eventAgent } returns mockEventAgent
+        every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.errorState } returns MutableStateFlow(null)
 
         coEvery { mockSourceLoader.loadSources() } returns emptyList()
         coEvery { mockSourceRepository.getAllSources() } returns emptyList()
@@ -103,7 +109,7 @@ class ComposeUiFlowsTest {
 
         // Mock queryAllSources to return a specific reply
         coEvery {
-            mockContextAgent.queryAllSources(any(), any(), "Hello AI")
+            mockContextAgent.queryAllSources(any(), any(), "Hello AI", any())
         } returns "This is the mocked response"
 
         setContent {

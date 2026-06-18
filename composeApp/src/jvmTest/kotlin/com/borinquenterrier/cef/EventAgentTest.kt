@@ -9,10 +9,20 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
 import io.mockk.slot
+import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
+
+private fun fixedClock(date: LocalDate): Clock = object : Clock {
+    // Use noon UTC so todayIn(anyTimezone) resolves to `date` regardless of the host offset.
+    override fun now(): Instant =
+        Instant.fromEpochMilliseconds(date.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds() + 12 * 3600_000L)
+}
 
 /**
  * Demonstrates that the application logic can now run "Headless"
@@ -395,7 +405,8 @@ class HeadlessLogicTest : FunSpec({
             mockCalendarAgent,
             null,
             NormalizationService(),
-            logger = Logger(MapSettings())
+            logger = Logger(MapSettings()),
+            clock = fixedClock(LocalDate(2026, 6, 17))
         )
 
         val futureEvent = DayEvent(
@@ -423,7 +434,8 @@ class HeadlessLogicTest : FunSpec({
             mockCalendarAgent,
             null,
             NormalizationService(),
-            logger = Logger(MapSettings())
+            logger = Logger(MapSettings()),
+            clock = fixedClock(LocalDate(2026, 6, 17))
         )
 
         val pastEvent = DayEvent(
@@ -460,7 +472,8 @@ class HeadlessLogicTest : FunSpec({
             mockCalendarAgent,
             null,
             NormalizationService(),
-            logger = Logger(MapSettings())
+            logger = Logger(MapSettings()),
+            clock = fixedClock(LocalDate(2026, 6, 17))
         )
 
         val pastEvent1 = DayEvent(
@@ -495,7 +508,8 @@ class HeadlessLogicTest : FunSpec({
             mockCalendarAgent,
             null,
             NormalizationService(),
-            logger = Logger(MapSettings())
+            logger = Logger(MapSettings()),
+            clock = fixedClock(LocalDate(2026, 6, 17))
         )
 
         val pastEvent = DayEvent(
@@ -572,17 +586,17 @@ class HeadlessLogicTest : FunSpec({
         val mockAiService = mockk<AIService>()
         val mockCalendarAgent = mockk<CalendarAgent>()
         val logger = Logger(MapSettings())
+        val today = LocalDate(2026, 6, 17)
 
         val eventAgent = EventAgent(
             mockAiService,
             mockCalendarAgent,
             null,
             NormalizationService(),
-            logger = logger
+            logger = logger,
+            clock = fixedClock(today)
         )
 
-        val today =
-            kotlinx.datetime.Clock.System.todayIn(kotlinx.datetime.TimeZone.currentSystemDefault())
         val event = TimeEvent(
             id = "event1",
             title = "Missed Study Block",

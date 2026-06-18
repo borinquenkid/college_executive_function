@@ -166,11 +166,12 @@ fun AppContent(container: DependencyContainer) {
 
                 is AppScreen.Calendar -> {
                     AcademicCalendar(
-                        Modifier.fillMaxSize(),
-                        aiGeneratedEvents,
-                        container.calendarAgent,
-                        container.eventAgent
-                    ) { appController.navigateTo(it) }
+                        modifier = Modifier.fillMaxSize(),
+                        aiGeneratedEvents = aiGeneratedEvents,
+                        calendarAgent = container.calendarAgent,
+                        eventAgent = container.eventAgent,
+                        onNavigate = { appController.navigateTo(it) }
+                    )
                 }
 
                 is AppScreen.Settings -> {

@@ -39,6 +39,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.daysUntil
 import kotlinx.datetime.todayIn
@@ -50,7 +51,8 @@ fun AcademicCalendar(
     aiGeneratedEvents: List<Event>,
     calendarAgent: CalendarAgent,
     eventAgent: EventAgent,
-    onNavigate: (AppScreen) -> Unit
+    onNavigate: (AppScreen) -> Unit,
+    today: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 ) {
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
@@ -105,7 +107,6 @@ fun AcademicCalendar(
         }
     }
 
-    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     val (viewStartDate, viewEndDate) = remember(today, aiGeneratedEvents, displayedEvents) {
         SemesterResolver.getExpandedRange(today, aiGeneratedEvents + displayedEvents)
     }
@@ -198,6 +199,7 @@ fun AcademicCalendar(
             item {
                 EventListContent(
                     groupedEvents = groupedEvents,
+                    today = today,
                     onEventSelected = { selectedEventForDecomposition = it }
                 )
             }
@@ -296,7 +298,11 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
 }
 
 @Composable
-fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
+fun EventItemView(
+    event: Event,
+    today: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+    onBreakItDown: (() -> Unit)? = null
+) {
     val borderColor = remember(event.category, event.source) {
         EventPresenter.getEventBorderColor(event.category, event.source)
     }
@@ -323,8 +329,7 @@ fun EventItemView(event: Event, onBreakItDown: (() -> Unit)? = null) {
                     color = borderColor
                 )
                 if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
-                    val daysUntil =
-                        Clock.System.todayIn(TimeZone.currentSystemDefault()).daysUntil(event.date)
+                    val daysUntil = today.daysUntil(event.date)
                     val chipText =
                         remember(daysUntil) { EventPresenter.getDeadlineChipText(daysUntil) }
                     val status = remember(daysUntil) { EventPresenter.getDeadlineStatus(daysUntil) }

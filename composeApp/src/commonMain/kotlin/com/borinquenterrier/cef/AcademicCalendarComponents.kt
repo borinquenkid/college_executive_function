@@ -103,6 +103,7 @@ fun AcademicCalendarHeader(
 @Composable
 fun EventListContent(
     groupedEvents: Map<LocalDate, List<Event>>,
+    today: LocalDate,
     onEventSelected: (Event) -> Unit
 ) {
     if (groupedEvents.isEmpty()) {
@@ -123,6 +124,7 @@ fun EventListContent(
                 val isBreakable = CalendarEventGrouper.isDecomposable(event)
                 EventItemView(
                     event = event,
+                    today = today,
                     onBreakItDown = if (isBreakable) {
                         { onEventSelected(event) }
                     } else null

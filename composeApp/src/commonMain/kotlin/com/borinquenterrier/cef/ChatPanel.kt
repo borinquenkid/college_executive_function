@@ -47,6 +47,9 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 
 data class ChatMessage(val author: String, val content: String)
 
@@ -62,8 +65,9 @@ fun ChatPanel(
     val eventAgent = appController.container.eventAgent
     val persistedWarnings by eventAgent.persistedWarnings.collectAsState()
     val liveWarnings by eventAgent.lastGeneratedEvents.collectAsState()
+    val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     val ingestionWarnings = remember(persistedWarnings, liveWarnings) {
-        val activeSemester = WarningClassifier.activeSemesterFrom(liveWarnings)
+        val activeSemester = WarningClassifier.activeSemesterFrom(liveWarnings, today)
         (liveWarnings.mapNotNull { it.warning } + persistedWarnings)
             .distinct()
             .map { WarningClassifier.classify(it, activeSemester) }

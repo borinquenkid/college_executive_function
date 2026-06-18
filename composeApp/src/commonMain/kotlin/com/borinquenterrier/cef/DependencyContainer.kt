@@ -11,6 +11,7 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.datetime.Clock
 import kotlinx.serialization.json.Json
 
 /**
@@ -25,7 +26,8 @@ class DependencyContainer(
     val modelBasePath: String,
     val fileReader: LocalFileReader,
     val docxReader: DocxReader,
-    val pdfReader: PdfReader
+    val pdfReader: PdfReader,
+    val clock: Clock = Clock.System
 ) {
     private val globalScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     val httpClient by lazy {
@@ -149,7 +151,8 @@ class DependencyContainer(
             NormalizationService(),
             preferencesRepository,
             logger,
-            userPreferenceMemoryRepository
+            userPreferenceMemoryRepository,
+            clock
         )
     }
 

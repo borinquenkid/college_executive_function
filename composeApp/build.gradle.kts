@@ -317,6 +317,13 @@ tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     maxHeapSize = "8g"
     outputs.upToDateWhen { false }
+    // Pass -PunitTestsOnly=true to exclude API integration tests (e.g. during Kover coverage runs)
+    if (project.hasProperty("unitTestsOnly")) {
+        filter {
+            excludeTestsMatching("*IntegrationTest*")
+            excludeTestsMatching("*ContributorPdf*")
+        }
+    }
 }
 
 /**

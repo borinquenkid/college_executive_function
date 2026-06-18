@@ -1,7 +1,9 @@
 package com.borinquenterrier.cef
 
 import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
+import kotlinx.datetime.daysUntil
 import kotlinx.datetime.todayIn
 
 /**
@@ -87,29 +89,62 @@ object StudyPlanBuilder {
         dueDate: String,
         context: String = ""
     ): String {
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val due = LocalDate.parse(dueDate)
+        val daysAvailable = today.daysUntil(due).coerceAtLeast(0)
+
+        val urgencyBlock = when {
+            daysAvailable == 0 -> """
+                EMERGENCY — This assignment is due TODAY.
+                Provide 2–4 immediate steps only, focused on:
+                  • What can realistically be submitted in the next few hours
+                  • Whether requesting an extension or accepting a late penalty makes sense
+                  • How to maximize partial credit with the time left
+                Do NOT plan beyond today.
+            """.trimIndent()
+            daysAvailable <= 2 -> """
+                TIGHT DEADLINE — Only $daysAvailable day(s) until due.
+                Provide 3–5 high-priority steps that fit within $daysAvailable day(s).
+                Keep each step under 90 minutes. No research phases; focus on what is achievable.
+            """.trimIndent()
+            daysAvailable <= 7 -> """
+                SHORT TIMELINE — $daysAvailable days available.
+                Provide 4–7 focused steps spread across the $daysAvailable days.
+                Prioritize what is most essential; skip nice-to-have prep.
+            """.trimIndent()
+            else -> """
+                NORMAL TIMELINE — $daysAvailable days available.
+                Provide 5–9 steps spread across the available time.
+                Include an early research/planning phase and a revision pass before submission.
+            """.trimIndent()
+        }
+
+        val stepCount = when {
+            daysAvailable == 0 -> "2–4"
+            daysAvailable <= 2 -> "3–5"
+            daysAvailable <= 7 -> "4–7"
+            else -> "5–9"
+        }
+
         return """
-            You are an Executive Function Coach. Your goal is to help a student break down a large,
-            intimidating assignment ("$taskTitle" due on $dueDate) into smaller, manageable, and
-            actionable sub-tasks to prevent overwhelm and procrastination.
+            You are an Executive Function Coach helping a student plan their work on:
+            "$taskTitle" — due $dueDate
 
-            Provide a step-by-step plan with suggested intermediate deadlines.
+            Today: $today
+            Days available: $daysAvailable
 
-            Return the plan EXCLUSIVELY as a JSON array of objects.
+            $urgencyBlock
 
-            Structure:
-            {
-              "title": "Specific, small action (e.g., 'Draft first 200 words of intro')",
-              "daysBeforeDue": 5,
-              "description": "Brief tip on how to start this small step."
-            }
+            HARD CONSTRAINTS (violating any of these is an error):
+            - Total steps: $stepCount (do not produce more)
+            - Every daysBeforeDue MUST be an integer in [0, $daysAvailable]
+            - daysBeforeDue = $daysAvailable means "start today"
+            - daysBeforeDue = 0 means "final submission step"
+            - Each step should take 1–2 hours maximum
 
-            Guidelines:
-            - Each step should take no more than 1-2 hours.
-            - Focus on the very first "low-friction" step to get started.
-            - Work backwards from the due date $dueDate.
-
-            Context (if any):
-            $context
+            Return ONLY a raw JSON array — no markdown, no explanation:
+            [{"title": "...", "daysBeforeDue": N, "description": "..."}]
+            ${if (context.isNotBlank()) "\nContext: $context" else ""}
         """.trimIndent()
     }
 
@@ -118,31 +153,27 @@ object StudyPlanBuilder {
         dueDate: String,
         tasksJson: String
     ): String {
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val due = LocalDate.parse(dueDate)
+        val daysAvailable = today.daysUntil(due).coerceAtLeast(0)
+
         return """
             You are an executive function coach and quality auditor.
-            
-            A student has a task "$taskTitle" due on $dueDate. The following sub-tasks were generated to break it down:
-            
+
+            A student has "$taskTitle" due on $dueDate (today is $today; $daysAvailable days available).
+
             # Sub-tasks (JSON):
             $tasksJson
-            
-            # Task:
-            Critique this decomposition plan. Ensure:
-            1. Each sub-task is realistic, concrete, and highly actionable.
-            2. None of the steps are too large or overwhelming (each should take 1-2 hours max).
-            3. The steps flow logically backwards or forwards.
-            4. There are no redundant steps.
-            
-            Return a refined JSON array of objects following the EXACT same schema as the input:
-            [
-              {
-                "title": "Specific, small action",
-                "daysBeforeDue": Integer,
-                "description": "Brief tip on how to start this small step."
-              }
-            ]
-            
-            Ensure you ONLY output the corrected JSON array. If the tasks are already perfect, return the original JSON array. Do not include any explanation or markdown formatting.
+
+            # Review checklist:
+            1. Each step is concrete and actionable (1–2 hours max).
+            2. No step has daysBeforeDue > $daysAvailable — remove or cap any that do.
+            3. No redundant or duplicate steps.
+            4. Steps flow logically toward submission.
+            5. Total step count does not exceed ${if (daysAvailable <= 2) 5 else if (daysAvailable <= 7) 7 else 9}.
+
+            Return ONLY the refined JSON array — same schema, no markdown:
+            [{"title": "...", "daysBeforeDue": N, "description": "..."}]
         """.trimIndent()
     }
 }

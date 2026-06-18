@@ -111,20 +111,18 @@ class DecompositionOrchestrator(
     }
 
     private fun isComplex(task: DecomposedTask): Boolean {
-        val words = task.title.lowercase().split(" ")
-        if (words.size < 3) return false
-        val complexKeywords = listOf(
-            "draft",
-            "write",
-            "research",
-            "outline",
-            "design",
-            "implement",
-            "build",
-            "analyze",
-            "review"
+        // Only recurse on genuinely multi-day, coarse-grained tasks.
+        // Single-action steps (≤ 3 days before sub-due) are always leaves.
+        if (task.daysBeforeDue <= 3) return false
+        val title = task.title.lowercase()
+        val coarseSignals = listOf(
+            "literature review",
+            "research paper",
+            "complete analysis",
+            "full draft",
+            "entire section"
         )
-        return task.daysBeforeDue > 1 || words.any { it in complexKeywords }
+        return coarseSignals.any { title.contains(it) }
     }
 
     private fun calculateSubDueDate(parentDueDate: String, daysBeforeDue: Int): String {

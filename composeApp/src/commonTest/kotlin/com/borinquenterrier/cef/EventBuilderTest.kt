@@ -41,9 +41,8 @@ class EventBuilderTest : StringSpec({
         val fragmentJson = """{"text":"Project due next week","type":"TEXT"}"""
         val result = EventBuilder.getSourceEventExtractionPrompt(fragmentJson)
 
-        result.shouldContain("EXPLICITLY")
-        result.shouldContain("Do NOT generate")
-        result.shouldContain("infer")
+        result.shouldContain("Do NOT invent")
+        result.shouldContain("Only extract what is stated")
     }
 
     "getSourceEventExtractionPrompt should include the fragment JSON" {

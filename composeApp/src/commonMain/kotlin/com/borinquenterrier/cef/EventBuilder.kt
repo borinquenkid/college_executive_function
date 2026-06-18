@@ -29,12 +29,33 @@ object EventBuilder {
     """.trimIndent()
 
     fun getSourceEventExtractionPrompt(fragmentJson: String): String {
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val semesterLabel = when {
+            today.monthNumber <= 5 -> "Spring ${today.year}"
+            today.monthNumber <= 8 -> "Summer ${today.year}"
+            else -> "Fall ${today.year}"
+        }
         return """
             $SOURCE_FRAGMENT_INSTRUCTIONS
 
             # Objective
-            Analyze the provided SourceFragment and identify all academic deliverables, deadlines, or calendar events.
-            IMPORTANT: Only extract events that are EXPLICITLY stated in the provided text. Do NOT generate, infer, or add events from your training data or general knowledge.
+            Analyze the provided SourceFragment and extract EVERY academic event, deadline, or deliverable a student would need to track.
+
+            ## What to extract
+            Extract ALL of the following when a date can be determined:
+            - Exams: midterms, finals, quizzes, tests
+            - Assignment due dates: papers, essays, problem sets, lab reports, projects, presentations
+            - Reading deadlines and participation requirements with a due date
+            - Class sessions with specific content (first day, last day, review sessions, field trips)
+            - Semester boundaries: first day, last day, add/drop deadline, withdrawal deadline
+            - Holidays and breaks that affect this course
+
+            ## Date rules
+            - Use EXPLICIT dates when the document states them directly (e.g. "October 14" or "July 3, 2026").
+            - Week-anchor pattern: If the document provides a Week 1 date range (e.g. "Week 1: June 8–14") and an assignment only says "Due Week N", calculate the calendar date using that anchor. Use the Monday of the target week as the due date (e.g. "Due Week 4" → June 29).
+            - Day-within-week pattern: If a weekly schedule provides per-week date ranges (e.g. "Week 4: June 29–July 5") and an assignment is listed under a named class day within that week (e.g. under "Wednesday"), compute the exact calendar date. Monday of the range = Day 1, Tuesday = +1, Wednesday = +2, Thursday = +3, Friday = +4. Example: "Issue Brief #1 due" under "Wednesday" in "Week 4: June 29–July 5" → July 1, 2026. Getting this right matters — a student who shows up Monday with work due Wednesday submits late.
+            - If a time is given (e.g. "due at 11:59 pm"), produce a TIME event; otherwise produce a DAY event.
+            - Do NOT invent events not mentioned in the document. Do NOT use your training data to add typical course events. Only extract what is stated.
 
             # Output Format
             Return ONLY a raw JSON array of objects. No filler.
@@ -48,12 +69,15 @@ object EventBuilder {
                 "startTime": "HH:mm" (optional),
                 "endTime": "HH:mm" (optional),
                 "gradeWeight": 0.15 (Optional. Float value representing the grade percentage, e.g., 0.15 for 15%. Search for grade weight in text nearby, like 'Midterm Exam - 15%'),
-                "warning": "String" (Optional. Use this if the source text is contradictory, e.g., 'Document says Monday Jan 1st, but Jan 1st is a Thursday'. Be STRICT about the literal date provided.)
+                "warning": "String" (Optional. Use this if the source text is contradictory, e.g., 'Document says Monday Jan 1st, but Jan 1st is a Thursday'. Or if a date was calculated from a week number rather than stated explicitly.)
               }
             ]
 
             # Context
             Current Year: $currentYear
+            Today's Date: $today
+            Active Semester: $semesterLabel
+            Extract ALL events found in the document regardless of which semester they belong to. The student may be planning ahead for future semesters or reviewing past ones.
 
             # Data to Process (SourceFragment JSON)
             $fragmentJson
@@ -75,8 +99,10 @@ object EventBuilder {
             # Task:
             Critique the extracted events. Check each event against the source document.
             Identify any:
-            1. Hallucinated/invented events that are not explicitly stated in the source document.
+            1. Hallucinated/invented events: events not mentioned anywhere in the source document.
             2. Incorrect dates, times, titles, or categories.
+
+            NOTE: Events with dates calculated from week numbers (e.g. "Week 4" computed from a "Week 1: June 8–14" anchor) are VALID. Do not flag or remove them — their warning field will already note the calculation. Only remove events whose title or existence is not supported by the source at all.
             
             Return a refined JSON array of objects following the EXACT same schema as the input:
             [

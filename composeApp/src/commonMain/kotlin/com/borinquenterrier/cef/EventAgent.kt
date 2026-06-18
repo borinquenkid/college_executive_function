@@ -30,7 +30,8 @@ class EventAgent(
     private val normalizationService: NormalizationService = NormalizationService(),
     private val preferencesRepository: PreferencesRepository? = null,
     private val logger: Logger? = null,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
+    private val clock: Clock = Clock.System
 ) {
     private val tag = "EventAgent"
 
@@ -81,6 +82,24 @@ class EventAgent(
 
     /** Unique AI warnings from all previously pushed events, surviving app restarts. */
     val persistedWarnings: StateFlow<List<String>> = _persistedWarnings.asStateFlow()
+
+    private val _extractionWarning = MutableStateFlow<String?>(null)
+
+    /**
+     * Set when the last extraction run completed with zero events. Cleared on the next
+     * successful extraction so it does not linger after the user loads a better document.
+     */
+    val extractionWarning: StateFlow<String?> = _extractionWarning.asStateFlow()
+
+    /** Number of API requests currently waiting in the shared Gemini queue. */
+    val pendingRequestCount: StateFlow<Int> = GeminiRequestQueue.shared().pendingCount
+
+    /**
+     * Rough lower-bound estimate of remaining processing time in seconds.
+     * Assumes 3 s average response time per slot plus the 6 s inter-request cooldown.
+     * Returns 0 when the queue is empty.
+     */
+    fun estimatedRemainingSeconds(): Int = GeminiRequestQueue.shared().estimatedRemainingSeconds()
 
     suspend fun loadPersistedWarnings() {
         try {
@@ -173,8 +192,16 @@ class EventAgent(
     suspend fun extractDeliverables(source: SourceItem) {
         runAgentAction("Error extracting deliverables", handleQuotaErrors = true) {
             _statusMessage.value = "Analyzing ${source.title}..."
+            _extractionWarning.value = null
             val processed = generationService.extractDeliverables(source)
             _lastGeneratedEvents.value = processed
+            if (processed.isEmpty()) {
+                _extractionWarning.value = "No events found in \"${source.title}\". " +
+                    "This can happen when due dates are listed as \"Week N\" without an anchor " +
+                    "like \"Week 1: Aug 24–28\", or when the document has no specific calendar dates. " +
+                    "If your syllabus uses week numbers, look for a course schedule table that " +
+                    "maps weeks to date ranges — that table must be in the document for dates to be inferred."
+            }
             _statusMessage.value = "${processed.size} deadlines and exams found from entire source."
         }
     }
@@ -197,7 +224,7 @@ class EventAgent(
      * Returns a list of events that COULD NOT be pushed due to overlaps.
      */
     suspend fun pushToCalendar(calendarId: String = "default"): List<Event> {
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val today = clock.todayIn(TimeZone.currentSystemDefault())
         val allEvents = _lastGeneratedEvents.value
         val events = allEvents.filter { it.date >= today }
         val skippedCount = allEvents.size - events.size
@@ -291,7 +318,7 @@ class EventAgent(
     val incompleteEvents: StateFlow<List<Event>> = _incompleteEvents.asStateFlow()
 
     suspend fun loadIncompleteEvents() {
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val today = clock.todayIn(TimeZone.currentSystemDefault())
         try {
             val list = repository.getIncompleteEventsBefore(today, "default")
             _incompleteEvents.value = list
@@ -319,7 +346,7 @@ class EventAgent(
 
     suspend fun rescheduleEvent(event: Event) {
         runAgentAction("Failed to reschedule event") {
-            val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            val today = clock.todayIn(TimeZone.currentSystemDefault())
             val updated = when (event) {
                 is TimeEvent -> event.copy(date = today)
                 is DayEvent -> event.copy(date = today)

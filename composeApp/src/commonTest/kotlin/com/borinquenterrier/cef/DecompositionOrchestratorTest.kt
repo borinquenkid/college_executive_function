@@ -3,6 +3,7 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -80,6 +81,36 @@ class DecompositionOrchestratorTest : FunSpec({
 
         result[2].title shouldBe "Pick a topic"
         result[2].daysBeforeDue shouldBe 1
+    }
+
+    test("DecompositionOrchestrator re-throws QuotaExhausted so EventAgent can surface it") {
+        val mockAi = mockk<AIService>()
+        val orchestrator = DecompositionOrchestrator(mockAi, maxDepth = 3)
+        coEvery { mockAi.decomposeTask(any(), any()) } throws RuntimeException("QuotaExhausted: 429")
+
+        val ex = runCatching { runBlocking { orchestrator.decompose(rootTitle, rootDueDate) } }
+        ex.isFailure shouldBe true
+        ex.exceptionOrNull()?.message?.contains("QuotaExhausted") shouldBe true
+    }
+
+    test("DecompositionOrchestrator re-throws RateLimited errors") {
+        val mockAi = mockk<AIService>()
+        val orchestrator = DecompositionOrchestrator(mockAi, maxDepth = 3)
+        coEvery { mockAi.decomposeTask(any(), any()) } throws RuntimeException("RateLimited: retry in 60s")
+
+        val ex = runCatching { runBlocking { orchestrator.decompose(rootTitle, rootDueDate) } }
+        ex.isFailure shouldBe true
+    }
+
+    test("DecompositionOrchestrator falls back silently for generic errors") {
+        val mockAi = mockk<AIService>()
+        val orchestrator = DecompositionOrchestrator(mockAi, maxDepth = 3)
+        coEvery { mockAi.decomposeTask(rootTitle, rootDueDate) } throws RuntimeException("network timeout")
+
+        val result = runBlocking { orchestrator.decompose(rootTitle, rootDueDate) }
+        result shouldHaveSize 1
+        result[0].title shouldBe rootTitle
+        result[0].description.shouldContain("network timeout")
     }
 
     test("DecompositionOrchestrator should stop at max depth limit") {

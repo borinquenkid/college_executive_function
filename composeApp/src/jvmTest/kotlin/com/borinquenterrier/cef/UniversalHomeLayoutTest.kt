@@ -29,7 +29,10 @@ class UniversalHomeLayoutTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Select a source and an action.")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
 
         coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
 

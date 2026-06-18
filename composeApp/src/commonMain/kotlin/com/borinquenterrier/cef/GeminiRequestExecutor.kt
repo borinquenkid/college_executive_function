@@ -5,8 +5,6 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
-import kotlinx.coroutines.sync.Mutex
-import kotlinx.coroutines.sync.withLock
 
 /**
  * Lightweight facade orchestrating Gemini API request execution with retry logic.
@@ -34,26 +32,12 @@ class GeminiRequestExecutor(
     private val retryService = GeminiRetryService(logger, delayFn)
 
     companion object {
-        private val pacingMutex = Mutex()
-        private var nextAllowedRequestTime: Long = 0L
-        var isPacingEnabled = true
+        private val queue = GeminiRequestQueue.shared()
 
         fun clearRateLimitResetForTesting() {
             GeminiRetryService.clearRateLimitResetForTesting()
             GeminiRetryService.clearGlobalHoldForTesting()
-            nextAllowedRequestTime = 0L
-            isPacingEnabled = false
-        }
-
-        suspend fun pushNextAllowedRequestTime(delayMs: Long) {
-            if (isPacingEnabled) {
-                pacingMutex.withLock {
-                    val target = kotlinx.datetime.Clock.System.now().toEpochMilliseconds() + delayMs
-                    if (target > nextAllowedRequestTime) {
-                        nextAllowedRequestTime = target
-                    }
-                }
-            }
+            queue.isBypassed = true
         }
     }
 
@@ -65,22 +49,15 @@ class GeminiRequestExecutor(
         tier: GeminiAIService.TaskTier = GeminiAIService.TaskTier.HEAVY,
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
+    ): T = queue.enqueue { executeWithRetryInternal(maxAttempts, tier, body, parseResponse) }
+
+    private suspend fun <T> executeWithRetryInternal(
+        maxAttempts: Int,
+        tier: GeminiAIService.TaskTier,
+        body: (modelName: String) -> JsonObject,
+        parseResponse: (responseText: String) -> T
     ): T {
         retryService.checkRateLimitWindow()
-
-        // Pacing logic: ensure at least 5000ms between consecutive request starts to stay safely under 15 RPM
-        if (isPacingEnabled) {
-            val delayMs = pacingMutex.withLock {
-                val now = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
-                val scheduledTime = maxOf(now, nextAllowedRequestTime)
-                val minInterval = 5000L
-                nextAllowedRequestTime = scheduledTime + minInterval
-                scheduledTime - now
-            }
-            if (delayMs > 0) {
-                delayFn(delayMs)
-            }
-        }
 
         val available = modelNegotiator.getAvailableModels()
         var attempts = 0
@@ -96,23 +73,18 @@ class GeminiRequestExecutor(
                 val httpResponse = postToModel(modelName, body(modelName))
                 val responseBody = httpResponse.bodyAsText()
 
-                // Handle success immediately (2xx status codes)
                 if (httpResponse.status.isSuccess()) {
                     consecutiveRateLimitCount = 0
                     val geminiResponse =
-                        Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(
-                            responseBody
-                        )
+                        Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(responseBody)
                     val responseText =
                         geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
                             ?: throw Exception("Empty response from AI")
                     return parseResponse(responseText)
                 }
 
-                // Categorize error (only for non-2xx responses)
                 val errorType = errorHandler.categorizeError(httpResponse.status, responseBody)
 
-                // Handle fatal errors
                 if (errorType == ErrorCategorizer.ErrorType.Unauthorized ||
                     errorType == ErrorCategorizer.ErrorType.Forbidden
                 ) {
@@ -131,58 +103,40 @@ class GeminiRequestExecutor(
                     )
                 }
 
-                // Handle structural errors (model not found, unsupported modalities)
                 if (errorType is ErrorCategorizer.ErrorType.StructuralError) {
                     errorHandler.handleStructuralError(modelName)
-                    logger?.d(
-                        tag,
-                        "⚠️ Model $modelName had structural error: ${errorType.reason}. Blacklisted. Trying next model..."
-                    )
+                    logger?.d(tag, "⚠️ Model $modelName had structural error: ${errorType.reason}. Blacklisted. Trying next model...")
                     attempts++
                     continue
                 }
 
-                // Handle quota exhaustion
                 if (errorType == ErrorCategorizer.ErrorType.QuotaExhausted) {
                     telemetryManager?.logRateLimitError()
                     errorHandler.handleServerError(modelName)
-                    logger?.e(
-                        tag,
-                        "🚫 Daily quota exhausted for model $modelName. Blacklisting and trying next model..."
-                    )
-                    lastError =
-                        Exception("QuotaExhausted: Daily request limit reached for model $modelName.")
+                    logger?.e(tag, "🚫 Daily quota exhausted for model $modelName. Blacklisting and trying next model...")
+                    lastError = Exception("QuotaExhausted: Daily request limit reached for model $modelName.")
                     attempts++
                     continue
                 }
 
-                // Handle server errors (5xx)
                 if (errorType == ErrorCategorizer.ErrorType.TransientServerError) {
                     telemetryManager?.logRateLimitError()
                     errorHandler.handleServerError(modelName)
-                    logger?.e(
-                        tag,
-                        "⚠️ Model $modelName returned server error. Evicted and blacklisted. Trying next model..."
-                    )
+                    logger?.e(tag, "⚠️ Model $modelName returned server error. Evicted and blacklisted. Trying next model...")
                     attempts++
                     continue
                 }
 
-                // Handle transient rate limits (429)
                 if (errorType is ErrorCategorizer.ErrorType.TransientRateLimit) {
                     telemetryManager?.logRateLimitError()
                     val delayMs = errorType.delayMs
 
-                    // Delays >2 min signal the model's daily quota is effectively exhausted.
-                    // Blacklist for the session and immediately try the next model — never wait this long.
-                    // Does NOT count against maxAttempts so we can cycle through all exhausted models for free.
                     if (delayMs > 120_000L) {
                         modelNegotiator.blacklistModel(modelName)
                         modelNegotiator.evictFromCache(modelName)
                         consecutiveExtremeCount++
                         logger?.e(tag, "⚠️ Model $modelName has extreme rate limit (${delayMs / 1000}s). Treating as exhausted. Trying next model...")
                         lastError = Exception("RateLimited: Extreme rate limit for model $modelName. Delay: ${delayMs / 1000}s.")
-                        // Safety valve: if all models are extreme-limited, burn an attempt to prevent infinite loop
                         if (consecutiveExtremeCount >= 10) {
                             attempts++
                             consecutiveExtremeCount = 0
@@ -190,23 +144,19 @@ class GeminiRequestExecutor(
                         continue
                     }
                     consecutiveExtremeCount = 0
-
                     attempts++
 
                     if (delayMs > 10000L) {
                         consecutiveRateLimitCount++
                         if (consecutiveRateLimitCount >= 2) {
-                            logger?.e(tag, "⚠️ API key saturated (${consecutiveRateLimitCount} consecutive long rate limits). Holding ${delayMs}ms before retry.")
-                            // Blacklist BEFORE waiting so expiry is anchored from when the rate limit was received
+                            logger?.e(tag, "⚠️ API key saturated ($consecutiveRateLimitCount consecutive long rate limits). Holding ${delayMs}ms before retry.")
                             modelNegotiator.blacklistModel(modelName, delayMs + 2000L)
                             modelNegotiator.evictFromCache(modelName)
                             retryService.activateGlobalHold(delayMs)
-                            pushNextAllowedRequestTime(delayMs)
                             retryService.wait(delayMs)
                             consecutiveRateLimitCount = 0
                             continue
                         }
-                        // Temporary blacklist matching the rate-limit window so the model re-enters the pool once it recovers
                         modelNegotiator.blacklistModel(modelName, delayMs + 2000L)
                         modelNegotiator.evictFromCache(modelName)
                         logger?.e(tag, "⚠️ Model $modelName rate limit delay ${delayMs}ms too long. Blacklisted for ${delayMs / 1000}s. Trying next model...")
@@ -215,42 +165,29 @@ class GeminiRequestExecutor(
                     }
 
                     consecutiveRateLimitCount = 0
-                    pushNextAllowedRequestTime(delayMs)
                     retryService.wait(delayMs)
                     continue
                 }
 
-                // Handle other errors (should not reach here for 2xx responses)
                 if (errorType is ErrorCategorizer.ErrorType.OtherError) {
-                    val fullMessage = if (errorType.message.isNotBlank()) {
-                        errorType.message
-                    } else {
-                        "Unknown error. Response: $responseBody"
-                    }
+                    val fullMessage = if (errorType.message.isNotBlank()) errorType.message
+                    else "Unknown error. Response: $responseBody"
                     logger?.e(tag, "API Error: $fullMessage")
                     throw Exception(fullMessage)
                 }
 
-                // Defensive: throw if we somehow reach here
                 throw Exception("Unexpected response status: ${httpResponse.status}")
 
             } catch (e: Exception) {
-                if (e is kotlinx.coroutines.CancellationException) {
-                    throw e
-                }
+                if (e is kotlinx.coroutines.CancellationException) throw e
                 if (e.message?.let {
-                        it.contains("Unauthorized") || it.contains("Forbidden") || it.contains(
-                            "QuotaExhausted"
-                        )
-                    } == true) {
-                    throw e
-                }
+                        it.contains("Unauthorized") || it.contains("Forbidden") || it.contains("QuotaExhausted")
+                    } == true) throw e
 
                 lastError = e
                 logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
                 attempts++
                 val delayMs = 1000L * (1 shl (attempts - 1))
-                pushNextAllowedRequestTime(delayMs)
                 retryService.wait(delayMs)
             }
         }
@@ -258,10 +195,7 @@ class GeminiRequestExecutor(
         if (lastNegotiatedModel != null) {
             modelNegotiator.blacklistModel(lastNegotiatedModel)
             modelNegotiator.evictFromCache(lastNegotiatedModel)
-            logger?.e(
-                tag,
-                "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts. Evicted and blacklisted."
-            )
+            logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts. Evicted and blacklisted.")
         }
 
         val errorToThrow = lastError ?: Exception("Failed after $maxAttempts attempts")

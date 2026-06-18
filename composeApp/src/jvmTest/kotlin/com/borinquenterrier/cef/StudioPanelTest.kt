@@ -34,7 +34,10 @@ class StudioPanelTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Select a source and an action.")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
 
         coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
 
@@ -80,7 +83,10 @@ class StudioPanelTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
 
         val testSource = SourceItem(
             title = "Test Syllabus",
@@ -144,7 +150,10 @@ class StudioPanelTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Sync pending")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(generatedEvents)
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
 
         val testSource = SourceItem(
             title = "Test Syllabus",
@@ -200,7 +209,10 @@ class StudioPanelTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(true)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Processing...")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
 
         val testSource = SourceItem(
             title = "Test Syllabus",
@@ -217,9 +229,10 @@ class StudioPanelTest {
             )
         }
 
-        // Verify progress indicator is visible
+        // Verify progress indicator and status text are both visible in loading state
         onNodeWithTag("studio_loading_indicator").assertExists()
-        onNodeWithTag("status_message_text").assertDoesNotExist()
+        onNodeWithTag("status_message_text").assertExists()
+        onNodeWithText("Processing...").assertExists()
 
         // Verify process button is disabled
         onNodeWithTag("process_syllabus_button").assertIsNotEnabled()
@@ -254,7 +267,10 @@ class StudioPanelTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(generatedEvents)
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
 
         val testSource = SourceItem(
             title = "ENG 101 Syllabus",
@@ -299,7 +315,10 @@ class StudioPanelTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(generatedEvents)
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
 
         val testSource = SourceItem(
             title = "Test Syllabus",
@@ -353,7 +372,10 @@ class StudioPanelTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(generatedEvents)
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
 
         val testSource = SourceItem(
             title = "Test Syllabus",

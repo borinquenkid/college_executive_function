@@ -60,7 +60,19 @@ fun StudioPanel(
     val statusMessage by eventAgent.statusMessage.collectAsState()
     val lastGeneratedEvents by eventAgent.lastGeneratedEvents.collectAsState()
     val persistedWarnings by eventAgent.persistedWarnings.collectAsState()
+    val extractionWarning by eventAgent.extractionWarning.collectAsState()
     val isConnected by container.tokenRepository.isLinked.collectAsState()
+    val pendingRequests by eventAgent.pendingRequestCount.collectAsState()
+
+    val displayStatus = if (isLoading && pendingRequests > 1) {
+        val secs = eventAgent.estimatedRemainingSeconds()
+        val timeStr = when {
+            secs >= 60 -> "~${secs / 60}m ${secs % 60}s remaining"
+            secs > 0 -> "~${secs}s remaining"
+            else -> ""
+        }
+        "$statusMessage ($pendingRequests requests queued${if (timeStr.isNotEmpty()) ", $timeStr" else ""})"
+    } else statusMessage
 
     LaunchedEffect(Unit) {
         eventAgent.loadPersistedWarnings()
@@ -86,10 +98,10 @@ fun StudioPanel(
     }
 
     val activeSemester = remember(lastGeneratedEvents) {
-        WarningClassifier.activeSemesterFrom(lastGeneratedEvents)
+        WarningClassifier.activeSemesterFrom(lastGeneratedEvents, today)
     }
-    val allWarnings = remember(lastGeneratedEvents, persistedWarnings, activeSemester) {
-        (lastGeneratedEvents.mapNotNull { it.warning } + persistedWarnings)
+    val allWarnings = remember(lastGeneratedEvents, persistedWarnings, activeSemester, extractionWarning) {
+        (lastGeneratedEvents.mapNotNull { it.warning } + persistedWarnings + listOfNotNull(extractionWarning))
             .distinct()
             .map { WarningClassifier.classify(it, activeSemester) }
     }
@@ -199,48 +211,49 @@ fun StudioPanel(
                     }
                 }
 
-                if (lastGeneratedEvents.isNotEmpty()) {
+                // Source Notes are shown whenever there are warnings — including the case where
+                // extraction completed but found zero events (extractionWarning is non-null).
+                if (allWarnings.isNotEmpty()) {
                     item {
                         HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
                     }
-
-                    if (allWarnings.isNotEmpty()) {
-                        item {
-                            Card(
-                                colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                                modifier = Modifier.fillMaxWidth()
-                                    .testTag("source_discrepancies_card")
-                            ) {
-                                Column(modifier = Modifier.padding(8.dp)) {
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            Icons.Default.Warning,
-                                            contentDescription = null,
-                                            tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                        )
-                                        Spacer(Modifier.width(8.dp))
-                                        Text(
-                                            "Source Notes",
-                                            style = MaterialTheme.typography.titleSmall,
-                                            color = MaterialTheme.colorScheme.onSecondaryContainer
-                                        )
-                                    }
-                                    SelectionContainer {
-                                        Column {
-                                            allWarnings.forEach { warning ->
-                                                Text(
-                                                    "- $warning",
-                                                    style = MaterialTheme.typography.bodySmall,
-                                                    color = MaterialTheme.colorScheme.onSecondaryContainer
-                                                )
-                                            }
+                    item {
+                        Card(
+                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
+                            modifier = Modifier.fillMaxWidth()
+                                .testTag("source_discrepancies_card")
+                        ) {
+                            Column(modifier = Modifier.padding(8.dp)) {
+                                Row(verticalAlignment = Alignment.CenterVertically) {
+                                    Icon(
+                                        Icons.Default.Warning,
+                                        contentDescription = null,
+                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                    Spacer(Modifier.width(8.dp))
+                                    Text(
+                                        "Source Notes",
+                                        style = MaterialTheme.typography.titleSmall,
+                                        color = MaterialTheme.colorScheme.onSecondaryContainer
+                                    )
+                                }
+                                SelectionContainer {
+                                    Column {
+                                        allWarnings.forEach { warning ->
+                                            Text(
+                                                "- $warning",
+                                                style = MaterialTheme.typography.bodySmall,
+                                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                                            )
                                         }
                                     }
                                 }
                             }
                         }
                     }
+                }
 
+                if (lastGeneratedEvents.isNotEmpty()) {
                     val hasConflicts = lastGeneratedEvents.any { event ->
                         // Logic to detect if this event was already rejected 
                         // (In this pass, if it's still in the list after a sync attempt, it's a conflict)
@@ -336,10 +349,23 @@ fun StudioPanel(
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
-                CircularProgressIndicator(modifier = Modifier.testTag("studio_loading_indicator"))
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    CircularProgressIndicator(
+                        modifier = Modifier.size(20.dp).testTag("studio_loading_indicator"),
+                        strokeWidth = 2.dp
+                    )
+                    Text(
+                        displayStatus,
+                        style = MaterialTheme.typography.bodySmall,
+                        modifier = Modifier.testTag("status_message_text")
+                    )
+                }
             } else {
                 Text(
-                    statusMessage,
+                    displayStatus,
                     style = MaterialTheme.typography.bodySmall,
                     modifier = Modifier.testTag("status_message_text")
                 )

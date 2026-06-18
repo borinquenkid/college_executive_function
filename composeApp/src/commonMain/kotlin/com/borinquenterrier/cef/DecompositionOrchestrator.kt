@@ -88,6 +88,14 @@ class DecompositionOrchestrator(
                     }
                 }
             } catch (e: Exception) {
+                // Quota and auth errors mean no further calls will succeed — propagate so
+                // EventAgent can surface a proper message instead of returning silent garbage.
+                val msg = e.message ?: ""
+                if (msg.contains("QuotaExhausted", ignoreCase = true) ||
+                    msg.contains("RateLimited", ignoreCase = true) ||
+                    msg.contains("Unauthorized", ignoreCase = true)
+                ) throw e
+
                 val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
                 finalLeaves.add(
                     DecomposedTask(

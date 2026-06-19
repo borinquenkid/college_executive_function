@@ -29,6 +29,7 @@ fun App() {
         settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader
     ) {
         value = withContext(Dispatchers.Default) {
+            AppTracer.current = createTracer(settings)
             val c = DependencyContainer(
                 settings,
                 logger,

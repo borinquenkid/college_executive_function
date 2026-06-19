@@ -143,6 +143,18 @@ class DependencyContainer(
             logger
         )
     }
+    val syllabusAuditor by lazy { SyllabusAuditor(aiService, logger) }
+
+    val sharedEventGenerationService by lazy {
+        EventGenerationService(
+            aiService,
+            NormalizationService(),
+            syllabusAuditor,
+            preferencesRepository,
+            userPreferenceMemoryRepository
+        )
+    }
+
     val eventAgent by lazy {
         EventAgent(
             aiService,
@@ -250,6 +262,7 @@ class DependencyContainer(
     val sourceAdder by lazy {
         SourceAdder(
             aiService,
+            sharedEventGenerationService,
             contextAgent,
             logger,
             globalScope,

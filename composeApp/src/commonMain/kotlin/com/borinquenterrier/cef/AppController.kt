@@ -66,9 +66,6 @@ class AppController(val container: DependencyContainer) {
                 eventsListener?.invoke(events)
             }
         }
-        scope.launch {
-            sourceManager.loadSources()
-        }
     }
 
     fun loadSources() {

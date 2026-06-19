@@ -32,9 +32,12 @@ class CalendarPushResolver(
             events
         )
 
-        // Phase 2: Separate merged events from existing (what's truly new)
+        // Phase 2: Separate merged events from existing (what's truly new).
+        // Match by ID first; fall back to title+date+category so events with shifted times
+        // (which produce a different SHA-256 key) are still recognised as duplicates.
         val newEvents = mergedEvents.filter { merged ->
-            existing.none { it.id == merged.id }
+            existing.none { it.id == merged.id } &&
+            existing.none { it.title == merged.title && it.date == merged.date && it.category == merged.category }
         }
 
         val conflicts = mutableListOf<Event>()

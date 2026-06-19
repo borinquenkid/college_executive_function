@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalTime
 
 /**
  * Orchestrator that manages synchronization between Local (Offline) and Remote (Gold Standard) repositories.
@@ -36,6 +37,7 @@ class CalendarAgent(
      * If Remote fails, this method now throws the exception so the UI can handle it.
      */
     suspend fun saveEvent(event: Event, calendarId: String = "default") {
+        val event = repairEndTime(event)
         event.validate()
         if (isLiveSyncEnabled() && isGoogleLinked()) {
             try {
@@ -58,6 +60,7 @@ class CalendarAgent(
      * If successful, saves/updates locally as SYNCED.
      */
     suspend fun updateEvent(event: Event, calendarId: String = "default") {
+        val event = repairEndTime(event)
         event.validate()
         val original = localRepo.getAllEvents(calendarId).find { it.id == event.id }
         if (original != null && original.category == AcademicCategory.STUDY_BLOCK) {
@@ -86,6 +89,7 @@ class CalendarAgent(
      * Used for offline support or when the user hasn't linked Workspace.
      */
     suspend fun saveEventLocally(event: Event, calendarId: String = "default") {
+        val event = repairEndTime(event)
         event.validate()
         localRepo.saveEvent(event.withSyncStatus(SyncStatus.LOCAL_ONLY), calendarId)
     }
@@ -142,6 +146,16 @@ class CalendarAgent(
         calendarId: String = "default"
     ): List<Event> {
         return localRepo.getIncompleteEventsBefore(date, calendarId)
+    }
+
+    private fun repairEndTime(event: Event): Event {
+        if (event !is TimeEvent || event.endTime > event.startTime) return event
+        val plusHourMins = event.startTime.hour * 60 + event.startTime.minute + 60
+        val newEnd = if (plusHourMins < 24 * 60)
+            LocalTime(plusHourMins / 60, plusHourMins % 60)
+        else
+            LocalTime(23, 59, 59)
+        return event.copy(endTime = newEnd)
     }
 
     private suspend fun isLiveSyncEnabled(): Boolean =

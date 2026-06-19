@@ -31,26 +31,28 @@ object StudyPlanBuilder {
     ): String {
         return """
             You are an Academic Success Assistant. Analyze the provided syllabus and:
-            1. Extract all deliverables (Assignments, Quizzes, Exams, Projects) and Scheduled Class Times.
-            2. For each major deliverable (Exams, Projects, or Assignments worth >10%), 
+            1. Extract all deliverables (Assignments, Quizzes, Exams, Projects).
+            2. For each major deliverable (Exams, Projects, or Assignments worth >10%),
                proactively suggest 2-3 "STUDY_BLOCK" events in the days leading up to it.
-            
+
+            IMPORTANT: Do NOT generate CLASS events. Scheduled class sessions are already on the student's calendar. Only generate study tasks, deadlines, and preparation blocks.
+
             Return the data EXCLUSIVELY as a JSON array of objects. Do not include any conversational filler.
-            
+
             Structure:
             {
               "title": "Clear, actionable title (e.g. 'Submit Essay' or 'Study for Midterm')",
               "type": "TIME" or "DAY",
-              "category": "DEADLINE", "FINALS", "CLASS", "HOLIDAY", or "STUDY_BLOCK",
+              "category": "DEADLINE", "FINALS", "REGULAR", or "STUDY_BLOCK",
               "date": "YYYY-MM-DD",
               "startTime": "HH:mm" (optional),
               "endTime": "HH:mm" (optional),
               "gradeWeight": 0.15 (Optional. Float value representing the grade percentage, e.g., 0.15 for 15%. Determine from the syllabus context if available.)
             }
-            
+
             Strict Scheduling Constraints:
-            - CATEGORY RULES: ALL proactively suggested study or work periods MUST use the "STUDY_BLOCK" category. Only use "FINALS" or "DEADLINE" for the actual due date/exam itself.
-            - PRIORITIES: Calendar Events (Scheduled Class Times) have strict priority over Study/Work Times.
+            - CATEGORY RULES: ALL proactively suggested study or work periods MUST use "STUDY_BLOCK". Use "REGULAR" for one-time academic tasks (e.g. Writing Center visits, peer review sessions). Only use "FINALS" or "DEADLINE" for the actual due date/exam itself. NEVER use "CLASS".
+            - PRIORITIES: Existing class times (shown in the schedule below) have strict priority — do not schedule anything during those times.
             - EXAMS: Exam Times do NOT coincide with Class Times (extended time accommodations take students out of standard class periods).
             - COLLISIONS: Study/Work Times cannot collide with Exam Times, Class Times, or ANY existing events on the schedule. If a study/work task collides, move it to the latest available time BEFORE the deadline.
             - HOLIDAYS: Classes do not meet on holidays; these periods are completely available for study, work, and breaks.
@@ -83,6 +85,36 @@ object StudyPlanBuilder {
             $syllabusText
         """.trimIndent()
     }
+
+    fun getStudyPlanCritiquePrompt(syllabusText: String, eventsJson: String): String = """
+        You are a study plan quality auditor. A study plan was generated from a syllabus.
+        Your job is to improve it — NOT to re-extract class sessions from the syllabus.
+
+        CRITICAL: The student's calendar already contains all CLASS sessions extracted from the syllabus.
+        DO NOT add, keep, or re-introduce any events with category "CLASS".
+        If any event in the list has category "CLASS", remove it or change it to "STUDY_BLOCK" or "REGULAR".
+
+        Allowed categories: STUDY_BLOCK, REGULAR, DEADLINE, FINALS only.
+        - STUDY_BLOCK: any study or work preparation period
+        - REGULAR: one-time academic tasks not covered above (Writing Center visits, peer review, etc.)
+        - DEADLINE: the actual due date for a submission
+        - FINALS: a final exam event
+
+        Review the study plan and:
+        1. Remove hallucinated events not grounded in the syllabus.
+        2. Remove CLASS events or re-categorize them as REGULAR or STUDY_BLOCK.
+        3. Fix incorrect dates, titles, or categories.
+        4. Remove duplicates.
+
+        Return ONLY a corrected JSON array — same schema, no markdown:
+        [{"title":"...","type":"TIME"|"DAY","category":"...","date":"YYYY-MM-DD","startTime":"HH:mm","endTime":"HH:mm"}]
+
+        # Syllabus (for grounding only):
+        $syllabusText
+
+        # Study Plan to audit (JSON):
+        $eventsJson
+    """.trimIndent()
 
     fun getTaskDecompositionPrompt(
         taskTitle: String,

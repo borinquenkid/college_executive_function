@@ -1,0 +1,324 @@
+package com.borinquenterrier.cef
+
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.borinquenterrier.cef.db.AppDatabase
+import com.russhwolf.settings.MapSettings
+import io.kotest.assertions.withClue
+import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.ints.shouldBeGreaterThan
+import io.kotest.matchers.ints.shouldBeLessThan
+import io.kotest.matchers.shouldBe
+import io.mockk.mockk
+import kotlinx.datetime.Clock
+import kotlinx.datetime.LocalDate
+import java.io.File
+import kotlin.time.Duration.Companion.milliseconds
+
+/**
+ * Per-document integration tests for STLCC source material.
+ *
+ * Each test targets ONE document in ContributionIndex and asserts properties
+ * specific to that document's content — not just "3+ events", but "class meetings
+ * present", "no duplicates", "known deliverables found", and "model stable across
+ * all extraction batches."
+ *
+ * ## Running a single test
+ *   ./gradlew :composeApp:jvmTest --tests "com.borinquenterrier.cef.StlccIntegrationTest"
+ */
+class StlccIntegrationTest : FunSpec({
+
+    fun findContributionsDir(): File? = listOf(
+        File("contributions"),
+        File("../contributions"),
+        File("composeApp/src/commonTest/resources/contributions"),
+        File("../composeApp/src/commonTest/resources/contributions"),
+    ).firstOrNull { it.exists() && it.isDirectory }
+
+    fun eventFingerprint(event: Event): String {
+        val dateStr = when (event) {
+            is DayEvent -> event.date.toString()
+            is TimeEvent -> "${event.date}T${event.startTime}"
+        }
+        return "${event.title.trim().lowercase()}|$dateStr"
+    }
+
+    fun buildStack(settings: MapSettings, logger: Logger, database: AppDatabase): Triple<IngestionAgent, EventAgent, CalendarAgent> {
+        val aiService: AIService = GroundingGuardAIService(
+            CriticActorAIService(RealAIService(settings, logger, database), logger),
+            logger
+        )
+        val localCalendarRepo = SqlDelightLocalCalendarRepository(database, settings)
+        val calendarAgent = CalendarAgent(
+            localCalendarRepo,
+            mockk<RemoteCalendarRepository>(relaxed = true),
+            logger = logger
+        )
+        val sourceRepository = SqlDelightSourceRepository(database)
+        val ingestionAgent = IngestionAgent(
+            fileReader = mockk(relaxed = true),
+            docxReader = mockk(relaxed = true),
+            pdfReader = PdfReader(),
+            webReader = mockk(relaxed = true),
+            driveService = mockk(relaxed = true),
+            aiService = aiService,
+            sourceRepository = sourceRepository
+        )
+        val eventAgent = EventAgent(aiService, calendarAgent, database, logger = logger)
+        return Triple(ingestionAgent, eventAgent, calendarAgent)
+    }
+
+    // ── ENG 101 Weekly Schedule ───────────────────────────────────────────────
+
+    test("STLCC ENG 101 weekly schedule: class meetings present, deadlines present, no duplicates, model stable").config(
+        timeout = (AI_INTEGRATION_TIMEOUT_MS * 15).milliseconds,
+        invocationTimeout = (AI_INTEGRATION_TIMEOUT_MS * 15).milliseconds
+    ) {
+        val apiKey = resolveApiKey("STLCC ENG 101 weekly schedule") ?: return@config
+        val contributionsDir = findContributionsDir() ?: run {
+            println("SKIPPING: No contributions/ directory found."); return@config
+        }
+
+        val entry = ContributionIndex.STLCC_ENG101_WEEKLY
+        val pdfFile = File(contributionsDir, entry.relativePath)
+        if (!pdfFile.exists()) {
+            println("SKIPPING: ${entry.name} not found at ${pdfFile.canonicalPath}"); return@config
+        }
+
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        val database = AppDatabase(driver)
+        val settings = MapSettings().apply { putString("CEF_GEMINI_API_KEY", apiKey) }
+        val logger = Logger(settings)
+
+        // Pre-seed model so all batches start from the same model — cascade is
+        // detectable by comparing the DB entry before and after extraction.
+        val seedModel = "gemini-2.5-flash"
+        database.appDatabaseQueries.insertModel(
+            "preferred_gemini_model", seedModel, Clock.System.now().toEpochMilliseconds()
+        )
+
+        val (ingestionAgent, eventAgent, _) = buildStack(settings, logger, database)
+
+        println("\n=== STLCC ENG 101 — ${entry.description} ===")
+        println("Ingesting ${pdfFile.name}…")
+        val source = skipIfQuotaExhausted("ingest:${pdfFile.name}") {
+            ingestionAgent.addLocalFile(pdfFile.absolutePath)
+        }
+        println("Category: ${source.category}, Fragments: ${source.fragments.size}")
+        println("Extracting events (${source.fragments.size} fragments → ~${(source.fragments.size + 1) / 3} batch(es))…")
+
+        skipIfQuotaExhausted("extract:${pdfFile.name}") {
+            eventAgent.extractDeliverables(source)
+        }
+        println("  status: ${eventAgent.statusMessage.value}")
+
+        if (eventAgent.errorState.value == AgentError.QuotaExhausted) {
+            println("SKIPPING assertions: Gemini quota exhausted during extraction.")
+            driver.close(); return@config
+        }
+
+        val events = eventAgent.lastGeneratedEvents.value
+        println("Extracted: ${events.size} events")
+        events.groupBy { it.category }.forEach { (cat, evts) ->
+            println("  $cat: ${evts.size}")
+        }
+        events.sortedBy { when(it) { is DayEvent -> it.date.toString(); is TimeEvent -> it.date.toString() } }
+            .forEach { println("  ${when(it) { is DayEvent -> it.date; is TimeEvent -> it.date }} [${it.category}] ${it.title}") }
+
+        val modelAfter = database.appDatabaseQueries
+            .getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+        if (modelAfter != seedModel) {
+            println("WARN: Model cascaded during extraction: $seedModel → $modelAfter")
+            println("  (This indicates a transient API error mid-stream — results may be inconsistent)")
+        } else {
+            println("Model stable throughout extraction: $modelAfter")
+        }
+
+        // ── 1. No duplicate events ───────────────────────────────────────────
+        val fingerprints = events.map { eventFingerprint(it) }
+        val duplicates = fingerprints.groupBy { it }.filter { it.value.size > 1 }
+        withClue("Duplicate events found:\n${duplicates.keys.joinToString("\n")}") {
+            duplicates.isEmpty() shouldBe true
+        }
+
+        // ── 2. Exactly 16 class sessions ─────────────────────────────────────
+        // The document has Mon + Wed sessions for all 8 weeks = 16 exactly.
+        // A student who is missing even one session has an incomplete calendar.
+        val classEvents = events.filter { it.category == AcademicCategory.CLASS }
+        withClue(
+            "Expected exactly 16 class sessions (Mon+Wed × 8 weeks).\n" +
+            "All categories: ${events.groupBy { it.category }.mapValues { it.value.size }}\n" +
+            "Class events found: ${classEvents.map { "${it.date} ${it.title}" }}"
+        ) {
+            classEvents.size shouldBe 16
+        }
+
+        // ── 3. All 4 graded assignments present with correct dates ─────────────
+        // These are the exact submissions from the document:
+        //   Issue Brief #1  → Wed Jul 1, 2026  (50 pts, Week 4)
+        //   Issue Brief #2  → Wed Jul 15, 2026 (75 pts, Week 6)
+        //   Issue Brief #3  → Wed Jul 22, 2026 (75 pts, Week 7 online)
+        //   Final Paper     → Fri Aug 1, 2026  (100 pts, Week 8 online)
+        fun hasDeadline(titleFragment: String, date: LocalDate): Boolean =
+            events.any { e ->
+                titleFragment.lowercase() in e.title.lowercase() &&
+                when (e) { is DayEvent -> e.date; is TimeEvent -> e.date } == date
+            }
+
+        withClue("Missing: Issue Brief #1 on Jul 1, 2026\nAll events: ${events.map { "${it.date} ${it.title}" }}") {
+            hasDeadline("issue brief #1", LocalDate(2026, 7, 1)) shouldBe true
+        }
+        withClue("Missing: Issue Brief #2 on Jul 15, 2026") {
+            hasDeadline("issue brief #2", LocalDate(2026, 7, 15)) shouldBe true
+        }
+        withClue("Missing: Issue Brief #3 on Jul 22, 2026") {
+            hasDeadline("issue brief #3", LocalDate(2026, 7, 22)) shouldBe true
+        }
+        withClue("Missing: Final Paper on Jul 31, 2026 (Friday of Week 8: Jul 27–Aug 2)") {
+            hasDeadline("final paper", LocalDate(2026, 7, 31)) shouldBe true
+        }
+
+        // ── 4. Both draft submissions present ────────────────────────────────
+        // The document calls these out with explicit Sunday 11:59 PM deadlines.
+        withClue("Missing: Issue Brief #1 draft due Sun Jun 28, 2026") {
+            hasDeadline("issue brief #1", LocalDate(2026, 6, 28)) shouldBe true
+        }
+        withClue("Missing: Issue Brief #2 draft due Sun Jul 12, 2026") {
+            hasDeadline("issue brief #2", LocalDate(2026, 7, 12)) shouldBe true
+        }
+
+        // ── 5. Total event count is in a sane range ───────────────────────────
+        // Minimum 36 = 16 class sessions + 20 graded/online-activity events.
+        // The AI may also extract homework readings and workshop notes (typically +5–10).
+        // Over 48 means structural duplicates are slipping through dedup.
+        withClue(
+            "Event count ${events.size} is outside expected range [36, 48].\n" +
+            "Actual breakdown: ${events.groupBy { it.category }.mapValues { it.value.size }}\n" +
+            "Dates with multiple events: ${events.groupBy { when(it) { is DayEvent -> it.date; is TimeEvent -> it.date } }.filter { it.value.size > 1 }.mapValues { it.value.size }}"
+        ) {
+            events.size shouldBeGreaterThan 35
+            events.size shouldBeLessThan 49
+        }
+
+        driver.close()
+    }
+
+    // ── ENG 101 Formal Syllabus ───────────────────────────────────────────────
+
+    test("STLCC ENG 101 formal syllabus: institutional dates only, no class meetings expected").config(
+        timeout = (AI_INTEGRATION_TIMEOUT_MS * 8).milliseconds,
+        invocationTimeout = (AI_INTEGRATION_TIMEOUT_MS * 8).milliseconds
+    ) {
+        val apiKey = resolveApiKey("STLCC ENG 101 formal syllabus") ?: return@config
+        val contributionsDir = findContributionsDir() ?: run {
+            println("SKIPPING: No contributions/ directory found."); return@config
+        }
+
+        val entry = ContributionIndex.STLCC_ENG101_SYLLABUS
+        val pdfFile = File(contributionsDir, entry.relativePath)
+        if (!pdfFile.exists()) {
+            println("SKIPPING: ${entry.name} not found at ${pdfFile.canonicalPath}"); return@config
+        }
+
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        val database = AppDatabase(driver)
+        val settings = MapSettings().apply { putString("CEF_GEMINI_API_KEY", apiKey) }
+        val logger = Logger(settings)
+
+        database.appDatabaseQueries.insertModel(
+            "preferred_gemini_model", "gemini-2.5-flash", Clock.System.now().toEpochMilliseconds()
+        )
+
+        val (ingestionAgent, eventAgent, _) = buildStack(settings, logger, database)
+
+        println("\n=== STLCC ENG 101 — ${entry.description} ===")
+        val source = skipIfQuotaExhausted("ingest:${pdfFile.name}") {
+            ingestionAgent.addLocalFile(pdfFile.absolutePath)
+        }
+        println("Category: ${source.category}")
+
+        skipIfQuotaExhausted("extract:${pdfFile.name}") {
+            eventAgent.extractDeliverables(source)
+        }
+
+        val events = eventAgent.lastGeneratedEvents.value
+        println("Extracted: ${events.size} events")
+        events.forEach { println("  - ${it.date} [${it.category}] ${it.title}") }
+
+        // ── 1. No duplicate events ───────────────────────────────────────────
+        val fingerprints = events.map { eventFingerprint(it) }
+        val duplicates = fingerprints.groupBy { it }.filter { it.value.size > 1 }
+        withClue("Duplicate events: ${duplicates.keys.joinToString()}") {
+            duplicates.isEmpty() shouldBe true
+        }
+
+        // ── 2. Small count — this is a policy doc, not a schedule ─────────────
+        // Expect only institutional dates (semester start/end, withdrawal deadline, etc.)
+        // Historically this produces ~6 events; allow up to 15 before it's suspicious.
+        withClue("Formal syllabus extracted too many events (${events.size}) — " +
+            "policy document should not contain a full course schedule") {
+            events.size shouldBeLessThan 16
+        }
+
+        driver.close()
+    }
+
+    // ── Academic Calendar ─────────────────────────────────────────────────────
+
+    test("STLCC academic calendar: no duplicates, semester bounds present").config(
+        timeout = (AI_INTEGRATION_TIMEOUT_MS * 8).milliseconds,
+        invocationTimeout = (AI_INTEGRATION_TIMEOUT_MS * 8).milliseconds
+    ) {
+        val apiKey = resolveApiKey("STLCC academic calendar") ?: return@config
+        val contributionsDir = findContributionsDir() ?: run {
+            println("SKIPPING: No contributions/ directory found."); return@config
+        }
+
+        val entry = ContributionIndex.STLCC_CALENDAR
+        val pdfFile = File(contributionsDir, entry.relativePath)
+        if (!pdfFile.exists()) {
+            println("SKIPPING: ${entry.name} not found at ${pdfFile.canonicalPath}"); return@config
+        }
+
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        val database = AppDatabase(driver)
+        val settings = MapSettings().apply { putString("CEF_GEMINI_API_KEY", apiKey) }
+        val logger = Logger(settings)
+
+        database.appDatabaseQueries.insertModel(
+            "preferred_gemini_model", "gemini-2.5-flash", Clock.System.now().toEpochMilliseconds()
+        )
+
+        val (ingestionAgent, eventAgent, _) = buildStack(settings, logger, database)
+
+        println("\n=== STLCC — ${entry.description} ===")
+        val source = skipIfQuotaExhausted("ingest:${pdfFile.name}") {
+            ingestionAgent.addLocalFile(pdfFile.absolutePath)
+        }
+        println("Category: ${source.category}")
+
+        skipIfQuotaExhausted("extract:${pdfFile.name}") {
+            eventAgent.extractDeliverables(source)
+        }
+
+        val events = eventAgent.lastGeneratedEvents.value
+        println("Extracted: ${events.size} events")
+        events.groupBy { it.category }.forEach { (cat, evts) -> println("  $cat: ${evts.size}") }
+
+        // ── 1. No duplicate events ───────────────────────────────────────────
+        val fingerprints = events.map { eventFingerprint(it) }
+        val duplicates = fingerprints.groupBy { it }.filter { it.value.size > 1 }
+        withClue("Duplicate events: ${duplicates.keys.joinToString()}") {
+            duplicates.isEmpty() shouldBe true
+        }
+
+        // ── 2. At least some events extracted ─────────────────────────────────
+        withClue("Calendar extracted zero events") {
+            events.size shouldBeGreaterThan 0
+        }
+
+        driver.close()
+    }
+})

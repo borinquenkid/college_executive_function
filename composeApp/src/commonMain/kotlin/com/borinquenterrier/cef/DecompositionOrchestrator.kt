@@ -29,7 +29,12 @@ class DecompositionOrchestrator(
     private val maxDepth: Int = 3
 ) {
 
-    suspend fun decompose(rootTitle: String, rootDueDate: String): List<DecomposedTask> {
+    suspend fun decompose(rootTitle: String, rootDueDate: String): List<DecomposedTask> =
+        AppTracer.current.span("decomposition.orchestrate", mapOf(
+            "task.title" to rootTitle,
+            "task.due_date" to rootDueDate,
+            "max_depth" to maxDepth.toString()
+        )) {
         val queue = ArrayDeque<WorkUnit>()
         queue.add(WorkUnit.Task(rootTitle, rootDueDate, depth = 0))
 
@@ -40,6 +45,9 @@ class DecompositionOrchestrator(
 
             if (current.depth >= maxDepth) {
                 val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
+                AppTracer.current.event("decomposition.max_depth_leaf", mapOf(
+                    "node.title" to current.title, "node.depth" to current.depth.toString()
+                ))
                 finalLeaves.add(
                     DecomposedTask(
                         title = current.title,
@@ -52,6 +60,11 @@ class DecompositionOrchestrator(
 
             try {
                 val subTasks = delegate.decomposeTask(current.title, current.dueDate)
+                AppTracer.current.event("decomposition.node_expanded", mapOf(
+                    "node.title" to current.title,
+                    "node.depth" to current.depth.toString(),
+                    "subtask.count" to subTasks.size.toString()
+                ))
                 if (subTasks.isEmpty()) {
                     val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
                     finalLeaves.add(
@@ -107,7 +120,9 @@ class DecompositionOrchestrator(
             }
         }
 
-        return finalLeaves.sortedByDescending { it.daysBeforeDue }
+        val result = finalLeaves.sortedByDescending { it.daysBeforeDue }
+        setAttribute("leaves.count", result.size.toLong())
+        result
     }
 
     private fun isComplex(task: DecomposedTask): Boolean {

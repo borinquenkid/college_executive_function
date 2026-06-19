@@ -366,10 +366,15 @@ class CalendarAgentTest : FunSpec({
         }
     }
 
-    test("saveEvent should throw IllegalArgumentException when event startTime >= endTime") {
+    test("saveEvent should repair inverted startTime/endTime instead of throwing") {
+        coEvery { localRepo.saveEvent(any(), any()) } just runs
         val invalidEvent = timeEvent.copy(startTime = LocalTime(10, 0), endTime = LocalTime(9, 0))
-        shouldThrow<IllegalArgumentException> {
-            calendarAgent.saveEvent(invalidEvent, "default")
+        calendarAgent.saveEvent(invalidEvent, "default")
+        coVerify {
+            localRepo.saveEvent(
+                match { it is TimeEvent && (it as TimeEvent).endTime == LocalTime(11, 0) },
+                "default"
+            )
         }
     }
 

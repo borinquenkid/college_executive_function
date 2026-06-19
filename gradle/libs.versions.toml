@@ -27,6 +27,7 @@ kotlinx-datetime = "0.7.1-0.6.x-compat"
 mockk = "1.14.9"
 dotenv-kotlin = "6.4.1"
 sqldelight = "2.0.2"
+opentelemetry = "1.40.0"
 llamatik = "1.2.0"
 okio = "3.4.0"
 pdfbox = "3.0.3"
@@ -36,6 +37,8 @@ kover = "0.8.3"
 play-services-auth = "21.0.0"
 
 [libraries]
+opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
+opentelemetry-exporter-otlp = { module = "io.opentelemetry:opentelemetry-exporter-otlp", version.ref = "opentelemetry" }
 play-services-auth = { module = "com.google.android.gms:play-services-auth", version.ref = "play-services-auth" }
 okio = { module = "com.squareup.okio:okio", version.ref = "okio" }
 llamatik = { module = "com.llamatik:library", version.ref = "llamatik" }

@@ -13,9 +13,11 @@ import io.ktor.client.statement.bodyAsText
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
 import io.ktor.http.isSuccess
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.plus
 import kotlinx.serialization.Serializable
 
 /**
@@ -110,8 +112,9 @@ class GoogleCalendarSyncService(
         withToken { token ->
             val googleEvent = when (event) {
                 is TimeEvent -> {
-                    val startStr = "${event.date}T${event.startTime}:00Z"
-                    val endStr = "${event.date}T${event.endTime}:00Z"
+                    fun LocalTime.toHHmm() = "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00"
+                    val startStr = "${event.date}T${event.startTime.toHHmm()}Z"
+                    val endStr = "${event.date}T${event.endTime.toHHmm()}Z"
                     GoogleEvent(
                         summary = event.title,
                         start = GoogleEventDateTime(dateTime = startStr),
@@ -120,10 +123,12 @@ class GoogleCalendarSyncService(
                 }
 
                 is DayEvent -> {
+                    // Google Calendar uses exclusive end dates for all-day events
+                    val endDate = event.date.plus(1, DateTimeUnit.DAY)
                     GoogleEvent(
                         summary = event.title,
                         start = GoogleEventDateTime(date = event.date.toString()),
-                        end = GoogleEventDateTime(date = event.date.toString())
+                        end = GoogleEventDateTime(date = endDate.toString())
                     )
                 }
             }

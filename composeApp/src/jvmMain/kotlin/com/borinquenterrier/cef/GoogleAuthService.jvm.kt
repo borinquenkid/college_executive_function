@@ -138,56 +138,24 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         }
     }
 
-    private fun loadEnvFile(): Map<String, String> {
-        val envMap = mutableMapOf<String, String>()
-        try {
-            val envFile = File(".env")
-            if (envFile.exists()) {
-                envFile.forEachLine { line ->
-                    val trimmed = line.trim()
-                    if (trimmed.isNotEmpty() && !trimmed.startsWith("#")) {
-                        val parts = trimmed.split("=", limit = 2)
-                        if (parts.size == 2) {
-                            envMap[parts[0].trim()] = parts[1].trim()
-                        }
-                    }
-                }
-            }
-        } catch (e: Exception) {
-            println("[$tag] Failed to load .env file: ${e.message}")
-        }
-        return envMap
-    }
-
     internal fun buildFlow(): GoogleAuthorizationCodeFlow {
         val bypassEnv = System.getProperty("CEF_BYPASS_ENV_SECRETS") == "true"
 
-        // 1. Try JVM system properties first, then OS env vars (env vars skipped in tests via CEF_BYPASS_ENV_SECRETS)
+        // 1. JVM system properties, then OS env vars (env vars skipped in tests via CEF_BYPASS_ENV_SECRETS)
         var clientId = System.getProperty("GOOGLE_CLIENT_ID")
             ?: if (bypassEnv) null else System.getenv("GOOGLE_CLIENT_ID")
         var clientSecret = System.getProperty("GOOGLE_CLIENT_SECRET")
             ?: if (bypassEnv) null else System.getenv("GOOGLE_CLIENT_SECRET")
 
-        // 2. Try build-time injected secrets (unless bypassed in tests)
+        // 2. Build-time injected secrets (unless bypassed in tests)
         if (System.getProperty("CEF_BYPASS_BUILD_SECRETS") != "true") {
-            if (clientId.isNullOrBlank()) {
-                clientId = BuildSecrets.GOOGLE_CLIENT_ID
-            }
-            if (clientSecret.isNullOrBlank()) {
-                clientSecret = BuildSecrets.GOOGLE_CLIENT_SECRET
-            }
+            if (clientId.isNullOrBlank()) clientId = BuildSecrets.GOOGLE_CLIENT_ID
+            if (clientSecret.isNullOrBlank()) clientSecret = BuildSecrets.GOOGLE_CLIENT_SECRET
         }
 
-        // 3. Fallback to parsing the local .env file
-        if (clientId.isNullOrBlank() || clientSecret.isNullOrBlank()) {
-            val envMap = loadEnvFile()
-            if (clientId.isNullOrBlank()) {
-                clientId = envMap["GOOGLE_CLIENT_ID"]
-            }
-            if (clientSecret.isNullOrBlank()) {
-                clientSecret = envMap["GOOGLE_CLIENT_SECRET"]
-            }
-        }
+        // 3. .env file via AppEnv
+        if (clientId.isNullOrBlank()) clientId = AppEnv.get("GOOGLE_CLIENT_ID")
+        if (clientSecret.isNullOrBlank()) clientSecret = AppEnv.get("GOOGLE_CLIENT_SECRET")
 
         val clientSecrets = if (!clientId.isNullOrBlank() && !clientSecret.isNullOrBlank()) {
             val jsonString = """

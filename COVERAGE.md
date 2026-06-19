@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **78.56%** (10268/13070 lines)
-- **Total Source Files**: 159
+- **Total Source Files**: 162
 
 ## Coverage by File
 
@@ -15,8 +15,10 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | App.kt | 0.0% (0/66) | 0.0% (0/4) | 0.0% | AppKt, AppKt$App$containerState$1$1, AppKt$App$containerState$1$1$1 |
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | SourceFragmentBatcher.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | Platform.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AdvancedSettingsPanel.kt | 0.0% (0/140) | 0.0% (0/20) | 0.0% | AdvancedSettingsPanelKt, ComposableSingletons$AdvancedSettingsPanelKt |
+| 🔴 | Tracer.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourceItemView.kt | 0.0% (0/80) | 0.0% (0/52) | 1.0% | ComposableSingletons$SourceItemViewKt, SourceItemViewKt |
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineItem.kt | 0.0% (0/24) | 0.0% (0/4) | 0.0% | RoutineItem, RoutineItem$Companion |
@@ -24,6 +26,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | AcademicCalendarComponents.kt | 0.0% (0/144) | 0.0% (0/84) | 0.0% | AcademicCalendarComponentsKt, AcademicCalendarComponentsKt$GoogleLinkPrompt$1$1$2$1$1, ComposableSingletons$AcademicCalendarComponentsKt |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% | RoutineSetupScreenKt |
 | 🔴 | ConflictResolutionUI.kt | 0.0% (0/266) | 0.0% (0/56) | 0.0% | ComposableSingletons$ConflictResolutionUIKt, ConflictResolutionUIKt |
+| 🔴 | WeekAnchorExtractor.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% | ComposableSingletons$RoutineScreenKt, RoutineScreenKt, RoutineScreenKt$RoutineScreen$1$1, RoutineScreenKt$RoutineScreen$4$1$1 |

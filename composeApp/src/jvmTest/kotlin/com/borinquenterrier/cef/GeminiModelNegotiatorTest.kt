@@ -215,6 +215,43 @@ class GeminiModelNegotiatorTest : FunSpec({
         models[0].supportedGenerationMethods shouldBe listOf("generateContent")
     }
 
+    test("cascade: server error in session 1 evicts model so session 2 renegotiates fresh") {
+        // Session 1: DB has a cached model that then hits a 503
+        every {
+            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+        } returns "gemini-2.5-flash-lite"
+
+        val negotiator1 = GeminiModelNegotiator(
+            apiKey = "fake-key", accessToken = null,
+            client = HttpClient(MockEngine { respond("") }),
+            database = mockDatabase, logger = null
+        )
+        // GeminiErrorHandler.handleServerError does exactly these two calls
+        negotiator1.blacklistModel("gemini-2.5-flash-lite")
+        negotiator1.evictFromCache("gemini-2.5-flash-lite")
+
+        verify(exactly = 1) { mockQueries.deleteModel("preferred_gemini_model") }
+
+        // Simulate the DB state after deleteModel: subsequent reads return null
+        every {
+            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+        } returns null
+
+        // Session 2: new process, blacklist is reset, DB has no cached model
+        GeminiAIService.clearBlacklistForTesting()
+        val negotiator2 = GeminiModelNegotiator(
+            apiKey = "fake-key", accessToken = null,
+            client = HttpClient(MockEngine { respond("") }),
+            database = mockDatabase, logger = null
+        )
+
+        val selected = negotiator2.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
+
+        // Must NOT re-use the evicted model; must renegotiate and save the new choice
+        selected shouldBe "gemini-2.5-flash"
+        verify(exactly = 1) { mockQueries.insertModel("preferred_gemini_model", "gemini-2.5-flash", any()) }
+    }
+
     test("getAvailableModels returns empty list on network error") {
         val mockClient = HttpClient(MockEngine { request ->
             respond(

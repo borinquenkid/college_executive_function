@@ -80,12 +80,22 @@ object GeminiResponseParser {
         }
 
         return if (raw.type == "TIME") {
+            val start = parseClockTime(raw.startTime, LocalTime(9, 0), telemetry)
+            val rawEnd = parseClockTime(raw.endTime, LocalTime(10, 0), telemetry)
+            // If end <= start (e.g. AI gave startTime=23:59 but omitted endTime, so it defaulted
+            // to 10:00), derive a safe 1-hour window. If that would overflow midnight (start >= 23:00)
+            // use 23:59:59 — 1 second past the start-minute so validate() passes.
+            val end = if (rawEnd > start) rawEnd else {
+                val plusHourMins = start.hour * 60 + start.minute + 60
+                if (plusHourMins < 24 * 60) LocalTime(plusHourMins / 60, plusHourMins % 60)
+                else LocalTime(23, 59, 59)
+            }
             TimeEvent(
                 title = raw.title,
                 source = EventSource.AI_GENERATED,
                 date = date,
-                startTime = parseClockTime(raw.startTime, LocalTime(9, 0), telemetry),
-                endTime = parseClockTime(raw.endTime, LocalTime(10, 0), telemetry),
+                startTime = start,
+                endTime = end,
                 category = category,
                 warning = raw.warning,
                 gradeWeight = raw.gradeWeight

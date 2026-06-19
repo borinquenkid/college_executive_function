@@ -35,28 +35,23 @@ class ConflictResolver(private val logger: Logger? = null) {
         for (proposed in proposed) {
             val conflict = findConflict(merged, proposed)
 
-            if (conflict == null) {
-                // No conflict, add as-is
+            if (conflict == null || proposed.category == AcademicCategory.DEADLINE) {
+                // No conflict, or it's a deadline marker — always add regardless of time overlap
                 merged.add(proposed)
                 logger?.d(tag, "No conflict for ${proposed.title}")
             } else {
                 when {
                     isMovable(proposed) -> {
-                        // Try to reschedule to earlier slot
+                        // Try earlier first, then later, then add as-is (study blocks don't block students)
                         val rescheduled = rescheduleEarlier(proposed, merged)
+                            ?: rescheduleForward(proposed, merged)
                         if (rescheduled != null) {
                             merged.add(rescheduled)
-                            logger?.d(tag, "Rescheduled ${proposed.title} earlier")
+                            logger?.d(tag, "Rescheduled ${proposed.title}")
                         } else {
-                            unresolved.add(
-                                UnresolvedConflict(
-                                    title = proposed.title,
-                                    date = proposed.date,
-                                    reason = "No available slot found to reschedule earlier",
-                                    requiresProfessorApproval = false
-                                )
-                            )
-                            logger?.d(tag, "Could not reschedule ${proposed.title}")
+                            // No slot found — add anyway rather than surfacing a false conflict
+                            merged.add(proposed)
+                            logger?.d(tag, "No slot for ${proposed.title}, adding as-is")
                         }
                     }
 
@@ -81,9 +76,13 @@ class ConflictResolver(private val logger: Logger? = null) {
 
     /**
      * Checks if this event conflicts with any event in the list.
+     * DEADLINE events are transparent — they mark a due date but don't occupy a time slot,
+     * so they are never treated as blockers for other events.
      */
     private fun findConflict(events: List<Event>, target: Event): Event? {
-        return events.find { target.overlaps(it) }
+        return events.find { existing ->
+            existing.category != AcademicCategory.DEADLINE && target.overlaps(existing)
+        }
     }
 
     /**
@@ -123,6 +122,27 @@ class ConflictResolver(private val logger: Logger? = null) {
             tryTime = LocalTime(tryTime.hour - 1, tryTime.minute)
         }
 
-        return null // No available slot found
+        return null
+    }
+
+    private fun rescheduleForward(event: Event, occupiedEvents: List<Event>): Event? {
+        if (event !is TimeEvent) return null
+
+        val duration = event.endTime.hour - event.startTime.hour
+        var tryTime = LocalTime(event.endTime.hour + 1, event.startTime.minute)
+
+        while (tryTime.hour + duration <= 21) { // Don't schedule past 9 PM
+            val rescheduled = event.copy(
+                startTime = tryTime,
+                endTime = LocalTime(tryTime.hour + duration, tryTime.minute)
+            )
+            if (!occupiedEvents.any { rescheduled.overlaps(it) }) {
+                logger?.d(tag, "Found later slot for ${event.title} at $tryTime")
+                return rescheduled
+            }
+            tryTime = LocalTime(tryTime.hour + 1, tryTime.minute)
+        }
+
+        return null
     }
 }

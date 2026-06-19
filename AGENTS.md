@@ -210,6 +210,25 @@ All business logic classes (Models, Agents, Services, and Utilities) MUST have a
 *   **Integration Tests:** Headless IT tests verify full analysis pipelines using real dev keys and in-memory databases.
 *   **UI Tests:** Compose tests for key screens and dialogs verifying state changes and user interactions.
 
+### Integration Test Naming Convention
+
+Any test class that makes real external calls (Gemini API, Google Calendar, live databases) **must** include `IntegrationTest` in its class name (e.g. `StlccIntegrationTest`, `CalendarSyncIntegrationTest`). This is the project's equivalent of the JUnit `*IT` suffix convention.
+
+**Why naming, not tags:** Kotest 6's tag-filtering system property (`kotest.filter.tags`) is not reliably forwarded to the test JVM when Gradle reuses a daemon. Both `tags(Flaky)` in the spec body and `@Tags("Flaky")` class annotations were tried and failed to skip tests in practice.
+
+**Excluding integration tests** (e.g. for Kover coverage runs or fast CI):
+```bash
+./gradlew :composeApp:jvmTest -PunitTestsOnly=true
+```
+This activates the `excludeTestsMatching("*IntegrationTest*")` filter already wired in `build.gradle.kts`.
+
+**Running a single integration test class:**
+```bash
+./gradlew :composeApp:jvmTest --tests "com.borinquenterrier.cef.StlccIntegrationTest"
+```
+
+Never use Kotest tags (`object Flaky : Tag()`, `tags(Flaky)`, `@io.kotest.core.annotation.Tags`) to gate integration tests in this project.
+
 ---
 
 ## Development Roadmap

@@ -14,6 +14,7 @@ import kotlinx.serialization.json.Json
  */
 class SourceAdder(
     private val aiService: AIService,
+    private val eventGenerationService: EventGenerationService,
     private val contextAgent: ContextAgent,
     private val logger: Logger,
     private val scope: CoroutineScope,
@@ -24,6 +25,10 @@ class SourceAdder(
 ) {
     private val json = Json { ignoreUnknownKeys = true }
     private val processingMutex = Mutex()
+
+    companion object {
+        internal const val CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000L
+    }
 
     fun addSource(source: SourceItem, forceRefresh: Boolean = false) {
         scope.launch {
@@ -43,7 +48,7 @@ class SourceAdder(
     private suspend fun processSourceWithCache(source: SourceItem, hash: String, forceRefresh: Boolean) {
         if (!forceRefresh) {
             val cached = cacheRepository.getCached(hash)
-            if (cached != null) {
+            if (cached != null && !isCacheStale(cached)) {
                 logger.d("SourceAdder", "Cache hit for source: ${source.title}")
                 val events = json.decodeFromString<List<Event>>(cached.cachedEventsJson)
                 onEventsAdded(events)
@@ -55,7 +60,7 @@ class SourceAdder(
         }
 
         logger.d("SourceAdder", "Cache miss or forceRefresh. Processing source: ${source.title}")
-        val allEvents = aiService.generateCalendarEvents(source.fragments)
+        val allEvents = eventGenerationService.extractDeliverables(source)
         onEventsAdded(allEvents)
         contextAgent.analyzeSource(source)
 
@@ -69,6 +74,11 @@ class SourceAdder(
                 createdAt = Clock.System.now().toEpochMilliseconds()
             )
         )
+    }
+
+    private fun isCacheStale(cached: CachedAnalysis): Boolean {
+        val ageMs = Clock.System.now().toEpochMilliseconds() - cached.createdAt
+        return ageMs > CACHE_TTL_MS
     }
 
     private fun handleFailure(source: SourceItem, e: Exception) {

@@ -5,6 +5,8 @@ import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -580,6 +582,119 @@ class HeadlessLogicTest : FunSpec({
         coEvery { mockCalendarAgent.getEvents(any()) } throws Exception("Failed to get events")
         eventAgent.rescheduleEvent(event)
         eventAgent.statusMessage.value shouldBe "Error: Failed to get events"
+    }
+
+    // ── extractionWarning branches ──────────────────────────────────────────
+
+    test("EventAgent extractDeliverables sets extractionWarning when AI returns no events") {
+        val mockAiService = mockk<AIService>()
+        val eventAgent = EventAgent(
+            mockAiService, mockk(relaxed = true), null, NormalizationService(), logger = Logger(MapSettings())
+        )
+        coEvery { mockAiService.generateCalendarEvents(any()) } returns emptyList()
+        coEvery { mockAiService.generateChatResponse(any()) } returns """{"hasAmbiguities":false,"findings":[]}"""
+
+        val source = SourceItem(
+            "Policy Doc", listOf(SourceFragment("attendance policy", type = SourceType.TEXT)),
+            SourceCategory.SYLLABUS
+        )
+        eventAgent.extractDeliverables(source)
+
+        val warning1 = eventAgent.extractionWarning.value
+        warning1 shouldNotBe null
+        warning1!! shouldContain "No events found"
+        warning1 shouldContain "Policy Doc"
+    }
+
+    test("EventAgent extractDeliverables sets extractionWarning for sparse OTHER source") {
+        val mockAiService = mockk<AIService>()
+        val eventAgent = EventAgent(
+            mockAiService, mockk(relaxed = true), null, NormalizationService(), logger = Logger(MapSettings())
+        )
+        val sparseEvents = (1..3).map { i ->
+            DayEvent(title = "Event $i", source = EventSource.AI_GENERATED,
+                category = AcademicCategory.REGULAR, date = LocalDate(2026, 10, i))
+        }
+        coEvery { mockAiService.generateCalendarEvents(any()) } returns sparseEvents
+
+        val source = SourceItem(
+            "Institutional Syllabus", listOf(SourceFragment("policy text", type = SourceType.TEXT)),
+            SourceCategory.OTHER
+        )
+        eventAgent.extractDeliverables(source)
+
+        val warning2 = eventAgent.extractionWarning.value
+        warning2 shouldNotBe null
+        warning2!! shouldContain "3 event(s)"
+        eventAgent.lastGeneratedEvents.value shouldHaveSize 3
+    }
+
+    test("EventAgent extractDeliverables does not set extractionWarning when 5 or more events returned") {
+        val mockAiService = mockk<AIService>()
+        val eventAgent = EventAgent(
+            mockAiService, mockk(relaxed = true), null, NormalizationService(), logger = Logger(MapSettings())
+        )
+        val events = (1..5).map { i ->
+            DayEvent(title = "Event $i", source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 10, i))
+        }
+        coEvery { mockAiService.generateCalendarEvents(any()) } returns events
+
+        val source = SourceItem(
+            "Weekly Schedule", listOf(SourceFragment("schedule", type = SourceType.TEXT)),
+            SourceCategory.OTHER
+        )
+        eventAgent.extractDeliverables(source)
+
+        eventAgent.extractionWarning.value shouldBe null
+    }
+
+    test("EventAgent extractDeliverables does not set sparse warning for non-OTHER category") {
+        val mockAiService = mockk<AIService>()
+        val eventAgent = EventAgent(
+            mockAiService, mockk(relaxed = true), null, NormalizationService(), logger = Logger(MapSettings())
+        )
+        // 3 events from a SYLLABUS source — sparse warning only fires for OTHER
+        val sparseEvents = (1..3).map { i ->
+            DayEvent(title = "HW $i", source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 10, i))
+        }
+        coEvery { mockAiService.generateCalendarEvents(any()) } returns sparseEvents
+        coEvery { mockAiService.generateChatResponse(any()) } returns """{"hasAmbiguities":false,"findings":[]}"""
+
+        val source = SourceItem(
+            "CS 101 Syllabus", listOf(SourceFragment("syllabus text", type = SourceType.TEXT)),
+            SourceCategory.SYLLABUS
+        )
+        eventAgent.extractDeliverables(source)
+
+        eventAgent.extractionWarning.value shouldBe null
+    }
+
+    test("EventAgent extractDeliverables clears extractionWarning on subsequent successful extraction") {
+        val mockAiService = mockk<AIService>()
+        val eventAgent = EventAgent(
+            mockAiService, mockk(relaxed = true), null, NormalizationService(), logger = Logger(MapSettings())
+        )
+        val source = SourceItem(
+            "CS 101", listOf(SourceFragment("text", type = SourceType.TEXT)), SourceCategory.SYLLABUS
+        )
+        coEvery { mockAiService.generateChatResponse(any()) } returns """{"hasAmbiguities":false,"findings":[]}"""
+
+        // First call: empty → warning fires
+        coEvery { mockAiService.generateCalendarEvents(any()) } returns emptyList()
+        eventAgent.extractDeliverables(source)
+        val warning5 = eventAgent.extractionWarning.value
+        warning5 shouldNotBe null
+
+        // Second call: 5 events → warning cleared
+        val events = (1..5).map { i ->
+            DayEvent(title = "Event $i", source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 10, i))
+        }
+        coEvery { mockAiService.generateCalendarEvents(any()) } returns events
+        eventAgent.extractDeliverables(source)
+        eventAgent.extractionWarning.value shouldBe null
     }
 
     test("EventAgent rescheduleEvent should handle conflict case") {

@@ -29,19 +29,31 @@ class IngestionAgent(
     suspend fun addLocalFile(path: String): SourceItem {
         _isBusy.value = true
         return try {
-            val fileName = path.substringAfterLast("/").substringAfterLast("\\")
-            val isIcs = fileName.lowercase().endsWith(".ics")
-            val rawFragments = when {
-                fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
-                fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
-                isIcs -> IcsCalendarSource(fileReader.readText(path)).readSource()
-                else -> SourceProcessor.split(fileReader.readText(path))
+            AppTracer.current.span("ingestion.add_file") {
+                val fileName = path.substringAfterLast("/").substringAfterLast("\\")
+                val isIcs = fileName.lowercase().endsWith(".ics")
+                setAttribute("source.name", fileName)
+                setAttribute("source.type", when {
+                    fileName.lowercase().endsWith(".pdf") -> "pdf"
+                    fileName.lowercase().endsWith(".docx") -> "docx"
+                    isIcs -> "ics"
+                    else -> "text"
+                })
+                val rawFragments = when {
+                    fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
+                    fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
+                    isIcs -> IcsCalendarSource(fileReader.readText(path)).readSource()
+                    else -> SourceProcessor.split(fileReader.readText(path))
+                }
+                val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
+                setAttribute("fragment.count", fragments.size.toLong())
+                ContributionValidator.validate(fragments)
+                val category = resolveCategory(isIcs, fragments)
+                setAttribute("source.category", category.name)
+                val sourceItem = SourceItem(fileName, fragments, category)
+                persistSource(sourceItem, path)
+                sourceItem
             }
-            val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
-            ContributionValidator.validate(fragments)
-            val sourceItem = SourceItem(fileName, fragments, resolveCategory(isIcs, fragments))
-            persistSource(sourceItem, path)
-            sourceItem
         } finally {
             _isBusy.value = false
         }
@@ -50,14 +62,20 @@ class IngestionAgent(
     suspend fun addUrl(url: String): SourceItem {
         _isBusy.value = true
         return try {
-            val rawContent = webReader.readTextFromUrl(url)
-            val isIcs = url.lowercase().endsWith(".ics")
-            val rawFragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
-            else SourceProcessor.split(rawContent)
-            val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
-            val sourceItem = SourceItem(url, fragments, resolveCategory(isIcs, fragments))
-            persistSource(sourceItem, url)
-            sourceItem
+            AppTracer.current.span("ingestion.add_url", mapOf("source.url" to url)) {
+                val rawContent = webReader.readTextFromUrl(url)
+                val isIcs = url.lowercase().endsWith(".ics")
+                setAttribute("source.type", if (isIcs) "ics" else "web")
+                val rawFragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
+                else SourceProcessor.split(rawContent)
+                val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
+                setAttribute("fragment.count", fragments.size.toLong())
+                val category = resolveCategory(isIcs, fragments)
+                setAttribute("source.category", category.name)
+                val sourceItem = SourceItem(url, fragments, category)
+                persistSource(sourceItem, url)
+                sourceItem
+            }
         } finally {
             _isBusy.value = false
         }
@@ -66,14 +84,22 @@ class IngestionAgent(
     suspend fun addDriveFile(file: DriveFile): SourceItem {
         _isBusy.value = true
         return try {
-            val rawContent = driveService.getFileContent(file.id, file.mimeType)
-            val isIcs = file.name.lowercase().endsWith(".ics")
-            val rawFragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
-            else SourceProcessor.split(rawContent)
-            val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
-            val sourceItem = SourceItem(file.name, fragments, resolveCategory(isIcs, fragments))
-            persistSource(sourceItem, "google_drive://${file.id}")
-            sourceItem
+            AppTracer.current.span("ingestion.add_drive_file",
+                mapOf("source.name" to file.name, "drive.file_id" to file.id)
+            ) {
+                val rawContent = driveService.getFileContent(file.id, file.mimeType)
+                val isIcs = file.name.lowercase().endsWith(".ics")
+                setAttribute("source.type", if (isIcs) "ics" else file.mimeType)
+                val rawFragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
+                else SourceProcessor.split(rawContent)
+                val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
+                setAttribute("fragment.count", fragments.size.toLong())
+                val category = resolveCategory(isIcs, fragments)
+                setAttribute("source.category", category.name)
+                val sourceItem = SourceItem(file.name, fragments, category)
+                persistSource(sourceItem, "google_drive://${file.id}")
+                sourceItem
+            }
         } finally {
             _isBusy.value = false
         }

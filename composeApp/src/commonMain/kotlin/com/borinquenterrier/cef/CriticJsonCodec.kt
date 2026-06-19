@@ -92,10 +92,15 @@ object CriticJsonCodec {
                 } catch (e: Exception) {
                     kotlinx.datetime.LocalTime(9, 0)
                 }
-                val end = try {
+                val rawEnd = try {
                     kotlinx.datetime.LocalTime.parse(raw.endTime)
                 } catch (e: Exception) {
                     kotlinx.datetime.LocalTime(10, 0)
+                }
+                val end = if (rawEnd > start) rawEnd else {
+                    val plusHourMins = start.hour * 60 + start.minute + 60
+                    if (plusHourMins < 24 * 60) kotlinx.datetime.LocalTime(plusHourMins / 60, plusHourMins % 60)
+                    else kotlinx.datetime.LocalTime(23, 59, 59)
                 }
                 TimeEvent(
                     title = raw.title, source = EventSource.AI_GENERATED, category = category,

@@ -4,7 +4,9 @@ import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
 
-fun main() = application {
+fun main() {
+    Runtime.getRuntime().addShutdownHook(Thread { AppTracer.current.shutdown() })
+    application {
     Window(
         onCloseRequest = ::exitApplication,
         title = "CollegeExecutiveFunction",
@@ -46,5 +48,6 @@ fun main() = application {
             }
         }
         App()
+    }
     }
 }

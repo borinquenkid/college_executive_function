@@ -219,6 +219,8 @@ kotlin {
             implementation(libs.google.http.client.gson)
             implementation(libs.sqldelight.sqlite.driver)
             implementation(libs.pdfbox)
+            implementation(libs.opentelemetry.sdk)
+            implementation(libs.opentelemetry.exporter.otlp)
         }
     }
 }

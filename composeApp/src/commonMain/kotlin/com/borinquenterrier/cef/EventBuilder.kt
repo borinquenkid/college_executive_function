@@ -51,14 +51,15 @@ object EventBuilder {
             - Exams: midterms, finals, quizzes, tests
             - Assignment due dates: papers, essays, problem sets, lab reports, projects, presentations
             - Reading deadlines and participation requirements with a due date
-            - Class sessions with specific content (first day, last day, review sessions, field trips)
+            - Class sessions: every scheduled in-person or synchronous meeting listed in the weekly schedule under a specific day (e.g. "Monday: Discuss controlling idea", "Wednesday: WC visit & brainstorming", "Wednesday: Assign Issue Brief #3") → category CLASS. A class session that launches an assignment ("Assign X") or screens content still takes place in person on that day — it is always a CLASS event, NOT a DEADLINE. A note like "(online)" on a video title means the video is online homework, not that the class session is online or should be omitted.
             - Semester boundaries: first day, last day, add/drop deadline, withdrawal deadline
             - Holidays and breaks that affect this course
 
             ## Date rules
             - Use EXPLICIT dates when the document states them directly (e.g. "October 14" or "July 3, 2026").
-            - Week-anchor pattern: If the document provides a Week 1 date range (e.g. "Week 1: June 8–14") and an assignment only says "Due Week N", calculate the calendar date using that anchor. Use the Monday of the target week as the due date (e.g. "Due Week 4" → June 29).
-            - Day-within-week pattern: If a weekly schedule provides per-week date ranges (e.g. "Week 4: June 29–July 5") and an assignment is listed under a named class day within that week (e.g. under "Wednesday"), compute the exact calendar date. Monday of the range = Day 1, Tuesday = +1, Wednesday = +2, Thursday = +3, Friday = +4. Example: "Issue Brief #1 due" under "Wednesday" in "Week 4: June 29–July 5" → July 1, 2026. Getting this right matters — a student who shows up Monday with work due Wednesday submits late.
+            - Day-within-week pattern (preferred): If a weekly schedule provides per-week date ranges (e.g. "Week 4: June 29–July 5") and an event is listed under a named class day within that week (e.g. under "Wednesday"), compute the exact calendar date. Monday of the range = Day 1, Tuesday = +1, Wednesday = +2, Thursday = +3, Friday = +4. Example: "Issue Brief #1 due" under "Wednesday" in "Week 4: June 29–July 5" → July 1, 2026. Getting this right matters — a student who shows up Monday with work due Wednesday submits late.
+            - Week-anchor fallback (only when day is unknown): If the document provides a Week 1 date range and an assignment ONLY appears in a summary table with "Due Week N" and does NOT appear anywhere in the weekly session body, use the Wednesday of that week as the due date (e.g. "Due Week 4" with "Week 4: June 29–July 5" → July 1). Wednesday is the default because most academic deadlines fall mid-week.
+            - Deduplication: When the same assignment appears in BOTH a summary/grade table (with only a week number) AND the detailed weekly session table (with an explicit day), extract it ONLY from the session table entry. Do NOT produce a separate event for the summary table row — that would create a duplicate with a wrong date.
             - If a time is given (e.g. "due at 11:59 pm"), produce a TIME event; otherwise produce a DAY event.
             - Do NOT invent events not mentioned in the document. Do NOT use your training data to add typical course events. Only extract what is stated.
 
@@ -69,7 +70,7 @@ object EventBuilder {
               {
                 "title": "Title",
                 "type": "TIME" or "DAY",
-                "category": "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", "SEMESTER_BOUND", or "STUDY_BLOCK",
+                "category": "CLASS", "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", "SEMESTER_BOUND", or "STUDY_BLOCK",
                 "date": "YYYY-MM-DD",
                 "startTime": "HH:mm" (optional),
                 "endTime": "HH:mm" (optional),
@@ -108,13 +109,15 @@ object EventBuilder {
             2. Incorrect dates, times, titles, or categories.
 
             NOTE: Events with dates calculated from week numbers (e.g. "Week 4" computed from a "Week 1: June 8–14" anchor) are VALID. Do not flag or remove them — their warning field will already note the calculation. Only remove events whose title or existence is not supported by the source at all.
+
+            NOTE: CLASS events (in-person/synchronous class meetings) are VALID even if the class session launches an assignment ("Assign Issue Brief #3") or involves watching an online video — the in-class meeting still occurs on that weekday. A note like "(online)" refers to the video being hosted online, not to the class session being remote. Never remove or recategorize a CLASS event solely because its topic involves assigning homework or viewing content.
             
             Return a refined JSON array of objects following the EXACT same schema as the input:
             [
               {
                 "title": "Title",
                 "type": "TIME" or "DAY",
-                "category": "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", "SEMESTER_BOUND", or "STUDY_BLOCK",
+                "category": "CLASS", "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", "SEMESTER_BOUND", or "STUDY_BLOCK",
                 "date": "YYYY-MM-DD",
                 "startTime": "HH:mm" (optional),
                 "endTime": "HH:mm" (optional),

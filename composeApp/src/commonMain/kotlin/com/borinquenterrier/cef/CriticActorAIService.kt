@@ -7,30 +7,38 @@ class CriticActorAIService(
 ) : AIService by delegate {
 
     override suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
-        val firstPass = delegate.generateCalendarEvents(fragments)
-        if (firstPass.isEmpty()) return firstPass
+        return AppTracer.current.span("critic.calendar_events") {
+            val firstPass = delegate.generateCalendarEvents(fragments)
+            setAttribute("events.after_extraction", firstPass.size.toLong())
+            setAttribute("class.after_extraction",
+                firstPass.count { it.category == AcademicCategory.CLASS }.toLong())
 
-        val sourceText = fragments.joinToString("\n\n") { it.text }
-        val refined = runCritiqueLoop(
-            logLabel = "calendar event",
-            firstPass = firstPass,
-            serialize = CriticJsonCodec::serializeEvents,
-            parse = { CriticJsonCodec.parseEvents(it, logger) },
-            buildPrompt = { currentJson ->
-                AiPrompts.getEventCritiquePrompt(
-                    sourceText,
-                    currentJson
-                )
-            }
-        )
+            if (firstPass.isEmpty()) return@span firstPass
 
-        val modified = areEventListsDifferent(firstPass, refined)
-        telemetryManager?.logCriticPass(modified)
-        logger?.d(
-            "CriticActor",
-            "Critique loop finished. Event count: ${firstPass.size} -> ${refined.size} (modified=$modified)"
-        )
-        return refined
+            val sourceText = fragments.joinToString("\n\n") { it.text }
+            val refined = runCritiqueLoop(
+                logLabel = "calendar event",
+                firstPass = firstPass,
+                serialize = CriticJsonCodec::serializeEvents,
+                parse = { CriticJsonCodec.parseEvents(it, logger) },
+                buildPrompt = { currentJson -> AiPrompts.getEventCritiquePrompt(sourceText, currentJson) }
+            )
+
+            val modified = areEventListsDifferent(firstPass, refined)
+            telemetryManager?.logCriticPass(modified)
+            setAttribute("events.after_critique", refined.size.toLong())
+            setAttribute("class.after_critique",
+                refined.count { it.category == AcademicCategory.CLASS }.toLong())
+            setAttribute("class.dropped_by_critique",
+                (firstPass.count { it.category == AcademicCategory.CLASS } -
+                 refined.count { it.category == AcademicCategory.CLASS }).toLong())
+            setAttribute("critique.modified", modified.toString())
+            logger?.d(
+                "CriticActor",
+                "Critique loop finished. Event count: ${firstPass.size} -> ${refined.size} (modified=$modified)"
+            )
+            refined
+        }
     }
 
     override suspend fun generateStudyPlan(
@@ -47,10 +55,7 @@ class CriticActorAIService(
             serialize = CriticJsonCodec::serializeEvents,
             parse = { CriticJsonCodec.parseEvents(it, logger) },
             buildPrompt = { currentJson ->
-                AiPrompts.getEventCritiquePrompt(
-                    syllabusText,
-                    currentJson
-                )
+                StudyPlanBuilder.getStudyPlanCritiquePrompt(syllabusText, currentJson)
             }
         )
 

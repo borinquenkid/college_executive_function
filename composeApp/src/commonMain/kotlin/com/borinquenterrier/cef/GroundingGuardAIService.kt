@@ -24,7 +24,16 @@ class GroundingGuardAIService(
 
     override suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         val sourceText = fragments.joinToString("\n\n") { it.text }
-        return groundToSource("generateCalendarEvents", sourceText, delegate.generateCalendarEvents(fragments))
+        return AppTracer.current.span(
+            "pipeline.generate_calendar_events",
+            mapOf("fragment.count" to fragments.size.toString())
+        ) {
+            val events = delegate.generateCalendarEvents(fragments)
+            val result = groundToSource("generateCalendarEvents", sourceText, events)
+            setAttribute("events.final", result.size.toLong())
+            setAttribute("class.final", result.count { it.category == AcademicCategory.CLASS }.toLong())
+            result
+        }
     }
 
     override suspend fun generateStudyPlan(
@@ -51,6 +60,22 @@ class GroundingGuardAIService(
         val sourceYears = GeminiAIService.extractSourceYears(sourceText)
         val grounded = GeminiAIService.filterToSourceYears(events, sourceYears)
         val dropped = events.size - grounded.size
+
+        val categoriesBefore = events.groupBy { it.category.name }.mapValues { it.value.size }
+        val categoriesAfter = grounded.groupBy { it.category.name }.mapValues { it.value.size }
+
+        AppTracer.current.event("grounding.filter", mapOf(
+            "caller" to caller,
+            "source.years" to sourceYears.sorted().joinToString(),
+            "events.before" to events.size.toString(),
+            "events.after" to grounded.size.toString(),
+            "events.dropped" to dropped.toString(),
+            "categories.before" to categoriesBefore.entries.joinToString { "${it.key}=${it.value}" },
+            "categories.after" to categoriesAfter.entries.joinToString { "${it.key}=${it.value}" },
+            "class.before" to (categoriesBefore["CLASS"] ?: 0).toString(),
+            "class.after" to (categoriesAfter["CLASS"] ?: 0).toString(),
+        ))
+
         if (dropped > 0) {
             logger?.d("GroundingGuard", "$caller: dropped $dropped confabulated event(s) outside source years $sourceYears")
         }

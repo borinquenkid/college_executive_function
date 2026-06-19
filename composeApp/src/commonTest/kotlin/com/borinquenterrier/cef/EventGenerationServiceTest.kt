@@ -7,6 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -164,5 +165,95 @@ class EventGenerationServiceTest : FunSpec({
         val service = EventGenerationService(aiService, NormalizationService(), auditor)
 
         service.generateStudyPlan(syllabusSource(), emptyList()).shouldBeEmpty()
+    }
+
+    // ── batch loop ──────────────────────────────────────────────────────────
+
+    test("extractDeliverables calls AI once per batch when TEXT fragments exceed BATCH_SIZE") {
+        val aiService = mockk<AIService>()
+        val auditor = mockk<SyllabusAuditor>(relaxed = true)
+        coEvery { auditor.audit(any()) } returns emptyList()
+        // 4 fragments → 2 batches; return distinct events so merging is verifiable
+        coEvery { aiService.generateCalendarEvents(any()) } returnsMany listOf(
+            listOf(dayEvent("HW1"), dayEvent("HW2")),
+            listOf(dayEvent("HW3"))
+        )
+        val fragments = (1..4).map { i ->
+            SourceFragment("page $i content", pageNumber = i, type = SourceType.TEXT)
+        }
+        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+
+        val events = service.extractDeliverables(syllabusSource(fragments = fragments))
+
+        coVerify(exactly = 2) { aiService.generateCalendarEvents(any()) }
+        events shouldHaveSize 3
+    }
+
+    test("extractDeliverables calls AI once when TEXT fragments do not exceed BATCH_SIZE") {
+        val aiService = mockk<AIService>()
+        val auditor = mockk<SyllabusAuditor>(relaxed = true)
+        coEvery { auditor.audit(any()) } returns emptyList()
+        coEvery { aiService.generateCalendarEvents(any()) } returns listOf(dayEvent("Midterm"))
+        // 3 fragments == BATCH_SIZE, not >, so no split
+        val fragments = (1..3).map { i ->
+            SourceFragment("page $i", pageNumber = i, type = SourceType.TEXT)
+        }
+        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+
+        service.extractDeliverables(syllabusSource(fragments = fragments))
+
+        coVerify(exactly = 1) { aiService.generateCalendarEvents(any()) }
+    }
+
+    test("extractDeliverables calls AI once for non-TEXT fragments regardless of count") {
+        val aiService = mockk<AIService>()
+        val auditor = mockk<SyllabusAuditor>(relaxed = true)
+        coEvery { auditor.audit(any()) } returns emptyList()
+        coEvery { aiService.generateCalendarEvents(any()) } returns listOf(dayEvent("Lecture"))
+        // 5 CALENDAR fragments — batching only applies to TEXT
+        val fragments = (1..5).map { i ->
+            SourceFragment("event $i", pageNumber = i, type = SourceType.CALENDAR)
+        }
+        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+
+        service.extractDeliverables(syllabusSource(fragments = fragments))
+
+        coVerify(exactly = 1) { aiService.generateCalendarEvents(any()) }
+    }
+
+    test("extractDeliverables emits audit then per-batch progress messages for SYLLABUS source") {
+        val aiService = mockk<AIService>(relaxed = true)
+        val auditor = mockk<SyllabusAuditor>(relaxed = true)
+        coEvery { auditor.audit(any()) } returns emptyList()
+        coEvery { aiService.generateCalendarEvents(any()) } returns emptyList()
+        // 4 fragments → 2 batches; SYLLABUS → audit message fires first
+        val fragments = (1..4).map { i ->
+            SourceFragment("page $i", pageNumber = i, type = SourceType.TEXT)
+        }
+        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+
+        val messages = mutableListOf<String>()
+        service.extractDeliverables(syllabusSource(fragments = fragments)) { messages.add(it) }
+
+        messages shouldHaveSize 3
+        messages[0] shouldContain "Auditing"
+        messages[1] shouldContain "pages 1"
+        messages[2] shouldContain "pages"
+    }
+
+    test("extractDeliverables does not emit audit progress for non-SYLLABUS source") {
+        val aiService = mockk<AIService>(relaxed = true)
+        val auditor = mockk<SyllabusAuditor>(relaxed = true)
+        coEvery { aiService.generateCalendarEvents(any()) } returns emptyList()
+        val fragments = (1..4).map { i ->
+            SourceFragment("event $i", pageNumber = i, type = SourceType.TEXT)
+        }
+        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+
+        val messages = mutableListOf<String>()
+        service.extractDeliverables(calendarSource().copy(fragments = fragments)) { messages.add(it) }
+
+        messages.none { it.contains("Auditing") } shouldBe true
+        messages shouldHaveSize 2
     }
 })

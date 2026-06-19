@@ -10,7 +10,10 @@ import io.kotest.matchers.ints.shouldBeLessThan
 import io.kotest.matchers.shouldBe
 import io.mockk.mockk
 import kotlinx.datetime.Clock
+import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.atStartOfDayIn
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
@@ -27,6 +30,17 @@ import kotlin.time.Duration.Companion.milliseconds
  */
 class StlccIntegrationTest : FunSpec({
 
+    // All STLCC documents cover summer 2026. Fixing the clock before the semester
+    // start makes every date-relative decision in EventAgent idempotent regardless
+    // of when this test actually runs.
+    val STLCC_SEMESTER_REF = LocalDate(2026, 5, 1)
+    val semesterClock: Clock = object : Clock {
+        override fun now(): Instant =
+            Instant.fromEpochMilliseconds(
+                STLCC_SEMESTER_REF.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds() + 12 * 3600_000L
+            )
+    }
+
     fun findContributionsDir(): File? = listOf(
         File("contributions"),
         File("../contributions"),
@@ -42,7 +56,12 @@ class StlccIntegrationTest : FunSpec({
         return "${event.title.trim().lowercase()}|$dateStr"
     }
 
-    fun buildStack(settings: MapSettings, logger: Logger, database: AppDatabase): Triple<IngestionAgent, EventAgent, CalendarAgent> {
+    fun buildStack(
+        settings: MapSettings,
+        logger: Logger,
+        database: AppDatabase,
+        clock: Clock = semesterClock
+    ): Triple<IngestionAgent, EventAgent, CalendarAgent> {
         val aiService: AIService = GroundingGuardAIService(
             CriticActorAIService(RealAIService(settings, logger, database), logger),
             logger
@@ -63,7 +82,7 @@ class StlccIntegrationTest : FunSpec({
             aiService = aiService,
             sourceRepository = sourceRepository
         )
-        val eventAgent = EventAgent(aiService, calendarAgent, database, logger = logger)
+        val eventAgent = EventAgent(aiService, calendarAgent, database, logger = logger, clock = clock)
         return Triple(ingestionAgent, eventAgent, calendarAgent)
     }
 

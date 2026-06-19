@@ -98,8 +98,9 @@ class WarningClassifierTest {
             makeDayEvent(LocalDate(2026, 11, 20))
         )
         val range = WarningClassifier.activeSemesterFrom(events, today)
-        // Summer/interim: today to today+30, NOT fall
-        assertEquals(today, range?.first)
+        // Summer: June 1 to Aug 31, NOT fall
+        assertEquals(LocalDate(2026, 6, 1), range?.first)
+        assertEquals(LocalDate(2026, 8, 31), range?.second)
     }
 
     @Test

@@ -21,6 +21,7 @@ class SourceProcessingPipeline(
             logger.d(tag, "Extracting deliverables for: ${source.title}")
             eventAgent.extractDeliverables(source)
             eventAgent.pushToCalendar()
+            eventAgent.autoDecomposeDeliverables()
 
             logger.d(tag, "Generating study plan for: ${source.title}")
             eventAgent.generateStudyPlan(source)

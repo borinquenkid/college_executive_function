@@ -740,4 +740,113 @@ class HeadlessLogicTest : FunSpec({
         eventAgent.rescheduleEvent(event)
         eventAgent.statusMessage.value shouldBe "Cannot reschedule: conflict detected."
     }
+
+    // ── autoDecomposeDeliverables ────────────────────────────────────────────
+
+    test("autoDecomposeDeliverables does nothing when no unplanned DEADLINE/FINALS events") {
+        val mockAiService = mockk<AIService>(relaxed = true)
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val eventAgent = EventAgent(
+            mockAiService, mockCalendarAgent, null, NormalizationService(),
+            logger = Logger(MapSettings())
+        )
+        // Only STUDY_BLOCK events — no DEADLINE/FINALS
+        coEvery { mockCalendarAgent.getEvents("default") } returns listOf(
+            DayEvent(title = "Study Kotlin", source = EventSource.AI_GENERATED,
+                category = AcademicCategory.STUDY_BLOCK, date = LocalDate(2026, 8, 10))
+        )
+        eventAgent.autoDecomposeDeliverables()
+        // No AI calls should have been made
+        coVerify(exactly = 0) { mockAiService.decomposeTask(any(), any()) }
+    }
+
+    test("autoDecomposeDeliverables skips events that already have a studyPlanStart") {
+        val mockAiService = mockk<AIService>(relaxed = true)
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val eventAgent = EventAgent(
+            mockAiService, mockCalendarAgent, null, NormalizationService(),
+            logger = Logger(MapSettings())
+        )
+        val alreadyPlanned = DayEvent(
+            title = "Essay #1", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 8, 20),
+            studyPlanStart = "2026-08-10"
+        )
+        coEvery { mockCalendarAgent.getEvents("default") } returns listOf(alreadyPlanned)
+        eventAgent.autoDecomposeDeliverables()
+        coVerify(exactly = 0) { mockAiService.decomposeTask(any(), any()) }
+    }
+
+    test("autoDecomposeDeliverables decomposes DEADLINE event and sets status message with step count") {
+        val mockAiService = mockk<AIService>(relaxed = true)
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val eventAgent = EventAgent(
+            mockAiService, mockCalendarAgent, null, NormalizationService(),
+            logger = Logger(MapSettings())
+        )
+        val deadline = DayEvent(
+            title = "Research Paper", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 8, 25)
+        )
+        coEvery { mockCalendarAgent.getEvents("default") } returns listOf(deadline)
+        coEvery { mockAiService.decomposeTask("Research Paper", "2026-08-25") } returns listOf(
+            DecomposedTask("Research sources", 14, "Find sources"),
+            DecomposedTask("Write draft", 7, "First draft"),
+            DecomposedTask("Final edits", 2, "Polish")
+        )
+        coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
+        coEvery { mockCalendarAgent.updateEvent(any(), any()) } returns Unit
+
+        eventAgent.autoDecomposeDeliverables()
+
+        eventAgent.statusMessage.value shouldContain "3 study steps"
+        eventAgent.statusMessage.value shouldContain "1 deliverable"
+    }
+
+    test("autoDecomposeDeliverables decomposes FINALS event") {
+        val mockAiService = mockk<AIService>(relaxed = true)
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val eventAgent = EventAgent(
+            mockAiService, mockCalendarAgent, null, NormalizationService(),
+            logger = Logger(MapSettings())
+        )
+        val finals = DayEvent(
+            title = "Final Exam", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.FINALS, date = LocalDate(2026, 12, 10)
+        )
+        coEvery { mockCalendarAgent.getEvents("default") } returns listOf(finals)
+        coEvery { mockAiService.decomposeTask(any(), any()) } returns listOf(
+            DecomposedTask("Review notes", 7, "Study notes")
+        )
+        coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
+        coEvery { mockCalendarAgent.updateEvent(any(), any()) } returns Unit
+
+        eventAgent.autoDecomposeDeliverables()
+
+        coVerify(exactly = 1) { mockAiService.decomposeTask("Final Exam", "2026-12-10") }
+    }
+
+    test("autoDecomposeDeliverables shows 'no steps' message when all steps blocked by conflicts") {
+        val mockAiService = mockk<AIService>(relaxed = true)
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val eventAgent = EventAgent(
+            mockAiService, mockCalendarAgent, null, NormalizationService(),
+            logger = Logger(MapSettings())
+        )
+        val deadline = DayEvent(
+            title = "Blocked Essay", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 9, 1)
+        )
+        coEvery { mockCalendarAgent.getEvents("default") } returns listOf(deadline)
+        coEvery { mockAiService.decomposeTask(any(), any()) } returns listOf(
+            DecomposedTask("Draft", 5, "Write draft")
+        )
+        // Every save throws OverlapException — all steps blocked
+        coEvery { mockCalendarAgent.saveEvent(any(), any()) } throws OverlapException(deadline, deadline)
+        coEvery { mockCalendarAgent.updateEvent(any(), any()) } returns Unit
+
+        eventAgent.autoDecomposeDeliverables()
+
+        eventAgent.statusMessage.value shouldContain "already have study plans"
+    }
 })

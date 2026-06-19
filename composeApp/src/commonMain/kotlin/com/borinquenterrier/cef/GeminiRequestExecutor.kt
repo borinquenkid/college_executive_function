@@ -129,43 +129,48 @@ class GeminiRequestExecutor(
 
                 if (errorType is ErrorCategorizer.ErrorType.TransientRateLimit) {
                     telemetryManager?.logRateLimitError()
-                    val delayMs = errorType.delayMs
-
-                    if (delayMs > 120_000L) {
-                        modelNegotiator.blacklistModel(modelName)
-                        modelNegotiator.evictFromCache(modelName)
-                        consecutiveExtremeCount++
-                        logger?.e(tag, "⚠️ Model $modelName has extreme rate limit (${delayMs / 1000}s). Treating as exhausted. Trying next model...")
-                        lastError = Exception("RateLimited: Extreme rate limit for model $modelName. Delay: ${delayMs / 1000}s.")
-                        if (consecutiveExtremeCount >= 10) {
-                            attempts++
-                            consecutiveExtremeCount = 0
-                        }
-                        continue
-                    }
-                    consecutiveExtremeCount = 0
-                    attempts++
-
-                    if (delayMs > 10000L) {
-                        consecutiveRateLimitCount++
-                        if (consecutiveRateLimitCount >= 2) {
-                            logger?.e(tag, "⚠️ API key saturated ($consecutiveRateLimitCount consecutive long rate limits). Holding ${delayMs}ms before retry.")
-                            modelNegotiator.blacklistModel(modelName, delayMs + 2000L)
+                    val decision = GeminiRateLimitPolicy.decide(
+                        delayMs = errorType.delayMs,
+                        consecutiveExtremeCount = consecutiveExtremeCount,
+                        consecutiveRateLimitCount = consecutiveRateLimitCount,
+                        modelName = modelName
+                    )
+                    when (decision) {
+                        is GeminiRateLimitPolicy.Decision.ExtremeDelay -> {
+                            modelNegotiator.blacklistModel(modelName)
                             modelNegotiator.evictFromCache(modelName)
-                            retryService.activateGlobalHold(delayMs)
-                            retryService.wait(delayMs)
-                            consecutiveRateLimitCount = 0
-                            continue
+                            consecutiveExtremeCount++
+                            logger?.e(tag, "⚠️ Model $modelName has extreme rate limit. Treating as exhausted.")
+                            lastError = Exception(decision.errorMessage)
+                            if (decision.advanceAttempt) { attempts++; consecutiveExtremeCount = 0 }
                         }
-                        modelNegotiator.blacklistModel(modelName, delayMs + 2000L)
-                        modelNegotiator.evictFromCache(modelName)
-                        logger?.e(tag, "⚠️ Model $modelName rate limit delay ${delayMs}ms too long. Blacklisted for ${delayMs / 1000}s. Trying next model...")
-                        lastError = Exception("RateLimited: Temporary rate limit for model $modelName. Delay: ${delayMs / 1000}s.")
-                        continue
+                        is GeminiRateLimitPolicy.Decision.SaturatedKey -> {
+                            consecutiveExtremeCount = 0
+                            attempts++
+                            consecutiveRateLimitCount++
+                            logger?.e(tag, "⚠️ API key saturated. Holding ${decision.holdDelayMs}ms.")
+                            modelNegotiator.blacklistModel(modelName, decision.blacklistDurationMs)
+                            modelNegotiator.evictFromCache(modelName)
+                            retryService.activateGlobalHold(decision.holdDelayMs)
+                            retryService.wait(decision.holdDelayMs)
+                            consecutiveRateLimitCount = 0
+                        }
+                        is GeminiRateLimitPolicy.Decision.LongDelay -> {
+                            consecutiveExtremeCount = 0
+                            attempts++
+                            consecutiveRateLimitCount++
+                            modelNegotiator.blacklistModel(modelName, decision.blacklistDurationMs)
+                            modelNegotiator.evictFromCache(modelName)
+                            logger?.e(tag, "⚠️ Model $modelName rate limit too long. Blacklisted.")
+                            lastError = Exception(decision.errorMessage)
+                        }
+                        is GeminiRateLimitPolicy.Decision.ShortDelay -> {
+                            consecutiveExtremeCount = 0
+                            consecutiveRateLimitCount = 0
+                            attempts++
+                            retryService.wait(decision.delayMs)
+                        }
                     }
-
-                    consecutiveRateLimitCount = 0
-                    retryService.wait(delayMs)
                     continue
                 }
 

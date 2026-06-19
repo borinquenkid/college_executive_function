@@ -114,36 +114,11 @@ class EventGenerationService(
 
     private fun normalize(events: List<Event>): List<Event> {
         val extracted = normalizationService.extract(events)
-
-        // Step 1: same submission-canonical title + date → prefer TimeEvent over DayEvent.
-        // submissionCanonical strips leading verbs ("submit", "complete") then leading
-        // possessives ("your") so that "Submit Issue Brief #2 draft…" and "Submit your
-        // Issue Brief #2 draft…" both normalize to "issue brief #2 draft…" and collapse
-        // when they land on the same date from different extraction batches.
-        val preferTimed = extracted
-            .groupBy { "${submissionCanonical(it.title)}-${dateOf(it)}" }
-            .values
-            .map { group -> group.maxByOrNull { if (it is TimeEvent) 1 else 0 }!! }
-
-        // Step 2: same date, 12-char common prefix → same event. Keep the longer (more descriptive)
-        // title. Category is intentionally NOT a constraint here — assignment-table extractions
-        // (DEADLINE) and online-activity extractions (FINALS) of the same graded submission both land
-        // on the same day and must collapse (e.g. "Issue Brief #3: Connecting Hidden Systems" DEADLINE
-        // on Jul 22 vs "Submit Issue Brief #3 (final draft)" FINALS on Jul 22).
-        val sameDateDeduped = dedupByCommonTitlePrefix(preferTimed)
-
-        // Step 3: cross-date dedup within 7 days for "submit/complete X" vs "X".
-        // When the assignment table (using the Wednesday week-anchor heuristic) creates an event 2
-        // days before the online-activities section's explicit Friday due date, both survive Step 2
-        // because they're on different dates. Normalise by stripping the "submit"/"complete" prefix,
-        // then collapse pairs within one calendar week, keeping the later (authoritative) date.
-        val crossDateDeduped = dedupSubmissionPairs(sameDateDeduped)
-
-        // Assign deterministic IDs based on content so duplicates are recognized across generations
-        return crossDateDeduped.map { event ->
+        val deduped = EventDeduplicator.dedup(extracted)
+        return deduped.map { event ->
             if (event.id == null) {
                 val idContent =
-                    "${event.title}|${dateOf(event)}|${if (event is TimeEvent) event.startTime else ""}|${event.category}"
+                    "${event.title}|${EventDeduplicator.dateOf(event)}|${if (event is TimeEvent) event.startTime else ""}|${event.category}"
                 val deterministicId = generateDeterministicId(idContent)
                 when (event) {
                     is TimeEvent -> event.copy(id = deterministicId)
@@ -153,78 +128,6 @@ class EventGenerationService(
                 event
             }
         }
-    }
-
-    private fun canonicalTitle(title: String): String =
-        title.trim().lowercase()
-            .replace(Regex("^your\\s+"), "")
-
-    private fun submissionCanonical(title: String): String =
-        canonicalTitle(title)
-            .replace(Regex("^(submit|complete|upload|post)\\s+"), "")
-            .replace(Regex("^your\\s+"), "")
-
-    private fun dedupByCommonTitlePrefix(events: List<Event>): List<Event> {
-        val toRemove = mutableSetOf<Event>()
-        for (i in events.indices) {
-            if (events[i] in toRemove) continue
-            for (j in i + 1 until events.size) {
-                if (events[j] in toRemove) continue
-                val a = events[i]; val b = events[j]
-                if (dateOf(a) != dateOf(b)) continue
-                val aTitle = canonicalTitle(a.title)
-                val bTitle = canonicalTitle(b.title)
-                val prefixLen = commonPrefixLength(aTitle, bTitle)
-                if (prefixLen >= 12) {
-                    val discard = if (aTitle.length <= bTitle.length) a else b
-                    toRemove.add(discard)
-                }
-            }
-        }
-        return events.filter { it !in toRemove }
-    }
-
-    private fun dedupSubmissionPairs(events: List<Event>): List<Event> {
-        val toRemove = mutableSetOf<Event>()
-        val sorted = events.sortedBy { dateOf(it) }
-        for (i in sorted.indices) {
-            if (sorted[i] in toRemove) continue
-            val a = sorted[i]
-            val aCanon = submissionCanonical(a.title)
-            val aDate = dateOf(a)
-            for (j in i + 1 until sorted.size) {
-                if (sorted[j] in toRemove) continue
-                val b = sorted[j]
-                val bDate = dateOf(b)
-                val daysDiff = (bDate.toEpochDays() - aDate.toEpochDays()).toInt()
-                if (daysDiff > 7) break
-                val bCanon = submissionCanonical(b.title)
-                // Require one canonical to be a COMPLETE prefix of the other and end at a
-                // word boundary — prevents "IB#2 draft" (Jul 12) matching "IB#2 due" (Jul 15)
-                // despite sharing the 16-char prefix "issue brief #2 d".
-                val shorter = if (aCanon.length <= bCanon.length) aCanon else bCanon
-                val longer = if (aCanon.length > bCanon.length) aCanon else bCanon
-                val completePrefix = shorter.length >= 12 &&
-                    longer.startsWith(shorter) &&
-                    (longer.length == shorter.length || !longer[shorter.length].isLetterOrDigit())
-                if (completePrefix) {
-                    // Same assignment at different specificity — drop the earlier (week-anchor) date
-                    toRemove.add(a)
-                }
-            }
-        }
-        return sorted.filter { it !in toRemove }
-    }
-
-    private fun commonPrefixLength(a: String, b: String): Int {
-        val limit = minOf(a.length, b.length)
-        for (i in 0 until limit) { if (a[i] != b[i]) return i }
-        return limit
-    }
-
-    private fun dateOf(event: Event) = when (event) {
-        is DayEvent -> event.date
-        is TimeEvent -> event.date
     }
 
     private fun generateDeterministicId(content: String): String {

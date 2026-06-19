@@ -216,6 +216,37 @@ class EventAgent(
     }
 
     /**
+     * Automatically decomposes all unplanned DEADLINE/FINALS events in the calendar into
+     * STUDY_BLOCK steps. Runs after the first [pushToCalendar] in the pipeline so the events
+     * are already persisted and can be updated with a [studyPlanStart] marker.
+     *
+     * Skips events that already have a [studyPlanStart] (already decomposed).
+     */
+    suspend fun autoDecomposeDeliverables(calendarId: String = "default") {
+        runAgentAction("Error auto-decomposing deliverables", handleQuotaErrors = true) {
+            val unplanned = repository.getEvents(calendarId).filter { event ->
+                (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) &&
+                    event.studyPlanStart == null
+            }
+            if (unplanned.isEmpty()) return@runAgentAction
+
+            _statusMessage.value = "Breaking down ${unplanned.size} deliverable(s) into study steps..."
+            var totalSteps = 0
+            for (event in unplanned) {
+                val tasks = decompositionService.decompose(event)
+                if (tasks.isNotEmpty()) {
+                    totalSteps += decompositionService.applyDecomposition(event, tasks, calendarId)
+                }
+            }
+            _statusMessage.value = if (totalSteps > 0) {
+                "$totalSteps study steps added for ${unplanned.size} deliverable(s)."
+            } else {
+                "Deliverables already have study plans or no steps could be scheduled."
+            }
+        }
+    }
+
+    /**
      * Generates a proactive study plan, using the full document context and existing calendar events.
      */
     suspend fun generateStudyPlan(source: SourceItem) {

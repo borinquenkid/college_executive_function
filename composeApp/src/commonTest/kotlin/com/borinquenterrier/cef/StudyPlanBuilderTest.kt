@@ -3,6 +3,11 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotBeBlank
+import kotlinx.datetime.Clock
+import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 
 class StudyPlanBuilderTest : StringSpec({
 
@@ -75,5 +80,91 @@ class StudyPlanBuilderTest : StringSpec({
         result.shouldContain(taskTitle)
         result.shouldContain(dueDate)
         result.shouldContain("refined JSON array")
+    }
+
+    // ── getStudyPlanCritiquePrompt ────────────────────────────────────────────
+
+    "getStudyPlanCritiquePrompt forbids CLASS category" {
+        val result = StudyPlanBuilder.getStudyPlanCritiquePrompt(
+            syllabusText = "BIOL 101 meets MWF 9-10",
+            eventsJson = """[{"title":"Class","category":"CLASS","date":"2026-08-25"}]"""
+        )
+        result.shouldContain("DO NOT")
+        result.shouldContain("CLASS")
+    }
+
+    "getStudyPlanCritiquePrompt lists only allowed categories" {
+        val result = StudyPlanBuilder.getStudyPlanCritiquePrompt("syllabus", "[]")
+        result.shouldContain("STUDY_BLOCK")
+        result.shouldContain("REGULAR")
+        result.shouldContain("DEADLINE")
+        result.shouldContain("FINALS")
+    }
+
+    "getStudyPlanCritiquePrompt embeds the syllabus and events json" {
+        val syllabus = "UNIQUE_SYLLABUS_MARKER"
+        val json = """[{"title":"UNIQUE_EVENT"}]"""
+        val result = StudyPlanBuilder.getStudyPlanCritiquePrompt(syllabus, json)
+        result.shouldContain(syllabus)
+        result.shouldContain(json)
+    }
+
+    "getSyllabusStudyPlanPrompt explicitly forbids CLASS events" {
+        val result = StudyPlanBuilder.getSyllabusStudyPlanPrompt("Some syllabus")
+        result.shouldContain("Do NOT generate CLASS events")
+    }
+
+    // ── getTaskDecompositionPrompt urgency tiers ──────────────────────────────
+
+    "getTaskDecompositionPrompt uses EMERGENCY wording when due today" {
+        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", today.toString())
+        result.shouldContain("EMERGENCY")
+        result.shouldContain("2–4")
+    }
+
+    "getTaskDecompositionPrompt uses TIGHT wording for 1-2 day deadline" {
+        val soon = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            .plus(1, DateTimeUnit.DAY)
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", soon.toString())
+        result.shouldContain("TIGHT")
+        result.shouldContain("3–5")
+    }
+
+    "getTaskDecompositionPrompt uses SHORT wording for 3-7 day deadline" {
+        val medium = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            .plus(5, DateTimeUnit.DAY)
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", medium.toString())
+        result.shouldContain("SHORT")
+        result.shouldContain("4–7")
+    }
+
+    "getTaskDecompositionPrompt uses NORMAL wording for 8+ day deadline" {
+        val distant = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            .plus(14, DateTimeUnit.DAY)
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Research Paper", distant.toString())
+        result.shouldContain("NORMAL")
+        result.shouldContain("5–9")
+    }
+
+    // ── getDecompositionCritiquePrompt step cap ───────────────────────────────
+
+    "getDecompositionCritiquePrompt caps at 5 steps for tight deadlines" {
+        val soon = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            .plus(2, DateTimeUnit.DAY)
+        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Essay", soon.toString(), "[]")
+        result.shouldContain("5")
+    }
+
+    "getDecompositionCritiquePrompt caps at 9 steps for normal timeline" {
+        val far = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            .plus(30, DateTimeUnit.DAY)
+        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Research", far.toString(), "[]")
+        result.shouldContain("9")
+    }
+
+    "getDecompositionCritiquePrompt handles unparseable due date gracefully" {
+        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Task", "not-a-date", "[]")
+        result.shouldContain("30") // fallback daysAvailable = 30
     }
 })

@@ -63,6 +63,15 @@ object EventBuilder {
             - If a time is given (e.g. "due at 11:59 pm"), produce a TIME event; otherwise produce a DAY event.
             - Do NOT invent events not mentioned in the document. Do NOT use your training data to add typical course events. Only extract what is stated.
 
+            ## Category rules (use exactly one per event)
+            - DEADLINE  → any graded submission due date: papers, essays, projects, lab reports, presentations, quizzes, drafts, discussion posts, homework assignments. If a student must submit or turn something in for a grade, it is DEADLINE.
+            - FINALS    → final exams or capstone assessments that close the semester
+            - CLASS     → in-person or synchronous class meeting on a specific weekday
+            - REGULAR   → one-time academic task that is NOT graded and does NOT have a due date (e.g. "attend Writing Center", "peer review workshop")
+            - HOLIDAY   → official break or day when classes do not meet
+            - SEMESTER_BOUND → first/last day of term, add/drop deadline, withdrawal deadline
+            - STUDY_BLOCK → do NOT use during extraction; this is reserved for AI-generated study suggestions
+
             # Output Format
             Return ONLY a raw JSON array of objects. No filler.
             Structure:
@@ -70,7 +79,7 @@ object EventBuilder {
               {
                 "title": "Title",
                 "type": "TIME" or "DAY",
-                "category": "CLASS", "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", "SEMESTER_BOUND", or "STUDY_BLOCK",
+                "category": "CLASS", "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", or "SEMESTER_BOUND",
                 "date": "YYYY-MM-DD",
                 "startTime": "HH:mm" (optional),
                 "endTime": "HH:mm" (optional),
@@ -112,12 +121,21 @@ object EventBuilder {
 
             NOTE: CLASS events (in-person/synchronous class meetings) are VALID even if the class session launches an assignment ("Assign Issue Brief #3") or involves watching an online video — the in-class meeting still occurs on that weekday. A note like "(online)" refers to the video being hosted online, not to the class session being remote. Never remove or recategorize a CLASS event solely because its topic involves assigning homework or viewing content.
             
+            CATEGORY RULES (apply these when correcting):
+            - DEADLINE  → any graded submission (papers, essays, projects, quizzes, drafts, discussion posts, homework)
+            - FINALS    → final exams / capstone assessments
+            - CLASS     → in-person or synchronous class meeting
+            - REGULAR   → non-graded one-time academic task
+            - HOLIDAY   → official break / no-class day
+            - SEMESTER_BOUND → term start/end, add/drop, withdrawal deadlines
+            Never use STUDY_BLOCK here — that is reserved for the study plan phase.
+
             Return a refined JSON array of objects following the EXACT same schema as the input:
             [
               {
                 "title": "Title",
                 "type": "TIME" or "DAY",
-                "category": "CLASS", "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", "SEMESTER_BOUND", or "STUDY_BLOCK",
+                "category": "CLASS", "REGULAR", "HOLIDAY", "DEADLINE", "FINALS", or "SEMESTER_BOUND",
                 "date": "YYYY-MM-DD",
                 "startTime": "HH:mm" (optional),
                 "endTime": "HH:mm" (optional),

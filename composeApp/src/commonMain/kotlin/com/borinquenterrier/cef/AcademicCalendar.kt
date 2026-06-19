@@ -107,16 +107,20 @@ fun AcademicCalendar(
         }
     }
 
-    val (viewStartDate, viewEndDate) = remember(today, aiGeneratedEvents, displayedEvents) {
-        SemesterResolver.getExpandedRange(today, aiGeneratedEvents + displayedEvents)
+    val currentSemesterEvents = remember(displayedEvents, today) {
+        SemesterResolver.filterToActiveSemester(displayedEvents, today)
+    }
+
+    val (viewStartDate, viewEndDate) = remember(today, aiGeneratedEvents, currentSemesterEvents) {
+        SemesterResolver.getExpandedRange(today, aiGeneratedEvents + currentSemesterEvents)
     }
 
     val allExpandedEvents =
-        remember(aiGeneratedEvents, routineEvents, displayedEvents, viewStartDate, viewEndDate) {
+        remember(aiGeneratedEvents, routineEvents, currentSemesterEvents, viewStartDate, viewEndDate) {
             EventDisplayPipeline.getExpandedAndFilteredEvents(
                 routineEvents = routineEvents,
                 aiGeneratedEvents = aiGeneratedEvents,
-                displayedEvents = displayedEvents,
+                displayedEvents = currentSemesterEvents,
                 startDate = viewStartDate,
                 endDate = viewEndDate
             )

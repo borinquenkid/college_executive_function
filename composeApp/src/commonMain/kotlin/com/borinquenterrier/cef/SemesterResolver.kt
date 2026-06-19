@@ -13,22 +13,22 @@ object SemesterResolver {
      */
     fun getSemesterRange(today: LocalDate): Pair<LocalDate, LocalDate> {
         val currentYear = today.year
-        val isFirstSemester = today.monthNumber in 8..12
-        val isSecondSemester = today.monthNumber in 1..5
-
-        return when {
-            isFirstSemester -> {
-                LocalDate(currentYear, 8, 1) to LocalDate(currentYear, 12, 31)
-            }
-
-            isSecondSemester -> {
-                LocalDate(currentYear, 1, 1) to LocalDate(currentYear, 5, 31)
-            }
-
-            else -> {
-                today to today.plus(30, DateTimeUnit.DAY)
-            }
+        return when (today.monthNumber) {
+            in 8..12 -> LocalDate(currentYear, 8, 1)  to LocalDate(currentYear, 12, 31) // Fall
+            in 1..5  -> LocalDate(currentYear, 1, 1)  to LocalDate(currentYear, 5, 31)  // Spring
+            else     -> LocalDate(currentYear, 6, 1)  to LocalDate(currentYear, 8, 31)  // Summer
         }
+    }
+
+    /**
+     * Filters a list of saved events to only those belonging to the active semester.
+     * Events dated before the semester start are excluded so old-semester rows in the
+     * DB do not contaminate the current view. Future-semester events (start date after
+     * semester end) are kept so a student can plan ahead.
+     */
+    fun filterToActiveSemester(events: List<Event>, today: LocalDate): List<Event> {
+        val (start, _) = getSemesterRange(today)
+        return events.filter { it.date >= start }
     }
 
     /**

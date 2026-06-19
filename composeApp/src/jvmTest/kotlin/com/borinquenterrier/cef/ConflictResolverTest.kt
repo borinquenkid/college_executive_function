@@ -5,171 +5,173 @@ import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
-import io.mockk.every
-import io.mockk.mockk
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
 class ConflictResolverTest : FunSpec({
+
     val resolver = ConflictResolver()
+    val date = LocalDate(2026, 7, 1)
 
-    test("detects overlap between TimeEvents on same date") {
-        val testDate = LocalDate(2025, 1, 15)
-        val event1 = TimeEvent(
-            title = "Event 1",
-            source = EventSource.MANUAL,
-            startTime = LocalTime(9, 0),
-            endTime = LocalTime(11, 0),
-            date = testDate
+    fun classAt(start: Int, end: Int) = TimeEvent(
+        id = null, title = "Class", source = EventSource.MANUAL,
+        category = AcademicCategory.CLASS,
+        startTime = LocalTime(start, 0), endTime = LocalTime(end, 0), date = date
+    )
+
+    fun studyAt(start: Int, end: Int) = TimeEvent(
+        id = null, title = "Study", source = EventSource.AI_GENERATED,
+        category = AcademicCategory.STUDY_BLOCK,
+        startTime = LocalTime(start, 0), endTime = LocalTime(end, 0), date = date
+    )
+
+    fun deadline(title: String = "Essay due") = DayEvent(
+        title = title, source = EventSource.AI_GENERATED,
+        category = AcademicCategory.DEADLINE, date = date
+    )
+
+    // ── overlap detection ──────────────────────────────────────────────────────
+
+    test("TimeEvents overlap when time ranges intersect") {
+        classAt(9, 11).overlaps(classAt(10, 12)) shouldBe true
+    }
+
+    test("TimeEvents do not overlap when adjacent") {
+        classAt(9, 10).overlaps(classAt(10, 11)) shouldBe false
+    }
+
+    test("TimeEvents on different dates never overlap") {
+        val e1 = TimeEvent(id=null, title="A", source=EventSource.MANUAL,
+            startTime=LocalTime(9,0), endTime=LocalTime(10,0), date=LocalDate(2026,7,1))
+        val e2 = TimeEvent(id=null, title="B", source=EventSource.MANUAL,
+            startTime=LocalTime(9,0), endTime=LocalTime(10,0), date=LocalDate(2026,7,2))
+        e1.overlaps(e2) shouldBe false
+    }
+
+    // ── DEADLINE transparency ─────────────────────────────────────────────────
+
+    test("DEADLINE always added even when it overlaps a TimeEvent") {
+        val classAt9 = classAt(9, 10)
+        // A DayEvent overlaps() always returns false so we test with a TimeEvent DEADLINE
+        val deadlineAt9 = TimeEvent(
+            id = null, title = "Essay due", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            startTime = LocalTime(9, 0), endTime = LocalTime(10, 0), date = date
         )
-        val event2 = TimeEvent(
-            title = "Event 2",
-            source = EventSource.MANUAL,
-            startTime = LocalTime(10, 0),
-            endTime = LocalTime(12, 0),
-            date = testDate
+        val (merged, unresolved) = resolver.resolveConflicts(listOf(classAt9), listOf(deadlineAt9))
+        merged.any { it.title == "Essay due" } shouldBe true
+        unresolved.shouldBeEmpty()
+    }
+
+    test("DEADLINE DayEvent never blocks other events") {
+        val deadlineDay = deadline()
+        val studyAt9 = studyAt(9, 10)
+        // Existing calendar has a DEADLINE day event; study should not conflict with it
+        val (merged, unresolved) = resolver.resolveConflicts(listOf(deadlineDay), listOf(studyAt9))
+        merged.any { it.title == "Study" } shouldBe true
+        unresolved.shouldBeEmpty()
+    }
+
+    // ── rescheduling ──────────────────────────────────────────────────────────
+
+    test("STUDY_BLOCK rescheduled earlier when earlier slot is free") {
+        val classAt10 = classAt(10, 11)
+        val studyAt10 = studyAt(10, 11) // conflicts
+
+        val (merged, unresolved) = resolver.resolveConflicts(listOf(classAt10), listOf(studyAt10))
+
+        unresolved.shouldBeEmpty()
+        val rescheduled = merged.filterIsInstance<TimeEvent>().find { it.title == "Study" }
+        rescheduled shouldNotBe null
+        rescheduled!!.startTime.hour shouldBe 9 // moved back one hour
+    }
+
+    test("STUDY_BLOCK rescheduled forward when no earlier slot is free") {
+        // Class at 8–9 and 9–10 blocks all earlier slots; study wants 9–10
+        val class1 = classAt(8, 9)
+        val class2 = classAt(9, 10)
+        val studyAt9 = studyAt(9, 10)
+
+        val (merged, unresolved) = resolver.resolveConflicts(listOf(class1, class2), listOf(studyAt9))
+
+        unresolved.shouldBeEmpty()
+        val rescheduled = merged.filterIsInstance<TimeEvent>().find { it.title == "Study" }
+        rescheduled shouldNotBe null
+        rescheduled!!.startTime.hour shouldBe 10 // moved forward
+    }
+
+    test("STUDY_BLOCK added as-is when no slot found in either direction") {
+        // Pack 8 AM–9 PM solid so there is nowhere to go
+        val calendar = (8..20).map { classAt(it, it + 1) }
+        val studyAt12 = studyAt(12, 13)
+
+        val (merged, unresolved) = resolver.resolveConflicts(calendar, listOf(studyAt12))
+
+        unresolved.shouldBeEmpty() // not surfaced as a dialog conflict
+        merged.any { it.title == "Study" } shouldBe true // added anyway
+    }
+
+    test("REGULAR event is also treated as movable") {
+        val classAt10 = classAt(10, 11)
+        val regularAt10 = TimeEvent(
+            id = null, title = "Peer review", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.REGULAR,
+            startTime = LocalTime(10, 0), endTime = LocalTime(11, 0), date = date
         )
 
-        event1.overlaps(event2) shouldBe true
+        val (merged, unresolved) = resolver.resolveConflicts(listOf(classAt10), listOf(regularAt10))
+
+        unresolved.shouldBeEmpty()
+        merged.any { it.title == "Peer review" } shouldBe true
     }
 
-    test("detects no overlap when events are adjacent") {
-        val testDate = LocalDate(2025, 1, 15)
-        val event1 = TimeEvent(
-            title = "Event 1",
-            source = EventSource.MANUAL,
-            startTime = LocalTime(9, 0),
-            endTime = LocalTime(10, 0),
-            date = testDate
-        )
-        val event2 = TimeEvent(
-            title = "Event 2",
-            source = EventSource.MANUAL,
-            startTime = LocalTime(10, 0),
-            endTime = LocalTime(11, 0),
-            date = testDate
-        )
+    // ── immovable events ──────────────────────────────────────────────────────
 
-        event1.overlaps(event2) shouldBe false
+    test("CLASS event conflict goes to unresolved with requiresProfessorApproval=true") {
+        val existingClass = classAt(10, 11)
+        val newClass = classAt(10, 11).copy(title = "Make-up Class")
+
+        val (_, unresolved) = resolver.resolveConflicts(listOf(existingClass), listOf(newClass))
+
+        unresolved shouldHaveSize 1
+        unresolved[0].requiresProfessorApproval shouldBe true
+        unresolved[0].title shouldBe "Make-up Class"
     }
 
-    test("marks Study as movable") {
-        val study = mockk<TimeEvent> {
-            every { category } returns AcademicCategory.STUDY_BLOCK
-            every { title } returns "Study Session"
-        }
-
-        // Study should be considered movable (this would be tested in resolver logic)
-        study.category shouldBe AcademicCategory.STUDY_BLOCK
-    }
-
-    test("marks HW as movable") {
-        val hw = mockk<TimeEvent> {
-            every { title } returns "HW: Problem Set"
-            every { category } returns AcademicCategory.REGULAR
-        }
-
-        // HW title should make it movable
-        hw.title.contains("HW", ignoreCase = true) shouldBe true
-    }
-
-    test("marks Quiz as immovable") {
-        val quiz = mockk<DayEvent> {
-            every { category } returns AcademicCategory.DEADLINE
-            every { title } returns "Quiz #1"
-        }
-
-        quiz.category shouldBe AcademicCategory.DEADLINE
-    }
-
-    test("marks Exam/Finals as immovable") {
-        val exam = mockk<TimeEvent> {
-            every { category } returns AcademicCategory.FINALS
-            every { title } returns "Midterm Exam"
-        }
-
-        exam.category shouldBe AcademicCategory.FINALS
-    }
-
-    test("finds available earlier slot for rescheduling") {
-        val resolver = ConflictResolver()
-        val testDate = LocalDate(2025, 1, 15)
-
-        // Class occupies 10:00-11:00
-        val occupiedEvent = TimeEvent(
-            title = "Class",
-            source = EventSource.MANUAL,
-            startTime = LocalTime(10, 0),
-            endTime = LocalTime(11, 0),
-            date = testDate
+    test("FINALS event conflict goes to unresolved") {
+        val classAt10 = classAt(10, 12)
+        val final = TimeEvent(
+            id = null, title = "Final Exam", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.FINALS,
+            startTime = LocalTime(10, 0), endTime = LocalTime(12, 0), date = date
         )
 
-        // Study wants 10:00-11:00 but that conflicts
-        val studyEvent = TimeEvent(
-            title = "Study",
-            source = EventSource.AI_GENERATED,
-            category = AcademicCategory.STUDY_BLOCK,
-            startTime = LocalTime(10, 0),
-            endTime = LocalTime(11, 0),
-            date = testDate
-        )
+        val (_, unresolved) = resolver.resolveConflicts(listOf(classAt10), listOf(final))
 
-        // Should find 9:00-10:00 slot (before the class)
-        // Verified through resolver logic
-        resolver shouldNotBe null
+        unresolved shouldHaveSize 1
+        unresolved[0].title shouldBe "Final Exam"
     }
 
-    test("returns unresolved conflict for Quiz") {
-        val resolver = ConflictResolver()
-        val testDate = LocalDate(2025, 1, 15)
+    // ── edge cases ────────────────────────────────────────────────────────────
 
-        val quiz = mockk<DayEvent> {
-            every { title } returns "Quiz"
-            every { date } returns testDate
-            every { category } returns AcademicCategory.DEADLINE
-            every { overlaps(any()) } returns true
-        }
-
-        quiz.category shouldBe AcademicCategory.DEADLINE
-    }
-
-    test("returns unresolved conflict for Exam") {
-        val resolver = ConflictResolver()
-        val testDate = LocalDate(2025, 1, 15)
-
-        val exam = mockk<TimeEvent> {
-            every { title } returns "Midterm"
-            every { date } returns testDate
-            every { category } returns AcademicCategory.FINALS
-            every { overlaps(any()) } returns true
-        }
-
-        exam.category shouldBe AcademicCategory.FINALS
-    }
-
-    test("handles empty calendar") {
-        val resolver = ConflictResolver()
-        val studyEvent = mockk<TimeEvent> {
-            every { title } returns "Study"
-            every { category } returns AcademicCategory.STUDY_BLOCK
-        }
-
-        val (merged, unresolved) = resolver.resolveConflicts(emptyList(), listOf(studyEvent))
-
+    test("empty calendar accepts all proposed events") {
+        val (merged, unresolved) = resolver.resolveConflicts(emptyList(), listOf(studyAt(9, 10)))
         merged shouldHaveSize 1
         unresolved.shouldBeEmpty()
     }
 
-    test("handles empty proposed events") {
-        val resolver = ConflictResolver()
-        val classEvent = mockk<TimeEvent> {
-            every { title } returns "Class"
-            every { category } returns AcademicCategory.CLASS
-        }
-
-        val (merged, unresolved) = resolver.resolveConflicts(listOf(classEvent), emptyList())
-
+    test("empty proposed list returns only calendar events") {
+        val (merged, unresolved) = resolver.resolveConflicts(listOf(classAt(9, 10)), emptyList())
         merged shouldHaveSize 1
+        unresolved.shouldBeEmpty()
+    }
+
+    test("non-conflicting events all added to merged") {
+        val (merged, unresolved) = resolver.resolveConflicts(
+            listOf(classAt(9, 10)),
+            listOf(studyAt(11, 12), deadline())
+        )
+        merged shouldHaveSize 3
         unresolved.shouldBeEmpty()
     }
 })

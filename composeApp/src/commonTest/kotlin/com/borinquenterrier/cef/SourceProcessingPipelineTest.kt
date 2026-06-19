@@ -1,77 +1,71 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.assertions.throwables.shouldThrow
+import io.kotest.core.spec.style.FunSpec
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.coVerifyOrder
 import io.mockk.mockk
 
-class SourceProcessingPipelineTest : StringSpec({
+class SourceProcessingPipelineTest : FunSpec({
 
-    "processSource completes all 3 analysis steps" {
-        val ingestionAgent = mockk<IngestionAgent>()
-        val eventAgent = mockk<EventAgent>()
-        val contextAgent = mockk<ContextAgent>()
-        val logger = mockk<Logger>()
+    val source = mockk<SourceItem>(relaxed = true)
+
+    fun pipeline(
+        eventAgent: EventAgent = mockk(relaxed = true),
+        contextAgent: ContextAgent = mockk(relaxed = true),
+        bugReporter: BugReporter? = null
+    ) = SourceProcessingPipeline(
+        ingestionAgent = mockk(relaxed = true),
+        eventAgent = eventAgent,
+        contextAgent = contextAgent,
+        logger = mockk(relaxed = true),
+        bugReporter = bugReporter
+    )
+
+    test("processSource calls steps in correct order including autoDecomposeDeliverables") {
+        val eventAgent = mockk<EventAgent>(relaxed = true)
+        val contextAgent = mockk<ContextAgent>(relaxed = true)
+
+        pipeline(eventAgent, contextAgent).processSource(source)
+
+        coVerifyOrder {
+            contextAgent.analyzeSource(source)
+            eventAgent.extractDeliverables(source)
+            eventAgent.pushToCalendar()
+            eventAgent.autoDecomposeDeliverables()
+            eventAgent.generateStudyPlan(source)
+            eventAgent.pushToCalendar()
+        }
+    }
+
+    test("autoDecomposeDeliverables is called exactly once between the two push calls") {
+        val eventAgent = mockk<EventAgent>(relaxed = true)
+
+        pipeline(eventAgent).processSource(source)
+
+        coVerify(exactly = 1) { eventAgent.autoDecomposeDeliverables() }
+        coVerify(exactly = 2) { eventAgent.pushToCalendar() }
+    }
+
+    test("processSource rethrows exception and reports to bugReporter") {
         val bugReporter = mockk<BugReporter>(relaxed = true)
+        val contextAgent = mockk<ContextAgent>()
+        coEvery { contextAgent.analyzeSource(source) } throws Exception("Analysis failed")
 
-        val pipeline = SourceProcessingPipeline(
-            ingestionAgent,
-            eventAgent,
-            contextAgent,
-            logger,
-            bugReporter
-        )
+        shouldThrow<Exception> {
+            pipeline(contextAgent = contextAgent, bugReporter = bugReporter).processSource(source)
+        }
 
-        val source = mockk<SourceItem>(relaxed = true)
-        coEvery { contextAgent.analyzeSource(source) } returns Unit
-        coEvery { eventAgent.extractDeliverables(source) } returns Unit
-        coEvery { eventAgent.pushToCalendar() } returns emptyList()
-        coEvery { eventAgent.generateStudyPlan(source) } returns Unit
-
-        // Verify all steps are called
+        coVerify { bugReporter.reportError(any(), any()) }
     }
 
-    "processSource reports errors to bugReporter" {
-        val ingestionAgent = mockk<IngestionAgent>()
-        val eventAgent = mockk<EventAgent>()
+    test("processSource rethrows even without bugReporter") {
         val contextAgent = mockk<ContextAgent>()
-        val logger = mockk<Logger>()
-        val bugReporter = mockk<BugReporter>()
+        coEvery { contextAgent.analyzeSource(source) } throws Exception("No reporter")
 
-        val pipeline = SourceProcessingPipeline(
-            ingestionAgent,
-            eventAgent,
-            contextAgent,
-            logger,
-            bugReporter
-        )
-
-        val source = mockk<SourceItem>(relaxed = true)
-        val testException = Exception("Analysis failed")
-        coEvery { contextAgent.analyzeSource(source) } throws testException
-        coEvery { bugReporter.reportError(testException, any()) } returns Unit
-
-        // Verify error handling
-    }
-
-    "processSource logs each step" {
-        val ingestionAgent = mockk<IngestionAgent>()
-        val eventAgent = mockk<EventAgent>()
-        val contextAgent = mockk<ContextAgent>()
-        val logger = mockk<Logger>()
-
-        val pipeline = SourceProcessingPipeline(
-            ingestionAgent,
-            eventAgent,
-            contextAgent,
-            logger
-        )
-
-        val source = mockk<SourceItem>(relaxed = true)
-        coEvery { contextAgent.analyzeSource(source) } returns Unit
-        coEvery { eventAgent.extractDeliverables(source) } returns Unit
-        coEvery { eventAgent.pushToCalendar() } returns emptyList()
-        coEvery { eventAgent.generateStudyPlan(source) } returns Unit
-
-        // Verify logging calls
+        shouldThrow<Exception> {
+            pipeline(contextAgent = contextAgent).processSource(source)
+        }
     }
 })

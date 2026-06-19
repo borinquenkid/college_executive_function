@@ -129,7 +129,7 @@ class ConflictResolver(private val logger: Logger? = null) {
         if (event !is TimeEvent) return null
 
         val duration = event.endTime.hour - event.startTime.hour
-        var tryTime = LocalTime(event.endTime.hour + 1, event.startTime.minute)
+        var tryTime = LocalTime(event.endTime.hour, event.startTime.minute)
 
         while (tryTime.hour + duration <= 21) { // Don't schedule past 9 PM
             val rescheduled = event.copy(

@@ -20,7 +20,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | AcademicCalendarComponents.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | CalendarInterfaces.kt | 13 | 27.3% | 78.01 | 🔴 HIGH |
 | ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
-| EventAgent.kt | 53 | 90.2% | 55.62 | 🔴 HIGH |
+| EventAgent.kt | 53 | 91.0% | 55.04 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 22 | 68.6% | 36.94 | 🔴 HIGH |
 | CommonSourceProviders.kt | 25 | 73.5% | 36.67 | 🔴 HIGH |
 | GoogleCalendarSyncService.kt | 29 | 82.7% | 33.35 | 🔴 HIGH |
@@ -88,9 +88,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `ConflictResolutionDialog` | 1 |
 | `ConflictResolutionBanner` | 1 |
 
-### EventAgent.kt (Score: 55.62 - 🔴 HIGH)
+### EventAgent.kt (Score: 55.04 - 🔴 HIGH)
 - **Total Complexity**: 53
-- **Real Coverage**: 90.2%
+- **Real Coverage**: 91.0%
 
 #### Methods list:
 | Method | Complexity |
@@ -702,15 +702,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `handleFailure` | 3 |
 | `isCacheStale` | 1 |
 
-### SourceProcessingPipeline.kt (Score: 11.10 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 37.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `processSource` | 5 |
-
 ### ContextAgent.kt (Score: 11.02 - 🟢 LOW)
 - **Total Complexity**: 11
 - **Real Coverage**: 94.9%
@@ -1309,16 +1300,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `postToModel` | 2 |
 | `hasApiKey` | 1 |
 
-### TaskDecompositionService.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 95.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `decompose` | 1 |
-| `applyDecomposition` | 1 |
-
 ### UniversalHomeLayout.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 96.9%
@@ -1346,6 +1327,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `batch` | 1 |
 
+### SourceProcessingPipeline.kt (Score: 5.00 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `processSource` | 5 |
+
 ### CalendarIdResolver.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 100.0%
@@ -1365,6 +1355,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `split` | 3 |
 | `process` | 2 |
+
+### TaskDecompositionService.kt (Score: 5.00 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `decompose` | 1 |
+| `applyDecomposition` | 1 |
 
 ### SourceSelector.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5

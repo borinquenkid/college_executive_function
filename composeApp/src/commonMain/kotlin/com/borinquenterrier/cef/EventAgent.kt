@@ -50,7 +50,7 @@ class EventAgent(
         userPreferenceMemoryRepository
     )
     private val decompositionService = TaskDecompositionService(aiService, repository)
-    private val autoDecomposer = AutoDecomposer(repository, decompositionService)
+    private val autoDecomposer = AutoDecomposer(repository, decompositionService, clock)
     private val deliverableExtractor = DeliverableExtractor(
         generationService = generationService,
         onProgress = { _statusMessage.value = it }

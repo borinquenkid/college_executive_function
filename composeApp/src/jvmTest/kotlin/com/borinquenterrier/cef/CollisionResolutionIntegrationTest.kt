@@ -265,14 +265,12 @@ class CollisionResolutionIntegrationTest : FunSpec({
         val conflicts = runBlocking { eventAgent.pushToCalendar() }
 
         // ASSERT
-        expectKnownFailure(issue = "https://github.com/borinquenkid/college_executive_function/issues/4") {
-            conflicts shouldHaveSize 0
+        conflicts shouldHaveSize 0
 
-            val dbEvents = runBlocking { localRepo.getAllEvents() }
-            val resolvedLateStudy = dbEvents.find { it.title == "Late Night Study" } as TimeEvent
+        val dbEvents = runBlocking { localRepo.getAllEvents() }
+        val resolvedLateStudy = dbEvents.find { it.title == "Late Night Study" } as TimeEvent
 
-            // Should have shifted forward to a future date
-            resolvedLateStudy.date shouldBe date.plus(1, DateTimeUnit.DAY)
-        }
+        // Should have shifted forward to a future date
+        resolvedLateStudy.date shouldBe date.plus(1, DateTimeUnit.DAY)
     }
 })

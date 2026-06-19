@@ -50,6 +50,17 @@ class EventAgent(
         userPreferenceMemoryRepository
     )
     private val decompositionService = TaskDecompositionService(aiService, repository)
+    private val calendarPusher = CalendarPusher(
+        pushResolver = pushResolver,
+        repository = repository,
+        logger = logger,
+        clock = clock,
+        onIsLoading = { _isLoading.value = it },
+        onStatus = { _statusMessage.value = it },
+        onGeneratedEvents = { _lastGeneratedEvents.value = it },
+        onUnresolvedConflicts = { _unresolvedConflicts.value = it },
+        onErrorState = { _errorState.value = it }
+    )
 
     private val _isLoading = MutableStateFlow(false)
     val isLoading: StateFlow<Boolean> = _isLoading.asStateFlow()
@@ -264,57 +275,7 @@ class EventAgent(
      * Returns a list of events that COULD NOT be pushed due to overlaps.
      */
     suspend fun pushToCalendar(calendarId: String = "default"): List<Event> {
-        val today = clock.todayIn(TimeZone.currentSystemDefault())
-        val allEvents = _lastGeneratedEvents.value
-        val events = allEvents.filter { it.date >= today }
-        val skippedCount = allEvents.size - events.size
-        if (allEvents.isEmpty()) return emptyList()
-        if (events.isEmpty()) {
-            _statusMessage.value = "No future events to sync ($skippedCount past events skipped)."
-            _lastGeneratedEvents.value = emptyList()
-            return emptyList()
-        }
-
-        _isLoading.value = true
-        val skippedNote = if (skippedCount > 0) " ($skippedCount past events skipped)" else ""
-        _statusMessage.value = "Syncing ${events.size} events to your calendar...$skippedNote"
-
-        var conflicts: List<Event> = emptyList()
-
-        try {
-            val existing = repository.getEvents(calendarId)
-            val outcome = pushResolver.resolveAndPush(events, existing, calendarId)
-            conflicts = outcome.conflicts
-
-            // Capture unresolved conflicts (those requiring professor approval)
-            if (outcome.unresolvableConflicts.isNotEmpty()) {
-                _unresolvedConflicts.value = outcome.unresolvableConflicts
-                logger?.d(
-                    tag,
-                    "Found ${outcome.unresolvableConflicts.size} unresolvable conflicts requiring professor approval"
-                )
-            }
-
-            if (conflicts.isEmpty() && outcome.unresolvableConflicts.isEmpty()) {
-                _statusMessage.value = "Success! All ${outcome.successCount} events pushed.$skippedNote"
-                _lastGeneratedEvents.value = emptyList()
-            } else {
-                val unresolvableCount = outcome.unresolvableConflicts.size
-                _statusMessage.value =
-                    "Synced ${outcome.successCount} events. $unresolvableCount require professor contact, ${conflicts.size} other conflicts.$skippedNote"
-                _lastGeneratedEvents.value = conflicts
-            }
-        } catch (e: CalendarNotFoundException) {
-            logger?.e(tag, "Calendar not found during sync", e)
-            _statusMessage.value =
-                e.message ?: "Calendar is no longer accessible. Please re-link your calendar."
-            _errorState.value = AgentError.GenericError(e.message ?: "Calendar sync failed")
-        } catch (e: Exception) {
-            logger?.e(tag, "Error pushing to calendar", e)
-            _statusMessage.value = "Sync Error: ${e.message}"
-        } finally {
-            _isLoading.value = false
-        }
+        val conflicts = calendarPusher.push(_lastGeneratedEvents.value, calendarId)
         loadPersistedWarnings()
         return conflicts
     }

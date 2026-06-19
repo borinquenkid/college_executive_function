@@ -9,8 +9,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 165
-- **High-Risk Files (CRAP > 30)**: 8
+- **Total Files Analyzed**: 170
+- **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
 
@@ -20,12 +20,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | AcademicCalendarComponents.kt | 10 | 0.0% | 110.00 | 🔴 HIGH |
 | CalendarInterfaces.kt | 13 | 27.3% | 78.01 | 🔴 HIGH |
 | ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
-| EventAgent.kt | 43 | 94.5% | 43.30 | 🔴 HIGH |
 | CommonSourceProviders.kt | 25 | 73.5% | 36.67 | 🔴 HIGH |
 | GoogleCalendarSyncService.kt | 29 | 82.7% | 33.35 | 🔴 HIGH |
 | GoogleCalendarPanel.kt | 23 | 75.0% | 31.27 | 🔴 HIGH |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 29 | 92.1% | 29.42 | 🟡 MEDIUM |
+| EventAgent.kt | 29 | 93.8% | 29.20 | 🟡 MEDIUM |
 | EventDeduplicator.kt | 29 | 100.0% | 29.00 | 🟡 MEDIUM |
 | CalendarPushResolver.kt | 21 | 73.8% | 28.96 | 🟡 MEDIUM |
 | CalendarAgent.kt | 26 | 84.6% | 28.46 | 🟡 MEDIUM |
@@ -87,25 +87,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `ConflictItem` | 2 |
 | `ConflictResolutionDialog` | 1 |
 | `ConflictResolutionBanner` | 1 |
-
-### EventAgent.kt (Score: 43.30 - 🔴 HIGH)
-- **Total Complexity**: 43
-- **Real Coverage**: 94.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `autoDecomposeDeliverables` | 7 |
-| `extractDeliverables` | 5 |
-| `acceptDecomposition` | 3 |
-| `rescheduleEvent` | 3 |
-| `loadPersistedWarnings` | 2 |
-| `generateStudyPlan` | 2 |
-| `loadIncompleteEvents` | 2 |
-| `estimatedRemainingSeconds` | 1 |
-| `clearError` | 1 |
-| `reportError` | 1 |
-| *... and 12 more* | |
 
 ### CommonSourceProviders.kt (Score: 36.67 - 🔴 HIGH)
 - **Total Complexity**: 25
@@ -177,6 +158,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseDecomposeTaskJson` | 1 |
 | `parseCategorizeSourceJson` | 1 |
 | *... and 6 more* | |
+
+### EventAgent.kt (Score: 29.20 - 🟡 MEDIUM)
+- **Total Complexity**: 29
+- **Real Coverage**: 93.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `loadPersistedWarnings` | 2 |
+| `generateStudyPlan` | 2 |
+| `loadIncompleteEvents` | 2 |
+| `estimatedRemainingSeconds` | 1 |
+| `clearError` | 1 |
+| `reportError` | 1 |
+| `setGeneratedEvents` | 1 |
+| `clearUnresolvedConflicts` | 1 |
+| `updateStatus` | 1 |
+| `Exception.isQuotaError` | 1 |
+| *... and 12 more* | |
 
 ### EventDeduplicator.kt (Score: 29.00 - 🟡 MEDIUM)
 - **Total Complexity**: 29
@@ -1105,6 +1105,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `filterBySyncStatus` | 2 |
 | `filterIncompleteBeforeDate` | 2 |
 
+### AutoDecomposer.kt (Score: 7.00 - 🟢 LOW)
+- **Total Complexity**: 7
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `run` | 7 |
+
 ### TFIDFScorer.kt (Score: 7.00 - 🟢 LOW)
 - **Total Complexity**: 7
 - **Real Coverage**: 100.0%
@@ -1548,6 +1557,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `scanNewFiles` | 4 |
 
+### DeliverableExtractor.kt (Score: 4.00 - 🟢 LOW)
+- **Total Complexity**: 4
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `run` | 4 |
+
 ### SqlDelightAnalysisCacheRepository.kt (Score: 4.00 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 100.0%
@@ -1606,6 +1624,24 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `toJson` | 1 |
+
+### EventRescheduler.kt (Score: 3.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `run` | 3 |
+
+### DecompositionAcceptor.kt (Score: 3.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `run` | 3 |
 
 ### GeminiErrorHandler.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -1675,6 +1711,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `getFileSystem` | 1 |
+
+### AgentAction.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `run` | 1 |
 
 ### RoutineItem.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1

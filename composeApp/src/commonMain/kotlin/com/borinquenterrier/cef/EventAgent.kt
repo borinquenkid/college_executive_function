@@ -50,6 +50,13 @@ class EventAgent(
         userPreferenceMemoryRepository
     )
     private val decompositionService = TaskDecompositionService(aiService, repository)
+    private val autoDecomposer = AutoDecomposer(repository, decompositionService)
+    private val deliverableExtractor = DeliverableExtractor(
+        generationService = generationService,
+        onProgress = { _statusMessage.value = it }
+    )
+    private val decompositionAcceptor = DecompositionAcceptor(decompositionService)
+    private val eventRescheduler = EventRescheduler(pushResolver, repository, clock)
     private val calendarPusher = CalendarPusher(
         pushResolver = pushResolver,
         repository = repository,
@@ -204,25 +211,10 @@ class EventAgent(
         runAgentAction("Error extracting deliverables", handleQuotaErrors = true) {
             _statusMessage.value = "Analyzing ${source.title}..."
             _extractionWarning.value = null
-            val processed = generationService.extractDeliverables(source) { message ->
-                _statusMessage.value = message
-            }
-            _lastGeneratedEvents.value = processed
-            if (processed.isEmpty()) {
-                _extractionWarning.value = "No events found in \"${source.title}\". " +
-                    "This is common with formal institutional syllabi — they contain policies " +
-                    "(attendance, academic honesty, ADA, etc.) but not the actual course schedule. " +
-                    "Look for a separate weekly schedule or course calendar document from your professor. " +
-                    "If your syllabus uses week numbers like \"Due Week 4\", it also needs a table " +
-                    "mapping weeks to dates (e.g. \"Week 1: Aug 24–28\") somewhere in the same document."
-            } else if (processed.size < 5 && source.category == SourceCategory.OTHER) {
-                _extractionWarning.value = "Only ${processed.size} event(s) found in \"${source.title}\". " +
-                    "This document appears to be an institutional syllabus with policies rather than a " +
-                    "course schedule. If you are looking for assignment deadlines, check whether your " +
-                    "professor also provides a separate weekly schedule or course calendar — that document " +
-                    "will contain the due dates."
-            }
-            _statusMessage.value = "${processed.size} deadlines and exams found from entire source."
+            val result = deliverableExtractor.run(source, "default")
+            _lastGeneratedEvents.value = result.events
+            _extractionWarning.value = result.warning
+            _statusMessage.value = result.statusMessage
         }
     }
 
@@ -235,25 +227,9 @@ class EventAgent(
      */
     suspend fun autoDecomposeDeliverables(calendarId: String = "default") {
         runAgentAction("Error auto-decomposing deliverables", handleQuotaErrors = true) {
-            val unplanned = repository.getEvents(calendarId).filter { event ->
-                (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) &&
-                    event.studyPlanStart == null
-            }
-            if (unplanned.isEmpty()) return@runAgentAction
-
-            _statusMessage.value = "Breaking down ${unplanned.size} deliverable(s) into study steps..."
-            var totalSteps = 0
-            for (event in unplanned) {
-                val tasks = decompositionService.decompose(event)
-                if (tasks.isNotEmpty()) {
-                    totalSteps += decompositionService.applyDecomposition(event, tasks, calendarId)
-                }
-            }
-            _statusMessage.value = if (totalSteps > 0) {
-                "$totalSteps study steps added for ${unplanned.size} deliverable(s)."
-            } else {
-                "Deliverables already have study plans or no steps could be scheduled."
-            }
+            _statusMessage.value = "Breaking down deliverables into study steps..."
+            val result = autoDecomposer.run(Unit, calendarId)
+            _statusMessage.value = result.statusMessage
         }
     }
 
@@ -298,13 +274,11 @@ class EventAgent(
     }
 
     suspend fun acceptDecomposition(calendarId: String = "default") {
-        val tasks = _decomposedTasks.value
-        val target = _decompositionTarget.value ?: return
-        if (tasks.isEmpty()) return
-
         runAgentAction("Error accepting decomposition") {
-            _statusMessage.value = "Adding ${tasks.size} steps to calendar..."
-            val count = decompositionService.applyDecomposition(target, tasks, calendarId)
+            val count = decompositionAcceptor.run(
+                AcceptInput(_decomposedTasks.value, _decompositionTarget.value),
+                calendarId
+            )
             _statusMessage.value = "$count steps added to calendar."
             clearDecomposition()
         }
@@ -347,20 +321,7 @@ class EventAgent(
 
     suspend fun rescheduleEvent(event: Event) {
         runAgentAction("Failed to reschedule event") {
-            val today = clock.todayIn(TimeZone.currentSystemDefault())
-            val updated = when (event) {
-                is TimeEvent -> event.copy(date = today)
-                is DayEvent -> event.copy(date = today)
-            }
-            val existing = repository.getEvents("default").toMutableList()
-            existing.removeAll { it.id == event.id }
-
-            val rescheduled = pushResolver.resolveAndReschedule(updated, existing, "default")
-            _statusMessage.value = if (rescheduled) {
-                "Rescheduled '${event.title}' successfully."
-            } else {
-                "Cannot reschedule: conflict detected."
-            }
+            _statusMessage.value = eventRescheduler.run(event, "default")
             loadIncompleteEvents()
         }
     }

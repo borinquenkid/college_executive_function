@@ -913,6 +913,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `parse` | 1 |
 
+### AutoDecomposer.kt (Score: 9.00 - 🟢 LOW)
+- **Total Complexity**: 9
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `run` | 9 |
+
 ### AIService.kt (Score: 9.00 - 🟢 LOW)
 - **Total Complexity**: 9
 - **Real Coverage**: 100.0%
@@ -1104,15 +1113,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `filterByDateRange` | 3 |
 | `filterBySyncStatus` | 2 |
 | `filterIncompleteBeforeDate` | 2 |
-
-### AutoDecomposer.kt (Score: 7.00 - 🟢 LOW)
-- **Total Complexity**: 7
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `run` | 7 |
 
 ### TFIDFScorer.kt (Score: 7.00 - 🟢 LOW)
 - **Total Complexity**: 7

@@ -278,9 +278,11 @@ fun IngestingProgressDialog(title: String, message: String) {
             return@LaunchedEffect
         }
         while (true) {
-            val remaining = holdUntil!! - kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
-            if (remaining <= 0) { secondsRemaining = null; break }
-            secondsRemaining = ((remaining + 999) / 1000).toInt()
+            secondsRemaining = RetryCountdown.secondsRemaining(
+                holdUntilMs = holdUntil!!,
+                nowMs = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+            )
+            if (secondsRemaining == null) break
             kotlinx.coroutines.delay(1000)
         }
     }

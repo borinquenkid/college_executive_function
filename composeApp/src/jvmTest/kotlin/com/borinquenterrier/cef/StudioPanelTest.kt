@@ -154,6 +154,7 @@ class StudioPanelTest {
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
         every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
         every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
+        every { mockEventAgent.unresolvedConflicts } returns MutableStateFlow(emptyList())
 
         val testSource = SourceItem(
             title = "Test Syllabus",
@@ -271,6 +272,7 @@ class StudioPanelTest {
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
         every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
         every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
+        every { mockEventAgent.unresolvedConflicts } returns MutableStateFlow(emptyList())
 
         val testSource = SourceItem(
             title = "ENG 101 Syllabus",
@@ -319,6 +321,7 @@ class StudioPanelTest {
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
         every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
         every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
+        every { mockEventAgent.unresolvedConflicts } returns MutableStateFlow(emptyList())
 
         val testSource = SourceItem(
             title = "Test Syllabus",
@@ -376,6 +379,7 @@ class StudioPanelTest {
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
         every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
         every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
+        every { mockEventAgent.unresolvedConflicts } returns MutableStateFlow(emptyList())
 
         val testSource = SourceItem(
             title = "Test Syllabus",

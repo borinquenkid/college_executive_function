@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **55.32%** (7570/13684 lines)
-- **Total Source Files**: 174
+- **Total Source Files**: 183
 
 ## Coverage by File
 
@@ -20,7 +20,9 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | Platform.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AdvancedSettingsPanel.kt | 0.0% (0/140) | 0.0% (0/20) | 0.0% | AdvancedSettingsPanelKt, ComposableSingletons$AdvancedSettingsPanelKt |
+| 🔴 | ChatInputPresenter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AcademicCalendarHeader.kt | 0.0% (0/52) | 0.0% (0/36) | 0.0% | AcademicCalendarHeaderKt, ComposableSingletons$AcademicCalendarHeaderKt |
+| 🔴 | RetryCountdown.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | EventListContent.kt | 0.0% (0/48) | 0.0% (0/28) | 0.0% | EventListContentKt |
 | 🔴 | SourceItemView.kt | 0.0% (0/80) | 0.0% (0/52) | 1.0% | ComposableSingletons$SourceItemViewKt, SourceItemViewKt |
 | 🔴 | CheckInDialog.kt | 0.0% (0/202) | 0.0% (0/20) | 0.0% | CheckInDialogKt, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$1$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$2$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$2$1$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$3$1, CheckInDialogKt$CheckInDialog$1$1$1$1$1$1$1$1$2$3$1$1, ComposableSingletons$CheckInDialogKt |
@@ -31,18 +33,25 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | EventItemView.kt | 0.0% (0/188) | 0.0% (0/68) | 0.0% | ComposableSingletons$EventItemViewKt, EventItemViewKt |
 | 🔴 | GoogleAuthManager.kt | 0.0% (0/30) | N/A | 0.0% | GoogleAuthManager |
 | 🔴 | AnalysisCacheRepository.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | CreateCalendarDialog.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | GoogleLinkPrompt.kt | 0.0% (0/44) | 0.0% (0/20) | 0.0% | ComposableSingletons$GoogleLinkPromptKt, GoogleLinkPromptKt, GoogleLinkPromptKt$GoogleLinkPrompt$1$1$2$1$1 |
 | 🔴 | SettingsScreen.kt | 0.0% (0/298) | 0.0% (0/32) | 0.0% | SettingsScreenKt, SettingsScreenKt$SettingsScreen$1$1, SettingsScreenKt$SettingsScreen$2$1, SettingsScreenKt$SettingsScreen$3$1, SettingsScreenKt$SettingsScreen$4$3$1, SettingsScreenKt$SettingsScreen$savePreferences$1 |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% | RoutineSetupScreenKt |
 | 🔴 | ErrorBanner.kt | 0.0% (0/122) | 4.5% (2/44) | 0.0% | ComposableSingletons$ErrorBannerKt, ErrorBannerKt |
+| 🔴 | PushButtonState.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | WarningAggregator.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | StudioPanel.kt | 0.0% (0/464) | 0.0% (0/108) | 0.0% | ComposableSingletons$StudioPanelKt, StudioPanelKt, StudioPanelKt$StudioPanel$1$1, StudioPanelKt$StudioPanel$2$1, StudioPanelKt$StudioPanel$3$1, StudioPanelKt$StudioPanel$4$2$1$1$1$1$1, StudioPanelKt$StudioPanel$4$2$1$3$1$1$1, StudioPanelKt$StudioPanel$4$2$1$4$1$1$1, StudioPanelKt$StudioPanel$4$2$1$5$1, StudioPanelKt$StudioPanel$4$2$1$5$1$1 |
 | 🔴 | OAuthExchange.kt | 0.0% (0/56) | 0.0% (0/32) | 0.0% | OAuthExchange, TokenResponse, TokenResponse$Companion |
+| 🔴 | DeadlineSummary.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | ConflictResolutionUI.kt | 0.0% (0/266) | 0.0% (0/56) | 0.0% | ComposableSingletons$ConflictResolutionUIKt, ConflictResolutionUIKt |
 | 🔴 | SyncNegotiationDialog.kt | 0.0% (0/150) | 0.0% (0/28) | 0.0% | ComposableSingletons$SyncNegotiationDialogKt, SyncNegotiationDialogKt, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$1$1$1$1, SyncNegotiationDialogKt$SyncNegotiationDialog$1$1$1$2$1$1$1 |
+| 🔴 | GoogleCalendarSelector.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | GoogleCalendarPanel.kt | 0.0% (0/448) | 0.0% (0/224) | 0.0% | ComposableSingletons$GoogleCalendarPanelKt, GoogleCalendarPanelKt, GoogleCalendarPanelKt$GoogleCalendarPanel$1$1$2$1$1, GoogleCalendarPanelKt$GoogleCalendarPanel$1$1$6$1$1, GoogleCalendarPanelKt$GoogleCalendarPanel$3$1$1 |
+| 🔴 | CalendarDisplayName.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | SourcesPanel.kt | 0.0% (0/92) | 0.0% (0/76) | 0.0% | SourcesPanelKt, SourcesPanelKt$SourcesPanel$1$2$1$1$1$1, SourcesPanelKt$SourcesPanel$1$2$1$1$2$1, SourcesPanelKt$SourcesPanel$1$2$1$1$3$1 |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
+| 🔴 | StudioStatusFormatter.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% | ComposableSingletons$RoutineScreenKt, RoutineScreenKt, RoutineScreenKt$RoutineScreen$1$1, RoutineScreenKt$RoutineScreen$4$1$1 |
 | 🔴 | SourceRepository.kt | 0.0% (0/0) | N/A | 0.0% | *None* |
 | 🔴 | AddRoutineItemDialog.kt | 0.0% (0/352) | 0.0% (0/84) | 0.0% | AddRoutineItemDialogKt, ComposableSingletons$AddRoutineItemDialogKt |

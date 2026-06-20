@@ -40,9 +40,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.datetime.Clock
-import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
-import kotlinx.datetime.plus
 import kotlinx.datetime.todayIn
 
 @Composable
@@ -63,16 +61,11 @@ fun StudioPanel(
     val extractionWarning by eventAgent.extractionWarning.collectAsState()
     val isConnected by container.tokenRepository.isLinked.collectAsState()
     val pendingRequests by eventAgent.pendingRequestCount.collectAsState()
+    val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
 
-    val displayStatus = if (isLoading && pendingRequests > 1) {
-        val secs = eventAgent.estimatedRemainingSeconds()
-        val timeStr = when {
-            secs >= 60 -> "~${secs / 60}m ${secs % 60}s remaining"
-            secs > 0 -> "~${secs}s remaining"
-            else -> ""
-        }
-        "$statusMessage ($pendingRequests requests queued${if (timeStr.isNotEmpty()) ", $timeStr" else ""})"
-    } else statusMessage
+    val displayStatus = StudioStatusFormatter.format(
+        statusMessage, isLoading, pendingRequests, eventAgent.estimatedRemainingSeconds()
+    )
 
     LaunchedEffect(Unit) {
         eventAgent.loadPersistedWarnings()
@@ -84,26 +77,9 @@ fun StudioPanel(
     }
 
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
-    val next7DaysRange = today..today.plus(7, DateTimeUnit.DAY)
-    val next30DaysRange = today..today.plus(30, DateTimeUnit.DAY)
-
-    val dueIn7Days = eventsList.filter {
-        (it.category == AcademicCategory.DEADLINE || it.category == AcademicCategory.FINALS) &&
-                it.date in next7DaysRange
-    }
-
-    val dueIn30Days = eventsList.filter {
-        (it.category == AcademicCategory.DEADLINE || it.category == AcademicCategory.FINALS) &&
-                it.date in next30DaysRange
-    }
-
-    val activeSemester = remember(lastGeneratedEvents) {
-        WarningClassifier.activeSemesterFrom(lastGeneratedEvents, today)
-    }
-    val allWarnings = remember(lastGeneratedEvents, persistedWarnings, activeSemester, extractionWarning) {
-        (lastGeneratedEvents.mapNotNull { it.warning } + persistedWarnings + listOfNotNull(extractionWarning))
-            .distinct()
-            .map { WarningClassifier.classify(it, activeSemester) }
+    val deadlineSummary = remember(eventsList, today) { DeadlineSummary.from(eventsList, today) }
+    val allWarnings = remember(lastGeneratedEvents, persistedWarnings, extractionWarning) {
+        WarningAggregator.collect(lastGeneratedEvents, persistedWarnings, extractionWarning, today)
     }
 
     // Push events back to parent when they are generated in the flow
@@ -154,7 +130,7 @@ fun StudioPanel(
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         )
                         Text(
-                            text = "${dueIn7Days.size} deliverables",
+                            text = "${deadlineSummary.dueIn7Days} deliverables",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.testTag("deliverables_7_days")
@@ -167,7 +143,7 @@ fun StudioPanel(
                             color = MaterialTheme.colorScheme.onPrimaryContainer.copy(alpha = 0.8f)
                         )
                         Text(
-                            text = "${dueIn30Days.size} deliverables",
+                            text = "${deadlineSummary.dueIn30Days} deliverables",
                             style = MaterialTheme.typography.bodyMedium,
                             color = MaterialTheme.colorScheme.onPrimaryContainer,
                             modifier = Modifier.testTag("deliverables_30_days")
@@ -254,11 +230,10 @@ fun StudioPanel(
                 }
 
                 if (lastGeneratedEvents.isNotEmpty()) {
-                    val hasConflicts = lastGeneratedEvents.any { event ->
-                        // Logic to detect if this event was already rejected 
-                        // (In this pass, if it's still in the list after a sync attempt, it's a conflict)
-                        statusMessage.contains("conflicts need review")
-                    }
+                    val pushVariant = PushButtonState.variant(
+                        hasConflicts = unresolvedConflicts.isNotEmpty(),
+                        isConnected = isConnected
+                    )
 
                     item {
                         Button(
@@ -269,21 +244,15 @@ fun StudioPanel(
                             },
                             modifier = Modifier.fillMaxWidth().testTag("push_calendar_button"),
                             colors = ButtonDefaults.buttonColors(
-                                containerColor = if (hasConflicts) {
-                                    MaterialTheme.colorScheme.error
-                                } else if (isConnected) {
-                                    MaterialTheme.colorScheme.tertiary
-                                } else {
-                                    MaterialTheme.colorScheme.secondary
+                                containerColor = when (pushVariant) {
+                                    PushButtonVariant.CONFLICT -> MaterialTheme.colorScheme.error
+                                    PushButtonVariant.GOOGLE   -> MaterialTheme.colorScheme.tertiary
+                                    PushButtonVariant.LOCAL    -> MaterialTheme.colorScheme.secondary
                                 }
                             ),
                             enabled = !isLoading
                         ) {
-                            Text(
-                                if (hasConflicts) "Force Sync Remaining"
-                                else if (isConnected) "Push to Google Calendar"
-                                else "Save to Local Calendar"
-                            )
+                            Text(PushButtonState.label(pushVariant))
                         }
                     }
 
@@ -311,7 +280,7 @@ fun StudioPanel(
                         }
                     }
 
-                    if (hasConflicts) {
+                    if (pushVariant == PushButtonVariant.CONFLICT) {
                         item {
                             Text(
                                 "The items below overlap with your existing schedule. You can modify them or force them into the calendar.",

@@ -67,10 +67,7 @@ fun ChatPanel(
     val liveWarnings by eventAgent.lastGeneratedEvents.collectAsState()
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     val ingestionWarnings = remember(persistedWarnings, liveWarnings) {
-        val activeSemester = WarningClassifier.activeSemesterFrom(liveWarnings, today)
-        (liveWarnings.mapNotNull { it.warning } + persistedWarnings)
-            .distinct()
-            .map { WarningClassifier.classify(it, activeSemester) }
+        WarningAggregator.collect(liveWarnings, persistedWarnings, null, today)
     }
 
     LaunchedEffect(Unit) { eventAgent.loadPersistedWarnings() }
@@ -107,9 +104,7 @@ fun ChatPanel(
                 modifier = Modifier.height(32.dp)
             )
             if (selectedSource != null) {
-                val chipLabel = selectedSource!!.title.let {
-                    if (it.length > 22) it.take(22) + "\u2026" else it
-                }
+                val chipLabel = ChatInputPresenter.chipLabel(selectedSource!!.title)
                 FilterChip(
                     selected = !useAllSources,
                     onClick = { useAllSources = false },
@@ -167,12 +162,7 @@ fun ChatPanel(
             }
 
             Box(modifier = Modifier.weight(1f).padding(horizontal = 12.dp)) {
-                val placeholder = when {
-                    useAllSources && sourceItems.isEmpty() -> "Add sources to get started\u2026"
-                    useAllSources -> "Ask anything across all ${sourceItems.size} source(s)\u2026"
-                    selectedSource != null -> "Ask about ${selectedSource!!.title.take(20)}\u2026"
-                    else -> "Select a source, or switch to All Sources mode\u2026"
-                }
+                val placeholder = ChatInputPresenter.placeholder(useAllSources, sourceItems.size, selectedSource?.title)
                 if (newMessage.isEmpty()) {
                     Text(
                         placeholder,

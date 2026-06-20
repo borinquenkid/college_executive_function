@@ -1,5 +1,8 @@
 package com.borinquenterrier.cef
 
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -18,6 +21,10 @@ class CalendarAgent(
     private val preferencesRepository: PreferencesRepository? = null
 ) {
     private val tag = "CalendarAgent"
+
+    private val _resetVersion = MutableStateFlow(0)
+    val resetVersion: StateFlow<Int> = _resetVersion.asStateFlow()
+
     private val negotiator =
         SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository)
     private val negotiationApplier =
@@ -113,8 +120,16 @@ class CalendarAgent(
         }
     }
 
-    suspend fun clearLocalCalendar(calendarId: String = "default") {
+    suspend fun resetCalendar(calendarId: String = "default") {
         localRepo.clearLocalCalendar(calendarId)
+        if (isLiveSyncEnabled() && isGoogleLinked()) {
+            try {
+                remoteRepo.clearCalendar(calendarId)
+            } catch (e: Exception) {
+                logger?.e(tag, "Remote calendar clear failed, local reset still complete", e)
+            }
+        }
+        _resetVersion.value++
     }
 
     /**

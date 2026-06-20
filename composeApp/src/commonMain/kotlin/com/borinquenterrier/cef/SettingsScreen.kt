@@ -53,6 +53,7 @@ fun SettingsScreen(
     var showResetConfirm by remember { mutableStateOf(false) }
     val calendarAgent = remember { container.calendarAgent }
     val eventAgent = remember { container.eventAgent }
+    val appController = remember { container.appController }
 
     val preferencesRepository = remember { container.preferencesRepository }
     var preferences by remember { mutableStateOf(StudyPreferences()) }
@@ -237,13 +238,14 @@ fun SettingsScreen(
             AlertDialog(
                 onDismissRequest = { showResetConfirm = false },
                 title = { Text("Reset Calendar?") },
-                text = { Text("This permanently deletes all local calendar events. This cannot be undone.") },
+                text = { Text("This permanently deletes all calendar events locally and from Google Calendar. This cannot be undone.") },
                 confirmButton = {
                     TextButton(onClick = {
                         showResetConfirm = false
                         scope.launch {
-                            calendarAgent.clearLocalCalendar()
+                            calendarAgent.resetCalendar()
                             eventAgent.clear()
+                            appController.clearEvents()
                         }
                     }) { Text("Reset", color = MaterialTheme.colorScheme.error) }
                 },

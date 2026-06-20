@@ -51,12 +51,13 @@ fun AcademicCalendar(
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
     var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
     val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
+    val resetVersion by calendarAgent.resetVersion.collectAsState()
 
     LaunchedEffect(routineRepository) {
         routineEvents = routineRepository.getRoutineEvents()
     }
 
-    LaunchedEffect(isGoogleLinked) {
+    LaunchedEffect(isGoogleLinked, resetVersion) {
         displayedEvents = calendarAgent.getEvents("default")
         if (isGoogleLinked) {
             scope.launch {

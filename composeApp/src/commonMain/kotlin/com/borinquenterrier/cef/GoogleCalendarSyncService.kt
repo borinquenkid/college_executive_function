@@ -16,8 +16,12 @@ import io.ktor.http.isSuccess
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.LocalDateTime
 import kotlinx.datetime.LocalTime
+import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
+import kotlinx.datetime.toInstant
+import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
@@ -112,9 +116,9 @@ class GoogleCalendarSyncService(
         withToken { token ->
             val googleEvent = when (event) {
                 is TimeEvent -> {
-                    fun LocalTime.toHHmm() = "${hour.toString().padStart(2, '0')}:${minute.toString().padStart(2, '0')}:00"
-                    val startStr = "${event.date}T${event.startTime.toHHmm()}Z"
-                    val endStr = "${event.date}T${event.endTime.toHHmm()}Z"
+                    val tz = TimeZone.currentSystemDefault()
+                    val startStr = LocalDateTime(event.date, event.startTime).toInstant(tz).toString()
+                    val endStr = LocalDateTime(event.date, event.endTime).toInstant(tz).toString()
                     GoogleEvent(
                         summary = event.title,
                         start = GoogleEventDateTime(dateTime = startStr),
@@ -186,17 +190,32 @@ class GoogleCalendarSyncService(
                 } ?: 0L
 
                 if (start?.dateTime != null && end?.dateTime != null) {
-                    // Handle various RFC3339 formats (Z, +HH:MM, or none)
-                    val cleanStart = start.dateTime.take(16) // "YYYY-MM-DDTHH:MM"
-                    val cleanEnd = end.dateTime.take(16)
+                    val tz = TimeZone.currentSystemDefault()
+
+                    // RFC3339 always carries a timezone offset (Z or ±HH:MM).
+                    // Parse as Instant so the offset is honoured, then convert to
+                    // the user's local timezone. Fall back to treating the string
+                    // as a naive local datetime if the offset is absent.
+                    fun parseDateTime(raw: String): LocalDateTime = try {
+                        Instant.parse(raw).toLocalDateTime(tz)
+                    } catch (e: Exception) {
+                        val clean = raw.take(16)
+                        LocalDateTime(
+                            LocalDate.parse(clean.substringBefore("T")),
+                            LocalTime.parse(clean.substringAfter("T"))
+                        )
+                    }
+
+                    val startDt = parseDateTime(start.dateTime)
+                    val endDt = parseDateTime(end.dateTime)
 
                     TimeEvent(
                         id = item.id,
                         title = item.summary ?: "Untitled Event",
                         source = EventSource.STUDENT,
-                        date = LocalDate.parse(cleanStart.substringBefore("T")),
-                        startTime = LocalTime.parse(cleanStart.substringAfter("T")),
-                        endTime = LocalTime.parse(cleanEnd.substringAfter("T")),
+                        date = startDt.date,
+                        startTime = startDt.time,
+                        endTime = endDt.time,
                         updatedAt = updatedAt
                     )
                 } else {

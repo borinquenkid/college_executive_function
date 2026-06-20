@@ -216,11 +216,12 @@ Any test class that makes real external calls (Gemini API, Google Calendar, live
 
 **Why naming, not tags:** Kotest 6's tag-filtering system property (`kotest.filter.tags`) is not reliably forwarded to the test JVM when Gradle reuses a daemon. Both `tags(Flaky)` in the spec body and `@Tags("Flaky")` class annotations were tried and failed to skip tests in practice.
 
-**Excluding integration tests** (e.g. for Kover coverage runs or fast CI):
+**Integration tests are excluded by default.** Plain `./gradlew :composeApp:jvmTest` runs unit tests only.
+
+**To include AI/integration tests** (CI or explicit manual run):
 ```bash
-./gradlew :composeApp:jvmTest -PunitTestsOnly=true
+./gradlew :composeApp:jvmTest -PrunAITests=true
 ```
-This activates the `excludeTestsMatching("*IntegrationTest*")` filter already wired in `build.gradle.kts`.
 
 **Running a single integration test class:**
 ```bash

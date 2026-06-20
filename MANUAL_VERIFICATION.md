@@ -45,8 +45,8 @@ This manual test plan guides a human tester through verifying all core scenarios
 ### Scenario 3: Syllabus Ingestion & Source Categorization
 * **Goal:** Verify native file loading, automatic source categorization, and metadata display.
 * **Steps:**
-  1. Go to the **Sources** panel (Home).
-  2. Click **Add Source** -> select **Local File** and pick your sample syllabus (e.g., a PDF/DOCX).
+  1. Go to the **Studio** (home) panel.
+  2. Click **Add Source** → select **Local File** and pick your sample syllabus (e.g., a PDF/DOCX).
   3. Wait a few seconds for extraction and AI analysis to complete.
   4. Verify the source appears in the list under the correct category tag: **"Syllabus"** (it should automatically classify it).
   5. Verify the source fragments list displays correct page extracts.
@@ -56,7 +56,7 @@ This manual test plan guides a human tester through verifying all core scenarios
 ### Scenario 4: AI Study Plan Generation & Weighted Deliverables
 * **Goal:** Verify AI analysis extracts deadlines, reads weights, and schedules study blocks around constraints.
 * **Steps:**
-  1. From the **Sources** panel, click **Generate Study Plan** next to the syllabus you just added.
+  1. From the **Studio** (home) panel, select the syllabus you just added and click **Generate Study Plan**.
   2. Switch to the **Academic Calendar** view.
   3. Verify that the AI generated both:
      - **Deliverable events** (Exams, Assignments) matching the dates in the syllabus.
@@ -67,11 +67,11 @@ This manual test plan guides a human tester through verifying all core scenarios
 ---
 
 ### Scenario 5: Programmatic Collision Resolution
-* **Goal:** Verify that adding conflicting events shifts lower-priority items.
+* **Goal:** Verify that a newly synced event that overlaps a local study block triggers automatic rescheduling.
 * **Steps:**
-  1. Locate a day with an AI study block (Priority 1).
-  2. Manually add a **Class** event (Priority 3) or **Exam** event (Priority 4) that directly overlaps with that study block.
-  3. Click **Save**.
+  1. Locate a day with an AI study block in the app's **Academic Calendar**.
+  2. In **Google Calendar** (browser), create a new event (e.g., a class or exam) on the same day and time that overlaps with that study block.
+  3. Return to the app and tap **Sync** on the calendar screen.
   4. Verify that the system automatically shifts the colliding study block to the next available slot within study hours (without overlapping classes, exams, or breaks).
 
 ---
@@ -92,7 +92,7 @@ This manual test plan guides a human tester through verifying all core scenarios
 * **Steps:**
   1. Ingest a second syllabus/reading note source.
   2. Open the **Chat** panel.
-  3. Set the scope toggle to **"All Sources"**.
+  3. Verify the scope is set to **"All Sources"** (default). If not, tap to switch to it.
   4. Ask a question that requires comparing both documents (e.g. *"What are my exam dates for both classes?"*). Verify the AI references both sources.
   5. Send a follow-up query (e.g. *"Which of these happens first?"*). Verify the AI remembers the previous turn's context.
 
@@ -112,22 +112,11 @@ This manual test plan guides a human tester through verifying all core scenarios
 
 ---
 
-### Scenario 9: Stateful User Preference Memory
-* **Goal:** Verify the app learns implicit constraints by logging manual overrides.
+### Scenario 9: ICS Calendar Export
+* **Goal:** Verify exporting your study plan to a standard `.ics` file.
 * **Steps:**
-  1. Locate a generated study block on a specific day/time (e.g., Monday at 18:00).
-  2. Manually **move** or **delete** it. Repeat this action for study blocks scheduled at similar times (e.g., Monday evening) at least 2 times.
-  3. Navigate to a new syllabus and click **Generate Study Plan**.
-  4. Verify that the AI prompt automatically lists Monday evening as a restricted zone and does *not* schedule study blocks there.
-  5. Try to manually schedule a new study block on Monday evening; verify the collision resolver shifts it out of the restricted zone.
-
----
-
-### Scenario 10: ICS Calendar Export
-* **Goal:** Verify exporting your study plan to an standard `.ics` file.
-* **Steps:**
-  1. Navigate to the **Studio/Sources** panel.
-  2. Click the **Export to .ics** button.
+  1. Navigate to the **Studio** (home) panel.
+  2. Click the **Export Study Plan to .ics** button.
   3. Verify a success toast/dialog appears with the export location:
      - **JVM:** Check your `~/Downloads` directory for `cef_export.ics`.
      - **Android:** Check the device downloads directory.
@@ -135,10 +124,18 @@ This manual test plan guides a human tester through verifying all core scenarios
 
 ---
 
-### Scenario 11: Progress & Time-Remaining Indicators
+### Scenario 10: Progress & Time-Remaining Indicators
 * **Goal:** Verify visual countdowns and project completion tracking.
 * **Steps:**
   1. View your deadline events in the calendar list.
   2. Verify each deadline card displays a **"Due in X days"** countdown chip.
   3. Open a deadline event card; verify the presence of a progress bar reflecting the completed time between the start of the study plan and the final due date.
-  4. Check the **Semester Health** card in the main studio dashboard to verify it summarizes the count of upcoming deliverables in the next 7 and 30 days.
+  4. Check the **Semester Health** card in the Studio dashboard to verify it summarizes the count of upcoming deliverables in the **Next 7 Days** and **Next 30 Days**.
+
+---
+
+## 🚧 Not Yet Implemented
+
+### Scenario: Stateful User Preference Memory
+* **Status:** The data layer (`UserPreferenceMemoryRepository`, `logOverride`) exists but is not yet wired to any UI action. Deleting or rescheduling a study block does not currently log an override.
+* **Intended behavior when implemented:** Deleting the same time-slot ≥2 times causes the AI to treat that slot as a restricted zone on the next study plan generation.

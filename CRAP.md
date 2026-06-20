@@ -10,19 +10,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 188
-- **High-Risk Files (CRAP > 30)**: 0
+- **High-Risk Files (CRAP > 30)**: 1
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
+| GoogleCalendarSyncService.kt | 30 | 99.2% | 30.00 | 🔴 HIGH |
 | IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 29 | 92.1% | 29.42 | 🟡 MEDIUM |
 | EventAgent.kt | 29 | 93.8% | 29.20 | 🟡 MEDIUM |
-| GoogleCalendarSyncService.kt | 29 | 99.2% | 29.00 | 🟡 MEDIUM |
 | EventDeduplicator.kt | 29 | 100.0% | 29.00 | 🟡 MEDIUM |
 | CalendarPushResolver.kt | 21 | 73.8% | 28.96 | 🟡 MEDIUM |
 | CalendarAgent.kt | 26 | 84.6% | 28.46 | 🟡 MEDIUM |
@@ -35,6 +35,22 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 ---
 
 ## Detailed File Breakdown
+
+### GoogleCalendarSyncService.kt (Score: 30.00 - 🔴 HIGH)
+- **Total Complexity**: 30
+- **Real Coverage**: 99.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEvents` | 11 |
+| `<T> withToken` | 6 |
+| `listCalendars` | 3 |
+| `ensureSuccess` | 2 |
+| `syncEvent` | 2 |
+| `createCalendar` | 1 |
+| `deleteEvent` | 1 |
+| `fetchEventsPage` | 1 |
 
 ### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -109,22 +125,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `updateStatus` | 1 |
 | `Exception.isQuotaError` | 1 |
 | *... and 12 more* | |
-
-### GoogleCalendarSyncService.kt (Score: 29.00 - 🟡 MEDIUM)
-- **Total Complexity**: 29
-- **Real Coverage**: 99.2%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getEvents` | 10 |
-| `<T> withToken` | 6 |
-| `listCalendars` | 3 |
-| `ensureSuccess` | 2 |
-| `syncEvent` | 2 |
-| `createCalendar` | 1 |
-| `deleteEvent` | 1 |
-| `fetchEventsPage` | 1 |
 
 ### EventDeduplicator.kt (Score: 29.00 - 🟡 MEDIUM)
 - **Total Complexity**: 29

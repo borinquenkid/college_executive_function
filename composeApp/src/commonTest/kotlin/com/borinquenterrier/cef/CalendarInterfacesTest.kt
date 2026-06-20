@@ -127,4 +127,5 @@ private class FakeStudentCalendarRepository : StudentCalendarRepository {
         store.filter { it.date >= start && it.date <= end }
     override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String) = emptyList<Event>()
     override suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String) = emptyList<Event>()
+    override suspend fun clearLocalCalendar(calendarId: String) { store.clear() }
 }

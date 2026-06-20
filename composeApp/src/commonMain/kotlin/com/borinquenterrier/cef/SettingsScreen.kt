@@ -11,6 +11,9 @@ import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Info
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
@@ -47,6 +50,9 @@ fun SettingsScreen(
         )
     }
     var showAdvanced by remember { mutableStateOf(false) }
+    var showResetConfirm by remember { mutableStateOf(false) }
+    val calendarAgent = remember { container.calendarAgent }
+    val eventAgent = remember { container.eventAgent }
 
     val preferencesRepository = remember { container.preferencesRepository }
     var preferences by remember { mutableStateOf(StudyPreferences()) }
@@ -213,6 +219,36 @@ fun SettingsScreen(
                 onBugReportsChange = {
                     shareAnonymousBugReports = it
                     savePreferences()
+                }
+            )
+
+            Button(
+                onClick = { showResetConfirm = true },
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.errorContainer,
+                    contentColor = MaterialTheme.colorScheme.onErrorContainer
+                )
+            ) {
+                Text("Reset Calendar for Demo")
+            }
+        }
+
+        if (showResetConfirm) {
+            AlertDialog(
+                onDismissRequest = { showResetConfirm = false },
+                title = { Text("Reset Calendar?") },
+                text = { Text("This permanently deletes all local calendar events. This cannot be undone.") },
+                confirmButton = {
+                    TextButton(onClick = {
+                        showResetConfirm = false
+                        scope.launch {
+                            calendarAgent.clearLocalCalendar()
+                            eventAgent.clear()
+                        }
+                    }) { Text("Reset", color = MaterialTheme.colorScheme.error) }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showResetConfirm = false }) { Text("Cancel") }
                 }
             )
         }

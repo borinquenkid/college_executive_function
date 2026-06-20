@@ -14,19 +14,19 @@ import platform.UniformTypeIdentifiers.UTTypePlainText
 import platform.darwin.NSObject
 
 @Composable
-actual fun FilePicker(show: Boolean, onFileSelected: (String?) -> Unit) {
+actual fun FilePicker(show: Boolean, onFilesSelected: (List<String>) -> Unit) {
     val delegate = remember {
         object : NSObject(), UIDocumentPickerDelegateProtocol {
             override fun documentPicker(
                 controller: UIDocumentPickerViewController,
                 didPickDocumentsAtURLs: List<*>
             ) {
-                val url = didPickDocumentsAtURLs.firstOrNull() as? NSURL
-                onFileSelected(url?.absoluteString)
+                val urls = didPickDocumentsAtURLs.mapNotNull { (it as? NSURL)?.absoluteString }
+                onFilesSelected(urls)
             }
 
             override fun documentPickerWasCancelled(controller: UIDocumentPickerViewController) {
-                onFileSelected(null)
+                onFilesSelected(emptyList())
             }
         }
     }
@@ -45,6 +45,7 @@ actual fun FilePicker(show: Boolean, onFileSelected: (String?) -> Unit) {
             val picker =
                 UIDocumentPickerViewController(forOpeningContentTypes = types, asCopy = true)
             picker.delegate = delegate
+            picker.allowsMultipleSelection = true
 
             val root = UIApplication.sharedApplication.keyWindow?.rootViewController
                 ?: UIApplication.sharedApplication.windows.mapNotNull { it as? UIWindow }

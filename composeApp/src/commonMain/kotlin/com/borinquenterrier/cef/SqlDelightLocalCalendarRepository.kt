@@ -75,6 +75,10 @@ class SqlDelightLocalCalendarRepository(
         database.appDatabaseQueries.deleteEvent(eventId)
     }
 
+    override suspend fun clearLocalCalendar(calendarId: String) {
+        database.appDatabaseQueries.deleteAllEvents()
+    }
+
     override suspend fun getEventsInRange(
         start: LocalDate,
         end: LocalDate,

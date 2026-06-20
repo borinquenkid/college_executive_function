@@ -27,6 +27,24 @@ class SourceIngestionHandler(
         }
     }
 
+    fun ingestLocalFiles(
+        paths: List<String>,
+        onStart: () -> Unit,
+        onEachSuccess: (SourceItem) -> Unit,
+        onFinish: () -> Unit
+    ) {
+        onStart()
+        scope.launch {
+            for (path in paths) {
+                try {
+                    val source = ingestionAgent.addLocalFile(path)
+                    onEachSuccess(source)
+                } catch (_: Exception) { }
+            }
+            onFinish()
+        }
+    }
+
     fun ingestUrl(
         url: String,
         onStart: () -> Unit,

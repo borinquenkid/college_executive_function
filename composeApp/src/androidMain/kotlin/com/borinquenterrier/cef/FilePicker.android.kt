@@ -6,11 +6,11 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 
 @Composable
-actual fun FilePicker(show: Boolean, onFileSelected: (String?) -> Unit) {
+actual fun FilePicker(show: Boolean, onFilesSelected: (List<String>) -> Unit) {
     val launcher = rememberLauncherForActivityResult(
-        contract = ActivityResultContracts.OpenDocument(),
-        onResult = { uri ->
-            onFileSelected(uri?.toString())
+        contract = ActivityResultContracts.OpenMultipleDocuments(),
+        onResult = { uris ->
+            onFilesSelected(uris.map { it.toString() })
         }
     )
 

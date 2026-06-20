@@ -25,10 +25,10 @@ import androidx.compose.foundation.layout.fillMaxWidth
 class LocalFileSourceProvider(
     private val ingestionAgent: IngestionAgent,
     private val aiService: AIService,
-    private val filePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit = { onFileSelected ->
+    private val filePicker: @Composable (onFilesSelected: (List<String>) -> Unit) -> Unit = { onFilesSelected ->
         FilePicker(
             show = true,
-            onFileSelected = onFileSelected
+            onFilesSelected = onFilesSelected
         )
     }
 ) : SourceProvider {
@@ -45,26 +45,33 @@ class LocalFileSourceProvider(
             remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var hasTriggered by remember { mutableStateOf(false) }
         var isIngesting by remember { mutableStateOf(false) }
+        var ingestingTitle by remember { mutableStateOf("Reading Document") }
 
         if (isIngesting) {
             IngestingProgressDialog(
-                title = "Reading Document",
+                title = ingestingTitle,
                 message = "Extracting text and analyzing structure..."
             )
         }
 
         if (!hasTriggered) {
-            filePicker { path ->
+            filePicker { paths ->
                 hasTriggered = true
-                if (path == null) {
+                if (paths.isEmpty()) {
                     onDismiss()
                 } else {
-                    handler.ingestLocalFile(
-                        path = path,
+                    ingestingTitle = if (paths.size == 1) "Reading Document"
+                                     else "Reading ${paths.size} Documents"
+                    val pendingSources = mutableListOf<SourceItem>()
+                    handler.ingestLocalFiles(
+                        paths = paths,
                         onStart = { isIngesting = true },
-                        onSuccess = onSourceAdded,
-                        onFailure = onDismiss,
-                        onFinish = { isIngesting = false }
+                        onEachSuccess = { pendingSources.add(it) },
+                        onFinish = {
+                            isIngesting = false
+                            pendingSources.forEach { onSourceAdded(it) }
+                            if (pendingSources.isEmpty()) onDismiss()
+                        }
                     )
                 }
             }

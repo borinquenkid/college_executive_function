@@ -113,6 +113,10 @@ class CalendarAgent(
         }
     }
 
+    suspend fun clearLocalCalendar(calendarId: String = "default") {
+        localRepo.clearLocalCalendar(calendarId)
+    }
+
     /**
      * Checks remote for changes and compiles a negotiation proposal if there are conflicts or shifts.
      */

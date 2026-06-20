@@ -76,6 +76,8 @@ class GoogleRemoteCalendarRepository(
         }
     }
 
+    override suspend fun clearLocalCalendar(calendarId: String) = Unit
+
     override suspend fun getEventsInRange(
         start: LocalDate,
         end: LocalDate,

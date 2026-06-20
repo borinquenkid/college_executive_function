@@ -88,6 +88,11 @@ interface StudentCalendarRepository {
         date: LocalDate,
         calendarId: String = "default"
     ): List<Event>
+
+    /**
+     * Permanently removes all events from the local calendar (e.g. demo reset).
+     */
+    suspend fun clearLocalCalendar(calendarId: String = "default")
 }
 
 /**

@@ -26,9 +26,9 @@ class CommonSourceProvidersUiTest {
         var addedSource: SourceItem? = null
         var dismissed = false
 
-        val mockFilePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit =
-            { onFileSelected ->
-                onFileSelected("mock/path/syllabus.pdf")
+        val mockFilePicker: @Composable (onFilesSelected: (List<String>) -> Unit) -> Unit =
+            { onFilesSelected ->
+                onFilesSelected(listOf("mock/path/syllabus.pdf"))
             }
 
         val provider = LocalFileSourceProvider(
@@ -62,9 +62,9 @@ class CommonSourceProvidersUiTest {
 
         var dismissed = false
 
-        val mockFilePicker: @Composable (onFileSelected: (String?) -> Unit) -> Unit =
-            { onFileSelected ->
-                onFileSelected(null)
+        val mockFilePicker: @Composable (onFilesSelected: (List<String>) -> Unit) -> Unit =
+            { onFilesSelected ->
+                onFilesSelected(emptyList())
             }
 
         val provider = LocalFileSourceProvider(

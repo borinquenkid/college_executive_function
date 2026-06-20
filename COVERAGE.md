@@ -4,13 +4,14 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **81.29%** (11218/13800 lines)
-- **Total Source Files**: 183
+- **Overall Line Coverage**: **81.28%** (11216/13800 lines)
+- **Total Source Files**: 185
 
 ## Coverage by File (🔴 and 🟡 only)
 
 | Status | File | Line Coverage | Branch Coverage | Instruction Coverage |
 | :---: | :--- | :---: | :---: | :---: |
+| 🔴 | IngestingProgressDialog.kt | 0.0% (0/64) | 0.0% (0/20) | 0.0% |
 | 🔴 | SourceInterfaces.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | App.kt | 0.0% (0/68) | 0.0% (0/4) | 0.0% |
@@ -54,7 +55,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | OAuthExchange.kt | 67.9% (38/56) | 25.0% (8/32) | 59.3% |
 | 🟡 | GeminiBodyBuilder.kt | 71.4% (20/28) | 100.0% (4/4) | 83.1% |
 | 🟡 | DriveFileFetcher.kt | 71.4% (10/14) | N/A | 81.6% |
-| 🟡 | CommonSourceProviders.kt | 73.1% (288/394) | 40.2% (66/164) | 75.4% |
 | 🟡 | CalendarPushResolver.kt | 73.8% (90/122) | 55.6% (40/72) | 75.5% |
 | 🟡 | SyncProposal.kt | 75.0% (36/48) | 25.0% (4/16) | 55.3% |
 | 🟡 | GoogleRemoteCalendarRepository.kt | 76.5% (78/102) | 62.5% (10/16) | 91.6% |

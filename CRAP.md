@@ -9,8 +9,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 183
-- **High-Risk Files (CRAP > 30)**: 4
+- **Total Files Analyzed**: 185
+- **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
 
@@ -19,7 +19,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
 | EventItemView.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | AcademicCalendar.kt | 9 | 22.6% | 46.50 | 🔴 HIGH |
-| CommonSourceProviders.kt | 25 | 73.1% | 37.17 | 🔴 HIGH |
+| IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 29 | 92.1% | 29.42 | 🟡 MEDIUM |
@@ -65,21 +65,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `AcademicCalendar` | 1 |
 
-### CommonSourceProviders.kt (Score: 37.17 - 🔴 HIGH)
-- **Total Complexity**: 25
-- **Real Coverage**: 73.1%
+### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
 | `IngestingProgressDialog` | 5 |
-| `SelectorUI` | 4 |
-| `SelectorUI` | 4 |
-| `SelectorUI` | 3 |
-| `isAuthorized` | 1 |
-| `isAuthorized` | 1 |
-| `isAuthorized` | 1 |
-| `DrivePickerDialog` | 1 |
 
 ### EventListContent.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -571,6 +564,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `GoogleCalendarPanel` | 1 |
+
+### CommonSourceProviders.kt (Score: 14.41 - 🟢 LOW)
+- **Total Complexity**: 14
+- **Real Coverage**: 87.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `SelectorUI` | 4 |
+| `SelectorUI` | 4 |
+| `SelectorUI` | 3 |
+| `isAuthorized` | 1 |
+| `isAuthorized` | 1 |
+| `isAuthorized` | 1 |
 
 ### StudyBlockShiftResolver.kt (Score: 14.35 - 🟢 LOW)
 - **Total Complexity**: 14
@@ -1135,6 +1142,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `scoreDocuments` | 1 |
 | `calculateTFIDF` | 1 |
+
+### DrivePickerDialog.kt (Score: 6.12 - 🟢 LOW)
+- **Total Complexity**: 6
+- **Real Coverage**: 85.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `DrivePickerDialog` | 1 |
 
 ### StateFlowWrapper.kt (Score: 6.10 - 🟢 LOW)
 - **Total Complexity**: 6

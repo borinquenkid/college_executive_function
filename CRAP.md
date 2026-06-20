@@ -9,15 +9,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 185
-- **High-Risk Files (CRAP > 30)**: 2
+- **Total Files Analyzed**: 186
+- **High-Risk Files (CRAP > 30)**: 1
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
 | AcademicCalendar.kt | 9 | 22.6% | 46.50 | 🔴 HIGH |
-| ConflictResolutionUI.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -31,6 +30,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GoogleRemoteCalendarRepository.kt | 22 | 76.5% | 28.30 | 🟡 MEDIUM |
 | GeminiRetryService.kt | 27 | 88.5% | 28.11 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
+| GeminiRequestExecutor.kt | 27 | 90.2% | 27.70 | 🟡 MEDIUM |
 
 ---
 
@@ -44,16 +44,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `AcademicCalendar` | 1 |
-
-### ConflictResolutionUI.kt (Score: 42.00 - 🔴 HIGH)
-- **Total Complexity**: 6
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `ConflictItem` | 2 |
-| `ConflictResolutionDialog` | 1 |
 
 ### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -712,6 +702,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `addSource` | 3 |
 | `handleFailure` | 3 |
 | `isCacheStale` | 1 |
+
+### ConflictResolutionUI.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `ConflictItem` | 2 |
+| `ConflictResolutionDialog` | 1 |
 
 ### ContextAgent.kt (Score: 11.02 - 🟢 LOW)
 - **Total Complexity**: 11
@@ -1736,6 +1736,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `run` | 3 |
+
+### ConflictResolutionPresenter.kt (Score: 3.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `bodyText` | 1 |
+| `instructionsText` | 1 |
+| `hasReason` | 1 |
 
 ### DecompositionAcceptor.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3

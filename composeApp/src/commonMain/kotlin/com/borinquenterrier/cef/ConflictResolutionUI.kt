@@ -37,8 +37,6 @@ fun ConflictResolutionDialog(
     onDismiss: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    if (conflicts.isEmpty()) return
-
     AlertDialog(
         onDismissRequest = onDismiss,
         title = {
@@ -69,8 +67,7 @@ fun ConflictResolutionDialog(
             ) {
                 item {
                     Text(
-                        text = "The following ${conflicts.size} event(s) conflict with your calendar and cannot be automatically rescheduled.\n\n" +
-                                "These events require your professor's permission to reschedule:",
+                        text = ConflictResolutionPresenter.bodyText(conflicts.size),
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
@@ -98,9 +95,7 @@ fun ConflictResolutionDialog(
                                 fontWeight = FontWeight.SemiBold
                             )
                             Text(
-                                "1. Contact your professor for each conflicting event\n" +
-                                        "2. Arrange a new time that works for both of you\n" +
-                                        "3. Return here and manually update the event time",
+                                ConflictResolutionPresenter.instructionsText(),
                                 style = MaterialTheme.typography.bodySmall
                             )
                         }
@@ -152,7 +147,7 @@ private fun ConflictItem(conflict: ConflictResolver.UnresolvedConflict) {
                     color = MaterialTheme.colorScheme.onErrorContainer
                 )
             }
-            if (conflict.reason.isNotBlank()) {
+            if (ConflictResolutionPresenter.hasReason(conflict.reason)) {
                 Text(
                     conflict.reason,
                     style = MaterialTheme.typography.bodySmall,

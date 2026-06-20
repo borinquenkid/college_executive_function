@@ -50,7 +50,6 @@ fun AcademicCalendar(
     var isSyncing by remember { mutableStateOf(false) }
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
     var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
-    var showConflictDialog by remember { mutableStateOf(false) }
     val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
 
     LaunchedEffect(routineRepository) {
@@ -63,22 +62,17 @@ fun AcademicCalendar(
             scope.launch {
                 isSyncing = true
                 try {
-                    val negotiation = syncManager.initiateSyncIfNeeded(isGoogleLinked)
-                    if (negotiation != null) {
-                        activeSyncNegotiation = negotiation
-                    } else {
-                        displayedEvents = syncManager.refreshEvents()
-                    }
+                    performCalendarSync(
+                        initiateSync = { syncManager.initiateSyncIfNeeded(it) },
+                        refreshEvents = { syncManager.refreshEvents() },
+                        forceSync = isGoogleLinked,
+                        onNegotiation = { activeSyncNegotiation = it },
+                        onEventsRefreshed = { displayedEvents = it }
+                    )
                 } finally {
                     isSyncing = false
                 }
             }
-        }
-    }
-
-    LaunchedEffect(unresolvedConflicts) {
-        if (unresolvedConflicts.isNotEmpty()) {
-            showConflictDialog = true
         }
     }
 
@@ -103,40 +97,31 @@ fun AcademicCalendar(
 
     val groupedEvents = CalendarEventGrouper.groupEventsByDate(allExpandedEvents)
 
-    selectedEventForDecomposition?.let { event ->
-        TaskDecompositionDialog(
-            event = event,
-            eventAgent = eventAgent,
-            onDismiss = {
-                eventAgent.clearDecomposition()
-                selectedEventForDecomposition = null
-            }
-        )
-    }
+    DecompositionDialogFor(
+        event = selectedEventForDecomposition,
+        eventAgent = eventAgent,
+        onDismiss = {
+            eventAgent.clearDecomposition()
+            selectedEventForDecomposition = null
+        }
+    )
 
-    activeSyncNegotiation?.let { negotiation ->
-        SyncNegotiationDialog(
-            negotiation = negotiation,
-            calendarAgent = calendarAgent,
-            onApplied = {
-                activeSyncNegotiation = null
-                scope.launch {
-                    displayedEvents = syncManager.refreshEvents()
-                }
-            },
-            onDismiss = {
-                activeSyncNegotiation = null
+    SyncNegotiationDialogFor(
+        negotiation = activeSyncNegotiation,
+        calendarAgent = calendarAgent,
+        onApplied = {
+            activeSyncNegotiation = null
+            scope.launch {
+                displayedEvents = syncManager.refreshEvents()
             }
-        )
-    }
+        },
+        onDismiss = { activeSyncNegotiation = null }
+    )
 
-    if (showConflictDialog) {
+    if (unresolvedConflicts.isNotEmpty()) {
         ConflictResolutionDialog(
             conflicts = unresolvedConflicts,
-            onDismiss = {
-                showConflictDialog = false
-                eventAgent.clearUnresolvedConflicts()
-            }
+            onDismiss = { eventAgent.clearUnresolvedConflicts() }
         )
     }
 
@@ -161,12 +146,13 @@ fun AcademicCalendar(
                         scope.launch {
                             isSyncing = true
                             try {
-                                val negotiation = syncManager.initiateSyncIfNeeded(true)
-                                if (negotiation != null) {
-                                    activeSyncNegotiation = negotiation
-                                } else {
-                                    displayedEvents = syncManager.refreshEvents()
-                                }
+                                performCalendarSync(
+                                    initiateSync = { syncManager.initiateSyncIfNeeded(it) },
+                                    refreshEvents = { syncManager.refreshEvents() },
+                                    forceSync = true,
+                                    onNegotiation = { activeSyncNegotiation = it },
+                                    onEventsRefreshed = { displayedEvents = it }
+                                )
                             } finally {
                                 isSyncing = false
                             }

@@ -9,14 +9,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 186
-- **High-Risk Files (CRAP > 30)**: 1
+- **Total Files Analyzed**: 188
+- **High-Risk Files (CRAP > 30)**: 0
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| AcademicCalendar.kt | 9 | 22.6% | 46.50 | 🔴 HIGH |
 | IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -31,19 +30,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRetryService.kt | 27 | 88.5% | 28.11 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 27 | 90.2% | 27.70 | 🟡 MEDIUM |
+| SqlDelightLocalCalendarRepository.kt | 24 | 82.4% | 27.17 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
-
-### AcademicCalendar.kt (Score: 46.50 - 🔴 HIGH)
-- **Total Complexity**: 9
-- **Real Coverage**: 22.6%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AcademicCalendar` | 1 |
 
 ### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -261,9 +252,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getEventsBySyncStatus` | 1 |
 | `getIncompleteEventsBefore` | 1 |
 
-### GeminiResponseParser.kt (Score: 25.01 - 🟡 MEDIUM)
+### GeminiResponseParser.kt (Score: 25.08 - 🟡 MEDIUM)
 - **Total Complexity**: 25
-- **Real Coverage**: 98.0%
+- **Real Coverage**: 95.0%
 
 #### Methods list:
 | Method | Complexity |
@@ -1144,6 +1135,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `scoreDocuments` | 1 |
 | `calculateTFIDF` | 1 |
 
+### AcademicCalendar.kt (Score: 6.45 - 🟢 LOW)
+- **Total Complexity**: 4
+- **Real Coverage**: 46.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `AcademicCalendar` | 1 |
+
 ### DrivePickerDialog.kt (Score: 6.12 - 🟢 LOW)
 - **Total Complexity**: 6
 - **Real Coverage**: 85.0%
@@ -1344,6 +1344,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readText` | 1 |
 | `rememberLocalFileReader` | 1 |
 
+### ConditionalDialogs.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 4
+- **Real Coverage**: 50.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `DecompositionDialogFor` | 1 |
+| `SyncNegotiationDialogFor` | 1 |
+
 ### GoogleCalendarSelector.kt (Score: 5.17 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 58.2%
@@ -1542,15 +1552,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `categorizeError` | 4 |
 
-### EventDisplayPipeline.kt (Score: 4.01 - 🟢 LOW)
-- **Total Complexity**: 4
-- **Real Coverage**: 92.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getExpandedAndFilteredEvents` | 1 |
-
 ### SourceDeleter.kt (Score: 4.00 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 94.4%
@@ -1568,6 +1569,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `SyncNegotiationDialog` | 1 |
+
+### EventDisplayPipeline.kt (Score: 4.00 - 🟢 LOW)
+- **Total Complexity**: 4
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getExpandedAndFilteredEvents` | 1 |
 
 ### ChatInputPresenter.kt (Score: 4.00 - 🟢 LOW)
 - **Total Complexity**: 4
@@ -1834,6 +1844,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `run` | 1 |
+
+### AcademicCalendarSyncHelper.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `performCalendarSync` | 1 |
 
 ### RetryCountdown.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 2

@@ -62,4 +62,12 @@ object EventPresenter {
             else -> "Due in $daysUntil day${if (daysUntil != 1) "s" else ""}"
         }
     }
+
+    fun showDeadlineInfo(category: AcademicCategory): Boolean =
+        category == AcademicCategory.DEADLINE || category == AcademicCategory.FINALS
+
+    fun getEventTimeText(event: Event): String = when (event) {
+        is TimeEvent -> "From ${event.startTime} to ${event.endTime}"
+        is DayEvent -> "All day"
+    }
 }

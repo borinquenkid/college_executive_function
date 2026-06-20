@@ -10,18 +10,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 185
-- **High-Risk Files (CRAP > 30)**: 3
+- **High-Risk Files (CRAP > 30)**: 2
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| ConflictResolutionUI.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
-| EventItemView.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | AcademicCalendar.kt | 9 | 22.6% | 46.50 | 🔴 HIGH |
+| ConflictResolutionUI.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
+| EventItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 29 | 92.1% | 29.42 | 🟡 MEDIUM |
 | EventAgent.kt | 29 | 93.8% | 29.20 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 29 | 99.2% | 29.00 | 🟡 MEDIUM |
@@ -36,26 +36,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Detailed File Breakdown
 
-### ConflictResolutionUI.kt (Score: 72.00 - 🔴 HIGH)
-- **Total Complexity**: 8
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `ConflictItem` | 2 |
-| `ConflictResolutionDialog` | 1 |
-| `ConflictResolutionBanner` | 1 |
-
-### EventItemView.kt (Score: 56.00 - 🔴 HIGH)
-- **Total Complexity**: 7
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `EventItemView` | 1 |
-
 ### AcademicCalendar.kt (Score: 46.50 - 🔴 HIGH)
 - **Total Complexity**: 9
 - **Real Coverage**: 22.6%
@@ -64,6 +44,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `AcademicCalendar` | 1 |
+
+### ConflictResolutionUI.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `ConflictItem` | 2 |
+| `ConflictResolutionDialog` | 1 |
 
 ### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -91,6 +81,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `SourceItemView` | 1 |
+
+### EventItemView.kt (Score: 30.00 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `EventItemView` | 1 |
 
 ### GeminiAIService.kt (Score: 29.42 - 🟡 MEDIUM)
 - **Total Complexity**: 29
@@ -382,6 +381,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceEventExtractionPrompt` | 14 |
 | `getEventCritiquePrompt` | 4 |
 
+### EventPresenter.kt (Score: 21.00 - 🟡 MEDIUM)
+- **Total Complexity**: 21
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEventBorderColor` | 9 |
+| `getDeadlineChipText` | 4 |
+| `getCategoryLabel` | 3 |
+| `getDeadlineStatus` | 2 |
+| `getEventTimeText` | 2 |
+| `showDeadlineInfo` | 1 |
+
 ### SqlDelightUserPreferenceMemoryRepository.kt (Score: 20.44 - 🟡 MEDIUM)
 - **Total Complexity**: 20
 - **Real Coverage**: 89.7%
@@ -452,18 +465,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findNextDaySlot` | 1 |
 | `findNextTimeSlot` | 1 |
 | `findTimeSlotOnDay` | 1 |
-
-### EventPresenter.kt (Score: 18.00 - 🟡 MEDIUM)
-- **Total Complexity**: 18
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getEventBorderColor` | 9 |
-| `getDeadlineChipText` | 4 |
-| `getCategoryLabel` | 3 |
-| `getDeadlineStatus` | 2 |
 
 ### AppController.kt (Score: 17.72 - 🟡 MEDIUM)
 - **Total Complexity**: 16

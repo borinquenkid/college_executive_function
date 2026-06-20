@@ -40,6 +40,10 @@ fun EventItemView(
         EventPresenter.getCategoryLabel(event.category, event.source)
     }
 
+    val showDeadlineInfo = remember(event.category) {
+        EventPresenter.showDeadlineInfo(event.category)
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -57,20 +61,18 @@ fun EventItemView(
                     style = MaterialTheme.typography.labelSmall,
                     color = borderColor
                 )
-                if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
+                if (showDeadlineInfo) {
                     val daysUntil = today.daysUntil(event.date)
                     val chipText =
                         remember(daysUntil) { EventPresenter.getDeadlineChipText(daysUntil) }
                     val status = remember(daysUntil) { EventPresenter.getDeadlineStatus(daysUntil) }
-                    val chipColor = when (status) {
-                        EventPresenter.DeadlineStatus.OVERDUE -> MaterialTheme.colorScheme.errorContainer
-                        EventPresenter.DeadlineStatus.DUE_TODAY -> MaterialTheme.colorScheme.tertiaryContainer
-                        EventPresenter.DeadlineStatus.FUTURE -> MaterialTheme.colorScheme.secondaryContainer
-                    }
-                    val chipTextColor = when (status) {
-                        EventPresenter.DeadlineStatus.OVERDUE -> MaterialTheme.colorScheme.onErrorContainer
-                        EventPresenter.DeadlineStatus.DUE_TODAY -> MaterialTheme.colorScheme.onTertiaryContainer
-                        EventPresenter.DeadlineStatus.FUTURE -> MaterialTheme.colorScheme.onSecondaryContainer
+                    val (chipColor, chipTextColor) = when (status) {
+                        EventPresenter.DeadlineStatus.OVERDUE ->
+                            MaterialTheme.colorScheme.errorContainer to MaterialTheme.colorScheme.onErrorContainer
+                        EventPresenter.DeadlineStatus.DUE_TODAY ->
+                            MaterialTheme.colorScheme.tertiaryContainer to MaterialTheme.colorScheme.onTertiaryContainer
+                        EventPresenter.DeadlineStatus.FUTURE ->
+                            MaterialTheme.colorScheme.secondaryContainer to MaterialTheme.colorScheme.onSecondaryContainer
                     }
 
                     Surface(
@@ -88,18 +90,9 @@ fun EventItemView(
                 }
             }
             Spacer(Modifier.height(4.dp))
-            when (event) {
-                is TimeEvent -> {
-                    Text(event.title, style = MaterialTheme.typography.titleMedium)
-                    Text("From ${event.startTime} to ${event.endTime}")
-                }
-
-                is DayEvent -> {
-                    Text(event.title, style = MaterialTheme.typography.titleMedium)
-                    Text("All day")
-                }
-            }
-            if (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) {
+            Text(event.title, style = MaterialTheme.typography.titleMedium)
+            Text(EventPresenter.getEventTimeText(event))
+            if (showDeadlineInfo) {
                 val progress = event.studyProgress()
                 Spacer(Modifier.height(8.dp))
                 Column(modifier = Modifier.fillMaxWidth()) {
@@ -120,7 +113,7 @@ fun EventItemView(
                     }
                     Spacer(Modifier.height(4.dp))
                     LinearProgressIndicator(
-                        progress = progress,
+                        progress = { progress },
                         modifier = Modifier.fillMaxWidth(),
                         color = MaterialTheme.colorScheme.primary,
                         trackColor = MaterialTheme.colorScheme.surfaceVariant

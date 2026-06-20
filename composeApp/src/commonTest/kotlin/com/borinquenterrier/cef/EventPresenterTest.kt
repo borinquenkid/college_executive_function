@@ -129,4 +129,35 @@ class EventPresenterTest : FunSpec({
         EventPresenter.getDeadlineChipText(1) shouldBe "Due in 1 day"
         EventPresenter.getDeadlineChipText(5) shouldBe "Due in 5 days"
     }
+
+    test("showDeadlineInfo returns true only for DEADLINE and FINALS") {
+        EventPresenter.showDeadlineInfo(AcademicCategory.DEADLINE) shouldBe true
+        EventPresenter.showDeadlineInfo(AcademicCategory.FINALS) shouldBe true
+        EventPresenter.showDeadlineInfo(AcademicCategory.CLASS) shouldBe false
+        EventPresenter.showDeadlineInfo(AcademicCategory.STUDY_BLOCK) shouldBe false
+        EventPresenter.showDeadlineInfo(AcademicCategory.HOLIDAY) shouldBe false
+        EventPresenter.showDeadlineInfo(AcademicCategory.REGULAR) shouldBe false
+        EventPresenter.showDeadlineInfo(AcademicCategory.SEMESTER_BOUND) shouldBe false
+    }
+
+    test("getEventTimeText returns time range for TimeEvent and All day for DayEvent") {
+        val date = kotlinx.datetime.LocalDate(2026, 9, 15)
+        val timeEvent = TimeEvent(
+            title = "Math Class",
+            date = date,
+            startTime = kotlinx.datetime.LocalTime(9, 0),
+            endTime = kotlinx.datetime.LocalTime(10, 30),
+            source = EventSource.ROUTINE,
+            category = AcademicCategory.CLASS
+        )
+        EventPresenter.getEventTimeText(timeEvent) shouldBe "From 09:00 to 10:30"
+
+        val dayEvent = DayEvent(
+            title = "Finals",
+            date = date,
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.FINALS
+        )
+        EventPresenter.getEventTimeText(dayEvent) shouldBe "All day"
+    }
 })

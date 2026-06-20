@@ -9,7 +9,6 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.heightIn
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.wrapContentSize
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
@@ -164,61 +163,3 @@ private fun ConflictItem(conflict: ConflictResolver.UnresolvedConflict) {
     }
 }
 
-/**
- * Inline conflict banner for showing a quick summary when conflicts exist.
- * Used in the main calendar view to alert without blocking interaction.
- */
-@Composable
-fun ConflictResolutionBanner(
-    unresolvableCount: Int,
-    onViewDetails: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    if (unresolvableCount == 0) return
-
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .padding(12.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.errorContainer
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.spacedBy(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Icon(
-                imageVector = Icons.Default.Warning,
-                contentDescription = "Warning",
-                tint = MaterialTheme.colorScheme.onErrorContainer,
-                modifier = Modifier.size(20.dp)
-            )
-            Column(
-                modifier = Modifier.weight(1f),
-                verticalArrangement = Arrangement.spacedBy(4.dp)
-            ) {
-                Text(
-                    "$unresolvableCount event(s) need professor contact",
-                    style = MaterialTheme.typography.labelMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-                Text(
-                    "Tap to see details and contact information",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onErrorContainer
-                )
-            }
-            Button(
-                onClick = onViewDetails,
-                modifier = Modifier.wrapContentSize()
-            ) {
-                Text("Details")
-            }
-        }
-    }
-}

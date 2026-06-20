@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **81.28%** (11216/13800 lines)
+- **Overall Line Coverage**: **81.88%** (11224/13708 lines)
 - **Total Source Files**: 185
 
 ## Coverage by File (🔴 and 🟡 only)
@@ -24,11 +24,11 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | SourceItemView.kt | 0.0% (0/80) | 0.0% (0/52) | 1.0% |
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | RoutineItem.kt | 0.0% (0/24) | 0.0% (0/4) | 0.0% |
-| 🔴 | EventItemView.kt | 0.0% (0/188) | 0.0% (0/68) | 0.0% |
+| 🔴 | EventItemView.kt | 0.0% (0/170) | 0.0% (0/50) | 0.0% |
 | 🔴 | AnalysisCacheRepository.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | GoogleLinkPrompt.kt | 0.0% (0/44) | 0.0% (0/20) | 0.0% |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% |
-| 🔴 | ConflictResolutionUI.kt | 0.0% (0/266) | 0.0% (0/56) | 0.0% |
+| 🔴 | ConflictResolutionUI.kt | 0.0% (0/184) | 0.0% (0/36) | 0.0% |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% |

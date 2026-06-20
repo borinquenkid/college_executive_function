@@ -86,6 +86,14 @@ class AppController(val container: DependencyContainer) {
         eventsService.clearEvents()
     }
 
+    fun resetForDemo() {
+        launchInScope {
+            container.calendarAgent.resetCalendar()
+            container.eventAgent.clear()
+            eventsService.clearEvents()
+        }
+    }
+
     fun addSource(source: SourceItem, forceRefresh: Boolean = false) {
         sourceManager.addSource(source, forceRefresh)
     }

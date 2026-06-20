@@ -51,8 +51,6 @@ fun SettingsScreen(
     }
     var showAdvanced by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
-    val calendarAgent = remember { container.calendarAgent }
-    val eventAgent = remember { container.eventAgent }
     val appController = remember { container.appController }
 
     val preferencesRepository = remember { container.preferencesRepository }
@@ -242,11 +240,7 @@ fun SettingsScreen(
                 confirmButton = {
                     TextButton(onClick = {
                         showResetConfirm = false
-                        scope.launch {
-                            calendarAgent.resetCalendar()
-                            eventAgent.clear()
-                            appController.clearEvents()
-                        }
+                        appController.resetForDemo()
                     }) { Text("Reset", color = MaterialTheme.colorScheme.error) }
                 },
                 dismissButton = {

@@ -304,11 +304,11 @@ object CrapIndexReporter {
         )
         sb.append("- **Total Source Files**: ${metricsList.size}\n\n")
 
-        sb.append("## Coverage by File\n\n")
-        sb.append("| Status | File | Line Coverage | Branch Coverage | Instruction Coverage | Classes |\n")
-        sb.append("| :---: | :--- | :---: | :---: | :---: | :--- |\n")
+        sb.append("## Coverage by File (🔴 and 🟡 only)\n\n")
+        sb.append("| Status | File | Line Coverage | Branch Coverage | Instruction Coverage |\n")
+        sb.append("| :---: | :--- | :---: | :---: | :---: |\n")
 
-        for (m in sorted) {
+        for (m in sorted.filter { it.lineCoverage < 0.8 }) {
             val lineCovStr =
                 "${String.format("%.1f", m.lineCoverage * 100)}% (${m.linesCoveredDetail})"
             val branchCovStr = if (m.branchesCoveredDetail != "N/A") "${
@@ -317,15 +317,13 @@ object CrapIndexReporter {
                     m.branchCoverage * 100
                 )
             }% (${m.branchesCoveredDetail})" else "N/A"
-            val classesStr =
-                if (m.classes.isNotEmpty()) m.classes.distinct().joinToString(", ") else "*None*"
             sb.append(
                 "| ${m.coverageStatus} | ${m.filename} | $lineCovStr | $branchCovStr | ${
                     String.format(
                         "%.1f",
                         m.instructionCoverage * 100
                     )
-                }% | $classesStr |\n"
+                }% |\n"
             )
         }
 

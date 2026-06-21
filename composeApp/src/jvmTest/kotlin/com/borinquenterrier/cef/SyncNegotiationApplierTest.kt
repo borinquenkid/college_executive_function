@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import com.russhwolf.settings.MapSettings
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -211,6 +212,26 @@ class SyncNegotiationApplierTest : FunSpec({
                 match { it.id == "sb-5" && it.syncStatus == SyncStatus.LOCAL_ONLY },
                 "default"
             )
+        }
+    }
+
+    test("apply rethrows CalendarNotFoundException when remote save of shifted block fails") {
+        val original = makeTimeEvent("sb-7", date = LocalDate(2026, 9, 1))
+        val proposed = makeTimeEvent("sb-7", date = LocalDate(2026, 9, 2))
+        val collider = makeTimeEvent("col-5")
+        coEvery { localRepo.getAllEvents(any()) } returns emptyList()
+        coEvery { localRepo.getSettings() } returns liveSettings
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws CalendarNotFoundException("default", "Calendar was deleted")
+
+        val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger)
+        val negotiation = SyncNegotiation(
+            proposals = listOf(SyncProposal.StudyBlockShift(original, proposed, collider)),
+            remoteEventsToSync = emptyList(),
+            deletedLocalIds = emptyList()
+        )
+
+        shouldThrow<CalendarNotFoundException> {
+            applier.apply(negotiation, "default")
         }
     }
 

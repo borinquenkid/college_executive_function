@@ -127,6 +127,22 @@ class CalendarAgentTest : FunSpec({
         }
     }
 
+    test("updateEvent rethrows CalendarNotFoundException when remote calendar is gone") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
+        coEvery { localRepo.getSettings() } returns mockSettings
+        coEvery { localRepo.getAllEvents("default") } returns emptyList()
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws CalendarNotFoundException("default", "Calendar was deleted")
+        coEvery { localRepo.updateEvent(any(), any()) } just runs
+
+        shouldThrow<CalendarNotFoundException> {
+            calendarAgent.updateEvent(timeEvent, "default")
+        }
+
+        coVerify(exactly = 0) { localRepo.updateEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
+    }
+
     test("updateEvent with move should log override and save to remote and local under local profile") {
         val mockSettings = MapSettings()
         mockSettings.putString("run_profile", "local")

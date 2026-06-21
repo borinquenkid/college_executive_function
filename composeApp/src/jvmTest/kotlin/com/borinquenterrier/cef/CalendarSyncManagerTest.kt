@@ -2,6 +2,7 @@ package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldBeEmpty
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
@@ -64,7 +65,7 @@ class CalendarSyncManagerTest : FunSpec({
         coVerify(exactly = 0) { agent.applySyncNegotiation(any(), any()) }
     }
 
-    test("initiateSyncIfNeeded returns null on exception") {
+    test("initiateSyncIfNeeded returns null on generic exception") {
         val agent = mockk<CalendarAgent>(relaxed = true)
         coEvery { agent.checkSyncProposals(any()) } throws RuntimeException("Network error")
         val manager = CalendarSyncManager(agent, logger)
@@ -72,6 +73,16 @@ class CalendarSyncManagerTest : FunSpec({
         val result = manager.initiateSyncIfNeeded(isGoogleLinked = true)
 
         result shouldBe null
+    }
+
+    test("initiateSyncIfNeeded rethrows CalendarNotFoundException") {
+        val agent = mockk<CalendarAgent>(relaxed = true)
+        coEvery { agent.checkSyncProposals(any()) } throws CalendarNotFoundException("cal-id", "Calendar deleted")
+        val manager = CalendarSyncManager(agent, logger)
+
+        shouldThrow<CalendarNotFoundException> {
+            manager.initiateSyncIfNeeded(isGoogleLinked = true)
+        }
     }
 
     // ── applySyncProposal ─────────────────────────────────────────────────────
@@ -86,7 +97,7 @@ class CalendarSyncManagerTest : FunSpec({
         coVerify(exactly = 1) { agent.applySyncNegotiation(any(), any()) }
     }
 
-    test("applySyncProposal returns false on exception") {
+    test("applySyncProposal returns false on generic exception") {
         val agent = mockk<CalendarAgent>(relaxed = true)
         coEvery { agent.applySyncNegotiation(any(), any()) } throws RuntimeException("Write failed")
         val manager = CalendarSyncManager(agent, logger)
@@ -94,6 +105,16 @@ class CalendarSyncManagerTest : FunSpec({
         val result = manager.applySyncProposal(emptyNegotiation())
 
         result shouldBe false
+    }
+
+    test("applySyncProposal rethrows CalendarNotFoundException") {
+        val agent = mockk<CalendarAgent>(relaxed = true)
+        coEvery { agent.applySyncNegotiation(any(), any()) } throws CalendarNotFoundException("cal-id", "Calendar deleted")
+        val manager = CalendarSyncManager(agent, logger)
+
+        shouldThrow<CalendarNotFoundException> {
+            manager.applySyncProposal(emptyNegotiation())
+        }
     }
 
     // ── refreshEvents ─────────────────────────────────────────────────────────

@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
@@ -41,6 +42,19 @@ class SyncNegotiatorTest : FunSpec({
         result.proposals.shouldBeEmpty()
         result.remoteEventsToSync.shouldBeEmpty()
         result.deletedLocalIds.shouldBeEmpty()
+    }
+
+    test("buildNegotiation rethrows CalendarNotFoundException from remote") {
+        val localRepo = mockk<StudentCalendarRepository>(relaxed = true)
+        val remoteRepo = mockk<RemoteCalendarRepository>(relaxed = true)
+        coEvery { localRepo.getAllEvents(any()) } returns listOf(day("HW1"))
+        coEvery { remoteRepo.getAllEvents(any()) } throws CalendarNotFoundException("default", "Calendar was deleted")
+
+        val negotiator = SyncNegotiator(localRepo, remoteRepo)
+
+        shouldThrow<CalendarNotFoundException> {
+            negotiator.buildNegotiation("default")
+        }
     }
 
     // ── buildNegotiation — no changes ───────────────────────────────────────

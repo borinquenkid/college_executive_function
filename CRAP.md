@@ -9,16 +9,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 197
-- **High-Risk Files (CRAP > 30)**: 3
+- **Total Files Analyzed**: 198
+- **High-Risk Files (CRAP > 30)**: 2
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| GoogleRemoteCalendarRepository.kt | 23 | 74.0% | 32.30 | 🔴 HIGH |
+| GoogleTokenService.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
 | SchedulingAlgorithm.kt | 16 | 60.9% | 31.34 | 🔴 HIGH |
-| GoogleCalendarSyncService.kt | 30 | 97.1% | 30.02 | 🔴 HIGH |
 | IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -29,6 +28,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRetryService.kt | 27 | 88.5% | 28.11 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 27 | 90.2% | 27.70 | 🟡 MEDIUM |
+| GoogleCalendarSyncService.kt | 27 | 91.8% | 27.40 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 82.9% | 26.87 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 25 | 98.0% | 25.01 | 🟡 MEDIUM |
 
@@ -36,24 +36,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Detailed File Breakdown
 
-### GoogleRemoteCalendarRepository.kt (Score: 32.30 - 🔴 HIGH)
-- **Total Complexity**: 23
-- **Real Coverage**: 74.0%
+### GoogleTokenService.kt (Score: 42.00 - 🔴 HIGH)
+- **Total Complexity**: 6
+- **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `clearCalendar` | 5 |
-| `deleteEvent` | 3 |
-| `getAllEvents` | 2 |
-| `saveEvent` | 2 |
-| `updateEvent` | 2 |
-| `mapCalendarException` | 2 |
-| `getSettings` | 1 |
-| `getAvailableCalendars` | 1 |
-| `hardDeleteEvent` | 1 |
-| `clearLocalCalendar` | 1 |
-| *... and 3 more* | |
+| `<T> withToken` | 6 |
 
 ### SchedulingAlgorithm.kt (Score: 31.34 - 🔴 HIGH)
 - **Total Complexity**: 16
@@ -66,22 +56,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findNewSlotAndResolve` | 1 |
 | `shiftEvent` | 1 |
 | `findNextAvailableSlot` | 1 |
-
-### GoogleCalendarSyncService.kt (Score: 30.02 - 🔴 HIGH)
-- **Total Complexity**: 30
-- **Real Coverage**: 97.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getEvents` | 11 |
-| `<T> withToken` | 6 |
-| `listCalendars` | 3 |
-| `ensureSuccess` | 2 |
-| `syncEvent` | 2 |
-| `createCalendar` | 1 |
-| `deleteEvent` | 1 |
-| `fetchEventsPage` | 1 |
 
 ### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -214,6 +188,23 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `<T> executeWithRetry` | 1 |
 | `<T> executeWithRetryInternal` | 1 |
 
+### GoogleCalendarSyncService.kt (Score: 27.40 - 🟡 MEDIUM)
+- **Total Complexity**: 27
+- **Real Coverage**: 91.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEvents` | 11 |
+| `listCalendars` | 3 |
+| `toCalendarException` | 2 |
+| `ensureSuccess` | 2 |
+| `syncEvent` | 2 |
+| `<T> withToken` | 1 |
+| `createCalendar` | 1 |
+| `deleteEvent` | 1 |
+| `fetchEventsPage` | 1 |
+
 ### SqlDelightLocalCalendarRepository.kt (Score: 26.87 - 🟡 MEDIUM)
 - **Total Complexity**: 24
 - **Real Coverage**: 82.9%
@@ -338,6 +329,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `rescheduleForward` | 6 |
 | `findConflict` | 1 |
 | `isMovable` | 1 |
+
+### GoogleRemoteCalendarRepository.kt (Score: 21.80 - 🟡 MEDIUM)
+- **Total Complexity**: 21
+- **Real Coverage**: 87.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearCalendar` | 5 |
+| `deleteEvent` | 3 |
+| `getAllEvents` | 2 |
+| `saveEvent` | 2 |
+| `updateEvent` | 2 |
+| `getSettings` | 1 |
+| `getAvailableCalendars` | 1 |
+| `hardDeleteEvent` | 1 |
+| `clearLocalCalendar` | 1 |
+| `getEventsInRange` | 1 |
+| *... and 2 more* | |
 
 ### EventGenerationService.kt (Score: 21.46 - 🟡 MEDIUM)
 - **Total Complexity**: 21

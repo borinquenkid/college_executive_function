@@ -123,7 +123,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         }
         val authService =
             GoogleAuthService(tokenRepo.let { MapSettings() }, AppEnv()) // Use a fresh MapSettings for dummy auth
-        val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+        val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
         val eventFilter = EventRangeFilter()
@@ -172,7 +172,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-access", "mock-refresh")
         val authService = GoogleAuthService(MapSettings(), AppEnv())
-        val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+        val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
         val eventFilter = EventRangeFilter()
@@ -205,7 +205,7 @@ class CalendarSyncIntegrationTest : FunSpec({
                 })
             }
         }
-        val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+        val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
         val eventFilter = EventRangeFilter()
@@ -263,7 +263,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-access", "mock-refresh")
         val authService = GoogleAuthService(MapSettings(), AppEnv())
-        val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+        val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
         val eventFilter = EventRangeFilter()

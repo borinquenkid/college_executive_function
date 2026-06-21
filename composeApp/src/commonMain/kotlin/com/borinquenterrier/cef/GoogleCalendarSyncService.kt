@@ -46,15 +46,29 @@ data class GoogleEventDateTime(
  * Custom exception for Google API failures.
  */
 class GoogleApiException(val statusCode: Int, val responseBody: String) :
-    Exception("Google API Error ($statusCode): $responseBody")
+    Exception("Google API Error ($statusCode): $responseBody") {
+
+    fun toCalendarException(calendarId: String): Throwable = when (statusCode) {
+        404 -> CalendarNotFoundException(
+            calendarId = calendarId,
+            message = "Calendar '$calendarId' no longer exists or has been deleted on Google Calendar. " +
+                    "Please re-link your calendar or use a different calendar."
+        )
+        403 -> CalendarNotFoundException(
+            calendarId = calendarId,
+            message = "No longer have access to calendar '$calendarId'. " +
+                    "The calendar owner may have revoked your access."
+        )
+        else -> this
+    }
+}
 
 /**
  * KMP-compatible service to sync events via Google Calendar REST API.
  */
 class GoogleCalendarSyncService(
     private val httpClient: HttpClient,
-    private val tokenRepository: GoogleTokenRepository,
-    private val authService: GoogleAuthService
+    private val tokenService: GoogleTokenService
 ) {
 
     private val baseUrl = "https://www.googleapis.com/calendar/v3"
@@ -65,22 +79,8 @@ class GoogleCalendarSyncService(
         }
     }
 
-    private suspend fun <T> withToken(block: suspend (String) -> T): T {
-        val currentToken =
-            tokenRepository.getAccessToken() ?: throw Exception("Not authenticated with Google")
-        return try {
-            block(currentToken)
-        } catch (e: GoogleApiException) {
-            if (e.statusCode == 401) {
-                val refreshToken = tokenRepository.getRefreshToken() ?: throw e
-                val newToken = authService.refreshAccessToken(refreshToken) ?: throw e
-                tokenRepository.saveTokens(newToken, refreshToken)
-                block(newToken)
-            } else {
-                throw e
-            }
-        }
-    }
+    private suspend fun <T> withToken(block: suspend (String) -> T): T =
+        tokenService.withToken(block)
 
     /**
      * Creates a new calendar for the user.

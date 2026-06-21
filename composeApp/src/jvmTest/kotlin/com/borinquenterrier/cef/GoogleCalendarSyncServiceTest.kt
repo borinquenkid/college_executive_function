@@ -43,7 +43,7 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
         engine: MockEngine,
         repo: GoogleTokenRepository = tokenRepo(),
         auth: GoogleAuthService = authService()
-    ) = GoogleCalendarSyncService(mockClient(engine), repo, auth)
+    ) = GoogleCalendarSyncService(mockClient(engine), GoogleTokenService(repo, auth))
 
     val jsonHeader = headersOf("Content-Type", ContentType.Application.Json.toString())
 

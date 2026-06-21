@@ -38,7 +38,7 @@ class IcsToGoogleIntegrationTest : FunSpec({
         }
 
 
-        val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
+        val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val preferencesRepository = PreferencesRepository(settings)
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()

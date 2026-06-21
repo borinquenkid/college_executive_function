@@ -13,8 +13,6 @@ class GoogleRemoteCalendarRepository(
     private val conflictDetector: EventConflictDetector,
     private val eventFilter: EventRangeFilter
 ) : RemoteCalendarRepository {
-    private val tag = "GoogleRemoteCalendarRepository"
-
     override fun getSettings(): com.russhwolf.settings.Settings? = null
 
     override suspend fun getAvailableCalendars(): List<RemoteCalendarMetadata> =
@@ -25,7 +23,7 @@ class GoogleRemoteCalendarRepository(
         try {
             return syncService.getEvents(targetId)
         } catch (e: GoogleApiException) {
-            throw mapCalendarException(targetId, e)
+            throw e.toCalendarException(targetId)
         }
     }
 
@@ -34,7 +32,7 @@ class GoogleRemoteCalendarRepository(
         try {
             syncService.syncEvent(event, targetId)
         } catch (e: GoogleApiException) {
-            throw mapCalendarException(targetId, e)
+            throw e.toCalendarException(targetId)
         }
     }
 
@@ -43,7 +41,7 @@ class GoogleRemoteCalendarRepository(
         try {
             syncService.syncEvent(event, targetId)
         } catch (e: GoogleApiException) {
-            throw mapCalendarException(targetId, e)
+            throw e.toCalendarException(targetId)
         }
     }
 
@@ -99,28 +97,6 @@ class GoogleRemoteCalendarRepository(
     ): List<Event> {
         val events = getAllEvents(calendarId)
         return eventFilter.filterIncompleteBeforeDate(events, date)
-    }
-
-    /**
-     * Maps Google API exceptions to user-friendly calendar-specific exceptions.
-     * Detects 404 (calendar deleted) and 403 (access revoked) and provides clear guidance.
-     */
-    private fun mapCalendarException(calendarId: String, e: GoogleApiException): Throwable {
-        return when (e.statusCode) {
-            404 -> CalendarNotFoundException(
-                calendarId = calendarId,
-                message = "Calendar '$calendarId' no longer exists or has been deleted on Google Calendar. " +
-                        "Please re-link your calendar or use a different calendar."
-            )
-
-            403 -> CalendarNotFoundException(
-                calendarId = calendarId,
-                message = "No longer have access to calendar '$calendarId'. " +
-                        "The calendar owner may have revoked your access."
-            )
-
-            else -> e
-        }
     }
 }
 

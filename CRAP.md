@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 198
+- **Total Files Analyzed**: 199
 - **High-Risk Files (CRAP > 30)**: 0
 
 ### Top 15 High-Risk Files
@@ -689,6 +689,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `AcademicCalendarHeader` | 1 |
+
+### EventQueryService.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEventsInRange` | 1 |
+| `getEventsBySyncStatus` | 1 |
+| `getIncompleteEventsBefore` | 1 |
 
 ### EventGenerator.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 12

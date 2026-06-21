@@ -10,9 +10,10 @@ class GoogleRemoteCalendarRepository(
     private val syncService: GoogleCalendarSyncService,
     private val preferencesRepository: PreferencesRepository,
     private val calendarIdResolver: CalendarIdResolver,
-    private val conflictDetector: EventConflictDetector,
-    private val eventFilter: EventRangeFilter
+    private val conflictDetector: EventConflictDetector
 ) : RemoteCalendarRepository {
+    private val eventQuery = EventQueryService(::getAllEvents)
+
     override fun getSettings(): com.russhwolf.settings.Settings? = null
 
     override suspend fun getAvailableCalendars(): List<RemoteCalendarMetadata> =
@@ -74,30 +75,14 @@ class GoogleRemoteCalendarRepository(
 
     override suspend fun clearLocalCalendar(calendarId: String) = Unit
 
-    override suspend fun getEventsInRange(
-        start: LocalDate,
-        end: LocalDate,
-        calendarId: String
-    ): List<Event> {
-        val events = getAllEvents(calendarId)
-        return eventFilter.filterByDateRange(events, start, end)
-    }
+    override suspend fun getEventsInRange(start: LocalDate, end: LocalDate, calendarId: String): List<Event> =
+        eventQuery.getEventsInRange(calendarId, start, end)
 
-    override suspend fun getEventsBySyncStatus(
-        status: SyncStatus,
-        calendarId: String
-    ): List<Event> {
-        val events = getAllEvents(calendarId)
-        return eventFilter.filterBySyncStatus(events, status)
-    }
+    override suspend fun getEventsBySyncStatus(status: SyncStatus, calendarId: String): List<Event> =
+        eventQuery.getEventsBySyncStatus(calendarId, status)
 
-    override suspend fun getIncompleteEventsBefore(
-        date: LocalDate,
-        calendarId: String
-    ): List<Event> {
-        val events = getAllEvents(calendarId)
-        return eventFilter.filterIncompleteBeforeDate(events, date)
-    }
+    override suspend fun getIncompleteEventsBefore(date: LocalDate, calendarId: String): List<Event> =
+        eventQuery.getIncompleteEventsBefore(calendarId, date)
 }
 
 /**

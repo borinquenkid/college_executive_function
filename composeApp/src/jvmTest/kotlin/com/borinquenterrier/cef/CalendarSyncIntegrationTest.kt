@@ -126,13 +126,11 @@ class CalendarSyncIntegrationTest : FunSpec({
         val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
-        val eventFilter = EventRangeFilter()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
             preferencesRepository,
             idResolver,
             conflictDetector,
-            eventFilter
         )
         val unifiedRepo = CalendarAgent(localRepo, remoteRepo)
 
@@ -175,13 +173,11 @@ class CalendarSyncIntegrationTest : FunSpec({
         val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
-        val eventFilter = EventRangeFilter()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
             preferencesRepository,
             idResolver,
             conflictDetector,
-            eventFilter
         )
         val unifiedRepo = CalendarAgent(localRepo, remoteRepo)
 
@@ -208,13 +204,11 @@ class CalendarSyncIntegrationTest : FunSpec({
         val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
-        val eventFilter = EventRangeFilter()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
             preferencesRepository,
             idResolver,
             conflictDetector,
-            eventFilter
         )
         val unifiedRepo = CalendarAgent(localRepo, remoteRepo)
 
@@ -266,13 +260,11 @@ class CalendarSyncIntegrationTest : FunSpec({
         val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
-        val eventFilter = EventRangeFilter()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
             preferencesRepository,
             idResolver,
             conflictDetector,
-            eventFilter
         )
         val unifiedRepo = CalendarAgent(localRepo, remoteRepo)
 

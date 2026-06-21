@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **81.90%** (11486/14024 lines)
-- **Total Source Files**: 198
+- **Total Source Files**: 199
 
 ## Coverage by File (🔴 and 🟡 only)
 
@@ -20,6 +20,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | Platform.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | AdvancedSettingsPanel.kt | 0.0% (0/140) | 0.0% (0/20) | 0.0% |
 | 🔴 | AcademicCalendarHeader.kt | 0.0% (0/52) | 0.0% (0/36) | 0.0% |
+| 🔴 | EventQueryService.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | EventListContent.kt | 0.0% (0/48) | 0.0% (0/28) | 0.0% |
 | 🔴 | SourceItemView.kt | 0.0% (0/80) | 0.0% (0/52) | 1.0% |
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% |

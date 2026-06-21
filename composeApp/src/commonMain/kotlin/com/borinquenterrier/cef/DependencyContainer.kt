@@ -53,14 +53,12 @@ class DependencyContainer(
     val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenService) }
     val calendarIdResolver by lazy { CalendarIdResolver(syncService, preferencesRepository) }
     val conflictDetector by lazy { EventConflictDetector() }
-    val eventRangeFilter by lazy { EventRangeFilter() }
     val remoteRepository by lazy {
         GoogleRemoteCalendarRepository(
             syncService,
             preferencesRepository,
             calendarIdResolver,
-            conflictDetector,
-            eventRangeFilter
+            conflictDetector
         )
     }
     val calendarAgent by lazy {

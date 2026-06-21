@@ -21,13 +21,11 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
     val preferencesRepository = mockk<PreferencesRepository>(relaxed = true)
     val idResolver = mockk<CalendarIdResolver>(relaxed = true)
     val conflictDetector = mockk<EventConflictDetector>(relaxed = true)
-    val eventFilter = mockk<EventRangeFilter>(relaxed = true)
     val repo = GoogleRemoteCalendarRepository(
         syncService,
         preferencesRepository,
         idResolver,
-        conflictDetector,
-        eventFilter
+        conflictDetector
     )
 
     val cefCalId = "cef-calendar-id-123"
@@ -60,9 +58,6 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
             val id = firstArg<String>()
             if (id == "default") cefCalId else id
         }
-        coEvery { eventFilter.filterByDateRange(any(), any(), any()) } answers { firstArg() }
-        coEvery { eventFilter.filterBySyncStatus(any(), any()) } answers { firstArg() }
-        coEvery { eventFilter.filterIncompleteBeforeDate(any(), any()) } answers { firstArg() }
         coEvery { conflictDetector.validateNoConflict(any(), any()) } just runs
     }
 
@@ -252,11 +247,6 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
         coEvery { syncService.getEvents(cefCalId) } returns listOf(inRange, outOfRange)
-        coEvery { eventFilter.filterByDateRange(any(), start, end) } answers {
-            firstArg<List<Event>>().filter { event ->
-                event.date in start..end
-            }
-        }
 
         val result = repo.getEventsInRange(
             start = start,
@@ -294,11 +284,6 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         coEvery { syncService.getEvents(cefCalId) } returns listOf(
             timeEvent.copy(date = LocalDate(2025, 1, 1))
         )
-        coEvery { eventFilter.filterByDateRange(any(), start, end) } answers {
-            firstArg<List<Event>>().filter { event ->
-                event.date in start..end
-            }
-        }
 
         val result = repo.getEventsInRange(
             start = start,
@@ -357,12 +342,6 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
             futureIncomplete,
             pastComplete
         )
-        coEvery { eventFilter.filterIncompleteBeforeDate(any(), cutoffDate) } answers {
-            firstArg<List<Event>>().filter { event ->
-                event.completionStatus == CompletionStatus.INCOMPLETE && event.date < cutoffDate
-            }
-        }
-
         val result = repo.getIncompleteEventsBefore(cutoffDate, "default")
 
         result shouldHaveSize 1
@@ -379,11 +358,6 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
         coEvery { syncService.getEvents(cefCalId) } returns listOf(completeEvent)
-        coEvery { eventFilter.filterIncompleteBeforeDate(any(), cutoffDate) } answers {
-            firstArg<List<Event>>().filter { event ->
-                event.completionStatus == CompletionStatus.INCOMPLETE && event.date < cutoffDate
-            }
-        }
 
         val result = repo.getIncompleteEventsBefore(cutoffDate, "default")
 

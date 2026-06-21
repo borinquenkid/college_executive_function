@@ -25,7 +25,7 @@ class ModelNegotiationIntegrationTest : FunSpec({
         }
         val creds = resolveLiveCredentials()
         val settings = MapSettings()
-        val authService = GoogleAuthService(settings)
+        val authService = GoogleAuthService(settings, AppEnv())
         val newToken = runBlocking { authService.refreshAccessToken(creds.refreshToken) }
         newToken.shouldNotBeBlank()
     }

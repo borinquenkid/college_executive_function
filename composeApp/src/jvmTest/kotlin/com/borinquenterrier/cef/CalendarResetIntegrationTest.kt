@@ -32,7 +32,7 @@ class CalendarResetIntegrationTest : FunSpec({
         settings.putString("calendar_id", TEST_CALENDAR_ID)
 
         val localRepo = SqlDelightLocalCalendarRepository(createTestDatabase(), settings)
-        val authService = GoogleAuthService(settings)
+        val authService = GoogleAuthService(settings, AppEnv())
         val httpClient = HttpClient(mockEngine) {
             install(ContentNegotiation) {
                 json(kotlinx.serialization.json.Json { ignoreUnknownKeys = true })
@@ -134,7 +134,7 @@ class CalendarResetIntegrationTest : FunSpec({
         val mockEngine = MockEngine { respond(content = "", status = HttpStatusCode.NoContent) }
         val httpClient = HttpClient(mockEngine) { install(ContentNegotiation) { json() } }
         val tokenRepo = GoogleTokenRepository(settings) // no tokens saved
-        val authService = GoogleAuthService(settings)
+        val authService = GoogleAuthService(settings, AppEnv())
         val prefs = PreferencesRepository(settings)
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
         val idResolver = CalendarIdResolver(syncService, prefs)

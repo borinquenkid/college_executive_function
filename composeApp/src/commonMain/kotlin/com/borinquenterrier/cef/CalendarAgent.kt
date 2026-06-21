@@ -52,9 +52,14 @@ class CalendarAgent(
                 remoteRepo.saveEvent(event, calendarId)
                 // If remote success, save locally as SYNCED
                 localRepo.saveEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+            } catch (e: CalendarNotFoundException) {
+                // Calendar was deleted — surface to CalendarPusher so the user sees an error.
+                throw e
             } catch (e: Exception) {
                 logger?.e(tag, "Remote save failed, falling back to local-only save", e)
                 saveEventLocally(event, calendarId)
+                // Event preserved locally; throw so callers can surface the remote failure.
+                throw RemoteSyncFailedException("Could not reach Google Calendar: ${e.message}", e)
             }
         } else {
             // In test profile or unlinked, skip remote and save locally only
@@ -99,6 +104,34 @@ class CalendarAgent(
         val event = repairEndTime(event)
         event.validate()
         localRepo.saveEvent(event.withSyncStatus(SyncStatus.LOCAL_ONLY), calendarId)
+    }
+
+    /** Hard-deletes a LOCAL_ONLY event that was never synced to remote. Safe to call before re-pushing. */
+    suspend fun hardDeleteLocalOnly(id: String, calendarId: String) {
+        localRepo.hardDeleteEvent(id, calendarId)
+    }
+
+    /**
+     * Retries all LOCAL_ONLY events by pushing them to the remote calendar.
+     * Called automatically at app startup when Google is linked, so events that
+     * failed during a previous session (e.g., due to a network blip) are flushed
+     * without requiring the user to manually re-push.
+     *
+     * On success each event is re-saved locally as SYNCED.
+     * On failure the event stays LOCAL_ONLY for the next retry.
+     */
+    suspend fun retryLocalOnly(calendarId: String = "default") {
+        if (!isLiveSyncEnabled() || !isGoogleLinked()) return
+        val pending = localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, calendarId)
+        for (event in pending) {
+            try {
+                remoteRepo.saveEvent(event, calendarId)
+                localRepo.updateEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+                logger?.d(tag, "Retried LOCAL_ONLY to remote: ${event.title}")
+            } catch (e: Exception) {
+                logger?.d(tag, "Retry failed, keeping LOCAL_ONLY: ${event.title}")
+            }
+        }
     }
 
     suspend fun deleteEvent(eventId: String, calendarId: String = "default") {

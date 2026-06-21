@@ -162,4 +162,55 @@ class SyncNegotiatorTest : FunSpec({
 
         coVerify { remoteRepo.saveEvent(local, "default") }
     }
+
+    // ── duplicate proposals (regression: DB can have two copies of same study block) ──
+
+    test("buildNegotiation does not produce duplicate proposals for study blocks with same title and date") {
+        val localRepo = mockk<StudentCalendarRepository>(relaxed = true)
+        val remoteRepo = mockk<RemoteCalendarRepository>(relaxed = true)
+        val date = LocalDate(2026, 9, 15)
+        // Two study blocks with same title+date but different IDs — a known duplicate scenario
+        val block1 = TimeEvent(
+            id = "study-id-1",
+            title = "Study Math",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = date,
+            startTime = kotlinx.datetime.LocalTime(9, 0),
+            endTime = kotlinx.datetime.LocalTime(10, 0),
+            syncStatus = SyncStatus.LOCAL_ONLY
+        )
+        val block2 = TimeEvent(
+            id = "study-id-2",
+            title = "Study Math",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = date,
+            startTime = kotlinx.datetime.LocalTime(9, 0),
+            endTime = kotlinx.datetime.LocalTime(10, 0),
+            syncStatus = SyncStatus.LOCAL_ONLY
+        )
+        // A class event that will collide with the study blocks
+        val classEvent = TimeEvent(
+            id = "class-id",
+            title = "Math 101",
+            source = EventSource.CLASS,
+            category = AcademicCategory.CLASS,
+            date = date,
+            startTime = kotlinx.datetime.LocalTime(9, 0),
+            endTime = kotlinx.datetime.LocalTime(10, 0),
+            syncStatus = SyncStatus.SYNCED
+        )
+        coEvery { localRepo.getAllEvents(any()) } returns listOf(block1, block2)
+        coEvery { localRepo.getEventsBySyncStatus(any(), any()) } returns emptyList()
+        coEvery { remoteRepo.getAllEvents(any()) } returns listOf(classEvent)
+
+        val negotiator = SyncNegotiator(localRepo, remoteRepo)
+        val result = negotiator.buildNegotiation("default")
+
+        val shifts = result.proposals.filterIsInstance<SyncProposal.StudyBlockShift>()
+        // Even though two identical study blocks exist, proposals must be deduped by title+date
+        val uniqueTitleDates = shifts.map { Pair(it.originalEvent.title, it.originalEvent.date) }.toSet()
+        uniqueTitleDates.size shouldBe shifts.size
+    }
 })

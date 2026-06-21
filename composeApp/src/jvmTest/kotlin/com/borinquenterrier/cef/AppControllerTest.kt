@@ -95,7 +95,7 @@ class AppControllerTest : FunSpec({
 
     // ── Event list ────────────────────────────────────────────────────────────
 
-    test("addEvents appends to aiGeneratedEvents") {
+    test("addEvents replaces aiGeneratedEvents with the new batch") {
         val e1 = makeEvent("E1")
         val e2 = makeEvent("E2")
 
@@ -103,8 +103,9 @@ class AppControllerTest : FunSpec({
         controller.aiGeneratedEvents.value.size shouldBe 1
 
         controller.addEvents(listOf(e2))
-        controller.aiGeneratedEvents.value.size shouldBe 2
-        controller.aiGeneratedEvents.value[1].title shouldBe "E2"
+        // Must replace, not append — prevents calendar duplicates after re-generate or push
+        controller.aiGeneratedEvents.value.size shouldBe 1
+        controller.aiGeneratedEvents.value[0].title shouldBe "E2"
     }
 
     test("clearEvents empties aiGeneratedEvents") {

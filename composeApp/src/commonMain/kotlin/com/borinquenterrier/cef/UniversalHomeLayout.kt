@@ -121,8 +121,7 @@ fun UniversalHomeLayout(container: DependencyContainer) {
                     StudioPanel(
                         selectedSource = selectedSource,
                         calendarAgent = container.calendarAgent,
-                        container = container,
-                        onEventsGenerated = { appController.addEvents(it) }
+                        container = container
                     )
                     // Close shortcut
                     IconButton(

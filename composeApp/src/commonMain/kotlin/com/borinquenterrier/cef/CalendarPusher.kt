@@ -55,12 +55,23 @@ internal class CalendarPusher(
                 logger?.d(tag, "Found ${outcome.unresolvableConflicts.size} unresolvable conflicts")
             }
 
+            val localOnlyCount = outcome.localOnlyCount
             if (conflicts.isEmpty() && outcome.unresolvableConflicts.isEmpty()) {
-                onStatus("Success! All ${outcome.successCount} events pushed.$skippedNote")
+                when {
+                    outcome.successCount == 0 && localOnlyCount == 0 ->
+                        onStatus("All events already synced — nothing new to push.$skippedNote")
+                    localOnlyCount > 0 && outcome.successCount == 0 ->
+                        onStatus("Saved $localOnlyCount events locally — could not reach Google Calendar.$skippedNote")
+                    localOnlyCount > 0 ->
+                        onStatus("Synced ${outcome.successCount} to Google Calendar, $localOnlyCount saved locally (offline).$skippedNote")
+                    else ->
+                        onStatus("Success! All ${outcome.successCount} events pushed to Google Calendar.$skippedNote")
+                }
                 onGeneratedEvents(emptyList())
             } else {
                 val unresolvableCount = outcome.unresolvableConflicts.size
-                onStatus("Synced ${outcome.successCount} events. $unresolvableCount require professor contact, ${conflicts.size} other conflicts.$skippedNote")
+                val localNote = if (localOnlyCount > 0) ", $localOnlyCount saved locally" else ""
+                onStatus("Synced ${outcome.successCount} events$localNote. $unresolvableCount require professor contact, ${conflicts.size} other conflicts.$skippedNote")
                 onGeneratedEvents(conflicts)
             }
         } catch (e: CalendarNotFoundException) {

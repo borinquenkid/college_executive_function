@@ -116,3 +116,9 @@ interface RemoteCalendarRepository : StudentCalendarRepository {
  */
 class OverlapException(val existingEvent: Event, val newEvent: Event) :
     Exception("Overlap detected between '${existingEvent.title}' and '${newEvent.title}'")
+
+/**
+ * Thrown by [CalendarAgent.saveEvent] when the remote push failed but the event was preserved
+ * locally as LOCAL_ONLY. Callers can catch this to surface the failure without losing the event.
+ */
+class RemoteSyncFailedException(message: String, cause: Throwable? = null) : Exception(message, cause)

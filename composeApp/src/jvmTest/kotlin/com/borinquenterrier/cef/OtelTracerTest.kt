@@ -23,25 +23,25 @@ class OtelTracerTest : FunSpec({
 
     test("create() returns null when no env vars are set") {
         clearProps()
-        OtelTracer.create() shouldBe null
+        OtelTracer.create(AppEnv(emptyMap())) shouldBe null
     }
 
     test("create() returns null when only endpoint is set") {
         System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
-        OtelTracer.create() shouldBe null
+        OtelTracer.create(AppEnv(emptyMap())) shouldBe null
     }
 
     test("create() returns null when only user and password are set") {
         System.setProperty(USER_KEY, "u")
         System.setProperty(PASS_KEY, "p")
-        OtelTracer.create() shouldBe null
+        OtelTracer.create(AppEnv(emptyMap())) shouldBe null
     }
 
     test("create() returns OtelTracer when all three vars are set") {
         System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
         System.setProperty(USER_KEY, "testuser")
         System.setProperty(PASS_KEY, "testpass")
-        val tracer = OtelTracer.create()
+        val tracer = OtelTracer.create(AppEnv(emptyMap()))
         tracer shouldNotBe null
         tracer!!.shutdown() // clean up SDK
     }
@@ -49,13 +49,13 @@ class OtelTracerTest : FunSpec({
     // ── AppEnv ────────────────────────────────────────────────────────────────
 
     test("AppEnv.get returns null for unknown key") {
-        AppEnv.get("NONEXISTENT_KEY_XYZ_12345") shouldBe null
+        AppEnv(emptyMap()).get("NONEXISTENT_KEY_XYZ_12345") shouldBe null
     }
 
     test("AppEnv.get reads JVM system property") {
         System.setProperty("CEF_TEST_PROP", "hello")
         try {
-            AppEnv.get("CEF_TEST_PROP") shouldBe "hello"
+            AppEnv(emptyMap()).get("CEF_TEST_PROP") shouldBe "hello"
         } finally {
             System.clearProperty("CEF_TEST_PROP")
         }
@@ -65,7 +65,7 @@ class OtelTracerTest : FunSpec({
         System.setProperty("CEF_TEST_BLANK", "   ")
         try {
             // no env var set either, so result is null
-            AppEnv.get("CEF_TEST_BLANK") shouldBe null
+            AppEnv(emptyMap()).get("CEF_TEST_BLANK") shouldBe null
         } finally {
             System.clearProperty("CEF_TEST_BLANK")
         }
@@ -76,7 +76,7 @@ class OtelTracerTest : FunSpec({
     test("createTracer() returns NoopTracer when vars are missing") {
         clearProps()
         val settings = io.mockk.mockk<com.russhwolf.settings.Settings>(relaxed = true)
-        val tracer = createTracer(settings)
+        val tracer = createTracer(settings, AppEnv(emptyMap()))
         tracer shouldBe NoopTracer
     }
 
@@ -85,7 +85,7 @@ class OtelTracerTest : FunSpec({
         System.setProperty(USER_KEY, "u")
         System.setProperty(PASS_KEY, "p")
         val settings = io.mockk.mockk<com.russhwolf.settings.Settings>(relaxed = true)
-        val tracer = createTracer(settings)
+        val tracer = createTracer(settings, AppEnv(emptyMap()))
         tracer.shouldBeInstanceOf<OtelTracer>()
         tracer.shutdown()
     }

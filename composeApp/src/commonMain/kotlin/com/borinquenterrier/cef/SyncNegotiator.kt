@@ -61,11 +61,11 @@ class SyncNegotiator(
             }
         }
 
-        // 2. Handle Local Creations: PUSH new events to Remote
+        // 2. Handle Local Creations: PUSH new events to Remote, then mark as SYNCED
         localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, calendarId).forEach { local ->
             try {
                 remoteRepo.saveEvent(local, calendarId)
-                localRepo.hardDeleteEvent(local.id ?: "", calendarId)
+                localRepo.updateEvent(local.withSyncStatus(SyncStatus.SYNCED), calendarId)
             } catch (e: Exception) {
                 // Network failure or overlap on remote, keep as LOCAL_ONLY
             }

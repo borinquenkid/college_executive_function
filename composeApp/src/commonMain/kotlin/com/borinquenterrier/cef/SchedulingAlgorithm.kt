@@ -19,17 +19,23 @@ class SchedulingAlgorithm(
             return ResolutionResult.Conflict(event)
         }
 
-        val colliding = existingEvents.filter { it.overlaps(event) }
-        val isValid = when (event) {
-            is DayEvent -> true
-            is TimeEvent -> validator.isValidTimeSlot(
-                event.date,
-                event.startTime,
-                event.endTime,
-                event.priority,
-                existingEvents
-            )
+        // Only STUDY_BLOCK events are subject to scheduling constraints (working hours,
+        // meal breaks, collision avoidance). Every other event — deadlines, class sessions,
+        // holidays, etc. — has a fixed time set by the institution and is pushed as-is.
+        // Two deadlines on the same day or at the same time is valid and common.
+        val isSchedulable = event is TimeEvent && event.category == AcademicCategory.STUDY_BLOCK
+        if (!isSchedulable) {
+            return ResolutionResult.Success(listOf(event))
         }
+
+        val colliding = existingEvents.filter { it.overlaps(event) }
+        val isValid = validator.isValidTimeSlot(
+            event.date,
+            (event as TimeEvent).startTime,
+            event.endTime,
+            event.priority,
+            existingEvents
+        )
 
         if (colliding.isEmpty() && isValid) {
             return ResolutionResult.Success(listOf(event))
@@ -50,19 +56,16 @@ class SchedulingAlgorithm(
 
             val bumpedRescheduled = mutableListOf<Event>()
             for (bumped in colliding) {
-                // Try to find a new slot for this bumped event
                 val res = findNewSlotAndResolve(bumped, currentExisting, depth + 1)
                 if (res is ResolutionResult.Success) {
                     bumpedRescheduled.addAll(res.resolvedEvents)
                     currentExisting.addAll(res.resolvedEvents)
                 } else {
-                    // Rescheduling a bumped event failed. Fall back to shifting the original event instead.
                     return shiftEvent(event, existingEvents, depth)
                 }
             }
             return ResolutionResult.Success(bumpedRescheduled + event)
         } else {
-            // Cannot bump colliding events, must shift the new event
             return shiftEvent(event, existingEvents, depth)
         }
     }

@@ -45,7 +45,7 @@ class DecompositionOrchestrator(
 
             if (current.depth >= maxDepth) {
                 val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
-                AppTracer.current.event("decomposition.max_depth_leaf", mapOf(
+                addEvent("decomposition.max_depth_leaf", mapOf(
                     "node.title" to current.title, "node.depth" to current.depth.toString()
                 ))
                 finalLeaves.add(
@@ -60,7 +60,7 @@ class DecompositionOrchestrator(
 
             try {
                 val subTasks = delegate.decomposeTask(current.title, current.dueDate)
-                AppTracer.current.event("decomposition.node_expanded", mapOf(
+                addEvent("decomposition.node_expanded", mapOf(
                     "node.title" to current.title,
                     "node.depth" to current.depth.toString(),
                     "subtask.count" to subTasks.size.toString()

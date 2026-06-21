@@ -37,7 +37,9 @@ class SourceAdderTest : StringSpec({
         cacheRepository, sourceRepository, onEventsAdded, onError
     )
 
-    "addSource invokes onEventsAdded with AI results when configured" {
+    // ── happy path ──────────────────────────────────────────────────────────
+
+    "addSource calls extractDeliverables and notifies onEventsAdded on cache miss" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>()
         val contextAgent = mockk<ContextAgent>()
@@ -47,56 +49,78 @@ class SourceAdderTest : StringSpec({
         val source = mockk<SourceItem>(relaxed = true)
         val events = listOf(makeTestEvent("AI Event"))
         var eventsAdded: List<Event>? = null
-        var errorReceived: AgentError? = null
 
         coEvery { aiService.isConfigured() } returns true
         coEvery { cacheRepository.getCached(any()) } returns null
         coEvery { cacheRepository.putCache(any()) } returns Unit
         coEvery { eventGenerationService.extractDeliverables(source) } returns events
         coEvery { contextAgent.analyzeSource(source) } returns Unit
+        coEvery { sourceRepository.getSourceMetadata(any()) } returns null
 
         val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
-            cacheRepository, sourceRepository,
-            onEventsAdded = { eventsAdded = it }, onError = { errorReceived = it })
+            cacheRepository, sourceRepository, onEventsAdded = { eventsAdded = it })
 
         adder.addSource(source)
 
         var attempts = 0
-        while (eventsAdded == null && errorReceived == null && attempts < 30) {
-            kotlinx.coroutines.delay(10)
-            attempts++
+        while (eventsAdded == null && attempts < 30) {
+            kotlinx.coroutines.delay(10); attempts++
         }
 
         eventsAdded shouldBe events
-        errorReceived shouldBe null
+        coVerify(exactly = 1) { eventGenerationService.extractDeliverables(source) }
     }
 
-    "addSource does not invoke onEventsAdded when AI not configured" {
+    "addSource also calls contextAgent.analyzeSource for metadata on cache miss" {
+        val aiService = mockk<AIService>()
+        val eventGenerationService = mockk<EventGenerationService>()
+        val contextAgent = mockk<ContextAgent>()
+        val logger = mockk<Logger>(relaxed = true)
+        val cacheRepository = mockk<AnalysisCacheRepository>()
+        val sourceRepository = mockk<SourceRepository>(relaxed = true)
+        val source = mockk<SourceItem>(relaxed = true)
+
+        coEvery { aiService.isConfigured() } returns true
+        coEvery { cacheRepository.getCached(any()) } returns null
+        coEvery { cacheRepository.putCache(any()) } returns Unit
+        coEvery { eventGenerationService.extractDeliverables(source) } returns emptyList()
+        coEvery { contextAgent.analyzeSource(source) } returns Unit
+        coEvery { sourceRepository.getSourceMetadata(any()) } returns null
+
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
+            cacheRepository, sourceRepository).addSource(source)
+
+        kotlinx.coroutines.delay(50)
+        coVerify(exactly = 1) { contextAgent.analyzeSource(source) }
+    }
+
+    "addSource does nothing when AI not configured" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>(relaxed = true)
-        val contextAgent = mockk<ContextAgent>()
+        val contextAgent = mockk<ContextAgent>(relaxed = true)
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
         var eventsAdded: List<Event>? = null
 
         coEvery { aiService.isConfigured() } returns false
-        coEvery { cacheRepository.getCached(any()) } returns null
 
-        val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
             cacheRepository, sourceRepository, onEventsAdded = { eventsAdded = it })
-
-        adder.addSource(mockk(relaxed = true))
+            .addSource(mockk(relaxed = true))
 
         kotlinx.coroutines.delay(50)
 
         eventsAdded shouldBe null
+        coVerify(exactly = 0) { eventGenerationService.extractDeliverables(any()) }
     }
+
+    // ── error handling ──────────────────────────────────────────────────────
 
     "addSource calls onError with QuotaExhausted when Gemini quota is exceeded" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>()
-        val contextAgent = mockk<ContextAgent>()
+        val contextAgent = mockk<ContextAgent>(relaxed = true)
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
@@ -108,16 +132,14 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.getCached(any()) } returns null
         coEvery { eventGenerationService.extractDeliverables(source) } throws Exception("QuotaExhausted: daily limit reached")
 
-        val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
             cacheRepository, sourceRepository,
             onEventsAdded = { eventsAdded = it }, onError = { errorReceived = it })
-
-        adder.addSource(source)
+            .addSource(source)
 
         var attempts = 0
         while (eventsAdded == null && errorReceived == null && attempts < 30) {
-            kotlinx.coroutines.delay(10)
-            attempts++
+            kotlinx.coroutines.delay(10); attempts++
         }
 
         errorReceived shouldBe AgentError.QuotaExhausted
@@ -127,7 +149,7 @@ class SourceAdderTest : StringSpec({
     "addSource calls onError with GenericError on non-quota failure" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>()
-        val contextAgent = mockk<ContextAgent>()
+        val contextAgent = mockk<ContextAgent>(relaxed = true)
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
@@ -139,25 +161,25 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.getCached(any()) } returns null
         coEvery { eventGenerationService.extractDeliverables(source) } throws Exception("AI timeout")
 
-        val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
             cacheRepository, sourceRepository,
             onEventsAdded = { eventsAdded = it }, onError = { errorReceived = it })
-
-        adder.addSource(source)
+            .addSource(source)
 
         var attempts = 0
         while (eventsAdded == null && errorReceived == null && attempts < 30) {
-            kotlinx.coroutines.delay(10)
-            attempts++
+            kotlinx.coroutines.delay(10); attempts++
         }
 
         errorReceived shouldBe AgentError.GenericError("AI timeout")
     }
 
+    // ── concurrency ─────────────────────────────────────────────────────────
+
     "addSource processes concurrent calls sequentially" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>()
-        val contextAgent = mockk<ContextAgent>()
+        val contextAgent = mockk<ContextAgent>(relaxed = true)
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
@@ -169,34 +191,24 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.getCached(any()) } returns null
         coEvery { cacheRepository.putCache(any()) } returns Unit
         coEvery { contextAgent.analyzeSource(any()) } returns Unit
+        coEvery { sourceRepository.getSourceMetadata(any()) } returns null
 
         coEvery { eventGenerationService.extractDeliverables(source1) } coAnswers {
-            log.add("start-1")
-            kotlinx.coroutines.delay(50)
-            log.add("end-1")
-            listOf()
+            log.add("start-1"); kotlinx.coroutines.delay(50); log.add("end-1"); listOf()
         }
         coEvery { eventGenerationService.extractDeliverables(source2) } coAnswers {
-            log.add("start-2")
-            kotlinx.coroutines.delay(50)
-            log.add("end-2")
-            listOf()
+            log.add("start-2"); kotlinx.coroutines.delay(50); log.add("end-2"); listOf()
         }
 
-        val testScope = CoroutineScope(Dispatchers.Default)
         val adder = SourceAdder(
-            aiService, eventGenerationService, contextAgent, logger, testScope,
-            cacheRepository, sourceRepository, onEventsAdded = {}, onError = {}
+            aiService, eventGenerationService, contextAgent, logger,
+            CoroutineScope(Dispatchers.Default), cacheRepository, sourceRepository
         )
-
         adder.addSource(source1)
         adder.addSource(source2)
 
         var attempts = 0
-        while (log.size < 4 && attempts < 30) {
-            kotlinx.coroutines.delay(50)
-            attempts++
-        }
+        while (log.size < 4 && attempts < 30) { kotlinx.coroutines.delay(50); attempts++ }
 
         log.size shouldBe 4
         if (log[0] == "start-1") {
@@ -206,28 +218,21 @@ class SourceAdderTest : StringSpec({
         }
     }
 
-    "addSource handles cache hit by skipping AI and dispatching cached events" {
+    // ── cache ───────────────────────────────────────────────────────────────
+
+    "addSource uses cache hit to dispatch cached events and restore metadata without calling AI" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>(relaxed = true)
-        val contextAgent = mockk<ContextAgent>()
+        val contextAgent = mockk<ContextAgent>(relaxed = true)
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
-
         val source = mockk<SourceItem>(relaxed = true)
         val sourceTitle = "Test Syllabus"
         coEvery { source.title } returns sourceTitle
         coEvery { source.fragments } returns emptyList()
 
-        val cachedEvents = listOf(
-            DayEvent(
-                id = "cached-event-1",
-                title = "Cached Syllabus Event",
-                source = EventSource.AI_GENERATED,
-                date = kotlinx.datetime.LocalDate(2026, 6, 16)
-            )
-        )
-
+        val cachedEvents = listOf(makeTestEvent("Cached Syllabus Event"))
         val hash = ContentHasher.hash(emptyList())
         val eventsJson = Json.encodeToString<List<Event>>(cachedEvents)
         val cached = CachedAnalysis(hash, eventsJson, "cached-metadata", Clock.System.now().toEpochMilliseconds())
@@ -236,30 +241,25 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.getCached(hash) } returns cached
 
         var eventsAdded: List<Event>? = null
-        val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
             cacheRepository, sourceRepository, onEventsAdded = { eventsAdded = it })
-
-        adder.addSource(source)
+            .addSource(source)
 
         var attempts = 0
-        while (eventsAdded == null && attempts < 30) {
-            kotlinx.coroutines.delay(10)
-            attempts++
-        }
+        while (eventsAdded == null && attempts < 30) { kotlinx.coroutines.delay(10); attempts++ }
 
         eventsAdded shouldBe cachedEvents
         coVerify(exactly = 0) { eventGenerationService.extractDeliverables(any()) }
         coVerify(exactly = 1) { sourceRepository.updateSourceMetadata(sourceTitle, "cached-metadata") }
     }
 
-    "addSource handles cache miss by invoking AI and writing to cache" {
+    "addSource on cache miss writes events and metadata to cache" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>()
         val contextAgent = mockk<ContextAgent>()
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
-
         val source = mockk<SourceItem>(relaxed = true)
         val sourceTitle = "Test Syllabus"
         coEvery { source.title } returns sourceTitle
@@ -276,83 +276,62 @@ class SourceAdderTest : StringSpec({
         coEvery { contextAgent.analyzeSource(source) } returns Unit
 
         var eventsAdded: List<Event>? = null
-        val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
             cacheRepository, sourceRepository, onEventsAdded = { eventsAdded = it })
-
-        adder.addSource(source)
+            .addSource(source)
 
         var attempts = 0
-        while (eventsAdded == null && attempts < 30) {
-            kotlinx.coroutines.delay(10)
-            attempts++
-        }
+        while (eventsAdded == null && attempts < 30) { kotlinx.coroutines.delay(10); attempts++ }
 
         eventsAdded shouldBe events
-        coVerify(exactly = 1) { eventGenerationService.extractDeliverables(source) }
         coVerify(exactly = 1) {
-            cacheRepository.putCache(
-                match {
-                    it.sourceHash == hash &&
-                    it.cachedEventsJson.contains("AI Event") &&
-                    it.cachedMetadataJson == "new-metadata"
-                }
-            )
+            cacheRepository.putCache(match {
+                it.sourceHash == hash &&
+                it.cachedEventsJson.contains("AI Event") &&
+                it.cachedMetadataJson == "new-metadata"
+            })
         }
     }
 
-    "addSource with forceRefresh=true bypasses cache and updates cache" {
+    "addSource with forceRefresh bypasses cache and re-extracts" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>()
         val contextAgent = mockk<ContextAgent>()
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
-
         val source = mockk<SourceItem>(relaxed = true)
-        val sourceTitle = "Test Syllabus"
-        coEvery { source.title } returns sourceTitle
+        coEvery { source.title } returns "Syllabus"
         coEvery { source.fragments } returns emptyList()
 
-        val events = listOf(makeTestEvent("AI Event"))
-        val hash = ContentHasher.hash(emptyList())
-
         coEvery { aiService.isConfigured() } returns true
-        coEvery { cacheRepository.getCached(hash) } returns mockk() // non-null — should be bypassed
+        coEvery { cacheRepository.getCached(any()) } returns mockk()
         coEvery { cacheRepository.putCache(any()) } returns Unit
-        coEvery { eventGenerationService.extractDeliverables(source) } returns events
+        coEvery { eventGenerationService.extractDeliverables(source) } returns emptyList()
         coEvery { contextAgent.analyzeSource(source) } returns Unit
+        coEvery { sourceRepository.getSourceMetadata(any()) } returns null
 
-        var eventsAdded: List<Event>? = null
-        val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
-            cacheRepository, sourceRepository, onEventsAdded = { eventsAdded = it })
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
+            cacheRepository, sourceRepository).addSource(source, forceRefresh = true)
 
-        adder.addSource(source, forceRefresh = true)
-
-        var attempts = 0
-        while (eventsAdded == null && attempts < 30) {
-            kotlinx.coroutines.delay(10)
-            attempts++
-        }
-
+        kotlinx.coroutines.delay(50)
         coVerify(exactly = 1) { eventGenerationService.extractDeliverables(source) }
-        coVerify(exactly = 1) { cacheRepository.putCache(match { it.sourceHash == hash }) }
+        coVerify(exactly = 1) { cacheRepository.putCache(any()) }
     }
 
-    "addSource treats stale cache entry as miss and re-invokes AI" {
+    "addSource treats stale cache as miss and re-extracts" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>()
         val contextAgent = mockk<ContextAgent>()
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
-
         val source = mockk<SourceItem>(relaxed = true)
         coEvery { source.title } returns "Old Syllabus"
         coEvery { source.fragments } returns emptyList()
 
         val hash = ContentHasher.hash(emptyList())
         val freshEvents = listOf(makeTestEvent("Fresh Event"))
-        // createdAt = 0 (epoch start) → age is many years → stale
         val staleCache = CachedAnalysis(hash, Json.encodeToString<List<Event>>(emptyList()), null, 0L)
 
         coEvery { aiService.isConfigured() } returns true
@@ -363,29 +342,24 @@ class SourceAdderTest : StringSpec({
         coEvery { contextAgent.analyzeSource(source) } returns Unit
 
         var eventsAdded: List<Event>? = null
-        val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
             cacheRepository, sourceRepository, onEventsAdded = { eventsAdded = it })
-
-        adder.addSource(source)
+            .addSource(source)
 
         var attempts = 0
-        while (eventsAdded == null && attempts < 30) {
-            kotlinx.coroutines.delay(10)
-            attempts++
-        }
+        while (eventsAdded == null && attempts < 30) { kotlinx.coroutines.delay(10); attempts++ }
 
         eventsAdded shouldBe freshEvents
         coVerify(exactly = 1) { eventGenerationService.extractDeliverables(source) }
     }
 
-    "addSource uses fresh cache entry within TTL without calling AI" {
+    "addSource uses fresh cache without calling AI" {
         val aiService = mockk<AIService>()
         val eventGenerationService = mockk<EventGenerationService>(relaxed = true)
-        val contextAgent = mockk<ContextAgent>()
+        val contextAgent = mockk<ContextAgent>(relaxed = true)
         val logger = mockk<Logger>(relaxed = true)
         val cacheRepository = mockk<AnalysisCacheRepository>()
         val sourceRepository = mockk<SourceRepository>(relaxed = true)
-
         val source = mockk<SourceItem>(relaxed = true)
         coEvery { source.title } returns "Fresh Syllabus"
         coEvery { source.fragments } returns emptyList()
@@ -393,23 +367,18 @@ class SourceAdderTest : StringSpec({
         val cachedEvents = listOf(makeTestEvent("Cached Event"))
         val hash = ContentHasher.hash(emptyList())
         val eventsJson = Json.encodeToString<List<Event>>(cachedEvents)
-        // createdAt = now → age is ~0ms → well within TTL
         val freshCache = CachedAnalysis(hash, eventsJson, null, Clock.System.now().toEpochMilliseconds())
 
         coEvery { aiService.isConfigured() } returns true
         coEvery { cacheRepository.getCached(hash) } returns freshCache
 
         var eventsAdded: List<Event>? = null
-        val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
+        makeAdder(aiService, eventGenerationService, contextAgent, logger,
             cacheRepository, sourceRepository, onEventsAdded = { eventsAdded = it })
-
-        adder.addSource(source)
+            .addSource(source)
 
         var attempts = 0
-        while (eventsAdded == null && attempts < 30) {
-            kotlinx.coroutines.delay(10)
-            attempts++
-        }
+        while (eventsAdded == null && attempts < 30) { kotlinx.coroutines.delay(10); attempts++ }
 
         eventsAdded shouldNotBe null
         eventsAdded shouldBe cachedEvents

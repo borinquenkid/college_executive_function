@@ -24,7 +24,7 @@ import com.borinquenterrier.cef.getAppDirectory
  * JVM Implementation using the Local Server Flow.
  * Note: This flow REQUIRES opening a web browser to complete the Google login.
  */
-actual class GoogleAuthService actual constructor(private val settings: Settings) {
+actual class GoogleAuthService actual constructor(private val settings: Settings, private val appEnv: AppEnv) {
 
     private val tag = "GoogleAuth"
     private val jsonFactory = GsonFactory.getDefaultInstance()
@@ -154,8 +154,8 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         }
 
         // 3. .env file via AppEnv
-        if (clientId.isNullOrBlank()) clientId = AppEnv.get("GOOGLE_CLIENT_ID")
-        if (clientSecret.isNullOrBlank()) clientSecret = AppEnv.get("GOOGLE_CLIENT_SECRET")
+        if (clientId.isNullOrBlank()) clientId = appEnv.get("GOOGLE_CLIENT_ID")
+        if (clientSecret.isNullOrBlank()) clientSecret = appEnv.get("GOOGLE_CLIENT_SECRET")
 
         val clientSecrets = if (!clientId.isNullOrBlank() && !clientSecret.isNullOrBlank()) {
             val jsonString = """

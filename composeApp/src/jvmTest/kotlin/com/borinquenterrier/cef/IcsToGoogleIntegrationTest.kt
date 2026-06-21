@@ -23,7 +23,7 @@ class IcsToGoogleIntegrationTest : FunSpec({
         // 2. Setup Google API
         val settings = com.russhwolf.settings.MapSettings()
 
-        val authService = GoogleAuthService(settings)
+        val authService = GoogleAuthService(settings, AppEnv())
         val (accessToken, refreshToken) = runBlocking {
             println("Attempting to log in with Google. Please follow the browser prompts.")
             authService.login()

@@ -117,36 +117,20 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         coVerify(exactly = 1) { syncService.syncEvent(timeEvent, cefCalId) }
     }
 
-    test("saveEvent throws OverlapException when event overlaps existing") {
+    test("saveEvent pushes event regardless of time overlap with existing events") {
+        // Two assignments due at the same time is valid — the remote repo no longer
+        // enforces time-overlap rejection (that was causing two deadlines on the same
+        // day to block each other). Google Calendar accepts multiple events at the same time.
         val conflictingEvent = timeEvent.copy(id = "existing-evt", title = "Conflict")
         coEvery { syncService.listCalendars() } returns listOf(
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )
-        coEvery { syncService.getEvents(cefCalId) } returns listOf(conflictingEvent)
-        coEvery { conflictDetector.validateNoConflict(timeEvent, listOf(conflictingEvent)) } throws
-            OverlapException(conflictingEvent, timeEvent)
-
-        val ex = shouldThrow<OverlapException> {
-            repo.saveEvent(timeEvent, "default")
-        }
-
-        ex.existingEvent shouldBe conflictingEvent
-        ex.newEvent shouldBe timeEvent
-        coVerify(exactly = 0) { syncService.syncEvent(any(), any()) }
-    }
-
-    test("saveEvent does not conflict with itself (same id)") {
-        // If the event being saved already exists in the calendar with the same id, no overlap
-        coEvery { syncService.listCalendars() } returns listOf(
-            RemoteCalendarMetadata(cefCalId, "CEF Academic")
-        )
-        coEvery { syncService.getEvents(cefCalId) } returns listOf(timeEvent) // same id
         coEvery { syncService.syncEvent(any(), any()) } returns ""
 
-        // Should NOT throw because conflict check filters out same id
         repo.saveEvent(timeEvent, "default")
 
         coVerify(exactly = 1) { syncService.syncEvent(timeEvent, cefCalId) }
+        coVerify(exactly = 0) { conflictDetector.validateNoConflict(any(), any()) }
     }
 
     // ─── updateEvent ─────────────────────────────────────────────────────────

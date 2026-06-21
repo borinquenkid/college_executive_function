@@ -316,6 +316,7 @@ class ComposeUiFlowsTest {
                     aiGeneratedEvents = emptyList(),
                     calendarAgent = mockCalendarAgent,
                     eventAgent = mockEventAgent,
+                    authService = GoogleAuthService(MapSettings(), AppEnv()),
                     onNavigate = onNavigate
                 )
             }

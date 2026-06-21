@@ -6,6 +6,8 @@ import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.flow.filter
+import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 
 /**
@@ -64,6 +66,13 @@ class AppController(val container: DependencyContainer) {
         scope.launch {
             aiGeneratedEvents.collect { events ->
                 eventsListener?.invoke(events)
+            }
+        }
+        // Flush LOCAL_ONLY events as soon as Google is confirmed linked, so events that
+        // failed to reach the remote calendar in a previous session are retried automatically.
+        scope.launch {
+            container.tokenRepository.isLinked.filter { it }.take(1).collect {
+                container.calendarAgent.retryLocalOnly()
             }
         }
     }

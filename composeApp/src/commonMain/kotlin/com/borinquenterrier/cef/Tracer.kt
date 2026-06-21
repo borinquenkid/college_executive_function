@@ -12,6 +12,7 @@ interface SpanScope {
     fun setAttribute(key: String, value: String)
     fun setAttribute(key: String, value: Long)
     fun recordException(t: Throwable)
+    fun addEvent(name: String, attributes: Map<String, String> = emptyMap())
 }
 
 object NoopTracer : Tracer {
@@ -25,10 +26,11 @@ private object NoopSpanScope : SpanScope {
     override fun setAttribute(key: String, value: String) = Unit
     override fun setAttribute(key: String, value: Long) = Unit
     override fun recordException(t: Throwable) = Unit
+    override fun addEvent(name: String, attributes: Map<String, String>) = Unit
 }
 
 object AppTracer {
     var current: Tracer = NoopTracer
 }
 
-expect fun createTracer(settings: Settings): Tracer
+expect fun createTracer(settings: Settings, appEnv: AppEnv): Tracer

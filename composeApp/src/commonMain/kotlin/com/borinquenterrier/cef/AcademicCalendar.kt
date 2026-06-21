@@ -26,6 +26,7 @@ fun AcademicCalendar(
     aiGeneratedEvents: List<Event>,
     calendarAgent: CalendarAgent,
     eventAgent: EventAgent,
+    authService: GoogleAuthService,
     onNavigate: (AppScreen) -> Unit,
     today: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
 ) {
@@ -34,7 +35,6 @@ fun AcademicCalendar(
     val logger = rememberLogger()
     val routineRepository = remember { RoutineRepository(settings) }
     val tokenRepository = remember(settings) { GoogleTokenRepository(settings) }
-    val authService = remember(settings) { GoogleAuthService(settings) }
 
     // Delegate business logic to extracted services
     val authManager = remember(authService, tokenRepository, logger) {

@@ -9,8 +9,9 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
 /**
- * Adds a new source, generates calendar events via AI, and notifies listeners.
- * Handles AI configuration check and error reporting.
+ * Adds a new source, extracts deliverables (deadlines, exams, quizzes) for display
+ * in the Studio panel, and caches the result. Does NOT push events to the calendar
+ * or the AI-generated overlay — that happens only when the user explicitly pushes.
  */
 class SourceAdder(
     private val aiService: AIService,
@@ -20,15 +21,10 @@ class SourceAdder(
     private val scope: CoroutineScope,
     private val cacheRepository: AnalysisCacheRepository,
     private val sourceRepository: SourceRepository,
-    private val onEventsAdded: (List<Event>) -> Unit,
+    private val onEventsAdded: (List<Event>) -> Unit = {},
     private val onError: (AgentError) -> Unit = {}
 ) {
-    private val json = Json { ignoreUnknownKeys = true }
     private val processingMutex = Mutex()
-
-    companion object {
-        internal const val CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000L
-    }
 
     fun addSource(source: SourceItem, forceRefresh: Boolean = false) {
         scope.launch {
@@ -50,22 +46,24 @@ class SourceAdder(
             val cached = cacheRepository.getCached(hash)
             if (cached != null && !isCacheStale(cached)) {
                 logger.d("SourceAdder", "Cache hit for source: ${source.title}")
-                val events = json.decodeFromString<List<Event>>(cached.cachedEventsJson)
-                onEventsAdded(events)
                 if (cached.cachedMetadataJson != null) {
                     sourceRepository.updateSourceMetadata(source.title, cached.cachedMetadataJson)
+                }
+                if (cached.cachedEventsJson.isNotBlank()) {
+                    val events = Json.decodeFromString<List<Event>>(cached.cachedEventsJson)
+                    onEventsAdded(events)
                 }
                 return
             }
         }
 
-        logger.d("SourceAdder", "Cache miss or forceRefresh. Processing source: ${source.title}")
+        logger.d("SourceAdder", "Cache miss or forceRefresh. Extracting source: ${source.title}")
         val allEvents = eventGenerationService.extractDeliverables(source)
         onEventsAdded(allEvents)
         contextAgent.analyzeSource(source)
 
         val metadataJson = sourceRepository.getSourceMetadata(source.title)
-        val eventsJson = json.encodeToString(allEvents)
+        val eventsJson = Json.encodeToString<List<Event>>(allEvents)
         cacheRepository.putCache(
             CachedAnalysis(
                 sourceHash = hash,
@@ -88,5 +86,9 @@ class SourceAdder(
         } else {
             onError(AgentError.GenericError(e.message ?: "Unknown error"))
         }
+    }
+
+    companion object {
+        internal const val CACHE_TTL_MS = 7 * 24 * 60 * 60 * 1000L
     }
 }

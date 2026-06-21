@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import androidx.compose.ui.test.ExperimentalTestApi
+import androidx.compose.ui.test.assertIsEnabled
 import androidx.compose.ui.test.assertIsNotEnabled
 import androidx.compose.ui.test.onNodeWithTag
 import androidx.compose.ui.test.onNodeWithText
@@ -46,7 +47,6 @@ class StudioPanelTest {
                 selectedSource = null,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = {}
             )
         }
 
@@ -99,7 +99,6 @@ class StudioPanelTest {
                 selectedSource = testSource,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = {}
             )
         }
 
@@ -162,13 +161,11 @@ class StudioPanelTest {
             category = SourceCategory.SYLLABUS
         )
 
-        var onEventsGeneratedCalled = false
         setContent {
             StudioPanel(
                 selectedSource = testSource,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = { onEventsGeneratedCalled = true }
             )
         }
 
@@ -226,7 +223,6 @@ class StudioPanelTest {
                 selectedSource = testSource,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = {}
             )
         }
 
@@ -282,7 +278,7 @@ class StudioPanelTest {
 
         setContent {
             StudioPanel(selectedSource = testSource, calendarAgent = mockCalendarAgent,
-                container = mockContainer, onEventsGenerated = {})
+                container = mockContainer)
         }
 
         onNodeWithTag("source_discrepancies_card").assertExists()
@@ -331,7 +327,7 @@ class StudioPanelTest {
 
         setContent {
             StudioPanel(selectedSource = testSource, calendarAgent = mockCalendarAgent,
-                container = mockContainer, onEventsGenerated = {})
+                container = mockContainer)
         }
 
         onNodeWithTag("source_discrepancies_card").assertExists()
@@ -392,7 +388,6 @@ class StudioPanelTest {
                 selectedSource = testSource,
                 calendarAgent = mockCalendarAgent,
                 container = mockContainer,
-                onEventsGenerated = {}
             )
         }
 
@@ -402,5 +397,94 @@ class StudioPanelTest {
 
         // Verify that the eventAgent is updated with status on export success or failure
         coVerify { mockEventAgent.updateStatus(any()) }
+    }
+
+    @Test
+    fun testProcessButtonDisabledWhenEventsAlreadyGenerated() = runComposeUiTest {
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockEventAgent = mockk<EventAgent>(relaxed = true)
+
+        every { mockContainer.eventAgent } returns mockEventAgent
+
+        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+        every { tokenRepo.isLinked } returns MutableStateFlow(false)
+        every { mockContainer.tokenRepository } returns tokenRepo
+
+        val pendingEvents = listOf(
+            DayEvent(
+                id = "event-1",
+                title = "Homework 1 Due",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 9, 15)
+            )
+        )
+
+        every { mockEventAgent.isLoading } returns MutableStateFlow(false)
+        every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
+        every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(pendingEvents)
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
+        every { mockEventAgent.unresolvedConflicts } returns MutableStateFlow(emptyList())
+
+        val testSource = SourceItem(
+            title = "Test Syllabus",
+            fragments = listOf(SourceFragment(text = "Course content")),
+            category = SourceCategory.SYLLABUS
+        )
+
+        setContent {
+            StudioPanel(
+                selectedSource = testSource,
+                calendarAgent = mockCalendarAgent,
+                container = mockContainer
+            )
+        }
+
+        // Process button must be disabled when events are already pending
+        onNodeWithTag("process_syllabus_button").assertIsNotEnabled()
+    }
+
+    @Test
+    fun testProcessButtonEnabledWhenNoPendingEvents() = runComposeUiTest {
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockEventAgent = mockk<EventAgent>(relaxed = true)
+
+        every { mockContainer.eventAgent } returns mockEventAgent
+
+        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+        every { tokenRepo.isLinked } returns MutableStateFlow(false)
+        every { mockContainer.tokenRepository } returns tokenRepo
+
+        every { mockEventAgent.isLoading } returns MutableStateFlow(false)
+        every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
+        every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
+
+        val testSource = SourceItem(
+            title = "Test Syllabus",
+            fragments = listOf(SourceFragment(text = "Course content")),
+            category = SourceCategory.SYLLABUS
+        )
+
+        setContent {
+            StudioPanel(
+                selectedSource = testSource,
+                calendarAgent = mockCalendarAgent,
+                container = mockContainer
+            )
+        }
+
+        onNodeWithTag("process_syllabus_button").assertExists()
+        // When no events are pending, the button should be enabled (opposite of the disabled case)
+        // assertIsEnabled() — confirms button is interactive
+        onNodeWithTag("process_syllabus_button").assertIsEnabled()
     }
 }

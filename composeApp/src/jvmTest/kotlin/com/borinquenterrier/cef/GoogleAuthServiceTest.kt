@@ -53,7 +53,7 @@ class GoogleAuthServiceTest : FunSpec({
                 backedUp = true
             }
             try {
-                val authService = GoogleAuthService(MapSettings())
+                val authService = GoogleAuthService(MapSettings(), AppEnv())
                 val flow = authService.buildFlow()
                 flow shouldNotBe null
                 flow.clientId shouldBe BuildSecrets.GOOGLE_CLIENT_ID
@@ -66,39 +66,23 @@ class GoogleAuthServiceTest : FunSpec({
     }
 
     test("should fail if no environment variables, .env file, or client_secret.json exist") {
-        // Backup the real .env if it exists
-        val envFile = File(".env")
-        val backupFile = File(".env.bak")
-        var backedUp = false
-        if (envFile.exists()) {
-            envFile.renameTo(backupFile)
-            backedUp = true
+        // AppEnv(emptyMap()) suppresses all .env file reading, simulating a clean environment.
+        // We still set the system property so AppEnv doesn't pick it up from there either.
+        System.setProperty("CEF_GOOGLE_CLIENT_SECRET_PATH", "non_existent_file.json")
+        val authService = GoogleAuthService(MapSettings(), AppEnv(emptyMap()))
+
+        val exception = shouldThrow<IllegalStateException> {
+            authService.buildFlow()
         }
 
-        try {
-            // Set CEF_GOOGLE_CLIENT_SECRET_PATH to a non-existent file path to force failure
-            System.setProperty("CEF_GOOGLE_CLIENT_SECRET_PATH", "non_existent_file.json")
-
-            val authService = GoogleAuthService(MapSettings())
-
-            val exception = shouldThrow<IllegalStateException> {
-                authService.buildFlow()
-            }
-
-            exception.message shouldBe "Google Client ID/Secret not found in environment variables or .env file, and client_secret.json not found at non_existent_file.json. Please configure it."
-        } finally {
-            // Restore .env
-            if (backedUp) {
-                backupFile.renameTo(envFile)
-            }
-        }
+        exception.message shouldBe "Google Client ID/Secret not found in environment variables or .env file, and client_secret.json not found at non_existent_file.json. Please configure it."
     }
 
     test("should successfully construct buildFlow when GOOGLE_CLIENT_ID and GOOGLE_CLIENT_SECRET system properties are set") {
         System.setProperty("GOOGLE_CLIENT_ID", "dummy-id.apps.googleusercontent.com")
         System.setProperty("GOOGLE_CLIENT_SECRET", "dummy-secret")
 
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
 
         val flow = authService.buildFlow()
         flow shouldNotBe null
@@ -112,7 +96,7 @@ class GoogleAuthServiceTest : FunSpec({
     // "Parameter specified as non-null is null: ... saveTokens, parameter accessToken".
 
     test("resolveAccessToken returns the current access token without refreshing when one is already present") {
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         var refreshCalls = 0
 
         val token = authService.resolveAccessToken("existing-token") {
@@ -125,7 +109,7 @@ class GoogleAuthServiceTest : FunSpec({
     }
 
     test("resolveAccessToken refreshes and returns the new token when the current one is null — the StoredCredential restore case") {
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
 
         val token = authService.resolveAccessToken(null) { "refreshed-token" }
 
@@ -133,7 +117,7 @@ class GoogleAuthServiceTest : FunSpec({
     }
 
     test("resolveAccessToken throws a clear, actionable error when refreshing also yields no token, instead of crashing deep inside saveTokens") {
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
 
         val exception = shouldThrow<Exception> {
             authService.resolveAccessToken(null) { null }
@@ -149,7 +133,7 @@ class GoogleAuthServiceTest : FunSpec({
     // retries once with a brand-new interactive sign-in.
 
     test("signInRetryingOnStaleCredential returns the first credential and token without touching the stale-credential callback when the first attempt succeeds") {
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         var authorizeCalls = 0
         var staleCallbackCalls = 0
 
@@ -166,7 +150,7 @@ class GoogleAuthServiceTest : FunSpec({
     }
 
     test("signInRetryingOnStaleCredential clears the stale session and retries with a fresh sign-in when the first attempt fails — the 401 Unauthorized recovery path") {
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         var authorizeCalls = 0
         val staleCallbackExceptions = mutableListOf<Exception>()
 
@@ -187,7 +171,7 @@ class GoogleAuthServiceTest : FunSpec({
     }
 
     test("signInRetryingOnStaleCredential propagates the failure when even the fresh sign-in cannot produce a token") {
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         var authorizeCalls = 0
 
         val exception = shouldThrow<Exception> {

@@ -250,11 +250,16 @@ class EventAgent(
      * Pushes the last generated batch of events to the calendar, checking for conflicts.
      * Returns a list of events that COULD NOT be pushed due to overlaps.
      */
-    suspend fun pushToCalendar(calendarId: String = "default"): List<Event> {
-        val conflicts = calendarPusher.push(_lastGeneratedEvents.value, calendarId)
-        loadPersistedWarnings()
-        return conflicts
-    }
+    suspend fun pushToCalendar(calendarId: String = "default"): List<Event> =
+        AppTracer.current.span(
+            "events.push_to_calendar",
+            mapOf("calendar.id" to calendarId, "events.count" to _lastGeneratedEvents.value.size.toString())
+        ) {
+            val conflicts = calendarPusher.push(_lastGeneratedEvents.value, calendarId)
+            loadPersistedWarnings()
+            setAttribute("events.conflicts_count", conflicts.size.toLong())
+            conflicts
+        }
 
     fun clear() {
         _lastGeneratedEvents.value = emptyList()

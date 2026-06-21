@@ -73,13 +73,20 @@ class OtelTracer(
 
     companion object {
         // Reads from AppEnv (system props → OS env → .env).
-        // Endpoint example: http://localhost:5080/api/default
-        // The SDK appends /v1/traces automatically for OpenObserve OTLP HTTP.
-        fun create(): OtelTracer? {
-            val endpoint = AppEnv.get("CEF_OTLP_ENDPOINT") ?: return null
-            val user = AppEnv.get("CEF_OTLP_USER") ?: return null
-            val password = AppEnv.get("CEF_OTLP_PASSWORD") ?: return null
+        // CEF_OTLP_ENDPOINT must be the full traces URL, e.g.:
+        // http://localhost:5428/api/default/v1/traces
+        // OtlpHttpSpanExporter 1.40+ uses the endpoint string as-is (no auto-append).
+        fun create(appEnv: AppEnv): OtelTracer? {
+            fun missing(key: String): OtelTracer? {
+                println("[OTEL] Tracing DISABLED — missing env var: $key")
+                println("[OTEL] Set CEF_OTLP_ENDPOINT, CEF_OTLP_USER, CEF_OTLP_PASSWORD in .env or env to enable tracing.")
+                return null
+            }
+            val endpoint = appEnv.get("CEF_OTLP_ENDPOINT") ?: return missing("CEF_OTLP_ENDPOINT")
+            val user     = appEnv.get("CEF_OTLP_USER")     ?: return missing("CEF_OTLP_USER")
+            val password = appEnv.get("CEF_OTLP_PASSWORD") ?: return missing("CEF_OTLP_PASSWORD")
             val authBase64 = Base64.getEncoder().encodeToString("$user:$password".toByteArray())
+            println("[OTEL] Tracing ENABLED → POST $endpoint (user=$user)")
             return OtelTracer(endpoint, "Basic $authBase64")
         }
     }
@@ -89,7 +96,12 @@ private class OtelSpanScope(private val span: Span) : SpanScope {
     override fun setAttribute(key: String, value: String) { span.setAttribute(key, value) }
     override fun setAttribute(key: String, value: Long) { span.setAttribute(key, value) }
     override fun recordException(t: Throwable) { span.recordException(t) }
+    override fun addEvent(name: String, attributes: Map<String, String>) {
+        val attrs = Attributes.builder()
+        attributes.forEach { (k, v) -> attrs.put(AttributeKey.stringKey(k), v) }
+        span.addEvent(name, attrs.build())
+    }
 }
 
-actual fun createTracer(settings: com.russhwolf.settings.Settings): Tracer =
-    OtelTracer.create() ?: NoopTracer
+actual fun createTracer(settings: com.russhwolf.settings.Settings, appEnv: AppEnv): Tracer =
+    OtelTracer.create(appEnv) ?: NoopTracer

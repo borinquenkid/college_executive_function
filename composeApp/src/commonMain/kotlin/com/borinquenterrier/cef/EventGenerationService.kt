@@ -25,7 +25,10 @@ class EventGenerationService(
     suspend fun extractDeliverables(
         source: SourceItem,
         onProgress: ((message: String) -> Unit)? = null
-    ): List<Event> {
+    ): List<Event> = AppTracer.current.span(
+        "events.extract_deliverables",
+        mapOf("source.title" to source.title, "source.category" to source.category.name)
+    ) {
         val syllabusText = source.fragments.joinToString("\n\n") { it.text }
         val auditWarnings = if (source.category == SourceCategory.SYLLABUS) {
             onProgress?.invoke("Auditing source for ambiguities...")
@@ -42,6 +45,7 @@ class EventGenerationService(
             listOf(fragments)
         }
 
+        setAttribute("source.batch_count", batches.size.toLong())
         val allEvents = mutableListOf<Event>()
         batches.forEachIndexed { i, batch ->
             val pageRange = batch.mapNotNull { it.pageNumber }
@@ -55,8 +59,9 @@ class EventGenerationService(
         }
 
         val normalized = normalize(allEvents)
+        setAttribute("events.extracted_count", normalized.size.toLong())
 
-        return if (auditWarnings.isNotEmpty()) {
+        if (auditWarnings.isNotEmpty()) {
             val combinedWarning = auditWarnings.joinToString("; ")
             normalized.map { event ->
                 val newWarning = if (event.warning != null) {
@@ -78,16 +83,21 @@ class EventGenerationService(
      * Generates a study plan for [source], scheduling around [existingEvents] and any
      * user preference constraints so the AI avoids proposing colliding study blocks.
      */
-    suspend fun generateStudyPlan(source: SourceItem, existingEvents: List<Event>): List<Event> {
-        val syllabusText = source.fragments.joinToString("\n\n") { it.text }
-        val existingScheduleText = buildScheduleContext(existingEvents)
+    suspend fun generateStudyPlan(source: SourceItem, existingEvents: List<Event>): List<Event> =
+        AppTracer.current.span(
+            "events.generate_study_plan",
+            mapOf("source.title" to source.title, "calendar.existing_count" to existingEvents.size.toString())
+        ) {
+            val syllabusText = source.fragments.joinToString("\n\n") { it.text }
+            val existingScheduleText = buildScheduleContext(existingEvents)
 
-        val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
-        val planEvents =
-            aiService.generateStudyPlan(syllabusText, existingScheduleText, preferences)
+            val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
+            val planEvents = aiService.generateStudyPlan(syllabusText, existingScheduleText, preferences)
 
-        return normalize(planEvents)
-    }
+            val normalized = normalize(planEvents)
+            setAttribute("events.planned_count", normalized.size.toLong())
+            normalized
+        }
 
     private suspend fun buildScheduleContext(existingEvents: List<Event>): String {
         var scheduleText = existingEvents.joinToString("\n") { event ->

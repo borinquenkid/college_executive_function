@@ -9,7 +9,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 
-actual class GoogleAuthService actual constructor(private val settings: Settings) {
+actual class GoogleAuthService actual constructor(private val settings: Settings, private val appEnv: AppEnv) {
     actual suspend fun login(): Pair<String, String?> = withContext(Dispatchers.Main) {
         val context = AndroidAppContext.applicationContext
             ?: throw Exception("AndroidAppContext is not initialized. Cannot start login.")

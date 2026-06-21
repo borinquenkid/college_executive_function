@@ -48,8 +48,7 @@ fun StudioPanel(
     modifier: Modifier = Modifier,
     selectedSource: SourceItem?,
     calendarAgent: CalendarAgent,
-    container: DependencyContainer,
-    onEventsGenerated: (List<Event>) -> Unit
+    container: DependencyContainer
 ) {
     val appController = container.appController
     val eventAgent = container.eventAgent
@@ -82,12 +81,6 @@ fun StudioPanel(
         WarningAggregator.collect(lastGeneratedEvents, persistedWarnings, extractionWarning, today)
     }
 
-    // Push events back to parent when they are generated in the flow
-    LaunchedEffect(lastGeneratedEvents) {
-        if (lastGeneratedEvents.isNotEmpty()) {
-            onEventsGenerated(lastGeneratedEvents)
-        }
-    }
 
     Column(
         modifier = modifier
@@ -170,7 +163,7 @@ fun StudioPanel(
                             .testTag("process_syllabus_button"),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(0.dp),
-                        enabled = !isLoading
+                        enabled = !isLoading && lastGeneratedEvents.isEmpty()
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(

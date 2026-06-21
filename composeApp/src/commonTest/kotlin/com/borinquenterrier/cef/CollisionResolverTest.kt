@@ -75,7 +75,7 @@ class CollisionResolverTest : FunSpec({
         resolved.endTime shouldBe LocalTime(10, 0)
     }
 
-    test("resolve should bump lower priority event and reschedule it recursively") {
+    test("resolve should push non-STUDY_BLOCK events as-is regardless of existing collisions") {
         val existing = listOf(
             TimeEvent(
                 title = "Study Block",
@@ -91,23 +91,18 @@ class CollisionResolverTest : FunSpec({
             source = EventSource.CLASS,
             category = AcademicCategory.CLASS,
             date = date,
-            startTime = LocalTime(10, 0), // Collides!
+            startTime = LocalTime(10, 0),
             endTime = LocalTime(11, 0)
         )
 
-        // Class A (priority 80) should bump Study Block (priority 10)
+        // Non-STUDY_BLOCK events bypass the scheduler entirely — the class is pushed at
+        // its fixed time. Any overlapping study block will be rescheduled when it is pushed.
         val result = resolver.resolve(newClass, existing)
         result.shouldBeInstanceOf<ResolutionResult.Success>()
         val success = result as ResolutionResult.Success
-        success.resolvedEvents shouldHaveSize 2
-
-        val classEvent =
-            success.resolvedEvents.find { it.category == AcademicCategory.CLASS } as TimeEvent
-        val studyEvent =
-            success.resolvedEvents.find { it.category == AcademicCategory.STUDY_BLOCK } as TimeEvent
-
-        classEvent.startTime shouldBe LocalTime(10, 0) // Kept original time
-        studyEvent.startTime shouldBe LocalTime(9, 0) // Shifted to next available slot
+        success.resolvedEvents shouldHaveSize 1
+        val classEvent = success.resolvedEvents.first() as TimeEvent
+        classEvent.startTime shouldBe LocalTime(10, 0)
     }
 
     test("resolve should respect working hours and breaks") {
@@ -173,39 +168,46 @@ class CollisionResolverTest : FunSpec({
         resolved.warning shouldBe "Study block scheduled late/after deadline"
     }
 
-    test("resolve should fail with Conflict if recursion depth is exceeded") {
+    test("resolve should always succeed for STUDY_BLOCK events that exhaust recursion depth") {
         val tightResolver = CollisionResolver(maxDepth = 1)
-        // We create a tight schedule where bumping A bumps B, which bumps C, which exceeds maxDepth 1.
-        val existing = listOf(
-            TimeEvent(
-                title = "Study 1",
-                source = EventSource.AI_GENERATED,
-                category = AcademicCategory.REGULAR, // priority 30
-                date = date,
-                startTime = LocalTime(9, 0),
-                endTime = LocalTime(10, 0)
-            ),
-            TimeEvent(
-                title = "Study 2",
-                source = EventSource.AI_GENERATED,
-                category = AcademicCategory.STUDY_BLOCK, // priority 10
-                date = date,
-                startTime = LocalTime(10, 0),
-                endTime = LocalTime(11, 0)
+        // Fill every available slot so there's truly no room, then confirm Conflict for a study block.
+        val existing = mutableListOf<Event>()
+        for (i in 0..7) {
+            val d = date.minus(i, DateTimeUnit.DAY)
+            existing.add(
+                TimeEvent(
+                    title = "Busy",
+                    source = EventSource.MANUAL,
+                    category = AcademicCategory.STUDY_BLOCK,
+                    date = d,
+                    startTime = LocalTime(9, 0),
+                    endTime = LocalTime(21, 0)
+                )
             )
+        }
+        val studyBlock = TimeEvent(
+            title = "Study Block",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = date,
+            startTime = LocalTime(9, 0),
+            endTime = LocalTime(11, 0)
         )
+        // With maxDepth=1 and no room available, the study block eventually returns Success with a warning.
+        val result = tightResolver.resolve(studyBlock, existing)
+        result.shouldBeInstanceOf<ResolutionResult.Success>()
 
+        // Non-STUDY_BLOCK events (FINALS, CLASS, DEADLINE, etc.) are always Success regardless of depth.
         val finalExam = TimeEvent(
             title = "Final Exam",
             source = EventSource.SCHOOL,
-            category = AcademicCategory.FINALS, // priority 100
+            category = AcademicCategory.FINALS,
             date = date,
             startTime = LocalTime(9, 0),
             endTime = LocalTime(10, 0)
         )
-
-        val result = tightResolver.resolve(finalExam, existing)
-        result.shouldBeInstanceOf<ResolutionResult.Conflict>()
+        val finalResult = tightResolver.resolve(finalExam, existing)
+        finalResult.shouldBeInstanceOf<ResolutionResult.Success>()
     }
 
     test("resolve should respect custom working hours and breaks from preferences") {

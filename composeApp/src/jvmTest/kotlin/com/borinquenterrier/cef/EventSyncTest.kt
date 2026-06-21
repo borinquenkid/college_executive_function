@@ -101,6 +101,6 @@ class EventSyncTest : FunSpec({
         runBlocking { eventAgent.pushToCalendar() }
 
         eventAgent.lastGeneratedEvents.value shouldHaveSize 0
-        eventAgent.statusMessage.value shouldBe "Success! All 1 events pushed."
+        eventAgent.statusMessage.value shouldBe "Success! All 1 events pushed to Google Calendar."
     }
 })

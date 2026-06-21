@@ -41,10 +41,11 @@ class DependencyContainer(
         }
     }
 
+    val appEnv: AppEnv = AppEnv()
     val database: AppDatabase by lazy { createDatabase(driverFactory) }
     val modelManager by lazy { ModelManager(httpClient, modelBasePath, logger) }
     val tokenRepository by lazy { GoogleTokenRepository(settings) }
-    val authService by lazy { GoogleAuthService(settings) }
+    val authService by lazy { GoogleAuthService(settings, appEnv) }
     val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }
     val preferencesRepository by lazy { PreferencesRepository(settings) }
     val userPreferenceMemoryRepository by lazy { SqlDelightUserPreferenceMemoryRepository(database) }
@@ -268,7 +269,13 @@ class DependencyContainer(
             globalScope,
             analysisCacheRepository,
             sourceRepository,
-            onEventsAdded = { events -> eventAgent.setGeneratedEvents(events) },
+            onEventsAdded = { newEvents ->
+                val existing = eventAgent.lastGeneratedEvents.value
+                val toAdd = newEvents.filter { new ->
+                    existing.none { it.title == new.title && it.date == new.date }
+                }
+                eventAgent.setGeneratedEvents(existing + toAdd)
+            },
             onError = { error -> eventAgent.reportError(error) }
         )
     }

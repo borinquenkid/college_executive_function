@@ -99,7 +99,7 @@ class CalendarAgentTest : FunSpec({
         }
     }
 
-    test("saveEvent should fall back to local save as LOCAL_ONLY if remote repo fails under local profile") {
+    test("saveEvent falls back to LOCAL_ONLY and throws RemoteSyncFailedException when remote fails") {
         val mockSettings = MapSettings()
         mockSettings.putString("run_profile", "local")
         mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
@@ -107,7 +107,9 @@ class CalendarAgentTest : FunSpec({
         coEvery { remoteRepo.saveEvent(any(), any()) } throws Exception("Remote failure")
         coEvery { localRepo.saveEvent(any(), any()) } just runs
 
-        calendarAgent.saveEvent(timeEvent, "default")
+        shouldThrow<RemoteSyncFailedException> {
+            calendarAgent.saveEvent(timeEvent, "default")
+        }
 
         coVerify(exactly = 1) { remoteRepo.saveEvent(timeEvent, "default") }
         coVerify(exactly = 1) {
@@ -212,6 +214,7 @@ class CalendarAgentTest : FunSpec({
                 "default"
             )
         } returns listOf(localOnlyEvent)
+        coEvery { localRepo.updateEvent(any(), any()) } just runs
 
         // Mock events for checkSyncProposals main logic
         val conflictingLocal = timeEvent.copy(
@@ -235,7 +238,7 @@ class CalendarAgentTest : FunSpec({
         coVerify(exactly = 1) { remoteRepo.deleteEvent("deleted-1", "default") }
         coVerify(exactly = 1) { localRepo.hardDeleteEvent("deleted-1", "default") }
         coVerify(exactly = 1) { remoteRepo.saveEvent(localOnlyEvent, "default") }
-        coVerify(exactly = 1) { localRepo.hardDeleteEvent("local-only", "default") }
+        coVerify(exactly = 1) { localRepo.updateEvent(match { it.syncStatus == SyncStatus.SYNCED }, "default") }
 
         // Check negotiation output
         negotiation.proposals shouldHaveSize 1
@@ -390,5 +393,45 @@ class CalendarAgentTest : FunSpec({
         shouldThrow<IllegalArgumentException> {
             calendarAgent.saveEventLocally(invalidEvent, "default")
         }
+    }
+
+    test("retryLocalOnly pushes LOCAL_ONLY events to remote and updates them to SYNCED") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
+        coEvery { localRepo.getSettings() } returns mockSettings
+        val pendingEvent = timeEvent.copy(syncStatus = SyncStatus.LOCAL_ONLY)
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, "default") } returns listOf(pendingEvent)
+        coEvery { remoteRepo.saveEvent(any(), any()) } just runs
+        coEvery { localRepo.updateEvent(any(), any()) } just runs
+
+        calendarAgent.retryLocalOnly("default")
+
+        coVerify(exactly = 1) { remoteRepo.saveEvent(pendingEvent, "default") }
+        coVerify(exactly = 1) { localRepo.updateEvent(match { it.syncStatus == SyncStatus.SYNCED }, "default") }
+    }
+
+    test("retryLocalOnly keeps events LOCAL_ONLY when remote push fails") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
+        coEvery { localRepo.getSettings() } returns mockSettings
+        val pendingEvent = timeEvent.copy(syncStatus = SyncStatus.LOCAL_ONLY)
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, "default") } returns listOf(pendingEvent)
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws Exception("network error")
+
+        calendarAgent.retryLocalOnly("default")
+
+        coVerify(exactly = 1) { remoteRepo.saveEvent(pendingEvent, "default") }
+        coVerify(exactly = 0) { localRepo.updateEvent(any(), any()) }
+    }
+
+    test("retryLocalOnly skips when Google is not linked") {
+        coEvery { localRepo.getSettings() } returns MapSettings() // no GOOGLE_ACCESS_TOKEN
+
+        calendarAgent.retryLocalOnly("default")
+
+        coVerify(exactly = 0) { localRepo.getEventsBySyncStatus(any(), any()) }
+        coVerify(exactly = 0) { remoteRepo.saveEvent(any(), any()) }
     }
 })

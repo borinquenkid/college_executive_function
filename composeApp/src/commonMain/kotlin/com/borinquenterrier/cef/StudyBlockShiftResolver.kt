@@ -14,7 +14,11 @@ class StudyBlockShiftResolver(
         localEvents: List<Event>,
         proposedBaseCalendar: List<Event>
     ): List<SyncProposal.StudyBlockShift> {
-        val localStudyBlocks = localEvents.filter { it.category == AcademicCategory.STUDY_BLOCK }
+        // Dedup by title+date: duplicate DB rows (same logical event, different IDs)
+        // would otherwise each generate a separate proposal, filling the dialog with copies.
+        val localStudyBlocks = localEvents
+            .filter { it.category == AcademicCategory.STUDY_BLOCK }
+            .distinctBy { Pair(it.title, it.date) }
         val resolvedStudyBlocks = mutableListOf<Event>()
         val proposals = mutableListOf<SyncProposal.StudyBlockShift>()
 

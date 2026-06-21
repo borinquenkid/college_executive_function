@@ -170,6 +170,7 @@ fun AppContent(container: DependencyContainer) {
                         aiGeneratedEvents = aiGeneratedEvents,
                         calendarAgent = container.calendarAgent,
                         eventAgent = container.eventAgent,
+                        authService = container.authService,
                         onNavigate = { appController.navigateTo(it) }
                     )
                 }

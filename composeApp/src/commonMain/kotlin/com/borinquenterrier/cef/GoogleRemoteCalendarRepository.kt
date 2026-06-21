@@ -32,8 +32,6 @@ class GoogleRemoteCalendarRepository(
     override suspend fun saveEvent(event: Event, calendarId: String) {
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)
         try {
-            val existingEvents = syncService.getEvents(targetId)
-            conflictDetector.validateNoConflict(event, existingEvents)
             syncService.syncEvent(event, targetId)
         } catch (e: GoogleApiException) {
             throw mapCalendarException(targetId, e)

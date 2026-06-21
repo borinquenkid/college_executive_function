@@ -2,28 +2,27 @@ package com.borinquenterrier.cef
 
 import java.io.File
 
-/**
- * Single source of truth for runtime configuration on JVM.
- *
- * Priority order (first non-null wins):
- *   1. JVM system properties  (-Dkey=value)
- *   2. OS environment variables
- *   3. .env file in the working directory
- *
- * The .env file is parsed once and cached. Keys with no value on any tier return null.
- */
-object AppEnv {
+actual class AppEnv actual constructor() {
 
     private val dotEnv: Map<String, String> by lazy { parseDotEnv() }
 
-    fun get(key: String): String? =
+    actual constructor(dotEnvOverride: Map<String, String>) : this() {
+        _dotEnvOverride = dotEnvOverride
+    }
+
+    // null = use lazy parseDotEnv(); non-null = use the override map (test mode)
+    private var _dotEnvOverride: Map<String, String>? = null
+
+    actual fun get(key: String): String? =
         System.getProperty(key)?.takeIf { it.isNotBlank() }
             ?: System.getenv(key)?.takeIf { it.isNotBlank() }
-            ?: dotEnv[key]?.takeIf { it.isNotBlank() }
+            ?: (_dotEnvOverride ?: dotEnv)[key]?.takeIf { it.isNotBlank() }
 
     private fun parseDotEnv(): Map<String, String> {
         val map = mutableMapOf<String, String>()
-        val file = File(".env").takeIf { it.exists() } ?: return map
+        // Search CWD then parent — covers `./gradlew run` (CWD = project root)
+        // and IDE Gradle runs (CWD = composeApp/).
+        val file = listOf(".", "..").map { File(it, ".env") }.firstOrNull { it.exists() } ?: return map
         try {
             file.forEachLine { line ->
                 val trimmed = line.trim()

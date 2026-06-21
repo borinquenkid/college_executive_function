@@ -34,7 +34,7 @@ class GoogleCalendarSyncServiceTest : FunSpec({
 
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
 
         val event = TimeEvent(
@@ -80,7 +80,7 @@ class GoogleCalendarSyncServiceTest : FunSpec({
 
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
         val events = service.getEvents("school-cal")
 
@@ -116,7 +116,7 @@ class GoogleCalendarSyncServiceTest : FunSpec({
 
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
         val calendars = service.listCalendars()
 
@@ -175,7 +175,7 @@ class GoogleCalendarSyncServiceTest : FunSpec({
 
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
         val events = service.getEvents("school-cal")
 
@@ -205,7 +205,7 @@ class GoogleCalendarSyncServiceTest : FunSpec({
 
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
 
         val newCalendarId = service.createCalendar("New Calendar")
@@ -233,7 +233,7 @@ class GoogleCalendarSyncServiceTest : FunSpec({
 
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-token", "mock-refresh")
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val service = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
 
         service.deleteEvent("school-cal", "event-123")

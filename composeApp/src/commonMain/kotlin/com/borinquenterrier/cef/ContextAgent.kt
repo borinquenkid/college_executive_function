@@ -23,12 +23,15 @@ class ContextAgent(
     suspend fun analyzeSource(source: SourceItem) {
         _isAnalyzing.value = true
         try {
-            val fullText = source.fragments.joinToString("\n\n") { it.text }
-            val metadataJson = aiService.analyzeDocument(fullText)
+            AppTracer.current.span("context.analyze_source", mapOf("source.title" to source.title)) {
+                val fullText = source.fragments.joinToString("\n\n") { it.text }
+                val metadataJson = aiService.analyzeDocument(fullText)
 
-            if (metadataJson != null) {
-                sourceRepository.updateSourceMetadata(source.title, metadataJson)
-                logger?.d(tag, "Successfully analyzed and persisted metadata for ${source.title}")
+                if (metadataJson != null) {
+                    sourceRepository.updateSourceMetadata(source.title, metadataJson)
+                    logger?.d(tag, "Successfully analyzed and persisted metadata for ${source.title}")
+                }
+                setAttribute("context.metadata_extracted", (metadataJson != null).toString())
             }
         } catch (e: Exception) {
             logger?.e(tag, "Failed to analyze source ${source.title}", e)

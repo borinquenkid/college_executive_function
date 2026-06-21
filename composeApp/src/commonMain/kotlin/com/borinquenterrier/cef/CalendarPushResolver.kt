@@ -4,7 +4,8 @@ package com.borinquenterrier.cef
 data class PushOutcome(
     val successCount: Int,
     val conflicts: List<Event>,
-    val unresolvableConflicts: List<ConflictResolver.UnresolvedConflict> = emptyList()
+    val unresolvableConflicts: List<ConflictResolver.UnresolvedConflict> = emptyList(),
+    val localOnlyCount: Int = 0
 )
 
 /**
@@ -33,12 +34,13 @@ class CalendarPushResolver(
         )
 
         // Phase 2: Separate merged events from existing (what's truly new).
-        // Match by ID first; fall back to title+date (without category) so re-extracted
-        // events whose category changed (e.g. REGULAR → DEADLINE) still dedup against
-        // the old copy and don't stack up as duplicates.
+        // An event is "already handled" only if it is confirmed SYNCED to remote.
+        // LOCAL_ONLY events (saved locally when a previous remote push failed) must be
+        // re-attempted here so they actually reach Google Calendar.
+        val synced = existing.filter { it.syncStatus == SyncStatus.SYNCED }
         val newEvents = mergedEvents.filter { merged ->
-            existing.none { it.id == merged.id } &&
-            existing.none { it.title == merged.title && it.date == merged.date }
+            synced.none { it.id == merged.id } &&
+            synced.none { it.title == merged.title && it.date == merged.date }
         }
 
         val conflicts = mutableListOf<Event>()
@@ -66,8 +68,9 @@ class CalendarPushResolver(
             }
         }
 
-        val successCount = persistResolvedEvents(resolvedList, calendarId, conflicts)
-        return PushOutcome(successCount, conflicts, unresolvableConflicts)
+        val localOnlyExisting = existing.filter { it.syncStatus == SyncStatus.LOCAL_ONLY }
+        val (successCount, localOnlyCount) = persistResolvedEvents(resolvedList, calendarId, conflicts, localOnlyExisting)
+        return PushOutcome(successCount, conflicts, unresolvableConflicts, localOnlyCount)
     }
 
     /**
@@ -130,18 +133,29 @@ class CalendarPushResolver(
     private suspend fun persistResolvedEvents(
         resolvedList: List<Event>,
         calendarId: String,
-        conflicts: MutableList<Event>
-    ): Int {
+        conflicts: MutableList<Event>,
+        localOnlyExisting: List<Event> = emptyList()
+    ): Pair<Int, Int> {
         var successCount = 0
+        var localOnlyCount = 0
         for (resolved in resolvedList) {
             try {
+                // Purge stale LOCAL_ONLY rows with the same title+date before re-saving.
+                // LOCAL_ONLY events were never on remote, so hard-deleting them is safe.
+                localOnlyExisting
+                    .filter { it.title == resolved.title && it.date == resolved.date }
+                    .mapNotNull { it.id }
+                    .forEach { staleId -> repository.hardDeleteLocalOnly(staleId, calendarId) }
                 repository.saveEvent(resolved, calendarId)
                 successCount++
             } catch (e: OverlapException) {
                 logger?.d(tag, "Conflict detected for: ${resolved.title}")
                 conflicts.add(resolved)
+            } catch (e: RemoteSyncFailedException) {
+                logger?.d(tag, "Remote push failed, saved locally: ${resolved.title}")
+                localOnlyCount++
             }
         }
-        return successCount
+        return Pair(successCount, localOnlyCount)
     }
 }

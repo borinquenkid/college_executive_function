@@ -38,9 +38,7 @@ class AiEventsServiceTest : FunSpec({
         service.aiGeneratedEvents.value[0].title shouldBe "Study Math"
     }
 
-    test("should accumulate multiple add events calls") {
-        val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+    test("addEvents replaces existing events instead of appending") {
         val service = AiEventsService()
 
         val event1 = TimeEvent(
@@ -51,7 +49,6 @@ class AiEventsServiceTest : FunSpec({
             startTime = LocalTime(9, 0),
             endTime = LocalTime(10, 30)
         )
-
         val event2 = TimeEvent(
             title = "Study Physics",
             source = EventSource.AI_GENERATED,
@@ -64,7 +61,30 @@ class AiEventsServiceTest : FunSpec({
         service.addEvents(listOf(event1))
         service.addEvents(listOf(event2))
 
-        service.aiGeneratedEvents.value.shouldHaveSize(2)
+        // Must contain only the second batch, not both — prevents calendar duplicates after re-generate
+        service.aiGeneratedEvents.value.shouldHaveSize(1)
+        service.aiGeneratedEvents.value[0].title shouldBe "Study Physics"
+    }
+
+    test("addEvents with empty list clears the overlay") {
+        val service = AiEventsService()
+
+        val event = TimeEvent(
+            title = "Study Math",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = LocalDate(2026, 6, 10),
+            startTime = LocalTime(9, 0),
+            endTime = LocalTime(10, 30)
+        )
+
+        service.addEvents(listOf(event))
+        service.aiGeneratedEvents.value.shouldHaveSize(1)
+
+        // Simulates what StudioPanel does after a successful push: onEventsGenerated(emptyList())
+        service.addEvents(emptyList())
+
+        service.aiGeneratedEvents.value.shouldBeEmpty()
     }
 
     test("should clear all events") {

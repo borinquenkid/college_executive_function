@@ -1,7 +1,9 @@
 package com.borinquenterrier.cef
 
 import kotlinx.datetime.DateTimeUnit
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.minus
+import okio.ByteString.Companion.encodeUtf8
 
 /**
  * Asks the AI to break a calendar [Event] down into sub-steps, and applies an accepted
@@ -38,6 +40,7 @@ class TaskDecompositionService(
         for (task in tasks) {
             val taskDate = target.date.minus(task.daysBeforeDue, DateTimeUnit.DAY)
             val event = DayEvent(
+                id = stepId(target.id, task.title, taskDate),
                 title = task.title,
                 source = EventSource.AI_GENERATED,
                 category = AcademicCategory.STUDY_BLOCK,
@@ -52,4 +55,7 @@ class TaskDecompositionService(
         }
         return count
     }
+
+    private fun stepId(parentId: String?, title: String, date: LocalDate): String =
+        "$parentId|$title|$date".encodeUtf8().sha256().hex().take(24)
 }

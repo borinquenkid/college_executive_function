@@ -29,7 +29,6 @@ fun App() {
         settings, logger, driverFactory, modelBasePath, fileReader, docxReader, pdfReader
     ) {
         value = withContext(Dispatchers.Default) {
-            AppTracer.current = createTracer(settings)
             val c = DependencyContainer(
                 settings,
                 logger,
@@ -41,6 +40,8 @@ fun App() {
             )
             // Pre-trigger database initialization to ensure it happens off-thread
             c.database
+            AppTracer.current = createTracer(settings, c.appEnv)
+            AppTracer.current.span("app.startup") {}
             println("[App] Core services initialized off-thread.")
             c
         }

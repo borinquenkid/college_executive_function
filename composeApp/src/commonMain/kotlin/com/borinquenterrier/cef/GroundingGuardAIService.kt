@@ -29,7 +29,7 @@ class GroundingGuardAIService(
             mapOf("fragment.count" to fragments.size.toString())
         ) {
             val events = delegate.generateCalendarEvents(fragments)
-            val result = groundToSource("generateCalendarEvents", sourceText, events)
+            val result = groundToSource("generateCalendarEvents", sourceText, events, spanScope = this)
             setAttribute("events.final", result.size.toLong())
             setAttribute("class.final", result.count { it.category == AcademicCategory.CLASS }.toLong())
             result
@@ -56,7 +56,12 @@ class GroundingGuardAIService(
     // and is not a user-facing coaching response. Source-fact grounding is not applied here
     // because appending warning text would corrupt the JSON format the caller expects.
 
-    private fun groundToSource(caller: String, sourceText: String, events: List<Event>): List<Event> {
+    private fun groundToSource(
+        caller: String,
+        sourceText: String,
+        events: List<Event>,
+        spanScope: SpanScope? = null
+    ): List<Event> {
         val sourceYears = GeminiAIService.extractSourceYears(sourceText)
         val grounded = GeminiAIService.filterToSourceYears(events, sourceYears)
         val dropped = events.size - grounded.size
@@ -64,7 +69,7 @@ class GroundingGuardAIService(
         val categoriesBefore = events.groupBy { it.category.name }.mapValues { it.value.size }
         val categoriesAfter = grounded.groupBy { it.category.name }.mapValues { it.value.size }
 
-        AppTracer.current.event("grounding.filter", mapOf(
+        val eventAttrs = mapOf(
             "caller" to caller,
             "source.years" to sourceYears.sorted().joinToString(),
             "events.before" to events.size.toString(),
@@ -74,7 +79,10 @@ class GroundingGuardAIService(
             "categories.after" to categoriesAfter.entries.joinToString { "${it.key}=${it.value}" },
             "class.before" to (categoriesBefore["CLASS"] ?: 0).toString(),
             "class.after" to (categoriesAfter["CLASS"] ?: 0).toString(),
-        ))
+        )
+        // Use direct span reference when available (coroutine-safe); fall back to thread-local.
+        spanScope?.addEvent("grounding.filter", eventAttrs)
+            ?: AppTracer.current.event("grounding.filter", eventAttrs)
 
         if (dropped > 0) {
             logger?.d("GroundingGuard", "$caller: dropped $dropped confabulated event(s) outside source years $sourceYears")

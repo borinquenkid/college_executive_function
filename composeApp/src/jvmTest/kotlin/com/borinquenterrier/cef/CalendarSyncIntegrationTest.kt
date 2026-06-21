@@ -122,7 +122,7 @@ class CalendarSyncIntegrationTest : FunSpec({
             }
         }
         val authService =
-            GoogleAuthService(tokenRepo.let { MapSettings() }) // Use a fresh MapSettings for dummy auth
+            GoogleAuthService(tokenRepo.let { MapSettings() }, AppEnv()) // Use a fresh MapSettings for dummy auth
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
@@ -171,7 +171,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         }
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-access", "mock-refresh")
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()
@@ -195,7 +195,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         val localRepo = SqlDelightLocalCalendarRepository(createTestDatabase())
         val tokenRepo = GoogleTokenRepository(MapSettings())
         // Explicitly NOT saving any tokens
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val httpClient = HttpClient(MockEngine {
             respond(content = "Unauthorized", status = HttpStatusCode.Unauthorized)
         }) {
@@ -262,7 +262,7 @@ class CalendarSyncIntegrationTest : FunSpec({
         }
         val tokenRepo = GoogleTokenRepository(MapSettings())
         tokenRepo.saveTokens("mock-access", "mock-refresh")
-        val authService = GoogleAuthService(MapSettings())
+        val authService = GoogleAuthService(MapSettings(), AppEnv())
         val syncService = GoogleCalendarSyncService(httpClient, tokenRepo, authService)
         val idResolver = CalendarIdResolver(syncService, preferencesRepository)
         val conflictDetector = EventConflictDetector()

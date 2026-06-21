@@ -13,6 +13,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -143,24 +144,26 @@ class SourceFlowTest : FunSpec({
     // ---- EventAgent / pipeline path ----------------------------------------------
 
     test("extractDeliverables (agent path) sets isLoading true during extraction, false after") {
-        // delay(1) forces the mock to suspend, ensuring the StateFlow collector sees isLoading=true
-        // before it flips back to false. Without the delay the transition can be too fast for the
-        // background collector coroutine to observe on slower/single-core CI machines.
+        // Gate the mock so extractDeliverables stays suspended while isLoading = true.
+        // This is deterministic: we don't release the gate until we have confirmed the
+        // state is true, so the assertion cannot race with the mock completing.
+        val gate = CompletableDeferred<Unit>()
         coEvery { mockAi.generateCalendarEvents(any()) } coAnswers {
-            delay(1)
+            gate.await()
             listOf(makeEvent("Midterm"))
         }
 
-        val sawLoading = mutableListOf<Boolean>()
-        val collector = testScope.launch {
-            eventAgent.isLoading.collect { sawLoading.add(it) }
-        }
+        val extractJob = testScope.launch { eventAgent.extractDeliverables(makeSource()) }
 
-        eventAgent.extractDeliverables(makeSource())
-        collector.cancel()
+        // Wait until isLoading actually becomes true (StateFlow emits current value on
+        // subscription, so first { it } catches both the case where true has already been
+        // set and the case where it hasn't been set yet).
+        withTimeout(5_000) { eventAgent.isLoading.first { it } }
 
-        sawLoading.any { it } shouldBe true            // was true at some point
-        eventAgent.isLoading.value shouldBe false       // false once done
+        gate.complete(Unit)
+        extractJob.join()
+
+        eventAgent.isLoading.value shouldBe false
         eventAgent.lastGeneratedEvents.value shouldHaveSize 1
     }
 

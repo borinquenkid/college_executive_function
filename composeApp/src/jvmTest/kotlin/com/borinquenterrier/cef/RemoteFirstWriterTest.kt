@@ -2,6 +2,8 @@ package com.borinquenterrier.cef
 
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.shouldBe
+import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
@@ -13,6 +15,11 @@ import kotlinx.datetime.LocalTime
 
 class RemoteFirstWriterTest : FunSpec({
 
+    lateinit var localRepo: StudentCalendarRepository
+    lateinit var remoteRepo: RemoteCalendarRepository
+    lateinit var syncGate: SyncGate
+    lateinit var writer: RemoteFirstWriter
+
     val event = TimeEvent(
         id = "e1", title = "Exam", source = EventSource.AI_GENERATED,
         category = AcademicCategory.DEADLINE,
@@ -20,98 +27,121 @@ class RemoteFirstWriterTest : FunSpec({
         startTime = LocalTime(9, 0), endTime = LocalTime(10, 0)
     )
 
-    fun setup(live: Boolean): Triple<StudentCalendarRepository, RemoteCalendarRepository, RemoteFirstWriter> {
-        val local = mockk<StudentCalendarRepository>(relaxed = true)
-        val remote = mockk<RemoteCalendarRepository>(relaxed = true)
-        val gate = mockk<SyncGate>().also { every { it.isLive() } returns live }
-        return Triple(local, remote, RemoteFirstWriter(local, remote, gate, null))
+    beforeEach {
+        localRepo = mockk(relaxed = true)
+        remoteRepo = mockk(relaxed = true)
+        syncGate = mockk()
+        writer = RemoteFirstWriter(localRepo, remoteRepo, syncGate, null)
     }
 
     // ── save — live ───────────────────────────────────────────────────────────
 
     test("save pushes to remote and marks SYNCED when live") {
-        val (local, remote, writer) = setup(live = true)
-        coEvery { remote.saveEvent(any(), any()) } just runs
+        every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.saveEvent(any(), any()) } just runs
 
         writer.save(event, "default")
 
-        coVerify(exactly = 1) { remote.saveEvent(event, "default") }
-        coVerify(exactly = 1) { local.saveEvent(match { it.syncStatus == SyncStatus.SYNCED }, "default") }
+        coVerify(exactly = 1) { remoteRepo.saveEvent(event, "default") }
+        coVerify(exactly = 1) { localRepo.saveEvent(match { it.syncStatus == SyncStatus.SYNCED }, "default") }
     }
 
-    test("save falls back to LOCAL_ONLY and throws RemoteSyncFailedException on network failure") {
-        val (local, remote, writer) = setup(live = true)
-        coEvery { remote.saveEvent(any(), any()) } throws RuntimeException("offline")
+    test("save preserves all event fields when writing SYNCED") {
+        every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.saveEvent(any(), any()) } just runs
+
+        writer.save(event, "default")
+
+        coVerify {
+            localRepo.saveEvent(
+                match { it.id == "e1" && it.title == "Exam" && it.syncStatus == SyncStatus.SYNCED },
+                "default"
+            )
+        }
+    }
+
+    test("save falls back to LOCAL_ONLY and throws RemoteSyncFailedException on network error") {
+        every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws RuntimeException("timeout")
 
         shouldThrow<RemoteSyncFailedException> { writer.save(event, "default") }
 
-        coVerify(exactly = 1) { local.saveEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
+        coVerify(exactly = 1) { localRepo.saveEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
     }
 
-    test("save rethrows CalendarNotFoundException without local fallback") {
-        val (local, _, writer) = setup(live = true)
-        val remote = mockk<RemoteCalendarRepository>()
-        coEvery { remote.saveEvent(any(), any()) } throws CalendarNotFoundException("cal", "gone")
+    test("save wraps the original exception as cause in RemoteSyncFailedException") {
+        every { syncGate.isLive() } returns true
+        val cause = RuntimeException("DNS failure")
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws cause
 
-        val (local2, remote2, writer2) = setup(live = true)
-        coEvery { remote2.saveEvent(any(), any()) } throws CalendarNotFoundException("cal", "gone")
+        val ex = shouldThrow<RemoteSyncFailedException> { writer.save(event, "default") }
 
-        shouldThrow<CalendarNotFoundException> { writer2.save(event, "default") }
-
-        coVerify(exactly = 0) { local2.saveEvent(any(), any()) }
+        ex.cause shouldBe cause
     }
 
-    // ── save — offline ────────────────────────────────────────────────────────
+    test("save rethrows CalendarNotFoundException without saving locally") {
+        every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws CalendarNotFoundException("cal", "deleted")
 
-    test("save stores LOCAL_ONLY directly when not live") {
-        val (local, remote, writer) = setup(live = false)
+        shouldThrow<CalendarNotFoundException> { writer.save(event, "default") }
+
+        coVerify(exactly = 0) { localRepo.saveEvent(any(), any()) }
+    }
+
+    test("save writes LOCAL_ONLY directly without touching remote when not live") {
+        every { syncGate.isLive() } returns false
 
         writer.save(event, "default")
 
-        coVerify(exactly = 0) { remote.saveEvent(any(), any()) }
-        coVerify(exactly = 1) { local.saveEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
+        coVerify(exactly = 0) { remoteRepo.saveEvent(any(), any()) }
+        coVerify(exactly = 1) { localRepo.saveEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
     }
 
     // ── update — live ─────────────────────────────────────────────────────────
 
     test("update pushes to remote and marks SYNCED when live") {
-        val (local, remote, writer) = setup(live = true)
-        coEvery { remote.saveEvent(any(), any()) } just runs
+        every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.saveEvent(any(), any()) } just runs
 
         writer.update(event, "default")
 
-        coVerify(exactly = 1) { remote.saveEvent(event, "default") }
-        coVerify(exactly = 1) { local.updateEvent(match { it.syncStatus == SyncStatus.SYNCED }, "default") }
+        coVerify(exactly = 1) { remoteRepo.saveEvent(event, "default") }
+        coVerify(exactly = 1) { localRepo.updateEvent(match { it.syncStatus == SyncStatus.SYNCED }, "default") }
     }
 
-    test("update marks LOCAL_ONLY on network failure without throwing") {
-        val (local, remote, writer) = setup(live = true)
-        coEvery { remote.saveEvent(any(), any()) } throws RuntimeException("offline")
+    test("update marks LOCAL_ONLY on network error without rethrowing") {
+        every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws RuntimeException("offline")
+
+        writer.update(event, "default")  // must not throw
+
+        coVerify(exactly = 1) { localRepo.updateEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
+    }
+
+    test("update does not save a SYNCED copy when network error occurs") {
+        every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws RuntimeException("offline")
 
         writer.update(event, "default")
 
-        coVerify(exactly = 1) { local.updateEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
+        coVerify(exactly = 0) { localRepo.updateEvent(match { it.syncStatus == SyncStatus.SYNCED }, "default") }
     }
 
-    test("update rethrows CalendarNotFoundException") {
-        val (_, _, _) = setup(live = true)
-        val local2 = mockk<StudentCalendarRepository>(relaxed = true)
-        val remote2 = mockk<RemoteCalendarRepository>(relaxed = true)
-        val gate2 = mockk<SyncGate>().also { every { it.isLive() } returns true }
-        val writer2 = RemoteFirstWriter(local2, remote2, gate2, null)
-        coEvery { remote2.saveEvent(any(), any()) } throws CalendarNotFoundException("cal", "gone")
+    test("update rethrows CalendarNotFoundException without updating locally") {
+        every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws CalendarNotFoundException("cal", "deleted")
 
-        shouldThrow<CalendarNotFoundException> { writer2.update(event, "default") }
+        shouldThrow<CalendarNotFoundException> { writer.update(event, "default") }
+
+        coVerify(exactly = 0) { localRepo.updateEvent(any(), any()) }
     }
 
-    // ── update — offline ──────────────────────────────────────────────────────
-
-    test("update writes locally only when not live") {
-        val (local, remote, writer) = setup(live = false)
+    test("update writes the original event locally without changing syncStatus when not live") {
+        every { syncGate.isLive() } returns false
 
         writer.update(event, "default")
 
-        coVerify(exactly = 0) { remote.saveEvent(any(), any()) }
-        coVerify(exactly = 1) { local.updateEvent(event, "default") }
+        coVerify(exactly = 0) { remoteRepo.saveEvent(any(), any()) }
+        coVerify(exactly = 1) { localRepo.updateEvent(event, "default") }
     }
 })

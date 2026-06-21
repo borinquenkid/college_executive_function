@@ -1,62 +1,111 @@
 package com.borinquenterrier.cef
 
-import io.kotest.core.spec.style.StringSpec
+import io.kotest.core.spec.style.FunSpec
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
 
-class SourceDeleterTest : StringSpec({
+class SourceDeleterTest : FunSpec({
 
-    "deleteSource removes from repository and cleans events" {
-        val sourceRepository = mockk<SqlDelightSourceRepository>()
-        val localRepository = mockk<SqlDelightLocalCalendarRepository>()
-        val calendarAgent = mockk<CalendarAgent>()
-        val logger = mockk<Logger>()
+    // Dispatchers.Unconfined runs scope.launch blocks immediately (synchronously)
+    // in the calling coroutine, so assertions can follow deleteSource() directly.
+    fun makeDeleter(
+        sourceRepo: SqlDelightSourceRepository,
+        calendarAgent: CalendarAgent,
+        logger: Logger
+    ) = SourceDeleter(sourceRepo, calendarAgent, logger, CoroutineScope(Dispatchers.Unconfined))
 
-        val deleter =
-            SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
+    test("deleteSource removes source and synchronizes after cleaning matching events") {
+        val sourceRepo = mockk<SqlDelightSourceRepository>()
+        val agent = mockk<CalendarAgent>(relaxed = true)
+        val logger = mockk<Logger>(relaxed = true)
+        val source = mockk<SourceItem> { every { title } returns "Calculus" }
 
-        val source = mockk<SourceItem>(relaxed = true) { every { title } returns "Calculus" }
-        coEvery { sourceRepository.deleteSource("Calculus") } returns Unit
-        coEvery { localRepository.getAllEvents("default") } returns emptyList()
-        coEvery { calendarAgent.synchronize("default") } returns Unit
+        coEvery { sourceRepo.deleteSource("Calculus") } returns Unit
+        coEvery { agent.getEvents("default") } returns emptyList()
 
-        // Verify deletion pipeline
+        makeDeleter(sourceRepo, agent, logger).deleteSource(source)
+
+        coVerify(exactly = 1) { sourceRepo.deleteSource("Calculus") }
+        coVerify(exactly = 1) { agent.synchronize("default") }
     }
 
-    "deleteSource filters events by source title" {
-        val sourceRepository = mockk<SqlDelightSourceRepository>()
-        val localRepository = mockk<SqlDelightLocalCalendarRepository>()
-        val calendarAgent = mockk<CalendarAgent>()
-        val logger = mockk<Logger>()
+    test("deleteSource deletes only events whose id starts with the source title") {
+        val sourceRepo = mockk<SqlDelightSourceRepository>()
+        val agent = mockk<CalendarAgent>(relaxed = true)
+        val logger = mockk<Logger>(relaxed = true)
+        val source = mockk<SourceItem> { every { title } returns "Physics" }
 
-        val deleter =
-            SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
+        val physicsEvent = mockk<Event>(relaxed = true) {
+            every { id } returns "Physics-hw1"
+            every { warning } returns null
+        }
+        val biologyEvent = mockk<Event>(relaxed = true) {
+            every { id } returns "Biology-lab"
+            every { warning } returns null
+        }
 
-        val source = mockk<SourceItem>(relaxed = true) { every { title } returns "Physics" }
-        val event1 = mockk<Event>(relaxed = true) { every { id } returns "Physics-hw1" }
-        val event2 = mockk<Event>(relaxed = true) { every { id } returns "Biology-lab" }
+        coEvery { sourceRepo.deleteSource("Physics") } returns Unit
+        coEvery { agent.getEvents("default") } returns listOf(physicsEvent, biologyEvent)
 
-        coEvery { sourceRepository.deleteSource("Physics") } returns Unit
-        coEvery { localRepository.getAllEvents("default") } returns listOf(event1, event2)
-        coEvery { localRepository.hardDeleteEvent(any(), any()) } returns Unit
-        coEvery { calendarAgent.synchronize("default") } returns Unit
+        makeDeleter(sourceRepo, agent, logger).deleteSource(source)
 
-        // Verify only Physics events deleted
+        coVerify(exactly = 1) { agent.deleteEvent("Physics-hw1", "default") }
+        coVerify(exactly = 0) { agent.deleteEvent("Biology-lab", "default") }
     }
 
-    "deleteSource catches and logs deletion errors" {
-        val sourceRepository = mockk<SqlDelightSourceRepository>()
-        val localRepository = mockk<SqlDelightLocalCalendarRepository>()
-        val calendarAgent = mockk<CalendarAgent>()
-        val logger = mockk<Logger>()
+    test("deleteSource deletes events whose warning contains the source title") {
+        val sourceRepo = mockk<SqlDelightSourceRepository>()
+        val agent = mockk<CalendarAgent>(relaxed = true)
+        val logger = mockk<Logger>(relaxed = true)
+        val source = mockk<SourceItem> { every { title } returns "Math" }
 
-        val deleter =
-            SourceDeleter(sourceRepository, localRepository, calendarAgent, logger, mockk())
+        val event = mockk<Event>(relaxed = true) {
+            every { id } returns "other-id"
+            every { warning } returns "Imported from Math syllabus"
+        }
 
-        val source = mockk<SourceItem>(relaxed = true) { every { title } returns "Math" }
-        coEvery { sourceRepository.deleteSource("Math") } throws Exception("DB error")
+        coEvery { sourceRepo.deleteSource("Math") } returns Unit
+        coEvery { agent.getEvents("default") } returns listOf(event)
 
-        // Verify error handling
+        makeDeleter(sourceRepo, agent, logger).deleteSource(source)
+
+        coVerify(exactly = 1) { agent.deleteEvent("other-id", "default") }
+    }
+
+    test("deleteSource skips events with null id") {
+        val sourceRepo = mockk<SqlDelightSourceRepository>()
+        val agent = mockk<CalendarAgent>(relaxed = true)
+        val logger = mockk<Logger>(relaxed = true)
+        val source = mockk<SourceItem> { every { title } returns "Chem" }
+
+        val event = mockk<Event>(relaxed = true) {
+            every { id } returns null
+            every { warning } returns null
+        }
+
+        coEvery { sourceRepo.deleteSource("Chem") } returns Unit
+        coEvery { agent.getEvents("default") } returns listOf(event)
+
+        makeDeleter(sourceRepo, agent, logger).deleteSource(source)
+
+        coVerify(exactly = 0) { agent.deleteEvent(any(), any()) }
+    }
+
+    test("deleteSource catches and logs exceptions without propagating") {
+        val sourceRepo = mockk<SqlDelightSourceRepository>()
+        val agent = mockk<CalendarAgent>(relaxed = true)
+        val logger = mockk<Logger>(relaxed = true)
+        val source = mockk<SourceItem> { every { title } returns "Bio" }
+
+        coEvery { sourceRepo.deleteSource("Bio") } throws RuntimeException("DB error")
+
+        makeDeleter(sourceRepo, agent, logger).deleteSource(source)
+
+        coVerify(exactly = 1) { logger.e(any(), any(), any()) }
+        coVerify(exactly = 0) { agent.synchronize(any()) }
     }
 })

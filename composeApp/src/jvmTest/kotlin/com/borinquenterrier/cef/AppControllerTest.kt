@@ -59,7 +59,6 @@ class AppControllerTest : FunSpec({
         // Use real SourceDeleter so it actually calls the repositories
         val realSourceDeleter = SourceDeleter(
             sourceRepository,
-            localRepository,
             calendarAgent,
             logger,
             GlobalScope
@@ -141,7 +140,7 @@ class AppControllerTest : FunSpec({
     test("deleteSource removes item from sourceItems and deselects it") {
         val source = SourceItem("syllabus.pdf", emptyList(), SourceCategory.SYLLABUS)
         every { aiService.isConfigured() } returns false
-        coEvery { localRepository.getAllEvents(any()) } returns emptyList()
+        coEvery { calendarAgent.getEvents(any()) } returns emptyList()
 
         controller.addSource(source)
         controller.sourceItems.value.any { it.title == "syllabus.pdf" } shouldBe true
@@ -154,31 +153,26 @@ class AppControllerTest : FunSpec({
         controller.selectedSource.value shouldBe null
     }
 
-    test("deleteSource hardDeletes matching events by id prefix") {
+    test("deleteSource deletes matching events by id prefix via calendarAgent") {
         val source = SourceItem("cs101_syllabus", emptyList(), SourceCategory.SYLLABUS)
         every { aiService.isConfigured() } returns false
 
         val matchingEvent = makeEvent("cs101_syllabus_midterm", id = "cs101_syllabus_midterm")
         val otherEvent = makeEvent("unrelated_event", id = "unrelated_event")
-        coEvery { localRepository.getAllEvents(any()) } returns listOf(matchingEvent, otherEvent)
+        coEvery { calendarAgent.getEvents(any()) } returns listOf(matchingEvent, otherEvent)
 
         controller.addSource(source)
         controller.deleteSource(source)
         kotlinx.coroutines.delay(300)
 
-        coVerify(exactly = 1) {
-            localRepository.hardDeleteEvent(
-                "cs101_syllabus_midterm",
-                "default"
-            )
-        }
-        coVerify(exactly = 0) { localRepository.hardDeleteEvent("unrelated_event", "default") }
+        coVerify(exactly = 1) { calendarAgent.deleteEvent("cs101_syllabus_midterm", "default") }
+        coVerify(exactly = 0) { calendarAgent.deleteEvent("unrelated_event", "default") }
     }
 
     test("deleteSource calls calendarAgent.synchronize after cleanup") {
         val source = SourceItem("notes.txt", emptyList(), SourceCategory.READING_MATERIAL)
         every { aiService.isConfigured() } returns false
-        coEvery { localRepository.getAllEvents(any()) } returns emptyList()
+        coEvery { calendarAgent.getEvents(any()) } returns emptyList()
 
         controller.addSource(source)
         controller.deleteSource(source)

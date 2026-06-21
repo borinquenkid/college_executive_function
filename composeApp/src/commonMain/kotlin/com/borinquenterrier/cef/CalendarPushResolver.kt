@@ -19,8 +19,8 @@ class CalendarPushResolver(
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
     private val logger: Logger? = null
 ) {
-    private val tag = "CalendarPushResolver"
     private val conflictResolver = ConflictResolver(logger)
+    private val writer = ResolvedEventWriter(repository, logger)
 
     suspend fun resolveAndPush(
         events: List<Event>,
@@ -69,7 +69,7 @@ class CalendarPushResolver(
         }
 
         val localOnlyExisting = existing.filter { it.syncStatus == SyncStatus.LOCAL_ONLY }
-        val (successCount, localOnlyCount) = persistResolvedEvents(resolvedList, calendarId, conflicts, localOnlyExisting)
+        val (successCount, localOnlyCount) = writer.persist(resolvedList, calendarId, conflicts, localOnlyExisting)
         return PushOutcome(successCount, conflicts, unresolvableConflicts, localOnlyCount)
     }
 
@@ -98,64 +98,5 @@ class CalendarPushResolver(
         val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
         val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
         return CollisionResolver(preferences = preferences, userConstraints = userConstraints)
-    }
-
-    private suspend fun resolveConflicts(
-        events: List<Event>,
-        existing: List<Event>,
-        conflicts: MutableList<Event>
-    ): List<Event> {
-        val currentCalendarState = existing.toMutableList()
-        val resolvedList = mutableListOf<Event>()
-        val resolver = buildResolver()
-
-        for (event in events) {
-            when (val result = resolver.resolve(event, currentCalendarState)) {
-                is ResolutionResult.Success -> {
-                    // Update currentCalendarState so subsequent events in this batch resolve against it
-                    for (resolved in result.resolvedEvents) {
-                        resolved.id?.let { id ->
-                            currentCalendarState.removeAll { it.id == id }
-                        }
-                        currentCalendarState.add(resolved)
-                    }
-                    resolvedList.addAll(result.resolvedEvents)
-                }
-
-                is ResolutionResult.Conflict -> {
-                    conflicts.add(event)
-                }
-            }
-        }
-        return resolvedList
-    }
-
-    private suspend fun persistResolvedEvents(
-        resolvedList: List<Event>,
-        calendarId: String,
-        conflicts: MutableList<Event>,
-        localOnlyExisting: List<Event> = emptyList()
-    ): Pair<Int, Int> {
-        var successCount = 0
-        var localOnlyCount = 0
-        for (resolved in resolvedList) {
-            try {
-                // Purge stale LOCAL_ONLY rows with the same title+date before re-saving.
-                // LOCAL_ONLY events were never on remote, so hard-deleting them is safe.
-                localOnlyExisting
-                    .filter { it.title == resolved.title && it.date == resolved.date }
-                    .mapNotNull { it.id }
-                    .forEach { staleId -> repository.hardDeleteLocalOnly(staleId, calendarId) }
-                repository.saveEvent(resolved, calendarId)
-                successCount++
-            } catch (e: OverlapException) {
-                logger?.d(tag, "Conflict detected for: ${resolved.title}")
-                conflicts.add(resolved)
-            } catch (e: RemoteSyncFailedException) {
-                logger?.d(tag, "Remote push failed, saved locally: ${resolved.title}")
-                localOnlyCount++
-            }
-        }
-        return Pair(successCount, localOnlyCount)
     }
 }

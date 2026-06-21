@@ -47,7 +47,6 @@ class ComposeUiFlowsTest {
 
         val realSourceDeleter = SourceDeleter(
             mockSourceRepository,
-            mockLocalRepository,
             mockk(relaxed = true),
             mockLogger,
             GlobalScope

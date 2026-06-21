@@ -9,7 +9,6 @@ import kotlinx.coroutines.launch
  */
 class SourceDeleter(
     private val sourceRepository: SqlDelightSourceRepository,
-    private val localRepository: SqlDelightLocalCalendarRepository,
     private val calendarAgent: CalendarAgent,
     private val logger: Logger,
     private val scope: CoroutineScope
@@ -20,11 +19,11 @@ class SourceDeleter(
                 logger.d("SourceDeleter", "Deleting source: ${source.title}")
                 sourceRepository.deleteSource(source.title)
 
-                val existingEvents = localRepository.getAllEvents("default")
+                val existingEvents = calendarAgent.getEvents("default")
                 existingEvents.forEach { event ->
                     val id = event.id
                     if (id != null && (id.startsWith(source.title) || event.warning?.contains(source.title) == true)) {
-                        localRepository.hardDeleteEvent(id, "default")
+                        calendarAgent.deleteEvent(id, "default")
                     }
                 }
 

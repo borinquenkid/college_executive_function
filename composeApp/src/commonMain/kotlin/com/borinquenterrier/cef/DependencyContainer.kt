@@ -283,7 +283,6 @@ class DependencyContainer(
     val sourceDeleter by lazy {
         SourceDeleter(
             sourceRepository,
-            localRepository,
             calendarAgent,
             logger,
             globalScope

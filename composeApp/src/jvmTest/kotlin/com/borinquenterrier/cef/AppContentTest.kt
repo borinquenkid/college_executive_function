@@ -59,7 +59,6 @@ class AppContentTest {
 
         val realSourceDeleter = SourceDeleter(
             mockSourceRepository,
-            mockLocalRepository,
             mockCalendarAgent,
             mockLogger,
             GlobalScope

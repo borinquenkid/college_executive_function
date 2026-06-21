@@ -143,7 +143,13 @@ class SourceFlowTest : FunSpec({
     // ---- EventAgent / pipeline path ----------------------------------------------
 
     test("extractDeliverables (agent path) sets isLoading true during extraction, false after") {
-        coEvery { mockAi.generateCalendarEvents(any()) } returns listOf(makeEvent("Midterm"))
+        // delay(1) forces the mock to suspend, ensuring the StateFlow collector sees isLoading=true
+        // before it flips back to false. Without the delay the transition can be too fast for the
+        // background collector coroutine to observe on slower/single-core CI machines.
+        coEvery { mockAi.generateCalendarEvents(any()) } coAnswers {
+            delay(1)
+            listOf(makeEvent("Midterm"))
+        }
 
         val sawLoading = mutableListOf<Boolean>()
         val collector = testScope.launch {

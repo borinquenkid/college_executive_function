@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 196
+- **Total Files Analyzed**: 197
 - **High-Risk Files (CRAP > 30)**: 5
 
 ### Top 15 High-Risk Files
@@ -17,7 +17,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
 | RemoteFirstWriter.kt | 8 | 0.0% | 72.00 | 🔴 HIGH |
-| CalendarPushResolver.kt | 26 | 76.4% | 34.90 | 🔴 HIGH |
+| ResolvedEventWriter.kt | 7 | 0.0% | 56.00 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 23 | 74.0% | 32.30 | 🔴 HIGH |
 | SchedulingAlgorithm.kt | 16 | 60.9% | 31.34 | 🔴 HIGH |
 | GoogleCalendarSyncService.kt | 30 | 97.1% | 30.02 | 🔴 HIGH |
@@ -46,18 +46,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `save` | 4 |
 | `update` | 4 |
 
-### CalendarPushResolver.kt (Score: 34.90 - 🔴 HIGH)
-- **Total Complexity**: 26
-- **Real Coverage**: 76.4%
+### ResolvedEventWriter.kt (Score: 56.00 - 🔴 HIGH)
+- **Total Complexity**: 7
+- **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `buildResolver` | 3 |
-| `resolveAndPush` | 1 |
-| `resolveAndReschedule` | 1 |
-| `resolveConflicts` | 1 |
-| `persistResolvedEvents` | 1 |
+| `persist` | 1 |
 
 ### GoogleRemoteCalendarRepository.kt (Score: 32.30 - 🔴 HIGH)
 - **Total Complexity**: 23
@@ -512,6 +508,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `isAuthorized` | 1 |
 | `isAuthorized` | 1 |
 | `isAuthorized` | 1 |
+
+### CalendarPushResolver.kt (Score: 16.58 - 🟡 MEDIUM)
+- **Total Complexity**: 14
+- **Real Coverage**: 76.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `buildResolver` | 3 |
+| `resolveAndPush` | 1 |
+| `resolveAndReschedule` | 1 |
 
 ### IngestionAgent.kt (Score: 16.00 - 🟡 MEDIUM)
 - **Total Complexity**: 16

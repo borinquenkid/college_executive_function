@@ -4,8 +4,8 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **82.16%** (11302/13756 lines)
-- **Total Source Files**: 192
+- **Overall Line Coverage**: **81.41%** (11414/14020 lines)
+- **Total Source Files**: 196
 
 ## Coverage by File (🔴 and 🟡 only)
 
@@ -14,53 +14,57 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | IngestingProgressDialog.kt | 0.0% (0/64) | 0.0% (0/20) | 0.0% |
 | 🔴 | SourceInterfaces.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% |
-| 🔴 | App.kt | 0.0% (0/68) | 0.0% (0/4) | 0.0% |
+| 🔴 | App.kt | 0.0% (0/72) | 0.0% (0/4) | 0.0% |
 | 🔴 | AgentAction.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | Platform.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | AdvancedSettingsPanel.kt | 0.0% (0/140) | 0.0% (0/20) | 0.0% |
 | 🔴 | AcademicCalendarHeader.kt | 0.0% (0/52) | 0.0% (0/36) | 0.0% |
+| 🔴 | LocalOnlyRetrier.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | EventListContent.kt | 0.0% (0/48) | 0.0% (0/28) | 0.0% |
 | 🔴 | SourceItemView.kt | 0.0% (0/80) | 0.0% (0/52) | 1.0% |
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | RoutineItem.kt | 0.0% (0/24) | 0.0% (0/4) | 0.0% |
 | 🔴 | EventItemView.kt | 0.0% (0/170) | 0.0% (0/50) | 0.0% |
+| 🔴 | EventDeleter.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | AnalysisCacheRepository.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | GoogleLinkPrompt.kt | 0.0% (0/44) | 0.0% (0/20) | 0.0% |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% |
+| 🔴 | StudyBlockOverrideLogger.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | ConflictResolutionUI.kt | 0.0% (0/182) | 0.0% (0/32) | 0.0% |
+| 🔴 | RemoteFirstWriter.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% |
 | 🔴 | SourceRepository.kt | 0.0% (0/0) | N/A | 0.0% |
-| 🔴 | EventTimeRepairer.kt | 0.0% (0/0) | N/A | 0.0% |
-| 🔴 | SyncGate.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PdfReader.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% |
-| 🔴 | RemoteFirstEventPersistence.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | FilePicker.kt | 0.0% (0/0) | N/A | 0.0% |
+| 🔴 | ConditionalDialogs.kt | 0.0% (0/24) | 0.0% (0/52) | 0.0% |
 | 🔴 | SourceLoader.kt | 19.0% (8/42) | 0.0% (0/4) | 9.0% |
+| 🔴 | AcademicCalendar.kt | 22.2% (44/198) | 29.4% (20/68) | 37.0% |
 | 🔴 | GoogleAuthManager.kt | 40.0% (12/30) | N/A | 20.7% |
 | 🔴 | LocalFileProcessor.kt | 41.7% (10/24) | 0.0% (0/8) | 13.4% |
 | 🔴 | DriveFileProcessor.kt | 41.7% (10/24) | 0.0% (0/8) | 13.5% |
-| 🔴 | AppEnv.kt | 46.2% (12/26) | 42.3% (22/52) | 49.1% |
-| 🔴 | AcademicCalendar.kt | 46.5% (92/198) | 26.7% (16/60) | 51.2% |
-| 🔴 | DependencyContainer.kt | 49.3% (208/422) | N/A | 79.0% |
+| 🔴 | AppEnv.kt | 43.8% (14/32) | 38.5% (20/52) | 36.4% |
+| 🔴 | DependencyContainer.kt | 48.6% (210/432) | 0.0% (0/4) | 77.0% |
 | 🟡 | HarnessSourceProcessor.kt | 50.0% (12/24) | N/A | 23.3% |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% |
-| 🟡 | ConditionalDialogs.kt | 50.0% (12/24) | 38.5% (20/52) | 77.6% |
 | 🟡 | PollScheduler.kt | 56.3% (18/32) | 25.0% (2/8) | 50.8% |
 | 🟡 | GoogleCalendarSelector.kt | 58.2% (92/158) | 70.8% (34/48) | 60.2% |
+| 🟡 | SchedulingAlgorithm.kt | 60.9% (56/92) | 57.1% (32/56) | 52.2% |
+| 🟡 | AppContent.kt | 61.5% (128/208) | 59.1% (26/44) | 64.2% |
 | 🟡 | GoogleConnectionState.kt | 61.5% (16/26) | 0.0% (0/20) | 79.4% |
-| 🟡 | AppContent.kt | 62.1% (128/206) | 59.1% (26/44) | 64.4% |
 | 🟡 | LocalFileFilter.kt | 62.5% (10/16) | 100.0% (4/4) | 33.3% |
+| 🟡 | Tracer.kt | 63.6% (14/22) | N/A | 47.0% |
 | 🟡 | DriveQueryBuilder.kt | 64.3% (18/28) | N/A | 68.2% |
-| 🟡 | Tracer.kt | 66.7% (12/18) | N/A | 63.3% |
 | 🟡 | SourcesPanel.kt | 66.7% (72/108) | 63.2% (48/76) | 77.6% |
 | 🟡 | OAuthExchange.kt | 67.9% (38/56) | 25.0% (8/32) | 59.3% |
 | 🟡 | GeminiBodyBuilder.kt | 71.4% (20/28) | 100.0% (4/4) | 83.1% |
 | 🟡 | DriveFileFetcher.kt | 71.4% (10/14) | N/A | 81.6% |
-| 🟡 | CalendarPushResolver.kt | 73.8% (90/122) | 55.6% (40/72) | 75.5% |
+| 🟡 | GoogleRemoteCalendarRepository.kt | 74.0% (74/100) | 62.5% (10/16) | 90.8% |
+| 🟡 | CalendarAgent.kt | 74.4% (58/78) | N/A | 71.9% |
 | 🟡 | SyncProposal.kt | 75.0% (36/48) | 25.0% (4/16) | 55.3% |
-| 🟡 | GoogleRemoteCalendarRepository.kt | 76.5% (78/102) | 62.5% (10/16) | 91.6% |
+| 🟡 | AppController.kt | 75.0% (90/120) | 50.0% (4/8) | 70.1% |
+| 🟡 | CalendarPushResolver.kt | 76.4% (110/144) | 63.6% (56/88) | 81.5% |
 | 🟡 | ContributionValidator.kt | 78.1% (50/64) | 75.0% (6/8) | 83.8% |

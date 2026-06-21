@@ -10,14 +10,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 198
-- **High-Risk Files (CRAP > 30)**: 2
+- **High-Risk Files (CRAP > 30)**: 0
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| GoogleTokenService.kt | 6 | 0.0% | 42.00 | 🔴 HIGH |
-| SchedulingAlgorithm.kt | 16 | 60.9% | 31.34 | 🔴 HIGH |
 | IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -28,34 +26,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRetryService.kt | 27 | 88.5% | 28.11 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 27 | 90.2% | 27.70 | 🟡 MEDIUM |
-| GoogleCalendarSyncService.kt | 27 | 91.8% | 27.40 | 🟡 MEDIUM |
+| GoogleCalendarSyncService.kt | 27 | 91.3% | 27.48 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 24 | 82.9% | 26.87 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 25 | 98.0% | 25.01 | 🟡 MEDIUM |
+| AppController.kt | 19 | 75.0% | 24.64 | 🟡 MEDIUM |
+| CriticActorAIService.kt | 23 | 87.2% | 24.11 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
-
-### GoogleTokenService.kt (Score: 42.00 - 🔴 HIGH)
-- **Total Complexity**: 6
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `<T> withToken` | 6 |
-
-### SchedulingAlgorithm.kt (Score: 31.34 - 🔴 HIGH)
-- **Total Complexity**: 16
-- **Real Coverage**: 60.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `resolve` | 1 |
-| `findNewSlotAndResolve` | 1 |
-| `shiftEvent` | 1 |
-| `findNextAvailableSlot` | 1 |
 
 ### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -188,9 +167,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `<T> executeWithRetry` | 1 |
 | `<T> executeWithRetryInternal` | 1 |
 
-### GoogleCalendarSyncService.kt (Score: 27.40 - 🟡 MEDIUM)
+### GoogleCalendarSyncService.kt (Score: 27.48 - 🟡 MEDIUM)
 - **Total Complexity**: 27
-- **Real Coverage**: 91.8%
+- **Real Coverage**: 91.3%
 
 #### Methods list:
 | Method | Complexity |
@@ -990,6 +969,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `extract` | 5 |
 | `sanitizeTimes` | 4 |
 
+### SchedulingAlgorithm.kt (Score: 9.00 - 🟢 LOW)
+- **Total Complexity**: 9
+- **Real Coverage**: 96.4%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `resolve` | 1 |
+| `shiftEvent` | 1 |
+| `findNextAvailableSlot` | 1 |
+
 ### SettingsPreferencesParser.kt (Score: 9.00 - 🟢 LOW)
 - **Total Complexity**: 9
 - **Real Coverage**: 100.0%
@@ -1245,6 +1235,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `reportError` | 6 |
+
+### GoogleTokenService.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 6
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `<T> withToken` | 6 |
 
 ### SourceInterfaces.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2
@@ -2044,7 +2043,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ### DependencyContainer.kt (Score: 1.13 - 🟢 LOW)
 - **Total Complexity**: 1
-- **Real Coverage**: 48.8%
+- **Real Coverage**: 49.1%
 
 
 ### RecursiveDecompositionAIService.kt (Score: 1.13 - 🟢 LOW)

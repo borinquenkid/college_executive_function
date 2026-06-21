@@ -41,44 +41,7 @@ class SchedulingAlgorithm(
             return ResolutionResult.Success(listOf(event))
         }
 
-        if (!isValid) {
-            return shiftEvent(event, existingEvents, depth)
-        }
-
-        // Determine if we can bump all colliding events
-        val canBumpAll = colliding.all { event.priority > it.priority }
-
-        if (canBumpAll) {
-            val currentExisting = existingEvents.toMutableList()
-            currentExisting.removeAll(colliding)
-            // Add the bumping event so its slot is occupied
-            currentExisting.add(event)
-
-            val bumpedRescheduled = mutableListOf<Event>()
-            for (bumped in colliding) {
-                val res = findNewSlotAndResolve(bumped, currentExisting, depth + 1)
-                if (res is ResolutionResult.Success) {
-                    bumpedRescheduled.addAll(res.resolvedEvents)
-                    currentExisting.addAll(res.resolvedEvents)
-                } else {
-                    return shiftEvent(event, existingEvents, depth)
-                }
-            }
-            return ResolutionResult.Success(bumpedRescheduled + event)
-        } else {
-            return shiftEvent(event, existingEvents, depth)
-        }
-    }
-
-    private fun findNewSlotAndResolve(
-        event: Event,
-        existingEvents: List<Event>,
-        depth: Int
-    ): ResolutionResult {
-        val shifted = findNextAvailableSlot(event, existingEvents, skipCurrent = true)
-            ?: return ResolutionResult.Conflict(event)
-
-        return resolve(shifted, existingEvents, depth)
+        return shiftEvent(event, existingEvents, depth)
     }
 
     private fun shiftEvent(

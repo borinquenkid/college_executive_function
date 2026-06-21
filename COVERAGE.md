@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **81.70%** (11480/14052 lines)
+- **Overall Line Coverage**: **81.90%** (11486/14024 lines)
 - **Total Source Files**: 198
 
 ## Coverage by File (🔴 and 🟡 only)
@@ -12,7 +12,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | Status | File | Line Coverage | Branch Coverage | Instruction Coverage |
 | :---: | :--- | :---: | :---: | :---: |
 | 🔴 | IngestingProgressDialog.kt | 0.0% (0/64) | 0.0% (0/20) | 0.0% |
-| 🔴 | GoogleTokenService.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | SourceInterfaces.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | App.kt | 0.0% (0/72) | 0.0% (0/4) | 0.0% |
@@ -44,12 +43,11 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | LocalFileProcessor.kt | 41.7% (10/24) | 0.0% (0/8) | 13.4% |
 | 🔴 | DriveFileProcessor.kt | 41.7% (10/24) | 0.0% (0/8) | 13.5% |
 | 🔴 | AppEnv.kt | 43.8% (14/32) | 38.5% (20/52) | 36.4% |
-| 🔴 | DependencyContainer.kt | 48.8% (210/430) | 0.0% (0/4) | 77.1% |
+| 🔴 | DependencyContainer.kt | 49.1% (212/432) | 0.0% (0/4) | 77.4% |
 | 🟡 | HarnessSourceProcessor.kt | 50.0% (12/24) | N/A | 23.3% |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% |
 | 🟡 | PollScheduler.kt | 56.3% (18/32) | 25.0% (2/8) | 50.8% |
 | 🟡 | GoogleCalendarSelector.kt | 58.2% (92/158) | 70.8% (34/48) | 60.2% |
-| 🟡 | SchedulingAlgorithm.kt | 60.9% (56/92) | 57.1% (32/56) | 52.2% |
 | 🟡 | AppContent.kt | 61.5% (128/208) | 59.1% (26/44) | 64.2% |
 | 🟡 | GoogleConnectionState.kt | 61.5% (16/26) | 0.0% (0/20) | 79.4% |
 | 🟡 | LocalFileFilter.kt | 62.5% (10/16) | 100.0% (4/4) | 33.3% |

@@ -111,11 +111,18 @@ tasks.register<JavaExec>("generateTest") {
     standardInput = System.`in`
 }
 
+// Never cache koverXmlReportJvm: new tests may exist even when source classes are unchanged.
+tasks.matching { it.name == "koverXmlReportJvm" }.configureEach {
+    outputs.upToDateWhen { false }
+}
+
 tasks.register<JavaExec>("generateCrapReport") {
     group = "verification"
     description = "Generate CRAP and Coverage reports from the Kover XML report."
     mainClass.set("com.borinquenterrier.cef.CrapIndexReporter")
-    
+    outputs.upToDateWhen { false }
+    dependsOn("koverXmlReportJvm")
+
     val jvmTarget = kotlin.targets.getByName("jvm")
     val jvmTestCompilation = jvmTarget.compilations.getByName("test")
     classpath = files(
@@ -123,6 +130,13 @@ tasks.register<JavaExec>("generateCrapReport") {
         jvmTestCompilation.compileDependencyFiles,
         jvmTestCompilation.runtimeDependencyFiles
     )
+}
+
+// Single entry-point: runs jvmTest → koverXmlReportJvm → generateCrapReport in order.
+tasks.register("refreshCrap") {
+    group = "verification"
+    description = "Run tests, refresh Kover XML coverage, and regenerate CRAP/COVERAGE reports."
+    dependsOn("generateCrapReport")
 }
 
 kotlin {

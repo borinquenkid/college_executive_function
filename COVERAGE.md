@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **82.16%** (11302/13756 lines)
-- **Total Source Files**: 189
+- **Total Source Files**: 192
 
 ## Coverage by File (🔴 and 🟡 only)
 
@@ -33,8 +33,11 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% |
 | 🔴 | SourceRepository.kt | 0.0% (0/0) | N/A | 0.0% |
+| 🔴 | EventTimeRepairer.kt | 0.0% (0/0) | N/A | 0.0% |
+| 🔴 | SyncGate.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PdfReader.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% |
+| 🔴 | RemoteFirstEventPersistence.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | FilePicker.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | SourceLoader.kt | 19.0% (8/42) | 0.0% (0/4) | 9.0% |
 | 🔴 | GoogleAuthManager.kt | 40.0% (12/30) | N/A | 20.7% |

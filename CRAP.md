@@ -9,20 +9,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 189
+- **Total Files Analyzed**: 192
 - **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| CalendarAgent.kt | 35 | 84.6% | 39.46 | 🔴 HIGH |
+| RemoteFirstEventPersistence.kt | 22 | 0.0% | 506.00 | 🔴 HIGH |
 | CalendarPushResolver.kt | 26 | 73.8% | 38.20 | 🔴 HIGH |
 | GoogleCalendarSyncService.kt | 30 | 99.2% | 30.00 | 🔴 HIGH |
 | IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
+| SyncGate.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GoogleRemoteCalendarRepository.kt | 23 | 76.5% | 29.89 | 🟡 MEDIUM |
 | GeminiAIService.kt | 29 | 92.1% | 29.42 | 🟡 MEDIUM |
 | EventAgent.kt | 29 | 93.8% | 29.20 | 🟡 MEDIUM |
@@ -30,30 +31,24 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRetryService.kt | 27 | 88.5% | 28.11 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 27 | 90.2% | 27.70 | 🟡 MEDIUM |
-| SqlDelightLocalCalendarRepository.kt | 24 | 82.4% | 27.17 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
 
-### CalendarAgent.kt (Score: 39.46 - 🔴 HIGH)
-- **Total Complexity**: 35
-- **Real Coverage**: 84.6%
+### RemoteFirstEventPersistence.kt (Score: 506.00 - 🔴 HIGH)
+- **Total Complexity**: 22
+- **Real Coverage**: 0.0%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `updateEvent` | 6 |
-| `saveEvent` | 4 |
+| `save` | 4 |
+| `update` | 4 |
+| `delete` | 4 |
 | `retryLocalOnly` | 4 |
-| `deleteEvent` | 4 |
-| `resetCalendar` | 3 |
-| `repairEndTime` | 3 |
-| `isLiveSyncEnabled` | 2 |
-| `isGoogleLinked` | 2 |
-| `getEvents` | 1 |
-| `saveEventLocally` | 1 |
-| *... and 5 more* | |
+| `reset` | 3 |
+| `logOverrideIfStudyBlockMoved` | 3 |
 
 ### CalendarPushResolver.kt (Score: 38.20 - 🔴 HIGH)
 - **Total Complexity**: 26
@@ -119,6 +114,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `EventItemView` | 1 |
+
+### SyncGate.kt (Score: 30.00 - 🟡 MEDIUM)
+- **Total Complexity**: 5
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `isLiveSyncEnabled` | 2 |
+| `isGoogleLinked` | 2 |
+| `isLive` | 1 |
 
 ### GoogleRemoteCalendarRepository.kt (Score: 29.89 - 🟡 MEDIUM)
 - **Total Complexity**: 23
@@ -648,6 +654,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `handleFailure` | 3 |
 | `isCacheStale` | 1 |
 
+### CalendarAgent.kt (Score: 12.52 - 🟢 LOW)
+- **Total Complexity**: 12
+- **Real Coverage**: 84.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEvents` | 1 |
+| `saveEvent` | 1 |
+| `updateEvent` | 1 |
+| `saveEventLocally` | 1 |
+| `hardDeleteLocalOnly` | 1 |
+| `retryLocalOnly` | 1 |
+| `deleteEvent` | 1 |
+| `resetCalendar` | 1 |
+| `checkSyncProposals` | 1 |
+| `applySyncNegotiation` | 1 |
+| *... and 2 more* | |
+
 ### SourceLoader.kt (Score: 12.49 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 19.0%
@@ -713,6 +738,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `ConflictItem` | 2 |
 | `ConflictResolutionDialog` | 1 |
+
+### EventTimeRepairer.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `repair` | 3 |
 
 ### SourceIngestionHandler.kt (Score: 11.07 - 🟢 LOW)
 - **Total Complexity**: 11

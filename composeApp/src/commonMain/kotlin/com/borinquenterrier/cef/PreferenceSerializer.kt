@@ -1,5 +1,6 @@
 package com.borinquenterrier.cef
 
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 
 /**
@@ -13,7 +14,7 @@ class PreferenceSerializer(private val logger: Logger) {
         if (jsonString.isBlank()) return null
         return try {
             Json.decodeFromString<List<String>>(jsonString)
-        } catch (e: Exception) {
+        } catch (e: SerializationException) {
             logger.e(tag, "Deserialization failed for directories", e)
             null
         }
@@ -22,7 +23,7 @@ class PreferenceSerializer(private val logger: Logger) {
     fun serializeDirectories(dirs: List<String>): String {
         return try {
             Json.encodeToString(dirs)
-        } catch (e: Exception) {
+        } catch (e: SerializationException) {
             logger.e(tag, "Serialization failed for directories", e)
             ""
         }

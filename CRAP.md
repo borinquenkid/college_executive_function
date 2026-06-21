@@ -43,16 +43,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `updateEvent` | 5 |
+| `updateEvent` | 6 |
 | `saveEvent` | 4 |
 | `retryLocalOnly` | 4 |
 | `deleteEvent` | 4 |
 | `resetCalendar` | 3 |
 | `repairEndTime` | 3 |
-| `synchronize` | 2 |
 | `isLiveSyncEnabled` | 2 |
 | `isGoogleLinked` | 2 |
 | `getEvents` | 1 |
+| `saveEventLocally` | 1 |
 | *... and 5 more* | |
 
 ### CalendarPushResolver.kt (Score: 38.20 - 🔴 HIGH)
@@ -314,6 +314,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `Event.timeUntilDue` | 1 |
 | `Event.studyProgress` | 1 |
 
+### SyncNegotiator.kt (Score: 22.00 - 🟡 MEDIUM)
+- **Total Complexity**: 22
+- **Real Coverage**: 98.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `pushLocalChanges` | 6 |
+| `buildNegotiation` | 3 |
+| `findRemoteUpdatesAndConflicts` | 1 |
+| `findDeletedLocalIds` | 1 |
+| `buildProposedBaseCalendar` | 1 |
+
 ### ConflictResolver.kt (Score: 22.00 - 🟡 MEDIUM)
 - **Total Complexity**: 22
 - **Real Coverage**: 100.0%
@@ -368,19 +381,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getSourceEventExtractionPrompt` | 14 |
 | `getEventCritiquePrompt` | 4 |
-
-### SyncNegotiator.kt (Score: 21.00 - 🟡 MEDIUM)
-- **Total Complexity**: 21
-- **Real Coverage**: 98.2%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `pushLocalChanges` | 6 |
-| `buildNegotiation` | 2 |
-| `findRemoteUpdatesAndConflicts` | 1 |
-| `findDeletedLocalIds` | 1 |
-| `buildProposedBaseCalendar` | 1 |
 
 ### EventPresenter.kt (Score: 21.00 - 🟡 MEDIUM)
 - **Total Complexity**: 21
@@ -506,6 +506,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `resolveCategory` | 1 |
 | `persistSource` | 1 |
 
+### SyncNegotiationApplier.kt (Score: 16.00 - 🟡 MEDIUM)
+- **Total Complexity**: 16
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `isLiveSyncEnabled` | 2 |
+| `apply` | 1 |
+| `applyDeletedLocalEvents` | 1 |
+| `applyRemoteEventsToLocal` | 1 |
+| `applyShiftedStudyBlocks` | 1 |
+
 ### AppContent.kt (Score: 15.43 - 🟡 MEDIUM)
 - **Total Complexity**: 10
 - **Real Coverage**: 62.1%
@@ -539,19 +552,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `checkConnectionOnStartup` | 3 |
 | `disconnect` | 1 |
 | `reportAuthError` | 1 |
-
-### SyncNegotiationApplier.kt (Score: 15.00 - 🟢 LOW)
-- **Total Complexity**: 15
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `isLiveSyncEnabled` | 2 |
-| `apply` | 1 |
-| `applyDeletedLocalEvents` | 1 |
-| `applyRemoteEventsToLocal` | 1 |
-| `applyShiftedStudyBlocks` | 1 |
 
 ### GoogleCalendarPanel.kt (Score: 14.71 - 🟢 LOW)
 - **Total Complexity**: 14
@@ -896,6 +896,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateChatResponse` | 1 |
 | `groundToSource` | 1 |
 
+### CalendarSyncManager.kt (Score: 10.00 - 🟢 LOW)
+- **Total Complexity**: 10
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `refreshEvents` | 2 |
+| `initiateSyncIfNeeded` | 1 |
+| `applySyncProposal` | 1 |
+
 ### ModelManager.kt (Score: 10.00 - 🟢 LOW)
 - **Total Complexity**: 10
 - **Real Coverage**: 100.0%
@@ -1016,17 +1027,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `<T> enqueue` | 3 |
 | `estimatedRemainingSeconds` | 2 |
 | `shared` | 1 |
-
-### CalendarSyncManager.kt (Score: 8.00 - 🟢 LOW)
-- **Total Complexity**: 8
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `refreshEvents` | 2 |
-| `initiateSyncIfNeeded` | 1 |
-| `applySyncProposal` | 1 |
 
 ### ConstraintValidator.kt (Score: 8.00 - 🟢 LOW)
 - **Total Complexity**: 8

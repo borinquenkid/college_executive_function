@@ -107,7 +107,7 @@ class SqlDelightLocalCalendarRepository(
         val recurrence = entity.recurrence?.let { json.decodeFromString<Recurrence>(it) }
         val completionStatus = try {
             CompletionStatus.valueOf(entity.completionStatus)
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
             CompletionStatus.INCOMPLETE
         }
 

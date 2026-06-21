@@ -87,6 +87,8 @@ class CalendarAgent(
             try {
                 remoteRepo.saveEvent(event, calendarId)
                 localRepo.updateEvent(event.withSyncStatus(SyncStatus.SYNCED), calendarId)
+            } catch (e: CalendarNotFoundException) {
+                throw e
             } catch (e: Exception) {
                 logger?.e(tag, "Remote update failed, falling back to local-only update", e)
                 localRepo.updateEvent(event.withSyncStatus(SyncStatus.LOCAL_ONLY), calendarId)
@@ -181,13 +183,8 @@ class CalendarAgent(
      * Performs a full synchronization using Remote as the Gold Standard.
      */
     suspend fun synchronize(calendarId: String = "default") {
-        try {
-            val negotiation = checkSyncProposals(calendarId)
-            applySyncNegotiation(negotiation, calendarId)
-        } catch (e: Exception) {
-            // Sync failed (likely offline), keep working with local data
-            throw e
-        }
+        val negotiation = checkSyncProposals(calendarId)
+        applySyncNegotiation(negotiation, calendarId)
     }
 
     /**

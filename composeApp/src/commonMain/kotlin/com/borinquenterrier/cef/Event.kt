@@ -158,7 +158,7 @@ fun Event.studyProgress(
     val start = studyPlanStart?.let {
         try {
             LocalDate.parse(it)
-        } catch (e: Exception) {
+        } catch (e: IllegalArgumentException) {
             null
         }
     } ?: date.minus(7, DateTimeUnit.DAY)

@@ -26,6 +26,9 @@ class CalendarSyncManager(
                 calendarAgent.applySyncNegotiation(negotiation, calendarId)
                 null
             }
+        } catch (e: CalendarNotFoundException) {
+            logger.e(tag, "Calendar not found during sync init", e)
+            throw e
         } catch (e: Exception) {
             logger.e(tag, "Sync initialization failed", e)
             null
@@ -40,6 +43,9 @@ class CalendarSyncManager(
             calendarAgent.applySyncNegotiation(negotiation, calendarId)
             logger.d(tag, "Sync proposal applied successfully")
             true
+        } catch (e: CalendarNotFoundException) {
+            logger.e(tag, "Calendar not found during sync apply", e)
+            throw e
         } catch (e: Exception) {
             logger.e(tag, "Failed to apply sync proposal", e)
             false

@@ -21,8 +21,9 @@ class SyncNegotiator(
         val localEvents = localRepo.getAllEvents(calendarId)
         val remoteEvents = try {
             remoteRepo.getAllEvents(calendarId)
+        } catch (e: CalendarNotFoundException) {
+            throw e
         } catch (e: Exception) {
-            // If offline, return empty negotiation
             return SyncNegotiation(emptyList(), emptyList(), emptyList())
         }
 

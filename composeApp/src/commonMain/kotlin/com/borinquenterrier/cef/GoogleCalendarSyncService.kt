@@ -30,7 +30,6 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class GoogleEvent(
     val summary: String,
-    val description: String? = null,
     val start: GoogleEventDateTime,
     val end: GoogleEventDateTime
 )

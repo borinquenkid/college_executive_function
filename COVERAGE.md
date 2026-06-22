@@ -5,7 +5,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 
 ## Overall Metrics
 - **Overall Line Coverage**: **81.84%** (11486/14034 lines)
-- **Total Source Files**: 199
+- **Total Source Files**: 200
 
 ## Coverage by File (🔴 and 🟡 only)
 
@@ -29,6 +29,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | GoogleLinkPrompt.kt | 0.0% (0/44) | 0.0% (0/20) | 0.0% |
 | 🔴 | RoutineSetupScreen.kt | 0.0% (0/10) | 0.0% (0/8) | 0.0% |
 | 🔴 | ConflictResolutionUI.kt | 0.0% (0/182) | 0.0% (0/32) | 0.0% |
+| 🔴 | UiOnly.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | SettingsFactory.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PlatformUtils.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | RoutineScreen.kt | 0.0% (0/88) | 0.0% (0/28) | 0.0% |

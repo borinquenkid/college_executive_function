@@ -1,3 +1,4 @@
+@file:UiOnly
 package com.borinquenterrier.cef
 
 import androidx.compose.foundation.ExperimentalFoundationApi

@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 199
+- **Total Files Analyzed**: 200
 - **High-Risk Files (CRAP > 30)**: 1
 
 ### Top 15 High-Risk Files
@@ -1996,6 +1996,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `logOverride` | 1 |
 | `getDerivedConstraints` | 1 |
+
+### UiOnly.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 0.0%
+
 
 ### AiEventsService.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 2

@@ -116,6 +116,24 @@ tasks.matching { it.name == "koverXmlReportJvm" }.configureEach {
     outputs.upToDateWhen { false }
 }
 
+// Exclude pure Compose UI files (annotated @file:UiOnly) from coverage gate and reports.
+// These files contain only rendering code and cannot be meaningfully unit-tested without
+// a full Compose test harness. Domain logic is already extracted into separate classes.
+kover {
+    reports {
+        filters {
+            excludes {
+                annotatedBy("com.borinquenterrier.cef.UiOnly")
+            }
+        }
+        verify {
+            rule {
+                minBound(80)
+            }
+        }
+    }
+}
+
 tasks.register<JavaExec>("generateCrapReport") {
     group = "verification"
     description = "Generate CRAP and Coverage reports from the Kover XML report."

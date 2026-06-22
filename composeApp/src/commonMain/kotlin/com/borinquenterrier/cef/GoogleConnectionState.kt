@@ -19,13 +19,3 @@ sealed class GoogleConnectionState {
     @Serializable
     data class Error(val message: String, val canRetry: Boolean = true) : GoogleConnectionState()
 }
-
-/**
- * Valid transitions for the Google Connection FSA.
- */
-sealed class GoogleConnectionEvent {
-    data object StartConnection : GoogleConnectionEvent()
-    data object ConnectionSuccess : GoogleConnectionEvent()
-    data class ConnectionFailed(val message: String) : GoogleConnectionEvent()
-    data object Disconnect : GoogleConnectionEvent()
-}

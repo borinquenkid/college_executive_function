@@ -6,6 +6,8 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.types.shouldBeInstanceOf
 import io.mockk.coEvery
 import io.mockk.mockk
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 
 class GoogleConnectionFsmTest : FunSpec({
 
@@ -164,6 +166,59 @@ class GoogleConnectionFsmTest : FunSpec({
 
         fsm.state.value shouldBe GoogleConnectionState.Unlinked
         tokenRepo.hasTokens() shouldBe false
+    }
+
+    // ── GoogleConnectionState.Error data class coverage ───────────────────────
+
+    test("Error uses default canRetry=true when not specified") {
+        val err = GoogleConnectionState.Error("something went wrong")
+        err.canRetry shouldBe true
+        err.message shouldBe "something went wrong"
+    }
+
+    test("Error with canRetry=false round-trips through equals and copy") {
+        val err = GoogleConnectionState.Error("auth failed", canRetry = false)
+        err.canRetry shouldBe false
+        val copy = err.copy(message = "updated")
+        copy.message shouldBe "updated"
+        copy.canRetry shouldBe false
+        (err == copy) shouldBe false
+        (err == err.copy()) shouldBe true
+    }
+
+    test("GoogleConnectionState.Error serializes and round-trips with canRetry=false") {
+        val json = Json { ignoreUnknownKeys = true }
+        val err = GoogleConnectionState.Error("drive error", canRetry = false)
+        val encoded = json.encodeToString<GoogleConnectionState>(err)
+        val decoded = json.decodeFromString<GoogleConnectionState>(encoded)
+        (decoded is GoogleConnectionState.Error) shouldBe true
+        (decoded as GoogleConnectionState.Error).message shouldBe "drive error"
+        decoded.canRetry shouldBe false
+    }
+
+    test("GoogleConnectionState.Error uses default canRetry=true when absent from JSON") {
+        val json = Json { ignoreUnknownKeys = true }
+        val decoded = json.decodeFromString<GoogleConnectionState>(
+            "{\"type\":\"com.borinquenterrier.cef.GoogleConnectionState.Error\",\"message\":\"test\"}"
+        )
+        (decoded as GoogleConnectionState.Error).canRetry shouldBe true
+    }
+
+    test("GoogleConnectionState.Error serializes canRetry=true when encodeDefaults=true") {
+        val json = Json { encodeDefaults = true }
+        val err = GoogleConnectionState.Error("test error", canRetry = true)
+        val encoded = json.encodeToString<GoogleConnectionState>(err)
+        (encoded.contains("\"canRetry\":true")) shouldBe true
+    }
+
+    test("GoogleConnectionState.Error equality and hashCode") {
+        val err1 = GoogleConnectionState.Error("msg", canRetry = true)
+        val err2 = GoogleConnectionState.Error("msg", canRetry = true)
+        val err3 = GoogleConnectionState.Error("other", canRetry = false)
+        (err1 == err2) shouldBe true
+        (err1 == err3) shouldBe false
+        (err1 == null) shouldBe false
+        err1.hashCode() shouldBe err2.hashCode()
     }
 
     test("Startup Connection: should keep Linked if access token is invalid, refresh fails, but offline") {

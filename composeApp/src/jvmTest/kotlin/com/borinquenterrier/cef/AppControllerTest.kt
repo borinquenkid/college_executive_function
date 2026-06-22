@@ -152,7 +152,7 @@ class AppControllerTest : FunSpec({
         controller.sourceItems.value.any { it.title == "syllabus.pdf" } shouldBe true
 
         controller.deleteSource(source)
-        kotlinx.coroutines.delay(300)
+        delay(300)
 
         coVerify(atLeast = 1) { sourceRepository.deleteSource("syllabus.pdf") }
         controller.sourceItems.value.any { it.title == "syllabus.pdf" } shouldBe false
@@ -169,7 +169,7 @@ class AppControllerTest : FunSpec({
 
         controller.addSource(source)
         controller.deleteSource(source)
-        kotlinx.coroutines.delay(300)
+        delay(300)
 
         coVerify(exactly = 1) { calendarAgent.deleteEvent("cs101_syllabus_midterm", "default") }
         coVerify(exactly = 0) { calendarAgent.deleteEvent("unrelated_event", "default") }
@@ -182,7 +182,7 @@ class AppControllerTest : FunSpec({
 
         controller.addSource(source)
         controller.deleteSource(source)
-        kotlinx.coroutines.delay(300)
+        delay(300)
 
         coVerify(atLeast = 1) { calendarAgent.synchronize("default") }
     }

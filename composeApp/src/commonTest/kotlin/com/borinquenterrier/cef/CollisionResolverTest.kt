@@ -13,7 +13,7 @@ import kotlinx.datetime.plus
 class CollisionResolverTest : FunSpec({
 
     val date = LocalDate(2026, 10, 1)
-    val otherDate = LocalDate(2026, 10, 2)
+    LocalDate(2026, 10, 2)
     val resolver = CollisionResolver()
 
     test("resolve should succeed immediately if no overlap exists") {

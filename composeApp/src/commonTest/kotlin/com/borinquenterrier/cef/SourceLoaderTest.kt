@@ -10,7 +10,7 @@ class SourceLoaderTest : StringSpec({
         val sourceRepository = mockk<SqlDelightSourceRepository>()
         val logger = mockk<Logger>()
 
-        val loader = SourceLoader(sourceRepository, logger, mockk())
+        SourceLoader(sourceRepository, logger, mockk())
 
         // Verify loading and reconstruction
     }
@@ -19,7 +19,7 @@ class SourceLoaderTest : StringSpec({
         val sourceRepository = mockk<SqlDelightSourceRepository>()
         val logger = mockk<Logger>()
 
-        val loader = SourceLoader(sourceRepository, logger, mockk())
+        SourceLoader(sourceRepository, logger, mockk())
 
         coEvery { sourceRepository.getAllSources() } returns emptyList()
 
@@ -30,7 +30,7 @@ class SourceLoaderTest : StringSpec({
         val sourceRepository = mockk<SqlDelightSourceRepository>()
         val logger = mockk<Logger>()
 
-        val loader = SourceLoader(sourceRepository, logger, mockk())
+        SourceLoader(sourceRepository, logger, mockk())
 
         coEvery { sourceRepository.getAllSources() } throws Exception("DB connection failed")
 

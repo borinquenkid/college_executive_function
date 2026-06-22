@@ -88,7 +88,7 @@ class GeminiRequestQueueTest : FunSpec({
     }
 
     test("estimatedRemainingSeconds scales with pending count") {
-        val queue = GeminiRequestQueue(intervalMs = 6_000L)
+        GeminiRequestQueue(intervalMs = 6_000L)
         // Artificially inflate pending count by enqueueing a blocking item
         // Use bypass=false with a long-running block — but test scheduling is complex.
         // Verify the formula instead: pendingCount=2, interval=6000, avgResponse=3000 → (2*(6000+3000))/1000 = 18

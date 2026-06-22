@@ -12,7 +12,7 @@ import kotlinx.datetime.LocalTime
 class AiEventsServiceTest : FunSpec({
     test("should initialize with empty events list") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AiEventsService()
 
         service.aiGeneratedEvents.value.shouldBeEmpty()
@@ -20,7 +20,7 @@ class AiEventsServiceTest : FunSpec({
 
     test("should add events to list") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AiEventsService()
 
         val event = TimeEvent(
@@ -89,7 +89,7 @@ class AiEventsServiceTest : FunSpec({
 
     test("should clear all events") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AiEventsService()
 
         val event1 = TimeEvent(
@@ -111,7 +111,7 @@ class AiEventsServiceTest : FunSpec({
 
     test("should handle clearing empty events list") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AiEventsService()
 
         service.aiGeneratedEvents.value.shouldBeEmpty()

@@ -8,7 +8,7 @@ import kotlinx.coroutines.test.TestScope
 class AppNavigationServiceTest : FunSpec({
     test("should initialize with Home screen") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AppNavigationService()
 
         service.currentScreen.value shouldBe AppScreen.Home
@@ -16,7 +16,7 @@ class AppNavigationServiceTest : FunSpec({
 
     test("should navigate to Calendar") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AppNavigationService()
 
         service.navigateTo(AppScreen.Calendar)
@@ -26,7 +26,7 @@ class AppNavigationServiceTest : FunSpec({
 
     test("should navigate to Settings") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AppNavigationService()
 
         service.navigateTo(AppScreen.Settings)
@@ -36,7 +36,7 @@ class AppNavigationServiceTest : FunSpec({
 
     test("should support multiple navigation transitions") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AppNavigationService()
 
         service.navigateTo(AppScreen.Calendar)
@@ -51,7 +51,7 @@ class AppNavigationServiceTest : FunSpec({
 
     test("should navigate back to Home") {
         val testDispatcher = StandardTestDispatcher()
-        val testScope = TestScope(testDispatcher)
+        TestScope(testDispatcher)
         val service = AppNavigationService()
 
         service.navigateTo(AppScreen.Calendar)

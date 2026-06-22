@@ -10,7 +10,7 @@ import kotlinx.datetime.LocalTime
 
 class EventDeleterTest : FunSpec({
 
-    val date = LocalDate(2026, 9, 1)
+    LocalDate(2026, 9, 1)
 
     fun makeDeleter(live: Boolean): Triple<StudentCalendarRepository, RemoteCalendarRepository, EventDeleter> {
         val local = mockk<StudentCalendarRepository>(relaxed = true)

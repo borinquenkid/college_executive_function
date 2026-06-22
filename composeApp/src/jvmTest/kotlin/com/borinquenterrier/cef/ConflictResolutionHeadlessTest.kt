@@ -19,7 +19,7 @@ class ConflictResolutionHeadlessTest : FunSpec({
     test("Headless e2e: Process real syllabi, generate plan, resolve conflicts").config(
         timeout = 120_000.minutes  // Real API calls can be slow
     ) {
-        val apiKey = resolveApiKey("CONFLICT RESOLUTION E2E TEST") ?: return@config
+        resolveApiKey("CONFLICT RESOLUTION E2E TEST") ?: return@config
 
         // In real scenario, load from ~/Desktop
         // For now, we'll create synthetic events that simulate the calendar + proposed plan
@@ -111,7 +111,7 @@ class ConflictResolutionHeadlessTest : FunSpec({
     test("Headless e2e: No conflicts in generated plan").config(
         timeout = 60_000.minutes
     ) {
-        val apiKey = resolveApiKey("CONFLICT RESOLUTION E2E TEST") ?: return@config
+        resolveApiKey("CONFLICT RESOLUTION E2E TEST") ?: return@config
 
         val calendarEvents = listOf(
             TimeEvent(

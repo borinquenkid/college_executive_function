@@ -7,8 +7,8 @@ import kotlinx.datetime.LocalTime
 
 class CollisionDetectorTest : FunSpec({
     test("should calculate duration correctly") {
-        val detector = CollisionDetector()
-        val validator = ConstraintValidator()
+        CollisionDetector()
+        ConstraintValidator()
         val date = LocalDate(2026, 6, 10)
 
         // Just verify the detector can be instantiated and used
@@ -26,8 +26,8 @@ class CollisionDetectorTest : FunSpec({
     }
 
     test("should accept valid day event") {
-        val detector = CollisionDetector()
-        val validator = ConstraintValidator()
+        CollisionDetector()
+        ConstraintValidator()
         val date = LocalDate(2026, 6, 10)
 
         val event = DayEvent(

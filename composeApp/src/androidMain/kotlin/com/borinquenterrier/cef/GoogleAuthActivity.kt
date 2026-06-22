@@ -83,7 +83,7 @@ class GoogleAuthActivity : ComponentActivity() {
             }
         } else if (requestCode == 1002) {
             // After recovery intent finishes, try login again (or finish)
-            if (resultCode == Activity.RESULT_OK) {
+            if (resultCode == RESULT_OK) {
                 // Try to get token again
                 val account = GoogleSignIn.getLastSignedInAccount(this)
                 if (account != null && account.account != null) {

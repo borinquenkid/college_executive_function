@@ -116,7 +116,7 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         // Two assignments due at the same time is valid — the remote repo no longer
         // enforces time-overlap rejection (that was causing two deadlines on the same
         // day to block each other). Google Calendar accepts multiple events at the same time.
-        val conflictingEvent = timeEvent.copy(id = "existing-evt", title = "Conflict")
+        timeEvent.copy(id = "existing-evt", title = "Conflict")
         coEvery { syncService.listCalendars() } returns listOf(
             RemoteCalendarMetadata(cefCalId, "CEF Academic")
         )

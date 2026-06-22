@@ -20,7 +20,7 @@ class CollisionResolutionIntegrationTest : FunSpec({
     // Helper to create a test database and repo
     fun setupTestAgent(): Pair<EventAgent, StudentCalendarRepository> {
         val database = createTestDatabase()
-        val localRepo = SqlDelightLocalCalendarRepository(database)
+        SqlDelightLocalCalendarRepository(database)
 
         // Mock token repo & auth service for remote repository
         val tokenRepo = GoogleTokenRepository(MapSettings())

@@ -16,6 +16,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.unit.dp
+import kotlin.time.Clock
 
 @Composable
 fun IngestingProgressDialog(title: String, message: String) {
@@ -30,7 +31,7 @@ fun IngestingProgressDialog(title: String, message: String) {
         while (true) {
             secondsRemaining = RetryCountdown.secondsRemaining(
                 holdUntilMs = holdUntil!!,
-                nowMs = kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+                nowMs = Clock.System.now().toEpochMilliseconds()
             )
             if (secondsRemaining == null) break
             kotlinx.coroutines.delay(1000)

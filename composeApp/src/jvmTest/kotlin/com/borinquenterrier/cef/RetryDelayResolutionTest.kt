@@ -5,7 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.ktor.http.Headers
 import io.ktor.http.HeadersBuilder
 import io.ktor.http.HttpStatusCode
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 /**
  * Unit tests for GeminiRetryService.resolveRetryDelay().

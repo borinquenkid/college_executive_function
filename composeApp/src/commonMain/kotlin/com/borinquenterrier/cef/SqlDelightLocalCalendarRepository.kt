@@ -2,6 +2,7 @@ package com.borinquenterrier.cef
 
 import com.borinquenterrier.cef.db.AppDatabase
 import com.russhwolf.settings.Settings
+import kotlin.time.Clock
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.serialization.json.Json
@@ -35,7 +36,7 @@ class SqlDelightLocalCalendarRepository(
 
         database.appDatabaseQueries.insertEvent(
             id = event.id ?: "${
-                kotlinx.datetime.Clock.System.now().toEpochMilliseconds()
+                Clock.System.now().toEpochMilliseconds()
             }-${(1000..9999).random()}",
             title = event.title,
             source = event.source.name,
@@ -58,7 +59,7 @@ class SqlDelightLocalCalendarRepository(
 
     override suspend fun deleteEvent(eventId: String, calendarId: String) {
         database.appDatabaseQueries.markAsDeleted(
-            updatedAt = kotlinx.datetime.Clock.System.now().toEpochMilliseconds(),
+            updatedAt = Clock.System.now().toEpochMilliseconds(),
             id = eventId
         )
     }

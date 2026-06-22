@@ -1,7 +1,7 @@
 package com.borinquenterrier.cef
 
 import com.russhwolf.settings.Settings
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 /**
  * Manages polling schedule state, including last poll time and poll frequency logic.

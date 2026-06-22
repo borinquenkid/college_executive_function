@@ -5,7 +5,7 @@ import com.borinquenterrier.cef.db.FragmentEntity
 import com.borinquenterrier.cef.db.SourceEntity
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 class SqlDelightSourceRepository(
     private val database: AppDatabase

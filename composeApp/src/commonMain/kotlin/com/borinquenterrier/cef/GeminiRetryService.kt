@@ -1,7 +1,7 @@
 package com.borinquenterrier.cef
 
 import io.ktor.http.HttpStatusCode
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow

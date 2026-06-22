@@ -3,7 +3,7 @@ package com.borinquenterrier.cef
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
-import kotlinx.datetime.Clock
+import kotlin.time.Clock
 
 /**
  * Lightweight facade orchestrating the autonomous background polling harness.

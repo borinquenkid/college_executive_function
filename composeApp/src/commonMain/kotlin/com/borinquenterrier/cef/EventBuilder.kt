@@ -28,9 +28,11 @@ object EventBuilder {
           Use this table to resolve "Week N" references in the text to calendar dates.
 
         ## Instructions:
-        1. If `type` is `CALENDAR`, the `text` is an iCalendar VEVENT. Map it directly to the target schema.
-        2. If `type` is `TEXT`, perform extraction from the `text` field using any provided `pageNumber` or `sectionTitle` as additional context for locating the event in time or importance.
-        3. If `metadata.weekAnchors` is present, use it as the authoritative week-to-date mapping when the text contains "Week N" references without explicit calendar dates.
+        1. If `metadata.contextOnly = 'true'`, this fragment is a carry-over from the previous
+           batch included for reading continuity ONLY. Do NOT extract any events from it.
+        2. If `type` is `CALENDAR`, the `text` is an iCalendar VEVENT. Map it directly to the target schema.
+        3. If `type` is `TEXT`, perform extraction from the `text` field using any provided `pageNumber` or `sectionTitle` as additional context for locating the event in time or importance.
+        4. If `metadata.weekAnchors` is present, use it as the authoritative week-to-date mapping when the text contains "Week N" references without explicit calendar dates.
     """.trimIndent()
 
     fun getSourceEventExtractionPrompt(fragmentJson: String): String {

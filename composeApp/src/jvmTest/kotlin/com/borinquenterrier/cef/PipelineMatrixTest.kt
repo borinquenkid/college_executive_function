@@ -11,6 +11,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.cancel
@@ -233,12 +234,18 @@ class PipelineMatrixTest : FunSpec({
         }
 
         test("isLoading is true during extraction, false after") {
-            coEvery { mockAi.generateCalendarEvents(any()) } returns listOf(day("Exam"))
-            val loading = mutableListOf<Boolean>()
-            val job = testScope.launch { eventAgent.isLoading.collect { loading.add(it) } }
-            eventAgent.extractDeliverables(source("S"))
-            job.cancel()
-            loading.any { it } shouldBe true
+            // Gate the mock so extractDeliverables stays suspended while isLoading = true.
+            // Without the gate, true→false can complete before the collector ever runs
+            // (StateFlow conflates, so only the final false would be observed).
+            val gate = CompletableDeferred<Unit>()
+            coEvery { mockAi.generateCalendarEvents(any()) } coAnswers {
+                gate.await()
+                listOf(day("Exam"))
+            }
+            val extractJob = testScope.launch { eventAgent.extractDeliverables(source("S")) }
+            withTimeout(5_000) { eventAgent.isLoading.first { it } }
+            gate.complete(Unit)
+            extractJob.join()
             eventAgent.isLoading.value shouldBe false
         }
     }

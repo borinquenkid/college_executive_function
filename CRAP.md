@@ -276,6 +276,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseTasks` | 2 |
 | `parseTaskFromJson` | 2 |
 
+### EventBuilder.kt (Score: 22.12 - 🟡 MEDIUM)
+- **Total Complexity**: 22
+- **Real Coverage**: 93.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getSourceEventExtractionPrompt` | 14 |
+| `getEventCritiquePrompt` | 4 |
+
 ### Event.kt (Score: 22.02 - 🟡 MEDIUM)
 - **Total Complexity**: 22
 - **Real Coverage**: 96.5%
@@ -349,16 +359,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `extractDeliverables` | 1 |
 | `generateStudyPlan` | 1 |
 | `generateDeterministicId` | 1 |
-
-### EventBuilder.kt (Score: 21.11 - 🟡 MEDIUM)
-- **Total Complexity**: 21
-- **Real Coverage**: 93.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getSourceEventExtractionPrompt` | 14 |
-| `getEventCritiquePrompt` | 4 |
 
 ### EventPresenter.kt (Score: 21.00 - 🟡 MEDIUM)
 - **Total Complexity**: 21
@@ -1274,6 +1274,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateIcsString` | 1 |
 | `writeIcsFile` | 1 |
 
+### SourceFragmentBatcher.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 6
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `batch` | 1 |
+
 ### Platform.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2
 - **Real Coverage**: 0.0%
@@ -1453,15 +1462,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `fetchFromDirectories` | 5 |
-
-### SourceFragmentBatcher.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `batch` | 1 |
 
 ### SourceProcessingPipeline.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5

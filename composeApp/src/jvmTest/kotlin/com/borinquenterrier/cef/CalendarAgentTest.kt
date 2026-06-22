@@ -450,4 +450,75 @@ class CalendarAgentTest : FunSpec({
         coVerify(exactly = 0) { localRepo.getEventsBySyncStatus(any(), any()) }
         coVerify(exactly = 0) { remoteRepo.saveEvent(any(), any()) }
     }
+
+    // ── resetCalendar ─────────────────────────────────────────────────────────
+
+    test("resetCalendar calls persistence.reset and increments resetVersion") {
+        val before = calendarAgent.resetVersion.value
+        calendarAgent.resetCalendar("default")
+        calendarAgent.resetVersion.value shouldBe before + 1
+    }
+
+    test("resetCalendar with default calendarId increments resetVersion") {
+        val before = calendarAgent.resetVersion.value
+        calendarAgent.resetCalendar()
+        calendarAgent.resetVersion.value shouldBe before + 1
+    }
+
+    // ── hardDeleteLocalOnly ───────────────────────────────────────────────────
+
+    test("hardDeleteLocalOnly delegates directly to localRepo.hardDeleteEvent") {
+        coEvery { localRepo.hardDeleteEvent(any(), any()) } just runs
+        calendarAgent.hardDeleteLocalOnly("event-1", "default")
+        coVerify(exactly = 1) { localRepo.hardDeleteEvent("event-1", "default") }
+    }
+
+    // ── default-calendarId bridges ────────────────────────────────────────────
+    // Each suspend fun with `calendarId: String = "default"` has a default-arg
+    // bridge entry point that only fires when calendarId is omitted. The tests
+    // below cover those bridges and verify the default routes to "default".
+
+    test("updateEvent omitting calendarId defaults to 'default'") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "test")
+        coEvery { localRepo.getSettings() } returns mockSettings
+        calendarAgent.updateEvent(timeEvent)
+        coVerify { localRepo.updateEvent(any(), "default") }
+    }
+
+    test("saveEventLocally omitting calendarId defaults to 'default'") {
+        calendarAgent.saveEventLocally(timeEvent)
+        coVerify { localRepo.saveEvent(any(), "default") }
+    }
+
+    test("deleteEvent omitting calendarId defaults to 'default'") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "test")
+        coEvery { localRepo.getSettings() } returns mockSettings
+        calendarAgent.deleteEvent("event-1")
+        coVerify { localRepo.deleteEvent("event-1", "default") }
+    }
+
+    test("checkSyncProposals omitting calendarId defaults to 'default'") {
+        coEvery { localRepo.getEventsBySyncStatus(any(), any()) } returns emptyList()
+        coEvery { localRepo.getAllEvents("default") } returns emptyList()
+        coEvery { remoteRepo.getAllEvents("default") } returns emptyList()
+        val result = calendarAgent.checkSyncProposals()
+        result.proposals shouldBe emptyList()
+    }
+
+    test("synchronize omitting calendarId defaults to 'default'") {
+        coEvery { localRepo.getEventsBySyncStatus(any(), any()) } returns emptyList()
+        coEvery { localRepo.getAllEvents(any()) } returns emptyList()
+        coEvery { remoteRepo.getAllEvents(any()) } returns emptyList()
+        calendarAgent.synchronize()
+        coVerify { remoteRepo.getAllEvents("default") }
+    }
+
+    test("getIncompleteEventsBefore omitting calendarId defaults to 'default'") {
+        coEvery { localRepo.getIncompleteEventsBefore(date, "default") } returns emptyList()
+        val result = calendarAgent.getIncompleteEventsBefore(date)
+        result shouldBe emptyList()
+        coVerify(exactly = 1) { localRepo.getIncompleteEventsBefore(date, "default") }
+    }
 })

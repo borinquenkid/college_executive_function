@@ -59,18 +59,17 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 
 ---
 
-### B3: CalendarAgent.kt — line gap [ ]
+### B3: CalendarAgent.kt — line gap [x]
 **File**: `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarAgent.kt`  
-**Current**: 74.4% line, CRAP not listed (coverage too low)  
-**Existing test**: `jvmTest/.../CalendarAgentTest.kt`  
-**What to do**:
-- Read `CalendarAgent.kt` and `CalendarAgentTest.kt`
-- Identify the 25.6% uncovered lines — typically: null/empty result handling, error propagation paths, delegation branches for remote vs local
-- Extend `CalendarAgentTest.kt` with tests for those paths
-- Use in-memory SQLite driver for any persistence-touching tests (pattern established in `StlccIntegrationTest`)
-- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.CalendarAgentTest"`
-
-**Success**: 100% line + branch coverage; CRAP score equals complexity only
+**Before**: 74.4% line  
+**After**: 100% line (39/39), 100% instruction (374/374)  
+**What was done**:
+- Added `resetCalendar` test (the only truly missing test — body lines 55-56 never executed)
+- Added `hardDeleteLocalOnly` test
+- Added default-arg bridge tests for `updateEvent`, `saveEventLocally`, `deleteEvent`,
+  `checkSyncProposals`, `synchronize`, `getIncompleteEventsBefore` — each function with
+  `calendarId: String = "default"` generates a Kotlin default-arg bridge that maps to the
+  function header line; calling without explicit calendarId covers those lines
 
 ---
 
@@ -243,7 +242,7 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | A1: Kover CI gate | [x] | N/A | gate live at 80% |
 | B1: AcademicCalendar extract | [x] | 21.2% / CRAP 48.70 | exempted via @UiOnly |
 | B2: AppController → 100% | [x] | 75.0% / CRAP 24.64 | 100% line + branch |
-| B3: CalendarAgent → 100% | [ ] | 74.4% | — |
+| B3: CalendarAgent → 100% | [x] | 74.4% | 100% line + instruction |
 | B4: GeminiRetryService → 100% | [ ] | 88.5% / CRAP 28.11 | — |
 | B5: GeminiRequestExecutor → 100% | [ ] | 90.2% / CRAP 27.70 | — |
 | B6: GoogleCalendarSyncService → 100% | [ ] | 91.3% / CRAP 27.48 | — |

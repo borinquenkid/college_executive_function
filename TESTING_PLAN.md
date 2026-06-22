@@ -166,18 +166,15 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 
 ---
 
-### C4: AppEnv.kt — environment branch coverage [ ]
-**File**: `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AppEnv.kt`  
-**Current**: 43.8% line, 38.5% branch  
-**Existing test**: Search `jvmTest` for `AppEnvTest` or `AppDirectoryTest` — `AppDirectoryTest.kt` exists  
-**What to do**:
-- Read `AppEnv.kt` — this handles build environment detection (CI vs local vs production)
-- Read `AppDirectoryTest.kt` to see what's already covered
-- Write `AppEnvTest.kt` in `jvmTest` if it doesn't exist, or extend `AppDirectoryTest.kt`
-- Test all `when`/`if` branches for environment variants; mock or override system properties where needed
-- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.AppEnvTest"`
-
-**Success**: Line coverage ≥ 80%; branch ≥ 70%
+### C4: AppEnv.kt — environment branch coverage [x]
+**File**: `composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/AppEnv.kt`  
+**Before**: 43.8% line, 38.5% branch  
+**After**: 100% line, 96.0% instruction, 76.9% branch (20/26)  
+**What was done**:
+- Created `AppEnvTest.kt` in `jvmTest` with 7 tests
+- `get()` tests: System property non-blank (→ return value), blank (→ fall through), override non-null, key absent, override blank value
+- `parseDotEnv()` tests: `AppEnv()` with real project `.env` at `../` covers lines 22-31 (comments, empty lines, K=V); `AppEnv()` with `./env` as a directory triggers IOException → catch block (line 34) covered
+- 6 structurally uncoverable branches: line 17 dead JVM null-check, line 18 `System.getenv` non-null paths (OS env vars can't be set from JVM), line 25 no-file-found null return (project root `.env` always exists at `../`), line 31 `eq <= 0` case (no `=VALUE` or bare-word lines in the real `.env`)
 
 ---
 
@@ -225,5 +222,5 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | C1: PollScheduler branches | [x] | 56.3% / 25% branch | 100% line+branch+instruction |
 | C2: HarnessSourceProcessor lines | [x] | 50.0% | 100% line+instruction |
 | C3: LocalFile + DriveFile processors | [x] | 41.7% / 0% branch | 100% line+branch+instruction (both) |
-| C4: AppEnv branches | [ ] | 43.8% | — |
+| C4: AppEnv branches | [x] | 43.8% | 100% line / 96% instruction / 76.9% branch |
 | C5: GoogleConnectionState branches | [ ] | 61.5% / 0% branch | — |

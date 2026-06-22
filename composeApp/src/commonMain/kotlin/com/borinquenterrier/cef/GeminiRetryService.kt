@@ -94,15 +94,13 @@ class GeminiRetryService(
         val bodyRetryMatch = Regex("""retry in (\d+(?:\.\d+)?)\s*s""", RegexOption.IGNORE_CASE)
             .find(body)
         if (bodyRetryMatch != null) {
-            val seconds = bodyRetryMatch.groupValues[1].toDoubleOrNull()
-            if (seconds != null) {
-                val ms = (seconds * 1000).toLong() + 500L
-                logger?.d(
-                    tag,
-                    "⏱️ Rate-limited — server body says retry in ${seconds}s. Waiting ${ms}ms."
-                )
-                return ms
-            }
+            val seconds = bodyRetryMatch.groupValues[1].toDouble()
+            val ms = (seconds * 1000).toLong() + 500L
+            logger?.d(
+                tag,
+                "⏱️ Rate-limited — server body says retry in ${seconds}s. Waiting ${ms}ms."
+            )
+            return ms
         }
 
         // Try x-ratelimit-reset header

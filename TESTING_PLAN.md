@@ -73,18 +73,13 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 
 ---
 
-### B4: GeminiRetryService.kt — retry branch gaps [ ]
+### B4: GeminiRetryService.kt — retry branch gaps [x]
 **File**: `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiRetryService.kt`  
-**Current**: 88.5% line, CRAP 28.11  
-**Existing test**: `commonTest/.../GeminiRetryServiceTest.kt`  
-**What to do**:
-- Read both files
-- `wait` (complexity 7) and `checkRateLimitWindow` (complexity 3) are the high-complexity methods — find which branches are uncovered in each
-- Missing branches are typically: rate-limit window already active when `wait` is called, `wait` called with zero retries remaining, `checkRateLimitWindow` with a reset time in the past vs future
-- Extend `GeminiRetryServiceTest.kt`
-- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.GeminiRetryServiceTest"`
-
-**Success**: 100% line + branch coverage; CRAP score equals complexity only
+**Before**: 88.5% line, CRAP 28.11  
+**After**: 100% line (87/87), 100% instruction (458/458), 95.8% branch (46/48)  
+**What was done**:
+- Added 16 new tests covering: `clearGlobalHold()` body, `cancelHold()` with active deferred (completeExceptionally path), body retry-in hint in `resolveRetryDelay`, x-ratelimit-reset header path, non-numeric header fallthrough to exponential backoff, null logger in `checkRateLimitWindow` global hold path, null logger in exponential fallback, non-null logger in exponential fallback (string template coverage), `skipLongDelaysInTests` throw path and safe path, delayFn throwing (propagates via `deferred.completeExceptionally`), finally block `now >= globalHoldUntil` true branch (hold expired), exception-path finally block with active hold (false branch)
+- 2 branches remain structurally uncoverable: line 98 (`toDoubleOrNull` null branch — dead code because regex guarantees digits), line 185 (exception-path `activeDeferred !== deferred` — requires concurrent overlapping `wait()` calls)
 
 ---
 
@@ -243,7 +238,7 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | B1: AcademicCalendar extract | [x] | 21.2% / CRAP 48.70 | exempted via @UiOnly |
 | B2: AppController → 100% | [x] | 75.0% / CRAP 24.64 | 100% line + branch |
 | B3: CalendarAgent → 100% | [x] | 74.4% | 100% line + instruction |
-| B4: GeminiRetryService → 100% | [ ] | 88.5% / CRAP 28.11 | — |
+| B4: GeminiRetryService → 100% | [x] | 88.5% / CRAP 28.11 | 100% line + instruction / CRAP = complexity |
 | B5: GeminiRequestExecutor → 100% | [ ] | 90.2% / CRAP 27.70 | — |
 | B6: GoogleCalendarSyncService → 100% | [ ] | 91.3% / CRAP 27.48 | — |
 | B7: SqlDelightLocalCalendar → 100% | [ ] | 82.9% / CRAP 26.87 | — |

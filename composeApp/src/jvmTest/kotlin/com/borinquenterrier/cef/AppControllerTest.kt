@@ -7,6 +7,7 @@ import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.every
 import io.mockk.mockk
+import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
@@ -18,9 +19,12 @@ class AppControllerTest : FunSpec({
     lateinit var sourceRepository: SqlDelightSourceRepository
     lateinit var localRepository: SqlDelightLocalCalendarRepository
     lateinit var calendarAgent: CalendarAgent
+    lateinit var eventAgent: EventAgent
     lateinit var aiService: AIService
     lateinit var contextAgent: ContextAgent
     lateinit var logger: Logger
+    lateinit var mockSourceLoader: SourceLoader
+    lateinit var mockSourceAdder: SourceAdder
     lateinit var controller: AppController
 
     fun makeEvent(title: String, id: String? = title): TimeEvent = TimeEvent(
@@ -37,6 +41,7 @@ class AppControllerTest : FunSpec({
         sourceRepository = mockk(relaxed = true)
         localRepository = mockk(relaxed = true)
         calendarAgent = mockk(relaxed = true)
+        eventAgent = mockk(relaxed = true)
         aiService = mockk(relaxed = true)
         contextAgent = mockk(relaxed = true)
         logger = mockk(relaxed = true)
@@ -45,13 +50,14 @@ class AppControllerTest : FunSpec({
         every { container.sourceRepository } returns sourceRepository
         every { container.localRepository } returns localRepository
         every { container.calendarAgent } returns calendarAgent
+        every { container.eventAgent } returns eventAgent
         every { container.aiService } returns aiService
         every { container.contextAgent } returns contextAgent
         every { container.logger } returns logger
 
         // Set up real SourceManager, SourceSelector, and SourceDeleter for proper state management
-        val mockSourceLoader = mockk<SourceLoader>(relaxed = true)
-        val mockSourceAdder = mockk<SourceAdder>(relaxed = true)
+        mockSourceLoader = mockk(relaxed = true)
+        mockSourceAdder = mockk(relaxed = true)
         val realSourceSelector = SourceSelector()
 
         coEvery { mockSourceLoader.loadSources() } returns emptyList()
@@ -188,5 +194,150 @@ class AppControllerTest : FunSpec({
         controller.addChatMessage(ChatMessage("User", "Hello!"))
         controller.chatMessages.value.size shouldBe initialCount + 1
         controller.chatMessages.value.last().content shouldBe "Hello!"
+    }
+
+    // ── loadSources ───────────────────────────────────────────────────────────
+
+    test("loadSources updates sourceItems with what the loader returns") {
+        val source = SourceItem("lecture.pdf", emptyList(), SourceCategory.SYLLABUS)
+        coEvery { mockSourceLoader.loadSources() } returns listOf(source)
+
+        controller.loadSources()
+        delay(300)
+
+        controller.sourceItems.value.any { it.title == "lecture.pdf" } shouldBe true
+    }
+
+    // ── resetForDemo ──────────────────────────────────────────────────────────
+
+    test("resetForDemo resets the calendar and clears the event agent") {
+        controller.resetForDemo()
+        delay(300)
+
+        coVerify { calendarAgent.resetCalendar() }
+        coVerify { eventAgent.clear() }
+    }
+
+    test("resetForDemo clears AI-generated events shown in the UI") {
+        controller.addEvents(listOf(makeEvent("Exam")))
+        controller.aiGeneratedEvents.value.size shouldBe 1
+
+        controller.resetForDemo()
+        delay(300)
+
+        controller.aiGeneratedEvents.value shouldBe emptyList()
+    }
+
+    // ── reanalyzeSource ───────────────────────────────────────────────────────
+
+    test("reanalyzeSource keeps the source in sourceItems") {
+        val source = SourceItem("notes.txt", emptyList(), SourceCategory.READING_MATERIAL)
+        controller.addSource(source)
+        controller.reanalyzeSource(source)
+        controller.sourceItems.value.any { it.title == "notes.txt" } shouldBe true
+    }
+
+    // ── selectSource ──────────────────────────────────────────────────────────
+
+    test("selectSource null clears selectedSource") {
+        val source = SourceItem("notes.txt", emptyList(), SourceCategory.READING_MATERIAL)
+        controller.addSource(source)
+        controller.selectSource(null)
+        controller.selectedSource.value shouldBe null
+    }
+
+    test("selectSource switches selection to the given source") {
+        val a = SourceItem("a.pdf", emptyList(), SourceCategory.SYLLABUS)
+        val b = SourceItem("b.pdf", emptyList(), SourceCategory.READING_MATERIAL)
+        controller.addSource(a)
+        controller.addSource(b)
+        controller.selectSource(b)
+        controller.selectedSource.value?.title shouldBe "b.pdf"
+    }
+
+    // ── launchInScope ─────────────────────────────────────────────────────────
+
+    test("launchInScope executes the given block in the controller scope") {
+        var ran = false
+        controller.launchInScope { ran = true }
+        delay(100)
+        ran shouldBe true
+    }
+
+    // ── screen listener ───────────────────────────────────────────────────────
+
+    test("setScreenListener receives the current screen immediately on registration") {
+        val received = mutableListOf<AppScreen>()
+        controller.setScreenListener { received.add(it) }
+        received.size shouldBe 1
+        received.first() shouldBe AppScreen.Home
+    }
+
+    test("setScreenListener is invoked on every subsequent navigation change") {
+        val received = mutableListOf<AppScreen>()
+        controller.setScreenListener { received.add(it) }
+        controller.navigateTo(AppScreen.Settings)
+        delay(200)
+        received.last() shouldBe AppScreen.Settings
+    }
+
+    // ── events listener ───────────────────────────────────────────────────────
+
+    test("setEventsListener receives the current (empty) event list immediately on registration") {
+        val received = mutableListOf<List<Event>>()
+        controller.setEventsListener { received.add(it) }
+        received.size shouldBe 1
+        received.first() shouldBe emptyList()
+    }
+
+    test("setEventsListener is invoked when events are added") {
+        val received = mutableListOf<List<Event>>()
+        controller.setEventsListener { received.add(it) }
+        controller.addEvents(listOf(makeEvent("Midterm")))
+        delay(200)
+        received.last().size shouldBe 1
+    }
+
+    // ── init: retryLocalOnly ──────────────────────────────────────────────────
+
+    test("init triggers retryLocalOnly once when isLinked transitions to true") {
+        val linkedFlow = MutableStateFlow(false)
+        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+        every { tokenRepo.isLinked } returns linkedFlow
+        every { container.tokenRepository } returns tokenRepo
+        AppController(container)
+
+        linkedFlow.value = true
+        delay(300)
+
+        coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+    }
+
+    test("init triggers retryLocalOnly immediately when isLinked is already true") {
+        val linkedFlow = MutableStateFlow(true)
+        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+        every { tokenRepo.isLinked } returns linkedFlow
+        every { container.tokenRepository } returns tokenRepo
+        AppController(container)
+
+        delay(300)
+
+        coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+    }
+
+    test("init triggers retryLocalOnly exactly once even if isLinked emits true multiple times") {
+        val linkedFlow = MutableStateFlow(false)
+        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+        every { tokenRepo.isLinked } returns linkedFlow
+        every { container.tokenRepository } returns tokenRepo
+        AppController(container)
+
+        linkedFlow.value = true
+        delay(100)
+        linkedFlow.value = false
+        linkedFlow.value = true
+        delay(300)
+
+        coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
     }
 })

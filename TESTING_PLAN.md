@@ -47,17 +47,15 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 
 ---
 
-### B2: AppController.kt — branch gap [ ]
+### B2: AppController.kt — branch gap [x]
 **File**: `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AppController.kt`  
-**Current**: 75.0% line, 50.0% branch, CRAP 24.64  
-**Existing test**: `jvmTest/.../AppControllerTest.kt`  
-**What to do**:
-- Read `AppController.kt` and `AppControllerTest.kt`
-- The branch gap (50%) means half the conditional arms are untested — focus on: error paths in action handlers, guard conditions that short-circuit, state transitions that only trigger on specific input combinations
-- Extend `AppControllerTest.kt` to cover each uncovered branch arm
-- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.AppControllerTest"`
-
-**Success**: 100% line + branch coverage; CRAP score equals complexity only (no uncovered-branch multiplier)
+**Before**: 75.0% line, 50.0% branch, CRAP 24.64  
+**After**: 100% line (60/60), 100% branch (4/4)  
+**What was done**:
+- Exposed `mockSourceLoader`, `mockSourceAdder`, `eventAgent` as `lateinit var` fields in the test class
+- Added 13 new tests covering: `loadSources`, `resetForDemo`, `reanalyzeSource`, `selectSource`,
+  `launchInScope`, `setScreenListener` (immediate + propagated), `setEventsListener` (immediate + propagated),
+  and 3 variants of the `retryLocalOnly` init coroutine (transition to true, starts true, fires exactly once)
 
 ---
 
@@ -244,7 +242,7 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | :--- | :---: | :---: | :---: |
 | A1: Kover CI gate | [x] | N/A | gate live at 80% |
 | B1: AcademicCalendar extract | [x] | 21.2% / CRAP 48.70 | exempted via @UiOnly |
-| B2: AppController → 100% | [ ] | 75.0% / CRAP 24.64 | — |
+| B2: AppController → 100% | [x] | 75.0% / CRAP 24.64 | 100% line + branch |
 | B3: CalendarAgent → 100% | [ ] | 74.4% | — |
 | B4: GeminiRetryService → 100% | [ ] | 88.5% / CRAP 28.11 | — |
 | B5: GeminiRequestExecutor → 100% | [ ] | 90.2% / CRAP 27.70 | — |

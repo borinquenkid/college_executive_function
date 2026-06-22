@@ -9,18 +9,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 200
-- **High-Risk Files (CRAP > 30)**: 1
+- **Total Files Analyzed**: 171
+- **High-Risk Files (CRAP > 30)**: 0
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| AcademicCalendar.kt | 9 | 21.2% | 48.70 | 🔴 HIGH |
-| IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
-| EventItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | GeminiAIService.kt | 29 | 92.1% | 29.42 | 🟡 MEDIUM |
 | EventAgent.kt | 29 | 98.0% | 29.01 | 🟡 MEDIUM |
 | EventDeduplicator.kt | 29 | 100.0% | 29.00 | 🟡 MEDIUM |
@@ -31,55 +26,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | SqlDelightLocalCalendarRepository.kt | 24 | 82.9% | 26.87 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 25 | 98.0% | 25.01 | 🟡 MEDIUM |
 | AppController.kt | 19 | 75.0% | 24.64 | 🟡 MEDIUM |
+| CriticActorAIService.kt | 23 | 87.2% | 24.11 | 🟡 MEDIUM |
+| CriticJsonCodec.kt | 23 | 93.8% | 23.13 | 🟡 MEDIUM |
+| EventBuilder.kt | 22 | 93.8% | 22.12 | 🟡 MEDIUM |
+| Event.kt | 22 | 96.5% | 22.02 | 🟡 MEDIUM |
+| GoogleRemoteCalendarRepository.kt | 21 | 86.8% | 22.00 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
-
-### AcademicCalendar.kt (Score: 48.70 - 🔴 HIGH)
-- **Total Complexity**: 9
-- **Real Coverage**: 21.2%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AcademicCalendar` | 1 |
-
-### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
-- **Total Complexity**: 5
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `IngestingProgressDialog` | 5 |
-
-### EventListContent.kt (Score: 30.00 - 🟡 MEDIUM)
-- **Total Complexity**: 5
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `EventListContent` | 1 |
-
-### SourceItemView.kt (Score: 30.00 - 🟡 MEDIUM)
-- **Total Complexity**: 5
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `SourceItemView` | 1 |
-
-### EventItemView.kt (Score: 30.00 - 🟡 MEDIUM)
-- **Total Complexity**: 5
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `EventItemView` | 1 |
 
 ### GeminiAIService.kt (Score: 29.42 - 🟡 MEDIUM)
 - **Total Complexity**: 29
@@ -399,16 +354,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `blacklistModel` | 1 |
 | `negotiateBestModel` | 1 |
 
-### RoutineScreen.kt (Score: 20.00 - 🟡 MEDIUM)
-- **Total Complexity**: 4
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `RoutineScreen` | 2 |
-| `RoutineEventView` | 2 |
-
 ### SourceRepository.kt (Score: 20.00 - 🟡 MEDIUM)
 - **Total Complexity**: 4
 - **Real Coverage**: 0.0%
@@ -420,16 +365,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceMetadata` | 1 |
 | `getSourceById` | 1 |
 | `deleteSource` | 1 |
-
-### ConditionalDialogs.kt (Score: 20.00 - 🟡 MEDIUM)
-- **Total Complexity**: 4
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `DecompositionDialogFor` | 1 |
-| `SyncNegotiationDialogFor` | 1 |
 
 ### GoogleDriveService.kt (Score: 19.35 - 🟡 MEDIUM)
 - **Total Complexity**: 19
@@ -529,15 +464,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `disconnect` | 1 |
 | `reportAuthError` | 1 |
 
-### GoogleCalendarPanel.kt (Score: 14.71 - 🟢 LOW)
-- **Total Complexity**: 14
-- **Real Coverage**: 84.6%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `GoogleCalendarPanel` | 1 |
-
 ### CalendarAgent.kt (Score: 14.43 - 🟢 LOW)
 - **Total Complexity**: 12
 - **Real Coverage**: 74.4%
@@ -631,17 +557,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `formatDate` | 1 |
 | `plusDays` | 1 |
 
-### AddRoutineItemDialog.kt (Score: 13.00 - 🟢 LOW)
-- **Total Complexity**: 13
-- **Real Coverage**: 98.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AddRoutineItemDialog` | 11 |
-| `ClickableField` | 1 |
-| `TimePickerDialog` | 1 |
-
 ### SourceAdder.kt (Score: 13.00 - 🟢 LOW)
 - **Total Complexity**: 13
 - **Real Coverage**: 100.0%
@@ -680,25 +595,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `loadSources` | 4 |
 
-### ChatPanel.kt (Score: 12.41 - 🟢 LOW)
-- **Total Complexity**: 12
-- **Real Coverage**: 85.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `MessageView` | 6 |
-| `ChatPanel` | 1 |
-
-### AcademicCalendarHeader.kt (Score: 12.00 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AcademicCalendarHeader` | 1 |
-
 ### EventGenerator.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 12
 - **Real Coverage**: 100.0%
@@ -709,16 +605,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `expandEvents` | 1 |
 | `expandTimeEvent` | 1 |
 | `expandDayEvent` | 1 |
-
-### ConflictResolutionUI.kt (Score: 12.00 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `ConflictItem` | 2 |
-| `ConflictResolutionDialog` | 1 |
 
 ### SourceIngestionHandler.kt (Score: 11.11 - 🟢 LOW)
 - **Total Complexity**: 11
@@ -824,15 +710,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `unlinkAccount` | 2 |
 | `isLinked` | 1 |
 
-### StudyPreferencesPanel.kt (Score: 10.21 - 🟢 LOW)
-- **Total Complexity**: 10
-- **Real Coverage**: 87.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `StudyPreferencesPanel` | 1 |
-
 ### AiPrompts.kt (Score: 10.12 - 🟢 LOW)
 - **Total Complexity**: 10
 - **Real Coverage**: 89.5%
@@ -923,17 +800,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `downloadModel` | 7 |
 | `isModelDownloaded` | 2 |
 | `getModelFile` | 1 |
-
-### SettingsScreen.kt (Score: 9.39 - 🟢 LOW)
-- **Total Complexity**: 9
-- **Real Coverage**: 83.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `SettingsScreen` | 1 |
-| `savePreferences` | 1 |
-| `formatCalendarError` | 1 |
 
 ### Logger.kt (Score: 9.27 - 🟢 LOW)
 - **Total Complexity**: 9
@@ -1186,15 +1052,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `delete` | 1 |
 | `retryLocalOnly` | 1 |
 
-### DrivePickerDialog.kt (Score: 6.12 - 🟢 LOW)
-- **Total Complexity**: 6
-- **Real Coverage**: 85.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `DrivePickerDialog` | 1 |
-
 ### StateFlowWrapper.kt (Score: 6.10 - 🟢 LOW)
 - **Total Complexity**: 6
 - **Real Coverage**: 85.7%
@@ -1208,15 +1065,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `asStateFlow` | 1 |
 | `setValue` | 1 |
 | `<T> mutableStateFlowWrapper` | 1 |
-
-### TaskDecompositionDialog.kt (Score: 6.01 - 🟢 LOW)
-- **Total Complexity**: 6
-- **Real Coverage**: 94.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `TaskDecompositionDialog` | 6 |
 
 ### FragmentRanker.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 6
@@ -1255,15 +1103,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `isAuthorized` | 1 |
 | `SelectorUI` | 1 |
 
-### App.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 2
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `App` | 2 |
-
 ### IcsExport.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2
 - **Real Coverage**: 0.0%
@@ -1282,34 +1121,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `batch` | 1 |
-
-### Platform.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 2
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `rememberModelDirectoryPath` | 1 |
-| `rememberDriverFactory` | 1 |
-
-### AdvancedSettingsPanel.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 2
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AdvancedSettingsPanel` | 1 |
-
-### GeminiSetupPanel.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 6
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `GeminiSetupPanel` | 1 |
 
 ### DocxReader.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2
@@ -1330,15 +1141,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getCached` | 1 |
 | `evict` | 1 |
-
-### GoogleLinkPrompt.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 2
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `GoogleLinkPrompt` | 1 |
 
 ### TaskDecompositionService.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 6
@@ -1424,16 +1226,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `GoogleCalendarSelector` | 1 |
 
-### ErrorBanner.kt (Score: 5.01 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 91.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `QuotaErrorBanner` | 1 |
-| `AnimatedErrorBanner` | 1 |
-
 ### GeminiRequestBuilder.kt (Score: 5.01 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 93.8%
@@ -1444,15 +1236,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `buildPostUrl` | 2 |
 | `postToModel` | 2 |
 | `hasApiKey` | 1 |
-
-### UniversalHomeLayout.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 96.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `UniversalHomeLayout` | 5 |
 
 ### LocalFileFetcher.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5
@@ -1587,15 +1370,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getPreferences` | 3 |
 | `savePreferences` | 1 |
 
-### CreateCalendarDialog.kt (Score: 4.09 - 🟢 LOW)
-- **Total Complexity**: 4
-- **Real Coverage**: 82.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `CreateCalendarDialog` | 1 |
-
 ### WebSourceReader.kt (Score: 4.07 - 🟢 LOW)
 - **Total Complexity**: 4
 - **Real Coverage**: 83.3%
@@ -1623,15 +1397,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `getExpandedAndFilteredEvents` | 1 |
-
-### SyncNegotiationDialog.kt (Score: 4.00 - 🟢 LOW)
-- **Total Complexity**: 4
-- **Real Coverage**: 96.6%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `SyncNegotiationDialog` | 1 |
 
 ### ChatInputPresenter.kt (Score: 4.00 - 🟢 LOW)
 - **Total Complexity**: 4
@@ -1969,15 +1734,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Real Coverage**: 0.0%
 
 
-### RoutineSetupScreen.kt (Score: 2.00 - 🟢 LOW)
-- **Total Complexity**: 1
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `RoutineSetupScreen` | 1 |
-
 ### WarningAggregator.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 2
 - **Real Coverage**: 100.0%
@@ -2021,15 +1777,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `resolve` | 2 |
 
-### SettingsFactory.kt (Score: 2.00 - 🟢 LOW)
-- **Total Complexity**: 1
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `rememberSettings` | 1 |
-
 ### PlatformUtils.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1
 - **Real Coverage**: 0.0%
@@ -2038,15 +1785,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `openBrowser` | 1 |
-
-### FilePicker.kt (Score: 2.00 - 🟢 LOW)
-- **Total Complexity**: 1
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `FilePicker` | 1 |
 
 ### AppEnv.kt (Score: 1.18 - 🟢 LOW)
 - **Total Complexity**: 1
@@ -2075,15 +1813,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Total Complexity**: 1
 - **Real Coverage**: 61.5%
 
-
-### CheckInDialog.kt (Score: 1.00 - 🟢 LOW)
-- **Total Complexity**: 1
-- **Real Coverage**: 94.4%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `CheckInDialog` | 1 |
 
 ### IcsCalendarSource.kt (Score: 1.00 - 🟢 LOW)
 - **Total Complexity**: 1

@@ -108,6 +108,7 @@ object CrapIndexReporter {
 
         for (file in srcFiles) {
             val codeText = file.readText()
+            if (codeText.trimStart().startsWith("@file:UiOnly")) continue
             val (methods, classComplexity) = calculateComplexity(codeText)
             val totalComplexity = methods.sumOf { it.complexity } + classComplexity
             val complexity = if (totalComplexity == 0) 1 else totalComplexity

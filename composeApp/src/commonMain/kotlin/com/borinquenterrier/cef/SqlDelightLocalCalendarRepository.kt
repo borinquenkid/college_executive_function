@@ -45,8 +45,8 @@ class SqlDelightLocalCalendarRepository(
                 is TimeEvent -> event.date.toString()
                 is DayEvent -> event.date.toString()
             },
-            startTime = (event as? TimeEvent)?.startTime?.toString(),
-            endTime = (event as? TimeEvent)?.endTime?.toString(),
+            startTime = if (event is TimeEvent) event.startTime.toString() else null,
+            endTime = if (event is TimeEvent) event.endTime.toString() else null,
             recurrence = recurrenceStr,
             syncStatus = event.syncStatus.name,
             updatedAt = event.updatedAt,

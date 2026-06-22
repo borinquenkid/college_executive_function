@@ -107,18 +107,13 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 
 ---
 
-### B7: SqlDelightLocalCalendarRepository.kt — repository branch gaps [ ]
+### B7: SqlDelightLocalCalendarRepository.kt — repository branch gaps [x]
 **File**: `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SqlDelightLocalCalendarRepository.kt`  
-**Current**: 82.9% line, CRAP 26.87  
-**Existing test**: Coverage comes from multiple integration tests — search for direct tests in `jvmTest`  
-**What to do**:
-- Read the source file to understand which methods exist (complexity 24 total)
-- Run `grep -rn "SqlDelightLocalCalendarRepository" composeApp/src/jvmTest` to find where it's tested
-- Identify the 17% uncovered lines — typically: methods that return null when no record exists, update-when-not-found paths, delete-cascade behavior
-- Write or extend a dedicated `SqlDelightLocalCalendarRepositoryTest.kt` in `jvmTest` using an in-memory JDBC driver
-- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.SqlDelightLocalCalendarRepositoryTest"`
-
-**Success**: 100% line + branch coverage; CRAP score equals complexity only
+**Before**: 82.9% line, CRAP 26.87  
+**After**: 100% line (82/82), 100% instruction (414/414), 100% branch (26/26)  
+**What was done**:
+- Fixed dead null-check branches on lines 48-49: replaced `(event as? TimeEvent)?.startTime?.toString()` with `if (event is TimeEvent) event.startTime.toString() else null` — eliminates the unreachable null-check branch for non-nullable `LocalTime`
+- Created `SqlDelightLocalCalendarRepositoryTest.kt` with 21 tests using `JdbcSqliteDriver(IN_MEMORY)`: DayEvent/TimeEvent round-trips, gradeWeight null/non-null, recurrence null/non-null, completionStatus invalid-value fallback (directly inserting row with "INVALID_STATUS"), deleteEvent, hardDeleteEvent, clearLocalCalendar, getEventsInRange, getEventsBySyncStatus, getIncompleteEventsBefore, DELETED_LOCALLY filter in getAllEvents, startTime-set/endTime-null malformed row → DayEvent fallback (covers the false branch of `startTime != null && endTime != null`)
 
 ---
 
@@ -237,7 +232,7 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | B4: GeminiRetryService → 100% | [x] | 88.5% / CRAP 28.11 | 100% line + instruction / CRAP = complexity |
 | B5: GeminiRequestExecutor → 100% | [x] | 90.2% / CRAP 27.70 | 100% line / 97.3% branch (2 uncoverable: Java nullable message API) |
 | B6: GoogleCalendarSyncService → 100% | [x] | 91.3% / CRAP 27.48 | 100% line / 87.7% branch (16 uncoverable: kotlinx.serialization @Serializable generated code) |
-| B7: SqlDelightLocalCalendar → 100% | [ ] | 82.9% / CRAP 26.87 | — |
+| B7: SqlDelightLocalCalendar → 100% | [x] | 82.9% / CRAP 26.87 | 100% line + instruction + branch |
 | B8: GeminiAIService → 100% | [ ] | 92.1% / CRAP 29.42 | — |
 | C1: PollScheduler branches | [ ] | 56.3% / 25% branch | — |
 | C2: HarnessSourceProcessor lines | [ ] | 50.0% | — |

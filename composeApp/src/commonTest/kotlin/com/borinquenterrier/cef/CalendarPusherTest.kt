@@ -8,7 +8,7 @@ import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlin.time.Clock
-import kotlinx.datetime.Instant
+import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone

@@ -153,9 +153,10 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
             if (clientSecret.isNullOrBlank()) clientSecret = BuildSecrets.GOOGLE_CLIENT_SECRET
         }
 
-        // 3. .env file via AppEnv
-        if (clientId.isNullOrBlank()) clientId = appEnv.get("GOOGLE_CLIENT_ID")
-        if (clientSecret.isNullOrBlank()) clientSecret = appEnv.get("GOOGLE_CLIENT_SECRET")
+        // 3. .env file via AppEnv (skipped when bypassEnv=true — AppEnv.get also reads
+        //    System.getenv, which would otherwise leak CI env vars into tests)
+        if (clientId.isNullOrBlank() && !bypassEnv) clientId = appEnv.get("GOOGLE_CLIENT_ID")
+        if (clientSecret.isNullOrBlank() && !bypassEnv) clientSecret = appEnv.get("GOOGLE_CLIENT_SECRET")
 
         val clientSecrets = if (!clientId.isNullOrBlank() && !clientSecret.isNullOrBlank()) {
             val jsonString = """

@@ -45,8 +45,8 @@ class GeminiRequestExecutor(
         requestBuilder.postToModel(modelName, body)
 
     suspend fun <T> executeWithRetry(
-        maxAttempts: Int = 5,
-        tier: GeminiAIService.TaskTier = GeminiAIService.TaskTier.HEAVY,
+        maxAttempts: Int,
+        tier: GeminiAIService.TaskTier,
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T = queue.enqueue { executeWithRetryInternal(maxAttempts, tier, body, parseResponse) }
@@ -62,7 +62,7 @@ class GeminiRequestExecutor(
         val available = modelNegotiator.getAvailableModels()
         var attempts = 0
         var lastError: Exception? = null
-        var lastNegotiatedModel: String? = null
+        var lastNegotiatedModel = ""
         var consecutiveRateLimitCount = 0
         var consecutiveExtremeCount = 0
 
@@ -77,30 +77,23 @@ class GeminiRequestExecutor(
                     consecutiveRateLimitCount = 0
                     val geminiResponse =
                         Json { ignoreUnknownKeys = true }.decodeFromString<GeminiResponse>(responseBody)
-                    val responseText =
-                        geminiResponse.candidates.firstOrNull()?.content?.parts?.firstOrNull()?.text
-                            ?: throw Exception("Empty response from AI")
+                    val candidate = geminiResponse.candidates.firstOrNull()
+                        ?: throw Exception("Empty response from AI")
+                    val parts = candidate.content.parts
+                    val responseText = if (parts.isNotEmpty()) parts[0].text
+                        else throw Exception("Empty response from AI")
                     return parseResponse(responseText)
                 }
 
                 val errorType = errorHandler.categorizeError(httpResponse.status, responseBody)
 
-                if (errorType == ErrorCategorizer.ErrorType.Unauthorized ||
-                    errorType == ErrorCategorizer.ErrorType.Forbidden
-                ) {
-                    val msg = when (errorType) {
-                        ErrorCategorizer.ErrorType.Unauthorized -> "401 Unauthorized: Your API Key or Access Token is invalid/expired."
-                        ErrorCategorizer.ErrorType.Forbidden -> "403 Forbidden: Ensure the Gemini API is enabled in your Google Cloud Project."
-                        else -> "Unknown auth error"
-                    }
-                    logger?.e(tag, msg)
-                    throw Exception(
-                        when (errorType) {
-                            ErrorCategorizer.ErrorType.Unauthorized -> "Unauthorized"
-                            ErrorCategorizer.ErrorType.Forbidden -> "Forbidden"
-                            else -> "UnknownAuthError"
-                        }
-                    )
+                if (errorType == ErrorCategorizer.ErrorType.Unauthorized) {
+                    logger?.e(tag, "401 Unauthorized: Your API Key or Access Token is invalid/expired.")
+                    throw Exception("Unauthorized")
+                }
+                if (errorType == ErrorCategorizer.ErrorType.Forbidden) {
+                    logger?.e(tag, "403 Forbidden: Ensure the Gemini API is enabled in your Google Cloud Project.")
+                    throw Exception("Forbidden")
                 }
 
                 if (errorType is ErrorCategorizer.ErrorType.StructuralError) {
@@ -174,20 +167,15 @@ class GeminiRequestExecutor(
                     continue
                 }
 
-                if (errorType is ErrorCategorizer.ErrorType.OtherError) {
-                    val fullMessage = if (errorType.message.isNotBlank()) errorType.message
-                    else "Unknown error. Response: $responseBody"
-                    logger?.e(tag, "API Error: $fullMessage")
-                    throw Exception(fullMessage)
-                }
-
-                throw Exception("Unexpected response status: ${httpResponse.status}")
+                // sealed class: all other ErrorType variants handled above; errorType is always OtherError here
+                val otherError = errorType as ErrorCategorizer.ErrorType.OtherError
+                logger?.e(tag, "API Error: ${otherError.message}")
+                throw Exception(otherError.message)
 
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
-                if (e.message?.let {
-                        it.contains("Unauthorized") || it.contains("Forbidden") || it.contains("QuotaExhausted")
-                    } == true) throw e
+                val msg = e.message.orEmpty()
+                if (msg.contains("Unauthorized") || msg.contains("Forbidden") || msg.contains("QuotaExhausted")) throw e
 
                 lastError = e
                 logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
@@ -197,14 +185,12 @@ class GeminiRequestExecutor(
             }
         }
 
-        if (lastNegotiatedModel != null) {
-            modelNegotiator.blacklistModel(lastNegotiatedModel)
-            modelNegotiator.evictFromCache(lastNegotiatedModel)
-            logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts. Evicted and blacklisted.")
-        }
+        modelNegotiator.blacklistModel(lastNegotiatedModel)
+        modelNegotiator.evictFromCache(lastNegotiatedModel)
+        logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts. Evicted and blacklisted.")
 
         val errorToThrow = lastError ?: Exception("Failed after $maxAttempts attempts")
-        if (errorToThrow.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
+        if (errorToThrow.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) {
             retryService.activateRateLimitWindow()
         }
         throw errorToThrow

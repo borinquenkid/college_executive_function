@@ -142,17 +142,14 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 
 ---
 
-### C2: HarnessSourceProcessor.kt — processor branch coverage [ ]
+### C2: HarnessSourceProcessor.kt — processor branch coverage [x]
 **File**: `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/HarnessSourceProcessor.kt`  
-**Current**: 50.0% line  
-**Existing test**: `commonTest/.../HarnessSourceProcessorTest.kt`  
-**What to do**:
-- Read both files
-- Identify the untested 50% — typically unsupported source type handling, empty fragment list, error propagation from the underlying reader
-- Extend `HarnessSourceProcessorTest.kt`
-- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.HarnessSourceProcessorTest"`
-
-**Success**: Line coverage ≥ 80%
+**Before**: 50.0% line  
+**After**: 100% line + instruction (no conditional branches in this facade)  
+**What was done**:
+- Root cause: all three existing tests set up mocks but never called the processor methods (each ended with `// Verify delegation works` stub)
+- Fixed by adding actual `processor.processSource(source)` / `processLocalFiles` / `processDriveFiles` calls and verifying delegation with `coVerify`
+- Changed `mockk<Logger>()` to `mockk<Logger>(relaxed = true)` to absorb `logger.d()` calls
 
 ---
 
@@ -228,7 +225,7 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | B7: SqlDelightLocalCalendar → 100% | [x] | 82.9% / CRAP 26.87 | 100% line + instruction + branch |
 | B8: GeminiAIService → 100% | [ ] | 92.1% / CRAP 29.42 | — |
 | C1: PollScheduler branches | [x] | 56.3% / 25% branch | 100% line+branch+instruction |
-| C2: HarnessSourceProcessor lines | [ ] | 50.0% | — |
+| C2: HarnessSourceProcessor lines | [x] | 50.0% | 100% line+instruction |
 | C3: LocalFile + DriveFile processors | [ ] | 41.7% / 0% branch | — |
 | C4: AppEnv branches | [ ] | 43.8% | — |
 | C5: GoogleConnectionState branches | [ ] | 61.5% / 0% branch | — |

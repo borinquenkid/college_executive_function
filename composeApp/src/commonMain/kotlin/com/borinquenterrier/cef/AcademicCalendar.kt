@@ -28,7 +28,7 @@ fun AcademicCalendar(
     eventAgent: EventAgent,
     authService: GoogleAuthService,
     onNavigate: (AppScreen) -> Unit,
-    today: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault())
+    today: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault()),
 ) {
     val settings = rememberSettings()
     val scope = rememberCoroutineScope()
@@ -47,7 +47,7 @@ fun AcademicCalendar(
     var routineEvents by remember { mutableStateOf(emptyList<TimeEvent>()) }
     var displayedEvents by remember { mutableStateOf(emptyList<Event>()) }
     var isGoogleLinked by remember { mutableStateOf(authManager.isLinked()) }
-    var isSyncing by remember { mutableStateOf(false) }
+    var isSyncing by remember { mutableStateOf(value = false) }
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
     var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
     val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
@@ -67,11 +67,12 @@ fun AcademicCalendar(
                         initiateSync = { syncManager.initiateSyncIfNeeded(it) },
                         refreshEvents = { syncManager.refreshEvents() },
                         forceSync = isGoogleLinked,
-                        onNegotiation = { activeSyncNegotiation = it },
-                        onEventsRefreshed = { displayedEvents = it }
-                    )
+                        onNegotiation = { activeSyncNegotiation = it }
+                    ) {
+                        displayedEvents = it
+                    }
                 } finally {
-                    isSyncing = false
+                    if (isSyncing) isSyncing = false
                 }
             }
         }
@@ -100,29 +101,35 @@ fun AcademicCalendar(
 
     DecompositionDialogFor(
         event = selectedEventForDecomposition,
-        eventAgent = eventAgent,
-        onDismiss = {
-            eventAgent.clearDecomposition()
+        eventAgent = eventAgent
+    ) {
+        eventAgent.clearDecomposition()
+        if (selectedEventForDecomposition != null) {
             selectedEventForDecomposition = null
         }
-    )
+    }
 
     SyncNegotiationDialogFor(
         negotiation = activeSyncNegotiation,
         calendarAgent = calendarAgent,
         onApplied = {
-            activeSyncNegotiation = null
+            if (activeSyncNegotiation != null) {
+                activeSyncNegotiation = null
+            }
             scope.launch {
                 displayedEvents = syncManager.refreshEvents()
             }
-        },
-        onDismiss = { activeSyncNegotiation = null }
-    )
+        }
+    ) {
+        if (activeSyncNegotiation != null) {
+            activeSyncNegotiation = null
+        }
+    }
 
     if (unresolvedConflicts.isNotEmpty()) {
         ConflictResolutionDialog(
             conflicts = unresolvedConflicts,
-            onDismiss = { eventAgent.clearUnresolvedConflicts() }
+            onDismiss = { eventAgent.clearUnresolvedConflicts() },
         )
     }
 
@@ -131,9 +138,10 @@ fun AcademicCalendar(
             if (!isGoogleLinked) {
                 item {
                     GoogleLinkPrompt(
-                        onLink = { authManager.loginAndLink() },
-                        onLinked = { isGoogleLinked = true }
-                    )
+                        onLink = { authManager.loginAndLink() }
+                    ) {
+                        isGoogleLinked = true
+                    }
                 }
             }
 
@@ -143,30 +151,30 @@ fun AcademicCalendar(
                     isSyncing = isSyncing,
                     onNavigateRoutine = { onNavigate(AppScreen.Routine) },
                     onNavigateHome = { onNavigate(AppScreen.Home) },
-                    onSync = {
-                        scope.launch {
-                            isSyncing = true
-                            try {
-                                performCalendarSync(
-                                    initiateSync = { syncManager.initiateSyncIfNeeded(it) },
-                                    refreshEvents = { syncManager.refreshEvents() },
-                                    forceSync = true,
-                                    onNegotiation = { activeSyncNegotiation = it },
-                                    onEventsRefreshed = { displayedEvents = it }
-                                )
-                            } finally {
-                                isSyncing = false
+                ) {
+                    scope.launch {
+                        isSyncing = true
+                        try {
+                            performCalendarSync(
+                                initiateSync = { syncManager.initiateSyncIfNeeded(it) },
+                                refreshEvents = { syncManager.refreshEvents() },
+                                forceSync = true,
+                                onNegotiation = { activeSyncNegotiation = it },
+                            ) {
+                                displayedEvents = it
                             }
+                        } finally {
+                            if (isSyncing) isSyncing = false
                         }
                     }
-                )
+                }
             }
 
             item {
                 EventListContent(
                     groupedEvents = groupedEvents,
                     today = today,
-                    onEventSelected = { selectedEventForDecomposition = it }
+                    onEventSelected = { selectedEventForDecomposition = it },
                 )
             }
         }

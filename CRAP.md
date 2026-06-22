@@ -10,12 +10,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Overall Summary
 - **Total Files Analyzed**: 199
-- **High-Risk Files (CRAP > 30)**: 0
+- **High-Risk Files (CRAP > 30)**: 1
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
+| AcademicCalendar.kt | 9 | 21.2% | 48.70 | 🔴 HIGH |
 | IngestingProgressDialog.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | EventListContent.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
 | SourceItemView.kt | 5 | 0.0% | 30.00 | 🟡 MEDIUM |
@@ -30,11 +31,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | SqlDelightLocalCalendarRepository.kt | 24 | 82.9% | 26.87 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 25 | 98.0% | 25.01 | 🟡 MEDIUM |
 | AppController.kt | 19 | 75.0% | 24.64 | 🟡 MEDIUM |
-| CriticActorAIService.kt | 23 | 87.2% | 24.11 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
+
+### AcademicCalendar.kt (Score: 48.70 - 🔴 HIGH)
+- **Total Complexity**: 9
+- **Real Coverage**: 21.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `AcademicCalendar` | 1 |
 
 ### IngestingProgressDialog.kt (Score: 30.00 - 🟡 MEDIUM)
 - **Total Complexity**: 5
@@ -283,6 +292,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `Event.timeUntilDue` | 1 |
 | `Event.studyProgress` | 1 |
 
+### GoogleRemoteCalendarRepository.kt (Score: 22.00 - 🟡 MEDIUM)
+- **Total Complexity**: 21
+- **Real Coverage**: 86.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearCalendar` | 5 |
+| `deleteEvent` | 3 |
+| `getAllEvents` | 2 |
+| `saveEvent` | 2 |
+| `updateEvent` | 2 |
+| `getSettings` | 1 |
+| `getAvailableCalendars` | 1 |
+| `hardDeleteEvent` | 1 |
+| `clearLocalCalendar` | 1 |
+| `getEventsInRange` | 1 |
+| *... and 2 more* | |
+
 ### SyncNegotiator.kt (Score: 22.00 - 🟡 MEDIUM)
 - **Total Complexity**: 22
 - **Real Coverage**: 98.2%
@@ -308,25 +336,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `rescheduleForward` | 6 |
 | `findConflict` | 1 |
 | `isMovable` | 1 |
-
-### GoogleRemoteCalendarRepository.kt (Score: 21.80 - 🟡 MEDIUM)
-- **Total Complexity**: 21
-- **Real Coverage**: 87.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearCalendar` | 5 |
-| `deleteEvent` | 3 |
-| `getAllEvents` | 2 |
-| `saveEvent` | 2 |
-| `updateEvent` | 2 |
-| `getSettings` | 1 |
-| `getAvailableCalendars` | 1 |
-| `hardDeleteEvent` | 1 |
-| `clearLocalCalendar` | 1 |
-| `getEventsInRange` | 1 |
-| *... and 2 more* | |
 
 ### EventGenerationService.kt (Score: 21.46 - 🟡 MEDIUM)
 - **Total Complexity**: 21
@@ -690,17 +699,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `AcademicCalendarHeader` | 1 |
 
-### EventQueryService.kt (Score: 12.00 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getEventsInRange` | 1 |
-| `getEventsBySyncStatus` | 1 |
-| `getIncompleteEventsBefore` | 1 |
-
 ### EventGenerator.kt (Score: 12.00 - 🟢 LOW)
 - **Total Complexity**: 12
 - **Real Coverage**: 100.0%
@@ -721,15 +719,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `ConflictItem` | 2 |
 | `ConflictResolutionDialog` | 1 |
-
-### AcademicCalendar.kt (Score: 11.53 - 🟢 LOW)
-- **Total Complexity**: 4
-- **Real Coverage**: 22.2%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AcademicCalendar` | 1 |
 
 ### SourceIngestionHandler.kt (Score: 11.11 - 🟢 LOW)
 - **Total Complexity**: 11
@@ -1830,6 +1819,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `run` | 3 |
 
+### EventQueryService.kt (Score: 3.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getEventsInRange` | 1 |
+| `getEventsBySyncStatus` | 1 |
+| `getIncompleteEventsBefore` | 1 |
+
 ### ConflictResolutionPresenter.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3
 - **Real Coverage**: 100.0%
@@ -2052,9 +2052,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `get` | 1 |
 
-### DependencyContainer.kt (Score: 1.13 - 🟢 LOW)
+### DependencyContainer.kt (Score: 1.14 - 🟢 LOW)
 - **Total Complexity**: 1
-- **Real Coverage**: 49.1%
+- **Real Coverage**: 48.6%
 
 
 ### RecursiveDecompositionAIService.kt (Score: 1.13 - 🟢 LOW)

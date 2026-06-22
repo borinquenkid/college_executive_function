@@ -94,8 +94,8 @@ class GeminiAIService(
         requestExecutor.postToModel(modelName, body)
 
     private suspend fun <T> executeWithRetry(
-        maxAttempts: Int = 5,
-        tier: TaskTier = TaskTier.HEAVY,
+        maxAttempts: Int,
+        tier: TaskTier,
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T = requestExecutor.executeWithRetry(maxAttempts, tier, body, parseResponse)
@@ -194,9 +194,7 @@ class GeminiAIService(
                 parseResponse = { responseText -> responseText }
             )
         } catch (e: Exception) {
-            if (e.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
-                throw e
-            }
+            if (e.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) throw e
             logger?.e(tag, "Failed to analyze document: ${e.message}")
             null
         }
@@ -214,9 +212,7 @@ class GeminiAIService(
                 parseResponse = { responseText -> parseCategorizeSourceJson(responseText) }
             )
         } catch (e: Exception) {
-            if (e.message?.contains("QuotaExhausted", ignoreCase = true) == true) {
-                throw e
-            }
+            if (e.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) throw e
             logger?.e(
                 tag,
                 "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}"

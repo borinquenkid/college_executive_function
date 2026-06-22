@@ -1,7 +1,10 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.StringSpec
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
+import io.mockk.every
 import io.mockk.mockk
 
 class LocalFileProcessorTest : StringSpec({
@@ -9,7 +12,7 @@ class LocalFileProcessorTest : StringSpec({
     "processLocalFiles processes each file through pipeline" {
         val ingestionAgent = mockk<IngestionAgent>()
         val pipeline = mockk<SourceProcessingPipeline>()
-        val logger = mockk<Logger>()
+        val logger = mockk<Logger>(relaxed = true)
 
         val processor = LocalFileProcessor(ingestionAgent, pipeline, logger)
 
@@ -21,16 +24,17 @@ class LocalFileProcessorTest : StringSpec({
         coEvery { ingestionAgent.addLocalFile("/home/doc2.pdf") } returns source2
         coEvery { pipeline.processSource(any()) } returns Unit
 
-        var statusCalls = 0
-        val callback: (String) -> Unit = { statusCalls++ }
+        val statusMessages = mutableListOf<String>()
+        processor.processLocalFiles(files) { statusMessages.add(it) }
 
-        // Verify all files processed
+        coVerify(exactly = 2) { pipeline.processSource(any()) }
+        statusMessages.size shouldBe 2
     }
 
     "processLocalFiles calls status callback for each file" {
         val ingestionAgent = mockk<IngestionAgent>()
         val pipeline = mockk<SourceProcessingPipeline>()
-        val logger = mockk<Logger>()
+        val logger = mockk<Logger>(relaxed = true)
 
         val processor = LocalFileProcessor(ingestionAgent, pipeline, logger)
 
@@ -41,15 +45,27 @@ class LocalFileProcessorTest : StringSpec({
         coEvery { pipeline.processSource(any()) } returns Unit
 
         var statusCalls = 0
-        val callback: (String) -> Unit = { statusCalls++ }
+        processor.processLocalFiles(files) { statusCalls++ }
 
-        // Verify callback invoked
+        statusCalls shouldBe 1
     }
 
-    "processLocalFiles catches and logs errors per file" {
+    "processLocalFiles with empty list skips loop body" {
         val ingestionAgent = mockk<IngestionAgent>()
         val pipeline = mockk<SourceProcessingPipeline>()
-        val logger = mockk<Logger>()
+        val logger = mockk<Logger>(relaxed = true)
+
+        val processor = LocalFileProcessor(ingestionAgent, pipeline, logger)
+
+        processor.processLocalFiles(emptyList()) {}
+
+        coVerify(exactly = 0) { pipeline.processSource(any()) }
+    }
+
+    "processLocalFiles catches error and continues with non-null bugReporter" {
+        val ingestionAgent = mockk<IngestionAgent>()
+        val pipeline = mockk<SourceProcessingPipeline>()
+        val logger = mockk<Logger>(relaxed = true)
         val bugReporter = mockk<BugReporter>(relaxed = true)
 
         val processor = LocalFileProcessor(ingestionAgent, pipeline, logger, bugReporter)
@@ -59,8 +75,26 @@ class LocalFileProcessorTest : StringSpec({
         coEvery { ingestionAgent.addLocalFile("/home/doc2.pdf") } returns mockk(relaxed = true)
         coEvery { pipeline.processSource(any()) } returns Unit
 
-        val callback: (String) -> Unit = {}
+        processor.processLocalFiles(files) {}
 
-        // Verify error handling continues to next file
+        coVerify(exactly = 1) { pipeline.processSource(any()) }
+        coVerify(exactly = 1) { bugReporter.reportError(any(), any()) }
+    }
+
+    "processLocalFiles catches error and continues with null bugReporter" {
+        val ingestionAgent = mockk<IngestionAgent>()
+        val pipeline = mockk<SourceProcessingPipeline>()
+        val logger = mockk<Logger>(relaxed = true)
+
+        val processor = LocalFileProcessor(ingestionAgent, pipeline, logger, bugReporter = null)
+
+        val files = listOf("/home/doc1.pdf", "/home/doc2.pdf")
+        coEvery { ingestionAgent.addLocalFile("/home/doc1.pdf") } throws Exception("Read error")
+        coEvery { ingestionAgent.addLocalFile("/home/doc2.pdf") } returns mockk(relaxed = true)
+        coEvery { pipeline.processSource(any()) } returns Unit
+
+        processor.processLocalFiles(files) {}
+
+        coVerify(exactly = 1) { pipeline.processSource(any()) }
     }
 })

@@ -153,18 +153,16 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 
 ---
 
-### C3: LocalFileProcessor.kt + DriveFileProcessor.kt — branch coverage [ ]
+### C3: LocalFileProcessor.kt + DriveFileProcessor.kt — branch coverage [x]
 **Files**: Both processor files  
-**Current**: 41.7% line, 0.0% branch each  
-**Existing tests**: `commonTest/.../LocalFileProcessorTest.kt`, `commonTest/.../DriveFileProcessorTest.kt`  
-**What to do**:
-- Read both source files and both test files
-- The 0% branch coverage is the red flag — there are conditional arms that have never been exercised
-- Focus on: unsupported file type returns null/error, null metadata handling, empty file handling
-- Extend both test files
-- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.LocalFileProcessorTest,com.borinquenterrier.cef.DriveFileProcessorTest"`
-
-**Success**: Branch coverage ≥ 60% on each; line ≥ 70%
+**Before**: 41.7% line, 0.0% branch each  
+**After**: 100% line + branch + instruction on both  
+**What was done**:
+- Root cause: all existing tests set up mocks but never called the processor methods (each ended with stub comments)
+- Fixed by adding actual `processLocalFiles` / `processDriveFiles` invocations and `coVerify` assertions
+- Used `mockk<Logger>(relaxed = true)` to absorb logger calls
+- Added empty-list tests (covers `for` loop false branch — no iterations), non-null bugReporter error tests (covers `bugReporter?.reportError` non-null branch), and null bugReporter error tests (covers `?.reportError` null branch)
+- Note: `--tests` filter doesn't work for commonTest-sourced classes; must run full suite
 
 ---
 
@@ -226,6 +224,6 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | B8: GeminiAIService → 100% | [ ] | 92.1% / CRAP 29.42 | — |
 | C1: PollScheduler branches | [x] | 56.3% / 25% branch | 100% line+branch+instruction |
 | C2: HarnessSourceProcessor lines | [x] | 50.0% | 100% line+instruction |
-| C3: LocalFile + DriveFile processors | [ ] | 41.7% / 0% branch | — |
+| C3: LocalFile + DriveFile processors | [x] | 41.7% / 0% branch | 100% line+branch+instruction (both) |
 | C4: AppEnv branches | [ ] | 43.8% | — |
 | C5: GoogleConnectionState branches | [ ] | 61.5% / 0% branch | — |

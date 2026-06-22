@@ -4,6 +4,7 @@ import app.cash.sqldelight.db.SqlDriver
 import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.borinquenterrier.cef.getAppDirectory
 import java.io.File
+import java.sql.SQLException
 
 actual class DriverFactory {
     actual fun createDriver(): SqlDriver {
@@ -21,7 +22,7 @@ actual class DriverFactory {
         } else {
             try {
                 AppDatabase.Schema.migrate(driver, 1, AppDatabase.Schema.version)
-            } catch (e: Exception) {
+            } catch (_: SQLException) {
                 // Migration already applied or not needed — safe to ignore
             }
         }

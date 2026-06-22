@@ -14,17 +14,17 @@ fun createDatabase(driverFactory: DriverFactory): AppDatabase {
             "ALTER TABLE SourceEntity ADD COLUMN category TEXT NOT NULL DEFAULT 'OTHER'",
             0
         )
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }
     try {
         driver.execute(null, "ALTER TABLE EventEntity ADD COLUMN studyPlanStart TEXT", 0)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }
     try {
         driver.execute(null, "ALTER TABLE EventEntity ADD COLUMN gradeWeight REAL", 0)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }
     try {
@@ -33,12 +33,12 @@ fun createDatabase(driverFactory: DriverFactory): AppDatabase {
             "ALTER TABLE EventEntity ADD COLUMN completionStatus TEXT NOT NULL DEFAULT 'INCOMPLETE'",
             0
         )
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }
     try {
         driver.execute(null, "ALTER TABLE SourceEntity ADD COLUMN contentHash TEXT", 0)
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
     }
     try {
@@ -54,7 +54,7 @@ fun createDatabase(driverFactory: DriverFactory): AppDatabase {
             """.trimIndent(),
             0
         )
-    } catch (e: Exception) {
+    } catch (_: Exception) {
         // Table may already exist, ignore.
     }
     return AppDatabase(driver)

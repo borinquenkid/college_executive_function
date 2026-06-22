@@ -131,17 +131,14 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 
 ## Track C — Support Classes
 
-### C1: PollScheduler.kt — scheduler branch coverage [ ]
+### C1: PollScheduler.kt — scheduler branch coverage [x]
 **File**: `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/PollScheduler.kt`  
-**Current**: 56.3% line, 25.0% branch  
-**Existing test**: `commonTest/.../PollSchedulerTest.kt`  
-**What to do**:
-- Read both files
-- Scheduler logic typically has uncovered branches for: already-running guard (second call while first is active), cancellation mid-poll, error thrown during poll callback, zero-interval edge case
-- Extend `PollSchedulerTest.kt`
-- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.PollSchedulerTest"`
-
-**Success**: Branch coverage ≥ 75%; line ≥ 80%
+**Before**: 56.3% line, 25.0% branch  
+**After**: 100% line + branch + instruction  
+**What was done**:
+- Added `shouldPoll()` with no args (exercises default-arg bridge, line 29) for the "recent poll → returns false" path using `Clock.System.now() - 1_000L` as lastPoll
+- Added `shouldPoll(force=false)` with `lastPoll=0L` (epoch origin, always > 24h ago) for the "old poll → returns true" path
+- Both new tests use `mockk<Logger>(relaxed = true)` to absorb the `logger.d()` call in the skip path
 
 ---
 
@@ -230,7 +227,7 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | B6: GoogleCalendarSyncService → 100% | [x] | 91.3% / CRAP 27.48 | 100% line / 87.7% branch (16 uncoverable: kotlinx.serialization @Serializable generated code) |
 | B7: SqlDelightLocalCalendar → 100% | [x] | 82.9% / CRAP 26.87 | 100% line + instruction + branch |
 | B8: GeminiAIService → 100% | [ ] | 92.1% / CRAP 29.42 | — |
-| C1: PollScheduler branches | [ ] | 56.3% / 25% branch | — |
+| C1: PollScheduler branches | [x] | 56.3% / 25% branch | 100% line+branch+instruction |
 | C2: HarnessSourceProcessor lines | [ ] | 50.0% | — |
 | C3: LocalFile + DriveFile processors | [ ] | 41.7% / 0% branch | — |
 | C4: AppEnv branches | [ ] | 43.8% | — |

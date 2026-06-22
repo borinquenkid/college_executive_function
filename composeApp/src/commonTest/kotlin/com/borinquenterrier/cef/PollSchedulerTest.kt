@@ -6,6 +6,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 import io.mockk.slot
+import kotlin.time.Clock
 
 class PollSchedulerTest : StringSpec({
 
@@ -38,5 +39,25 @@ class PollSchedulerTest : StringSpec({
 
         scheduler.setLastPollTime(9876543210L)
         slot.captured shouldBe 9876543210L
+    }
+
+    "shouldPoll returns false when polled within last 24 hours (uses default force=false)" {
+        // Call shouldPoll() with no args → exercises default-arg bridge (line 29)
+        val recentPoll = Clock.System.now().toEpochMilliseconds() - 1_000L  // 1 second ago
+        val settings = mockk<Settings>()
+        every { settings.getLong("cef_harness_last_poll_time", 0L) } returns recentPoll
+        val logger = mockk<Logger>(relaxed = true)
+        val scheduler = PollScheduler(settings, logger)
+
+        scheduler.shouldPoll() shouldBe false  // default force=false
+    }
+
+    "shouldPoll returns true when last poll was over 24 hours ago" {
+        val settings = mockk<Settings>()
+        every { settings.getLong("cef_harness_last_poll_time", 0L) } returns 0L  // epoch origin, always > 24h ago
+        val logger = mockk<Logger>(relaxed = true)
+        val scheduler = PollScheduler(settings, logger)
+
+        scheduler.shouldPoll(force = false) shouldBe true
     }
 })

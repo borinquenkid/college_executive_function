@@ -1,9 +1,10 @@
 # Testing Strategy Plan
 
 ## Goals
-- **Floor**: 80% line coverage on `commonMain`, enforced by Kover CI gate (currently at 81.84% — gate locks in the floor)
-- **Target**: 90%+ branch coverage on core domain logic (AI services, repositories, coordinators)
-- **Exempt**: Compose UI composables, platform adapters, zero-line interfaces/stubs
+- **Floor**: 80% line coverage on `commonMain`, enforced by Kover CI gate (currently at 88.59%)
+- **Target**: **100% line + branch on Track B critical files** — high-complexity domain logic where a missed branch hides real bugs (SourceFragmentBatcher post-mortem: 60% coverage, complexity 6, CRAP 10 — looked fine, shipped a duplicate-event bug)
+- **Target**: 80%+ line on Track C support classes
+- **Exempt**: Compose UI composables (`@file:UiOnly`), platform adapters, zero-line interfaces/stubs
 
 ## How to Use This Plan
 Each task is self-contained. An autonomous agent can:
@@ -56,7 +57,7 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 - Extend `AppControllerTest.kt` to cover each uncovered branch arm
 - Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.AppControllerTest"`
 
-**Success**: Branch coverage ≥ 85%; CRAP < 18
+**Success**: 100% line + branch coverage; CRAP score equals complexity only (no uncovered-branch multiplier)
 
 ---
 
@@ -71,7 +72,7 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 - Use in-memory SQLite driver for any persistence-touching tests (pattern established in `StlccIntegrationTest`)
 - Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.CalendarAgentTest"`
 
-**Success**: Line coverage ≥ 90%
+**Success**: 100% line + branch coverage; CRAP score equals complexity only
 
 ---
 
@@ -86,7 +87,7 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 - Extend `GeminiRetryServiceTest.kt`
 - Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.GeminiRetryServiceTest"`
 
-**Success**: Line coverage ≥ 95%; CRAP < 22
+**Success**: 100% line + branch coverage; CRAP score equals complexity only
 
 ---
 
@@ -100,7 +101,7 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 - Extend `GeminiRequestExecutorTest.kt`
 - Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.GeminiRequestExecutorTest"`
 
-**Success**: Line coverage ≥ 96%; CRAP < 22
+**Success**: 100% line + branch coverage; CRAP score equals complexity only
 
 ---
 
@@ -114,7 +115,7 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 - Extend `GoogleCalendarSyncServiceTest.kt`
 - Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.GoogleCalendarSyncServiceTest"`
 
-**Success**: Line coverage ≥ 96%; CRAP < 22
+**Success**: 100% line + branch coverage; CRAP score equals complexity only
 
 ---
 
@@ -129,7 +130,23 @@ exclusion added in A1. CRAP score of 48.70 was a false positive from the Compose
 - Write or extend a dedicated `SqlDelightLocalCalendarRepositoryTest.kt` in `jvmTest` using an in-memory JDBC driver
 - Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.SqlDelightLocalCalendarRepositoryTest"`
 
-**Success**: Line coverage ≥ 92%; CRAP < 20
+**Success**: 100% line + branch coverage; CRAP score equals complexity only
+
+---
+
+### B8: GeminiAIService.kt — highest-complexity file in codebase [ ]
+**File**: `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt`  
+**Current**: 92.1% line, CRAP 29.42 (complexity 29 — highest in codebase)  
+**Existing test**: `jvmTest/.../GeminiAIServiceTest.kt` (or similar — run `grep -rn "GeminiAIService" composeApp/src/jvmTest`)  
+**What to do**:
+- Read `GeminiAIService.kt` and the existing test file
+- `generateCalendarEvents` (complexity 5) and `categorizeSource` (complexity 4) are highest-complexity methods — find uncovered arms
+- Some branches may involve specific HTTP status codes, malformed JSON responses, or empty model lists — all mockable without a real API
+- Any branch that genuinely requires a live Gemini call cannot be unit-tested; note it explicitly and cover it with a comment explaining why 100% is not achievable for that specific line
+- Extend the test file; do NOT write integration tests here
+- Run: `./gradlew :composeApp:jvmTest -PunitTestsOnly=true --tests "com.borinquenterrier.cef.GeminiAIServiceTest"`
+
+**Success**: 100% line + branch on all mockable paths; any genuinely network-only branch documented with a `// not unit-testable: requires live Gemini response` comment; CRAP as close to 29 as achievable
 
 ---
 
@@ -227,12 +244,13 @@ These require network, platform APIs, or browser state that cannot be mocked saf
 | :--- | :---: | :---: | :---: |
 | A1: Kover CI gate | [x] | N/A | gate live at 80% |
 | B1: AcademicCalendar extract | [x] | 21.2% / CRAP 48.70 | exempted via @UiOnly |
-| B2: AppController branches | [ ] | 75.0% / CRAP 24.64 | — |
-| B3: CalendarAgent lines | [ ] | 74.4% | — |
-| B4: GeminiRetryService branches | [ ] | 88.5% / CRAP 28.11 | — |
-| B5: GeminiRequestExecutor branches | [ ] | 90.2% / CRAP 27.70 | — |
-| B6: GoogleCalendarSyncService branches | [ ] | 91.3% / CRAP 27.48 | — |
-| B7: SqlDelightLocalCalendar lines | [ ] | 82.9% / CRAP 26.87 | — |
+| B2: AppController → 100% | [ ] | 75.0% / CRAP 24.64 | — |
+| B3: CalendarAgent → 100% | [ ] | 74.4% | — |
+| B4: GeminiRetryService → 100% | [ ] | 88.5% / CRAP 28.11 | — |
+| B5: GeminiRequestExecutor → 100% | [ ] | 90.2% / CRAP 27.70 | — |
+| B6: GoogleCalendarSyncService → 100% | [ ] | 91.3% / CRAP 27.48 | — |
+| B7: SqlDelightLocalCalendar → 100% | [ ] | 82.9% / CRAP 26.87 | — |
+| B8: GeminiAIService → 100% | [ ] | 92.1% / CRAP 29.42 | — |
 | C1: PollScheduler branches | [ ] | 56.3% / 25% branch | — |
 | C2: HarnessSourceProcessor lines | [ ] | 50.0% | — |
 | C3: LocalFile + DriveFile processors | [ ] | 41.7% / 0% branch | — |

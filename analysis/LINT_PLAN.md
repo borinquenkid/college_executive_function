@@ -1,3 +1,5 @@
+# ALL TASKS COMPLETE
+
 # Lint Remediation Plan
 
 Each task below is one `/loop` iteration. Mark `[x]` when complete and move `▶ CURRENT` to the next task.
@@ -124,15 +126,11 @@ After every task that touches Kotlin/Gradle source, run the build-verification t
 
 ## Tier 7 — Deferred blockers (requires external prerequisites)
 
-- [ ] ▶ CURRENT **T7-A** `AndroidLintGradleDependency.xml` + `AndroidLintOldTargetApi.xml` — compileSdk + targetSdk 36 → 37
-  **Prerequisite**: Install Android SDK 37 via SDK Manager (currently only 34, 36, 36.1 are present).
-  Steps: in `gradle/libs.versions.toml` set `android-compileSdk = "37"` and `android-targetSdk = "37"`.
-  _Verify: `./gradlew :composeApp:assembleDebug :server:assemble :composeApp:jvmTest`_
+- [x] **T7-A** `AndroidLintGradleDependency.xml` + `AndroidLintOldTargetApi.xml` — compileSdk + targetSdk 36 → 37
+  Android 17 (API 37) installed via Android Studio SDK Manager. Set `android-compileSdk = "37"` and `android-targetSdk = "37"` in `libs.versions.toml`. Build clean.
 
-- [ ] **T7-B** `AndroidLintNewerVersionAvailable.xml` — google-http-client-gson 1.44.1 → 2.x
-  **Note**: This is a major version break. Audit all call sites of `GsonFactory` and related APIs before bumping.
-  Steps: search for `google-http-client-gson` usages, review the 2.x migration guide, update `google-http-client-gson` in `libs.versions.toml`, fix any API changes, then build and test.
-  _Verify: `./gradlew :composeApp:assembleDebug :server:assemble :composeApp:jvmTest`_
+- [x] **T7-B** `AndroidLintNewerVersionAvailable.xml` — google-http-client-gson 1.44.1 → 2.1.0
+  No API break at call sites — build and full test suite passed without changes.
 
 ---
 

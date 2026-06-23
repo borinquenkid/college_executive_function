@@ -1,5 +1,3 @@
-# ALL TASKS COMPLETE
-
 # Lint Remediation Plan
 
 Each task below is one `/loop` iteration. Mark `[x]` when complete and move `▶ CURRENT` to the next task.
@@ -121,6 +119,20 @@ After every task that touches Kotlin/Gradle source, run the build-verification t
   - Batch 8: Compose Multiplatform 1.10.3→1.11.1, composeHotReload 1.0.0-beta07→1.1.1
   - Batch 9: Kotlin 2.3.21→2.4.0 (highest risk — compiler, AGP, Compose compiler all upgraded together)
   Skipped: google-http-client-gson 1.44.1→2.x (major version break — separate work item)
+
+---
+
+## Tier 7 — Deferred blockers (requires external prerequisites)
+
+- [ ] ▶ CURRENT **T7-A** `AndroidLintGradleDependency.xml` + `AndroidLintOldTargetApi.xml` — compileSdk + targetSdk 36 → 37
+  **Prerequisite**: Install Android SDK 37 via SDK Manager (currently only 34, 36, 36.1 are present).
+  Steps: in `gradle/libs.versions.toml` set `android-compileSdk = "37"` and `android-targetSdk = "37"`.
+  _Verify: `./gradlew :composeApp:assembleDebug :server:assemble :composeApp:jvmTest`_
+
+- [ ] **T7-B** `AndroidLintNewerVersionAvailable.xml` — google-http-client-gson 1.44.1 → 2.x
+  **Note**: This is a major version break. Audit all call sites of `GsonFactory` and related APIs before bumping.
+  Steps: search for `google-http-client-gson` usages, review the 2.x migration guide, update `google-http-client-gson` in `libs.versions.toml`, fix any API changes, then build and test.
+  _Verify: `./gradlew :composeApp:assembleDebug :server:assemble :composeApp:jvmTest`_
 
 ---
 

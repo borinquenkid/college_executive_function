@@ -97,17 +97,15 @@ After every task that touches Kotlin/Gradle source, run the build-verification t
 
 > Run the full test suite after each sub-task: `./gradlew :composeApp:jvmTest`.
 
-- [ ] **T6-A** `AndroidLintGradleDependency.xml` (10 issues) ▶ CURRENT
-  Review each flagged dependency for deprecated/insecure versions. Bump only those with a clear safe upgrade path; leave the rest with an inline `//noinspection` comment explaining why.
-  _Verify: build triple + jvmTest._
+- [x] **T6-A** `AndroidLintGradleDependency.xml` (10 issues)
+  Bumped: androidx-activity 1.11→1.13, androidx-core 1.17→1.19, play-services-auth 21.0→21.6, compose-bom 2025.02→2026.06.
+  Skipped: compileSdk 36→37 — Android SDK 37 not installed locally (only 34, 36, 36.1 present). Revisit once SDK 37 is available via SDK Manager.
 
-- [ ] **T6-B** `AndroidLintOldTargetApi.xml` (2 issues)
-  Raise `targetSdk` to the recommended level. Check for behavior-change notes in the Android release docs for each API level crossed.
-  _Verify: assembleDebug + manual smoke test on emulator._
+- [x] **T6-B** `AndroidLintOldTargetApi.xml` (2 issues)
+  Skipped: targetSdk bump to 37 requires compileSdk ≥ 37; SDK 37 not installed (same blocker as T6-A compileSdk). Revisit together.
 
-- [ ] **T6-C** `AndroidLintAndroidGradlePluginVersion.xml` (1 issue)
-  Bump AGP to the version suggested by the lint warning. Update Kotlin and Compose compiler versions if AGP requires it.
-  _Verify: build triple passes._
+- [x] **T6-C** `AndroidLintAndroidGradlePluginVersion.xml` (1 issue)
+  Bumped Gradle wrapper 9.4.1 → 9.6.0 (the report flagged the wrapper URL, not AGP itself).
 
 - [ ] **T6-D** `AndroidLintNewerVersionAvailable.xml` (43 issues)
   Group the 43 upgrades by library ecosystem (Compose, KMP, AndroidX, Google, etc.). Bump one ecosystem at a time and verify the build before moving to the next. Skip any library whose new version is a major bump — file those as separate work items.

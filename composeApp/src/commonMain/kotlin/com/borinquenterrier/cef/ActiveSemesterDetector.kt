@@ -8,7 +8,7 @@ data class SemesterRange(val start: LocalDate, val end: LocalDate) {
         5 -> "Summer ${start.year}"
         else -> "Fall ${start.year}"
     }
-    operator fun contains(date: LocalDate) = date >= start && date <= end
+    operator fun contains(date: LocalDate) = date in start..end
 }
 
 /**

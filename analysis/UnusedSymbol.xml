@@ -1,0 +1,41 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>46</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer modelManager$delegate" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Property &quot;modelManager&quot; is never used</description>
+  <highlighted_element>modelManager</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>12</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>318</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer googleAuthManager$delegate" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Property &quot;googleAuthManager&quot; is never used</description>
+  <highlighted_element>googleAuthManager</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>17</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>320</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer calendarSyncManager$delegate" />
+  <problem_class id="UnusedSymbol" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused symbol</problem_class>
+  <description>Property &quot;calendarSyncManager&quot; is never used</description>
+  <highlighted_element>calendarSyncManager</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>19</length>
+</problem>
+</problems>

@@ -1,0 +1,67 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AddRoutineItemDialog.kt</file>
+  <line>158</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AddRoutineItemDialogKt void AddRoutineItemDialog(kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onDismiss, kotlin.jvm.functions.Function1&lt;? super com.borinquenterrier.cef.TimeEvent,kotlin.Unit&gt; onSave)" />
+  <problem_class id="AssignedValueIsNeverRead" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Assigned value is never read</problem_class>
+  <description>Assigned value is never read</description>
+  <highlighted_element>showDatePicker</highlighted_element>
+  <language>kotlin</language>
+  <offset>33</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AddRoutineItemDialog.kt</file>
+  <line>171</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AddRoutineItemDialogKt void AddRoutineItemDialog(kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onDismiss, kotlin.jvm.functions.Function1&lt;? super com.borinquenterrier.cef.TimeEvent,kotlin.Unit&gt; onSave)" />
+  <problem_class id="AssignedValueIsNeverRead" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Assigned value is never read</problem_class>
+  <description>Assigned value is never read</description>
+  <highlighted_element>showDatePicker</highlighted_element>
+  <language>kotlin</language>
+  <offset>24</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AddRoutineItemDialog.kt</file>
+  <line>178</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AddRoutineItemDialogKt void AddRoutineItemDialog(kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onDismiss, kotlin.jvm.functions.Function1&lt;? super com.borinquenterrier.cef.TimeEvent,kotlin.Unit&gt; onSave)" />
+  <problem_class id="AssignedValueIsNeverRead" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Assigned value is never read</problem_class>
+  <description>Assigned value is never read</description>
+  <highlighted_element>showDatePicker</highlighted_element>
+  <language>kotlin</language>
+  <offset>39</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AddRoutineItemDialog.kt</file>
+  <line>193</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AddRoutineItemDialogKt void AddRoutineItemDialog(kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onDismiss, kotlin.jvm.functions.Function1&lt;? super com.borinquenterrier.cef.TimeEvent,kotlin.Unit&gt; onSave)" />
+  <problem_class id="AssignedValueIsNeverRead" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Assigned value is never read</problem_class>
+  <description>Assigned value is never read</description>
+  <highlighted_element>showTimePicker</highlighted_element>
+  <language>kotlin</language>
+  <offset>26</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AddRoutineItemDialog.kt</file>
+  <line>200</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AddRoutineItemDialogKt void AddRoutineItemDialog(kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onDismiss, kotlin.jvm.functions.Function1&lt;? super com.borinquenterrier.cef.TimeEvent,kotlin.Unit&gt; onSave)" />
+  <problem_class id="AssignedValueIsNeverRead" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">Assigned value is never read</problem_class>
+  <description>Assigned value is never read</description>
+  <highlighted_element>showTimePicker</highlighted_element>
+  <language>kotlin</language>
+  <offset>16</offset>
+  <length>14</length>
+</problem>
+</problems>

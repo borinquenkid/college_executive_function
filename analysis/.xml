@@ -1,0 +1,2382 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/src/main/kotlin/com/borinquenterrier/cef/MainActivity.kt</file>
+  <line>10</line>
+  <module>CollegeExecutiveFunction.androidApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.MainActivity" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>42</length>
+  <highlighted_element>class MainActivity : ComponentActivity() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is not instantiated.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/src/main/kotlin/com/borinquenterrier/cef/MainActivity.kt</file>
+  <line>21</line>
+  <module>CollegeExecutiveFunction.androidApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.MainActivityKt void AppAndroidPreview()" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>8</length>
+  <highlighted_element>@Preview</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/cef/commonMain/kotlin/com/borinquenterrier/cef/BuildSecrets.kt</file>
+  <line>3</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.BuildSecrets" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>21</length>
+  <highlighted_element>object BuildSecrets {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/compose/resourceGenerator/kotlin/commonResClass/collegeexecutivefunction/composeapp/generated/resources/Res.kt</file>
+  <line>17</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>collegeexecutivefunction.composeapp.generated.resources</package>
+  <entry_point TYPE="class" FQNAME="collegeexecutivefunction.composeapp.generated.resources.Res" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>21</length>
+  <highlighted_element>internal object Res {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabase.kt</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.db.AppDatabase.Companion" />
+  <language>kotlin</language>
+  <offset>10</offset>
+  <length>54</length>
+  <highlighted_element>operator fun invoke(driver: SqlDriver): AppDatabase =</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabaseQueries.kt</file>
+  <line>582</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.AppDatabaseQueries void deleteAllSources()" />
+  <language>kotlin</language>
+  <offset>2</offset>
+  <length>31</length>
+  <highlighted_element>public fun deleteAllSources() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/GoogleAuthActivity.kt</file>
+  <line>22</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.GoogleAuthActivity" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>48</length>
+  <highlighted_element>class GoogleAuthActivity : ComponentActivity() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is not instantiated.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AIService.kt</file>
+  <line>8</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AIService boolean isConfigured()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>27</length>
+  <highlighted_element>fun isConfigured(): Boolean</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AIService.kt</file>
+  <line>9</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AIService java.lang.Object generateChatResponse(java.lang.String prompt, kotlin.coroutines.Continuation&lt;? super java.lang.String&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>56</length>
+  <highlighted_element>suspend fun generateChatResponse(prompt: String): String</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AIService.kt</file>
+  <line>10</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AIService java.lang.Object generateCalendarEvents(java.util.List&lt;com.borinquenterrier.cef.SourceFragment&gt; fragments, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>80</length>
+  <highlighted_element>suspend fun generateCalendarEvents(fragments: List&lt;SourceFragment&gt;): List&lt;Event&gt;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AIService.kt</file>
+  <line>11</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AIService java.lang.Object generateStudyPlan(java.lang.String syllabusText, java.lang.String existingSchedule, com.borinquenterrier.cef.StudyPreferences preferences, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>30</length>
+  <highlighted_element>suspend fun generateStudyPlan(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AIService.kt</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AIService java.lang.Object decomposeTask(java.lang.String taskTitle, java.lang.String dueDate, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;com.borinquenterrier.cef.DecomposedTask&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>83</length>
+  <highlighted_element>suspend fun decomposeTask(taskTitle: String, dueDate: String): List&lt;DecomposedTask&gt;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ActiveSemesterDetector.kt</file>
+  <line>6</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.SemesterRange label" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>46</length>
+  <highlighted_element>val label: String = when (start.monthNumber) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ActiveSemesterDetector.kt</file>
+  <line>14</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.ActiveSemesterDetector" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ActiveSemesterDetector.kt</file>
+  <line>31</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.ActiveSemesterDetector boolean hasMultipleSemestersForSameYear(java.lang.String sourceText)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ActiveSemesterDetector.kt</file>
+  <line>45</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.ActiveSemesterDetector com.borinquenterrier.cef.SemesterRange detect(java.lang.String sourceText, kotlinx.datetime.LocalDate today)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AgentAction.kt</file>
+  <line>4</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AgentAction java.lang.Object run(Input input, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super Result&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>57</length>
+  <highlighted_element>suspend fun run(input: Input, calendarId: String): Result</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used as a member of this interface, but only as a member of the implementation class(es). The project will stay compilable if the method is removed from the interface.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AgentHarness.kt</file>
+  <line>27</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.AgentHarness isBusy" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>54</length>
+  <highlighted_element>val isBusy: StateFlow&lt;Boolean&gt; = _isBusy.asStateFlow()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AgentHarness.kt</file>
+  <line>30</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.AgentHarness status" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>53</length>
+  <highlighted_element>val status: StateFlow&lt;String&gt; = _status.asStateFlow()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AgentHarness.kt</file>
+  <line>32</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AgentHarness long getLastPollTime()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>61</length>
+  <highlighted_element>fun getLastPollTime(): Long = pollScheduler.getLastPollTime()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AgentHarness.kt</file>
+  <line>36</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AgentHarness java.util.List&lt;java.lang.String&gt; getWatchedLocalDirectories()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>91</length>
+  <highlighted_element>fun getWatchedLocalDirectories(): List&lt;String&gt; = sourceScanner.getWatchedLocalDirectories()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AgentHarness.kt</file>
+  <line>41</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AgentHarness java.util.List&lt;java.lang.String&gt; getWatchedGDriveFolders()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>85</length>
+  <highlighted_element>fun getWatchedGDriveFolders(): List&lt;String&gt; = sourceScanner.getWatchedGDriveFolders()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AnalysisCacheRepository.kt</file>
+  <line>4</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AnalysisCacheRepository java.lang.Object getCached(java.lang.String hash, kotlin.coroutines.Continuation&lt;? super com.borinquenterrier.cef.CachedAnalysis&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>52</length>
+  <highlighted_element>suspend fun getCached(hash: String): CachedAnalysis?</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AnalysisCacheRepository.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AnalysisCacheRepository java.lang.Object putCache(com.borinquenterrier.cef.CachedAnalysis analysis, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>46</length>
+  <highlighted_element>suspend fun putCache(analysis: CachedAnalysis)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AnalysisCacheRepository.kt</file>
+  <line>6</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AnalysisCacheRepository java.lang.Object evict(java.lang.String hash, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>31</length>
+  <highlighted_element>suspend fun evict(hash: String)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/App.kt</file>
+  <line>16</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppKt void App()" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>11</length>
+  <highlighted_element>@Composable</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method has 4 usages, but the usages are not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AppController.kt</file>
+  <line>80</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppController void loadSources()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>19</length>
+  <highlighted_element>fun loadSources() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AppController.kt</file>
+  <line>90</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppController void addEvents(java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt; events)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>36</length>
+  <highlighted_element>fun addEvents(events: List&lt;Event&gt;) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AppController.kt</file>
+  <line>94</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppController void clearEvents()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>19</length>
+  <highlighted_element>fun clearEvents() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AppController.kt</file>
+  <line>130</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppController void setScreenListener(kotlin.jvm.functions.Function1&lt;? super com.borinquenterrier.cef.AppScreen,kotlin.Unit&gt; listener)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>54</length>
+  <highlighted_element>fun setScreenListener(listener: (AppScreen) -&gt; Unit) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AppController.kt</file>
+  <line>135</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppController void setEventsListener(kotlin.jvm.functions.Function1&lt;? super java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt;,kotlin.Unit&gt; listener)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>56</length>
+  <highlighted_element>fun setEventsListener(listener: (List&lt;Event&gt;) -&gt; Unit) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarAgent.kt</file>
+  <line>40</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.CalendarAgent java.lang.Object saveEventLocally(com.borinquenterrier.cef.Event event, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>76</length>
+  <highlighted_element>suspend fun saveEventLocally(event: Event, calendarId: String = &quot;default&quot;) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarEventGrouper.kt</file>
+  <line>32</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.CalendarEventGrouper java.util.List&lt;com.borinquenterrier.cef.Event&gt; filterEventsByDateRange(java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt; events, kotlinx.datetime.LocalDate startDate, kotlinx.datetime.LocalDate endDate)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.EventExtractor java.util.List&lt;com.borinquenterrier.cef.Event&gt; extract(java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt; events)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used as a member of this interface, but only as a member of the implementation class(es). The project will stay compilable if the method is removed from the interface.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>34</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository com.russhwolf.settings.Settings getSettings()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>39</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object getAllEvents(java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>44</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object saveEvent(com.borinquenterrier.cef.Event event, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>51</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object updateEvent(com.borinquenterrier.cef.Event event, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>57</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object deleteEvent(java.lang.String eventId, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>62</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object hardDeleteEvent(java.lang.String eventId, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>67</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object getEventsInRange(kotlinx.datetime.LocalDate start, kotlinx.datetime.LocalDate end, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>76</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object getEventsBySyncStatus(com.borinquenterrier.cef.SyncStatus status, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>84</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object getIncompleteEventsBefore(kotlinx.datetime.LocalDate date, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>92</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object clearLocalCalendar(java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>103</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.RemoteCalendarRepository java.lang.Object getAvailableCalendars(kotlin.coroutines.Continuation&lt;? super java.util.List&lt;com.borinquenterrier.cef.RemoteCalendarMetadata&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used as a member of this interface, but only as a member of the implementation class(es). The project will stay compilable if the method is removed from the interface.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>108</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.RemoteCalendarRepository java.lang.Object clearCalendar(java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarSyncManager.kt</file>
+  <line>38</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.CalendarSyncManager java.lang.Object applySyncProposal(com.borinquenterrier.cef.SyncNegotiation negotiation, java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super java.lang.Boolean&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>30</length>
+  <highlighted_element>suspend fun applySyncProposal(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CategorizationBuilder.kt</file>
+  <line>3</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.CategorizationBuilder" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CommonSourceProviders.kt</file>
+  <line>35</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.LocalFileSourceProvider id" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>30</length>
+  <highlighted_element>override val id = &quot;local_file&quot;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CommonSourceProviders.kt</file>
+  <line>36</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.LocalFileSourceProvider displayName" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>33</length>
+  <highlighted_element>override val displayName = &quot;File&quot;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CommonSourceProviders.kt</file>
+  <line>86</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.UrlSourceProvider id" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>23</length>
+  <highlighted_element>override val id = &quot;url&quot;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CommonSourceProviders.kt</file>
+  <line>87</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.UrlSourceProvider displayName" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>32</length>
+  <highlighted_element>override val displayName = &quot;URL&quot;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CommonSourceProviders.kt</file>
+  <line>158</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.GoogleDriveSourceProvider id" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>32</length>
+  <highlighted_element>override val id = &quot;google_drive&quot;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CommonSourceProviders.kt</file>
+  <line>159</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.GoogleDriveSourceProvider displayName" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>34</length>
+  <highlighted_element>override val displayName = &quot;Drive&quot;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ContentHasher.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.ContentHasher" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>22</length>
+  <highlighted_element>object ContentHasher {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ContextAgent.kt</file>
+  <line>21</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.ContextAgent isAnalyzing" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>64</length>
+  <highlighted_element>val isAnalyzing: StateFlow&lt;Boolean&gt; = _isAnalyzing.asStateFlow()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CriticJsonCodec.kt</file>
+  <line>31</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.CriticJsonCodec" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>24</length>
+  <highlighted_element>object CriticJsonCodec {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>45</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer database$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>67</length>
+  <highlighted_element>val database: AppDatabase by lazy { createDatabase(driverFactory) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>47</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer tokenRepository$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>63</length>
+  <highlighted_element>val tokenRepository by lazy { GoogleTokenRepository(settings) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>48</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer authService$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>63</length>
+  <highlighted_element>val authService by lazy { GoogleAuthService(settings, appEnv) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>50</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer localRepository$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>85</length>
+  <highlighted_element>val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>51</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer preferencesRepository$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>69</length>
+  <highlighted_element>val preferencesRepository by lazy { PreferencesRepository(settings) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>53</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer syncService$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>79</length>
+  <highlighted_element>val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenService) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>56</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer remoteRepository$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>30</length>
+  <highlighted_element>val remoteRepository by lazy {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>64</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer calendarAgent$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>27</length>
+  <highlighted_element>val calendarAgent by lazy {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>74</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer googleAccountFlow$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>81</length>
+  <highlighted_element>val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>76</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer driveService$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>46</length>
+  <highlighted_element>val driveService: GoogleDriveService by lazy {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>84</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer webReader$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>43</length>
+  <highlighted_element>val webReader by lazy { WebSourceReader() }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>103</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer aiService$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>34</length>
+  <highlighted_element>val aiService: AIService by lazy {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>113</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer sourceRepository$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>69</length>
+  <highlighted_element>val sourceRepository by lazy { SqlDelightSourceRepository(database) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>137</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer contextAgent$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>26</length>
+  <highlighted_element>val contextAgent by lazy {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>158</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer eventAgent$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>24</length>
+  <highlighted_element>val eventAgent by lazy {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>293</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer sourceManager$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>27</length>
+  <highlighted_element>val sourceManager by lazy {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/DependencyContainer.kt</file>
+  <line>322</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.DependencyContainer appController$delegate" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>49</length>
+  <highlighted_element>val appController by lazy { AppController(this) }</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never assigned.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ErrorCategorizer.kt</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.ErrorCategorizer.ErrorType.Unauthorized" />
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>33</length>
+  <highlighted_element>object Unauthorized : ErrorType()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ErrorCategorizer.kt</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.ErrorCategorizer.ErrorType.Forbidden" />
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>30</length>
+  <highlighted_element>object Forbidden : ErrorType()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ErrorCategorizer.kt</file>
+  <line>21</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.ErrorCategorizer.ErrorType.TransientServerError" />
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>41</length>
+  <highlighted_element>object TransientServerError : ErrorType()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ErrorCategorizer.kt</file>
+  <line>22</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.ErrorCategorizer.ErrorType.QuotaExhausted" />
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>35</length>
+  <highlighted_element>object QuotaExhausted : ErrorType()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Event.kt</file>
+  <line>146</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.EventKt long timeUntilDue(com.borinquenterrier.cef.Event $this$timeUntilDue, kotlinx.datetime.LocalDate currentDate)" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>23</length>
+  <highlighted_element>fun Event.timeUntilDue(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/EventAgent.kt</file>
+  <line>85</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="field" FQNAME="com.borinquenterrier.cef.EventAgent decompositionTarget" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>79</length>
+  <highlighted_element>val decompositionTarget: StateFlow&lt;Event?&gt; = _decompositionTarget.asStateFlow()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Field is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/EventBuilder.kt</file>
+  <line>7</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.EventBuilder" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/EventConflictDetector.kt</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.EventConflictDetector void validateNoConflict(com.borinquenterrier.cef.Event newEvent, java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt; existingEvents)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt</file>
+  <line>57</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.GeminiAIService.Companion" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>18</length>
+  <highlighted_element>companion object {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt</file>
+  <line>81</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GeminiAIService.Companion void clearBlacklistForTesting$CollegeExecutiveFunction_composeApp_commonMain()" />
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>41</length>
+  <highlighted_element>internal fun clearBlacklistForTesting() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt</file>
+  <line>93</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GeminiAIService java.lang.Object postToModel(java.lang.String modelName, kotlinx.serialization.json.JsonObject body, kotlin.coroutines.Continuation&lt;? super io.ktor.client.statement.HttpResponse&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>76</length>
+  <highlighted_element>suspend fun postToModel(modelName: String, body: JsonObject): HttpResponse =</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt</file>
+  <line>226</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GeminiResponse GeminiResponse(java.util.List&lt;com.borinquenterrier.cef.Candidate&gt; candidates)" />
+  <language>kotlin</language>
+  <offset>25</offset>
+  <length>47</length>
+  <highlighted_element>(val candidates: List&lt;Candidate&gt; = emptyList())</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt</file>
+  <line>229</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Content Content(java.util.List&lt;com.borinquenterrier.cef.Part&gt; parts)" />
+  <language>kotlin</language>
+  <offset>18</offset>
+  <length>23</length>
+  <highlighted_element>(val parts: List&lt;Part&gt;)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt</file>
+  <line>232</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Part Part(java.lang.String text)" />
+  <language>kotlin</language>
+  <offset>15</offset>
+  <length>18</length>
+  <highlighted_element>(val text: String)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt</file>
+  <line>235</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Candidate Candidate(com.borinquenterrier.cef.Content content)" />
+  <language>kotlin</language>
+  <offset>20</offset>
+  <length>22</length>
+  <highlighted_element>(val content: Content)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiModelNegotiator.kt</file>
+  <line>159</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.ModelInfo ModelInfo(java.lang.String name, java.util.List&lt;java.lang.String&gt; supportedGenerationMethods)" />
+  <language>kotlin</language>
+  <offset>20</offset>
+  <length>64</length>
+  <highlighted_element>(val name: String, val supportedGenerationMethods: List&lt;String&gt;)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiRateLimitPolicy.kt</file>
+  <line>3</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.GeminiRateLimitPolicy" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiRequestBuilder.kt</file>
+  <line>39</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GeminiRequestBuilder boolean hasApiKey()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>41</length>
+  <highlighted_element>fun hasApiKey(): Boolean = apiKey != null</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiRequestBuilder.kt</file>
+  <line>40</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GeminiRequestBuilder boolean hasAccessToken()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>51</length>
+  <highlighted_element>fun hasAccessToken(): Boolean = accessToken != null</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiRequestExecutor.kt</file>
+  <line>34</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.GeminiRequestExecutor.Companion" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>18</length>
+  <highlighted_element>companion object {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiResponseParser.kt</file>
+  <line>39</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.GeminiResponseParser" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>29</length>
+  <highlighted_element>object GeminiResponseParser {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiRetryService.kt</file>
+  <line>84</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GeminiRetryService long resolveRetryDelay(io.ktor.http.HttpStatusCode status, io.ktor.http.Headers headers, java.lang.String body, int attempts)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleCalendarSyncService.kt</file>
+  <line>238</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleCalendarListDiscoveryResponse GoogleCalendarListDiscoveryResponse(java.util.List&lt;com.borinquenterrier.cef.GoogleCalendarDiscoveryItem&gt; items)" />
+  <language>kotlin</language>
+  <offset>46</offset>
+  <length>1</length>
+  <highlighted_element>(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleCalendarSyncService.kt</file>
+  <line>243</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleCalendarDiscoveryItem GoogleCalendarDiscoveryItem(java.lang.String id, java.lang.String summary)" />
+  <language>kotlin</language>
+  <offset>38</offset>
+  <length>1</length>
+  <highlighted_element>(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleCalendarSyncService.kt</file>
+  <line>249</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleCalendarEventsResponse GoogleCalendarEventsResponse(java.util.List&lt;com.borinquenterrier.cef.GoogleCalendarItem&gt; items, java.lang.String nextPageToken)" />
+  <language>kotlin</language>
+  <offset>39</offset>
+  <length>1</length>
+  <highlighted_element>(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleCalendarSyncService.kt</file>
+  <line>255</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleCalendarItem GoogleCalendarItem(java.lang.String id, java.lang.String summary, java.lang.String description, com.borinquenterrier.cef.GoogleEventDateTime start, com.borinquenterrier.cef.GoogleEventDateTime end, java.lang.String updated)" />
+  <language>kotlin</language>
+  <offset>29</offset>
+  <length>1</length>
+  <highlighted_element>(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleDriveService.kt</file>
+  <line>16</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.DriveFile DriveFile(java.lang.String id, java.lang.String name, java.lang.String mimeType)" />
+  <language>kotlin</language>
+  <offset>20</offset>
+  <length>1</length>
+  <highlighted_element>(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/HarnessSourceProcessor.kt</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.HarnessSourceProcessor java.lang.Object processSource(com.borinquenterrier.cef.SourceItem source, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>47</length>
+  <highlighted_element>suspend fun processSource(source: SourceItem) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/IcsStringBuilder.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.IcsStringBuilder" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>25</length>
+  <highlighted_element>object IcsStringBuilder {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/KotlinxSerialization.kt</file>
+  <line>12</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.LocalDateSerializer" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>53</length>
+  <highlighted_element>object LocalDateSerializer : KSerializer&lt;LocalDate&gt; {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/KotlinxSerialization.kt</file>
+  <line>25</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.LocalTimeSerializer" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>53</length>
+  <highlighted_element>object LocalTimeSerializer : KSerializer&lt;LocalTime&gt; {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ModelManager.kt</file>
+  <line>32</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.ModelManager boolean isModelDownloaded()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>34</length>
+  <highlighted_element>fun isModelDownloaded(): Boolean {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ModelManager.kt</file>
+  <line>40</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.ModelManager java.lang.Object downloadModel(kotlin.coroutines.Continuation&lt;? super kotlinx.coroutines.flow.Flow&lt;com.borinquenterrier.cef.DownloadProgress&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>60</length>
+  <highlighted_element>suspend fun downloadModel(): Flow&lt;DownloadProgress&gt; = flow {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/OAuthExchange.kt</file>
+  <line>20</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.OAuthExchange OAuthExchange(io.ktor.client.HttpClient httpClient)" />
+  <language>kotlin</language>
+  <offset>19</offset>
+  <length>36</length>
+  <highlighted_element>(private val httpClient: HttpClient)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceFactGrounder.kt</file>
+  <line>3</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.SourceFactGrounder" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceFragmentBatcher.kt</file>
+  <line>3</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.SourceFragmentBatcher" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>30</length>
+  <highlighted_element>object SourceFragmentBatcher {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceIngestionHandler.kt</file>
+  <line>10</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SourceIngestionHandler void ingestLocalFile(java.lang.String path, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onStart, kotlin.jvm.functions.Function1&lt;? super com.borinquenterrier.cef.SourceItem,kotlin.Unit&gt; onSuccess, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onFailure, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onFinish)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>20</length>
+  <highlighted_element>fun ingestLocalFile(</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceRepository.kt</file>
+  <line>7</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SourceRepository java.lang.Object saveSource(com.borinquenterrier.cef.SourceItem sourceItem, java.lang.String originUri, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>66</length>
+  <highlighted_element>suspend fun saveSource(sourceItem: SourceItem, originUri: String?)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceRepository.kt</file>
+  <line>8</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SourceRepository java.lang.Object updateSourceMetadata(java.lang.String sourceId, java.lang.String metadata, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>68</length>
+  <highlighted_element>suspend fun updateSourceMetadata(sourceId: String, metadata: String)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceRepository.kt</file>
+  <line>9</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SourceRepository java.lang.Object getSourceMetadata(java.lang.String sourceId, kotlin.coroutines.Continuation&lt;? super java.lang.String&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>56</length>
+  <highlighted_element>suspend fun getSourceMetadata(sourceId: String): String?</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceRepository.kt</file>
+  <line>12</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SourceRepository java.lang.Object getFragmentsForSource(java.lang.String sourceId, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;com.borinquenterrier.cef.db.FragmentEntity&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>73</length>
+  <highlighted_element>suspend fun getFragmentsForSource(sourceId: String): List&lt;FragmentEntity&gt;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used as a member of this interface, but only as a member of the implementation class(es). The project will stay compilable if the method is removed from the interface.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceRepository.kt</file>
+  <line>13</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SourceRepository java.lang.Object deleteSource(java.lang.String sourceId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>42</length>
+  <highlighted_element>suspend fun deleteSource(sourceId: String)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used as a member of this interface, but only as a member of the implementation class(es). The project will stay compilable if the method is removed from the interface.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/StudyPlanBuilder.kt</file>
+  <line>9</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.StudyPlanBuilder" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/TelemetryManager.kt</file>
+  <line>42</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.TelemetryManager double getCriticTriggerRate()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>36</length>
+  <highlighted_element>fun getCriticTriggerRate(): Double {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/TelemetryManager.kt</file>
+  <line>48</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.TelemetryManager void clear()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>13</length>
+  <highlighted_element>fun clear() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>8</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Tracer void shutdown()" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>14</length>
+  <highlighted_element>fun shutdown()</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/UiOnly.kt</file>
+  <line>3</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.UiOnly" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>3</length>
+  <highlighted_element>/**</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>@interface is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/UserPreferenceMemoryRepository.kt</file>
+  <line>4</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.UserPreferenceMemoryRepository java.lang.Object logOverride(com.borinquenterrier.cef.OverrideAction action, com.borinquenterrier.cef.Event event, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>61</length>
+  <highlighted_element>suspend fun logOverride(action: OverrideAction, event: Event)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/UserPreferenceMemoryRepository.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.UserPreferenceMemoryRepository java.lang.Object pruneOldLogs(long olderThanMs, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>43</length>
+  <highlighted_element>suspend fun pruneOldLogs(olderThanMs: Long)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/UserPreferenceMemoryRepository.kt</file>
+  <line>6</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.UserPreferenceMemoryRepository java.lang.Object getDerivedConstraints(int overrideThreshold, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;com.borinquenterrier.cef.UserPreferenceConstraint&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>93</length>
+  <highlighted_element>suspend fun getDerivedConstraints(overrideThreshold: Int = 2): List&lt;UserPreferenceConstraint&gt;</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is not reachable from the entry points.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/AIService.jvm.kt</file>
+  <line>38</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.RealAIService java.lang.Object generateCalendarEvents(java.util.List&lt;com.borinquenterrier.cef.SourceFragment&gt; fragments, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>98</length>
+  <highlighted_element>actual override suspend fun generateCalendarEvents(fragments: List&lt;SourceFragment&gt;): List&lt;Event&gt; {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/AppEnv.kt</file>
+  <line>9</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppEnv AppEnv(java.util.Map&lt;java.lang.String,java.lang.String&gt; dotEnvOverride)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>66</length>
+  <highlighted_element>actual constructor(dotEnvOverride: Map&lt;String, String&gt;) : this() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/DocxReader.jvm.kt</file>
+  <line>11</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.DocxReader java.lang.Object readSource(java.lang.String path, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;com.borinquenterrier.cef.SourceFragment&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>67</length>
+  <highlighted_element>actual suspend fun readSource(path: String): List&lt;SourceFragment&gt; =</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/GoogleAuthService.jvm.kt</file>
+  <line>27</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleAuthService GoogleAuthService(com.russhwolf.settings.Settings settings, com.borinquenterrier.cef.AppEnv appEnv)" />
+  <language>kotlin</language>
+  <offset>31</offset>
+  <length>78</length>
+  <highlighted_element>actual constructor(private val settings: Settings, private val appEnv: AppEnv)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/GoogleAuthService.jvm.kt</file>
+  <line>37</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleAuthService java.lang.Object login(kotlin.coroutines.Continuation&lt;? super kotlin.Pair&lt;java.lang.String,java.lang.String&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>81</length>
+  <highlighted_element>actual suspend fun login(): Pair&lt;String, String?&gt; = withContext(Dispatchers.IO) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/GoogleAuthService.jvm.kt</file>
+  <line>112</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleAuthService java.lang.Object refreshAccessToken(java.lang.String refreshToken, kotlin.coroutines.Continuation&lt;? super java.lang.String&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>70</length>
+  <highlighted_element>actual suspend fun refreshAccessToken(refreshToken: String): String? =</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/ICalGenerator.kt</file>
+  <line>21</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.ICalGenerator" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>22</length>
+  <highlighted_element>object ICalGenerator {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/IcsCalendarSource.kt</file>
+  <line>12</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.IcsCalendarSource IcsCalendarSource(java.lang.String icsContent)" />
+  <language>kotlin</language>
+  <offset>31</offset>
+  <length>50</length>
+  <highlighted_element>actual constructor(private val icsContent: String)</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Constructor is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/IcsCalendarSource.kt</file>
+  <line>14</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.IcsCalendarSource java.lang.Object readSource(kotlin.coroutines.Continuation&lt;? super java.util.List&lt;com.borinquenterrier.cef.SourceFragment&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>55</length>
+  <highlighted_element>actual suspend fun readSource(): List&lt;SourceFragment&gt; {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/LocalFileReader.jvm.kt</file>
+  <line>10</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.LocalFileReader java.lang.Object readText(java.lang.String path, kotlin.coroutines.Continuation&lt;? super java.lang.String&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>81</length>
+  <highlighted_element>actual suspend fun readText(path: String): String = withContext(Dispatchers.IO) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/LocalFileReader.jvm.kt</file>
+  <line>14</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.LocalFileReader java.lang.Object listFiles(java.lang.String dirPath, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;java.lang.String&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>91</length>
+  <highlighted_element>actual suspend fun listFiles(dirPath: String): List&lt;String&gt; = withContext(Dispatchers.IO) {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/OtelTracer.kt</file>
+  <line>74</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="class" FQNAME="com.borinquenterrier.cef.OtelTracer.Companion" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>18</length>
+  <highlighted_element>companion object {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Class is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/OtelTracer.kt</file>
+  <line>106</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.OtelTracerKt com.borinquenterrier.cef.Tracer createTracer(com.russhwolf.settings.Settings settings, com.borinquenterrier.cef.AppEnv appEnv)" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>92</length>
+  <highlighted_element>actual fun createTracer(settings: com.russhwolf.settings.Settings, appEnv: AppEnv): Tracer =</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/PdfReader.jvm.kt</file>
+  <line>12</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.PdfReader java.lang.Object readSource(java.lang.String path, kotlin.coroutines.Continuation&lt;? super java.util.List&lt;com.borinquenterrier.cef.SourceFragment&gt;&gt; $completion)" />
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>67</length>
+  <highlighted_element>actual suspend fun readSource(path: String): List&lt;SourceFragment&gt; =</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/main.kt</file>
+  <line>7</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.MainKt void main()" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>12</length>
+  <highlighted_element>fun main() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/server/src/main/kotlin/com/borinquenterrier/cef/Application.kt</file>
+  <line>10</line>
+  <module>CollegeExecutiveFunction.server.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.ApplicationKt void main()" />
+  <language>kotlin</language>
+  <offset>0</offset>
+  <length>12</length>
+  <highlighted_element>fun main() {</highlighted_element>
+  <problem_class id="" severity="WARNING" attribute_key="NOT_USED_ELEMENT_ATTRIBUTES">unused declaration</problem_class>
+  <hints>
+    <hint value="comment" />
+    <hint value="delete" />
+  </hints>
+  <description>Method is never used.</description>
+</problem>
+</problems>

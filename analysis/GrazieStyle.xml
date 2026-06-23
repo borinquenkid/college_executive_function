@@ -1,0 +1,326 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/typescript-estree/node_modules/semver/README.md</file>
+  <line>171</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/typescript-estree/node_modules/semver/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Consider removing &quot;of&quot; to be more concise</description>
+  <highlighted_element>all of the</highlighted_element>
+  <language>Markdown</language>
+  <offset>46</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/typescript-estree/node_modules/semver/README.md</file>
+  <line>540</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/typescript-estree/node_modules/semver/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (42 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>range.</highlighted_element>
+  <language>Markdown</language>
+  <offset>12</offset>
+  <length>6</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>21</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (47 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>entity.</highlighted_element>
+  <language>TEXT</language>
+  <offset>64</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>37</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (41 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>work (an</highlighted_element>
+  <language>TEXT</language>
+  <offset>62</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>43</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (41 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>authorship.</highlighted_element>
+  <language>TEXT</language>
+  <offset>49</offset>
+  <length>11</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>53</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (57 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>owner.</highlighted_element>
+  <language>TEXT</language>
+  <offset>20</offset>
+  <length>6</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>60</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (80 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>Contribution.&quot;</highlighted_element>
+  <language>TEXT</language>
+  <offset>61</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>71</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (48 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>form.</highlighted_element>
+  <language>TEXT</language>
+  <offset>57</offset>
+  <length>5</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>87</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (56 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>filed.</highlighted_element>
+  <language>TEXT</language>
+  <offset>40</offset>
+  <length>6</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>128</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (55 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>License.</highlighted_element>
+  <language>TEXT</language>
+  <offset>36</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>141</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (43 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>file.</highlighted_element>
+  <language>TEXT</language>
+  <offset>67</offset>
+  <length>5</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>149</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (53 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>PURPOSE.</highlighted_element>
+  <language>TEXT</language>
+  <offset>17</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>163</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (110 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>damages.</highlighted_element>
+  <language>TEXT</language>
+  <offset>50</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt</file>
+  <line>174</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/LICENSE.txt" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (60 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>liability.</highlighted_element>
+  <language>TEXT</language>
+  <offset>56</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>10</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>American English uses '-yz-' in suffixes</description>
+  <highlighted_element>analyse</highlighted_element>
+  <language>Markdown</language>
+  <offset>137</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>The official spelling of this programming framework is Node.js.</description>
+  <highlighted_element>NodeJS</highlighted_element>
+  <language>Markdown</language>
+  <offset>22</offset>
+  <length>6</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>The official spelling of this programming framework is Node.js.</description>
+  <highlighted_element>NodeJS</highlighted_element>
+  <language>Markdown</language>
+  <offset>112</offset>
+  <length>6</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>40</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>In this context, per-build forms an adjective and is spelled with a hyphen.</description>
+  <highlighted_element>per build</highlighted_element>
+  <language>Markdown</language>
+  <offset>204</offset>
+  <length>9</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>40</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Use a comma before 'and' if it connects two independent clauses (unless they are closely connected and short).</description>
+  <highlighted_element>and</highlighted_element>
+  <language>Markdown</language>
+  <offset>269</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>40</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (40 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>warnings.</highlighted_element>
+  <language>Markdown</language>
+  <offset>308</offset>
+  <length>9</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>148</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Consider removing &quot;of&quot; to be more concise</description>
+  <highlighted_element>all of the</highlighted_element>
+  <language>Markdown</language>
+  <offset>209</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>163</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Use a comma before 'and' if it connects two independent clauses (unless they are closely connected and short).</description>
+  <highlighted_element>and</highlighted_element>
+  <language>Markdown</language>
+  <offset>128</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>167</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>This phrase is redundant. Consider using outside.</description>
+  <highlighted_element>outside of</highlighted_element>
+  <language>Markdown</language>
+  <offset>68</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>179</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>A comma may be missing after the conjunctive/linking adverb 'However'.</description>
+  <highlighted_element>However</highlighted_element>
+  <language>Markdown</language>
+  <offset>225</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>179</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Long sentences (45 words here) are harder to read, according to the research; consider splitting</description>
+  <highlighted_element>do.</highlighted_element>
+  <language>Markdown</language>
+  <offset>487</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>319</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>The standard spelling is 'JavaScript'</description>
+  <highlighted_element>Javascript</highlighted_element>
+  <language>Markdown</language>
+  <offset>86</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md</file>
+  <line>427</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/baseline-browser-mapping/README.md" />
+  <problem_class id="GrazieStyle" severity="STYLE_SUGGESTION" attribute_key="TEXT_STYLE_SUGGESTION">Style</problem_class>
+  <description>Use the before the superlative.</description>
+  <highlighted_element>a</highlighted_element>
+  <language>Markdown</language>
+  <offset>52</offset>
+  <length>1</length>
+</problem>
+</problems>

@@ -1,0 +1,86 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/build.gradle.kts</file>
+  <line>202</line>
+  <module>CollegeExecutiveFunction.androidApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/androidApp/build.gradle.kts" />
+  <problem_class id="AndroidLintUseTomlInstead" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use TOML Version Catalog Instead</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use version catalog instead&lt;/html&gt;</description>
+  <highlighted_element>&quot;androidx.compose:compose-bom:2025.02.00&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>28</offset>
+  <length>41</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/build.gradle.kts</file>
+  <line>203</line>
+  <module>CollegeExecutiveFunction.androidApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/androidApp/build.gradle.kts" />
+  <problem_class id="AndroidLintUseTomlInstead" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use TOML Version Catalog Instead</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use version catalog instead&lt;/html&gt;</description>
+  <highlighted_element>&quot;androidx.compose.ui:ui&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>19</offset>
+  <length>24</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/build.gradle.kts</file>
+  <line>204</line>
+  <module>CollegeExecutiveFunction.androidApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/androidApp/build.gradle.kts" />
+  <problem_class id="AndroidLintUseTomlInstead" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use TOML Version Catalog Instead</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use version catalog instead&lt;/html&gt;</description>
+  <highlighted_element>&quot;androidx.compose.material3:material3&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>19</offset>
+  <length>38</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/build.gradle.kts</file>
+  <line>205</line>
+  <module>CollegeExecutiveFunction.androidApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/androidApp/build.gradle.kts" />
+  <problem_class id="AndroidLintUseTomlInstead" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use TOML Version Catalog Instead</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use version catalog instead&lt;/html&gt;</description>
+  <highlighted_element>&quot;androidx.compose.ui:ui-tooling-preview&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>19</offset>
+  <length>40</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build.gradle.kts</file>
+  <line>212</line>
+  <module>CollegeExecutiveFunction.composeApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/build.gradle.kts" />
+  <problem_class id="AndroidLintUseTomlInstead" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use TOML Version Catalog Instead</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use the existing version catalog reference (&lt;code&gt;libs.multiplatform.settings&lt;/code&gt;) instead&lt;/html&gt;</description>
+  <highlighted_element>&quot;com.russhwolf:multiplatform-settings:1.1.1&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>27</offset>
+  <length>44</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build.gradle.kts</file>
+  <line>212</line>
+  <module>CollegeExecutiveFunction.composeApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/build.gradle.kts" />
+  <problem_class id="AndroidLintUseTomlInstead" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Use TOML Version Catalog Instead</problem_class>
+  <hints />
+  <description>&lt;html&gt;Use the existing version catalog reference (&lt;code&gt;libs.multiplatform.settings&lt;/code&gt;) instead&lt;/html&gt;</description>
+  <highlighted_element>&quot;com.russhwolf:multiplatform-settings:1.1.1&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>27</offset>
+  <length>44</length>
+</problem>
+</problems>

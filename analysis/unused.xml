@@ -1,0 +1,466 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/AppEnv.android.kt</file>
+  <line>4</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppEnv AppEnv(java.util.Map&lt;java.lang.String,java.lang.String&gt; dotEnvOverride)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="dotEnvOverride" />
+  </hints>
+  <description>Parameter &lt;code&gt;dotEnvOverride&lt;/code&gt; is not used</description>
+  <highlighted_element>dotEnvOverride</highlighted_element>
+  <language>kotlin</language>
+  <offset>23</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/AppEnv.android.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppEnv java.lang.String get(java.lang.String key)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="key" />
+  </hints>
+  <description>Parameter &lt;code&gt;key&lt;/code&gt; is not used</description>
+  <highlighted_element>key</highlighted_element>
+  <language>kotlin</language>
+  <offset>19</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/GoogleAuthService.android.kt</file>
+  <line>28</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleAuthService java.lang.Object refreshAccessToken(java.lang.String refreshToken, kotlin.coroutines.Continuation&lt;? super java.lang.String&gt; $completion)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="refreshToken" />
+  </hints>
+  <description>Parameter &lt;code&gt;refreshToken&lt;/code&gt; is not used</description>
+  <highlighted_element>refreshToken</highlighted_element>
+  <language>kotlin</language>
+  <offset>42</offset>
+  <length>12</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/PlatformUtils.android.kt</file>
+  <line>7</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.PlatformUtils void openBrowser(java.lang.String url)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="url" />
+  </hints>
+  <description>Parameter &lt;code&gt;url&lt;/code&gt; is not used</description>
+  <highlighted_element>url</highlighted_element>
+  <language>kotlin</language>
+  <offset>27</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/Tracer.android.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Tracer_androidKt com.borinquenterrier.cef.Tracer createTracer(com.russhwolf.settings.Settings settings, com.borinquenterrier.cef.AppEnv appEnv)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="settings" />
+  </hints>
+  <description>Parameter &lt;code&gt;settings&lt;/code&gt; is not used</description>
+  <highlighted_element>settings</highlighted_element>
+  <language>kotlin</language>
+  <offset>24</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/Tracer.android.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Tracer_androidKt com.borinquenterrier.cef.Tracer createTracer(com.russhwolf.settings.Settings settings, com.borinquenterrier.cef.AppEnv appEnv)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="appEnv" />
+  </hints>
+  <description>Parameter &lt;code&gt;appEnv&lt;/code&gt; is not used</description>
+  <highlighted_element>appEnv</highlighted_element>
+  <language>kotlin</language>
+  <offset>44</offset>
+  <length>6</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarInterfaces.kt</file>
+  <line>95</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.StudentCalendarRepository java.lang.Object clearLocalCalendar(java.lang.String calendarId, kotlin.coroutines.Continuation&lt;? super kotlin.Unit&gt; $completion)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="calendarId" />
+  </hints>
+  <description>Parameter &lt;code&gt;calendarId&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>calendarId</highlighted_element>
+  <language>kotlin</language>
+  <offset>35</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiRateLimitPolicy.kt</file>
+  <line>14</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GeminiRateLimitPolicy.Decision.ExtremeDelay ExtremeDelay(boolean blacklistModel, boolean advanceAttempt, java.lang.String errorMessage)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="blacklistModel" />
+  </hints>
+  <description>Parameter &lt;code&gt;blacklistModel&lt;/code&gt; is not used</description>
+  <highlighted_element>blacklistModel</highlighted_element>
+  <language>kotlin</language>
+  <offset>16</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleCalendarSelector.kt</file>
+  <line>45</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleCalendarSelectorKt void GoogleCalendarSelector(java.lang.String googleCalendarId, java.lang.String googleCalendarName, java.util.List&lt;com.borinquenterrier.cef.RemoteCalendarMetadata&gt; calendars, boolean isLoadingCalendars, java.lang.String calendarLoadError, kotlin.jvm.functions.Function2&lt;? super java.lang.String,? super java.lang.String,kotlin.Unit&gt; onCalendarSelect, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onCreateClick, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onRetryLoad, kotlin.jvm.functions.Function1&lt;? super java.lang.String,kotlin.Unit&gt; onLoadError, kotlinx.coroutines.CoroutineScope scope, com.borinquenterrier.cef.DependencyContainer container)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="onLoadError" />
+  </hints>
+  <description>Parameter &lt;code&gt;onLoadError&lt;/code&gt; is not used</description>
+  <highlighted_element>onLoadError</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>11</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleCalendarSelector.kt</file>
+  <line>46</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleCalendarSelectorKt void GoogleCalendarSelector(java.lang.String googleCalendarId, java.lang.String googleCalendarName, java.util.List&lt;com.borinquenterrier.cef.RemoteCalendarMetadata&gt; calendars, boolean isLoadingCalendars, java.lang.String calendarLoadError, kotlin.jvm.functions.Function2&lt;? super java.lang.String,? super java.lang.String,kotlin.Unit&gt; onCalendarSelect, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onCreateClick, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onRetryLoad, kotlin.jvm.functions.Function1&lt;? super java.lang.String,kotlin.Unit&gt; onLoadError, kotlinx.coroutines.CoroutineScope scope, com.borinquenterrier.cef.DependencyContainer container)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="scope" />
+  </hints>
+  <description>Parameter &lt;code&gt;scope&lt;/code&gt; is not used</description>
+  <highlighted_element>scope</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>5</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleCalendarSelector.kt</file>
+  <line>47</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleCalendarSelectorKt void GoogleCalendarSelector(java.lang.String googleCalendarId, java.lang.String googleCalendarName, java.util.List&lt;com.borinquenterrier.cef.RemoteCalendarMetadata&gt; calendars, boolean isLoadingCalendars, java.lang.String calendarLoadError, kotlin.jvm.functions.Function2&lt;? super java.lang.String,? super java.lang.String,kotlin.Unit&gt; onCalendarSelect, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onCreateClick, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onRetryLoad, kotlin.jvm.functions.Function1&lt;? super java.lang.String,kotlin.Unit&gt; onLoadError, kotlinx.coroutines.CoroutineScope scope, com.borinquenterrier.cef.DependencyContainer container)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="container" />
+  </hints>
+  <description>Parameter &lt;code&gt;container&lt;/code&gt; is not used</description>
+  <highlighted_element>container</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>9</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleConnectionState.kt</file>
+  <line>20</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.GoogleConnectionState.Error Error(java.lang.String message, boolean canRetry)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="canRetry" />
+  </hints>
+  <description>Parameter &lt;code&gt;canRetry&lt;/code&gt; is not used</description>
+  <highlighted_element>canRetry</highlighted_element>
+  <language>kotlin</language>
+  <offset>46</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleRemoteCalendarRepository.kt</file>
+  <line>93</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.CalendarNotFoundException CalendarNotFoundException(java.lang.String calendarId, java.lang.String message)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="calendarId" />
+  </hints>
+  <description>Parameter &lt;code&gt;calendarId&lt;/code&gt; is not used</description>
+  <highlighted_element>calendarId</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Logger.kt</file>
+  <line>42</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.LoggerKt void writeLogToFile(java.lang.String message)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="message" />
+  </hints>
+  <description>Parameter &lt;code&gt;message&lt;/code&gt; is not used</description>
+  <highlighted_element>message</highlighted_element>
+  <language>kotlin</language>
+  <offset>26</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/RoutineSetupScreen.kt</file>
+  <line>12</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.RoutineSetupScreenKt void RoutineSetupScreen(androidx.compose.ui.Modifier modifier, kotlin.jvm.functions.Function0&lt;kotlin.Unit&gt; onSetupComplete)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="onSetupComplete" />
+  </hints>
+  <description>Parameter &lt;code&gt;onSetupComplete&lt;/code&gt; is not used</description>
+  <highlighted_element>onSetupComplete</highlighted_element>
+  <language>kotlin</language>
+  <offset>54</offset>
+  <length>15</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>6</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Tracer java.lang.Object span(java.lang.String name, java.util.Map&lt;java.lang.String,java.lang.String&gt; attributes, kotlin.jvm.functions.Function2&lt;? super com.borinquenterrier.cef.SpanScope,? super kotlin.coroutines.Continuation&lt;? super T&gt;,? extends java.lang.Object&gt; block, kotlin.coroutines.Continuation&lt;? super T&gt; $completion)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="name" />
+  </hints>
+  <description>Parameter &lt;code&gt;name&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>name</highlighted_element>
+  <language>kotlin</language>
+  <offset>25</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>6</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Tracer java.lang.Object span(java.lang.String name, java.util.Map&lt;java.lang.String,java.lang.String&gt; attributes, kotlin.jvm.functions.Function2&lt;? super com.borinquenterrier.cef.SpanScope,? super kotlin.coroutines.Continuation&lt;? super T&gt;,? extends java.lang.Object&gt; block, kotlin.coroutines.Continuation&lt;? super T&gt; $completion)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="attributes" />
+  </hints>
+  <description>Parameter &lt;code&gt;attributes&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>attributes</highlighted_element>
+  <language>kotlin</language>
+  <offset>39</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>6</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Tracer java.lang.Object span(java.lang.String name, java.util.Map&lt;java.lang.String,java.lang.String&gt; attributes, kotlin.jvm.functions.Function2&lt;? super com.borinquenterrier.cef.SpanScope,? super kotlin.coroutines.Continuation&lt;? super T&gt;,? extends java.lang.Object&gt; block, kotlin.coroutines.Continuation&lt;? super T&gt; $completion)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="block" />
+  </hints>
+  <description>Parameter &lt;code&gt;block&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>block</highlighted_element>
+  <language>kotlin</language>
+  <offset>85</offset>
+  <length>5</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>7</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Tracer void event(java.lang.String name, java.util.Map&lt;java.lang.String,java.lang.String&gt; attributes)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="name" />
+  </hints>
+  <description>Parameter &lt;code&gt;name&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>name</highlighted_element>
+  <language>kotlin</language>
+  <offset>14</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>7</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.Tracer void event(java.lang.String name, java.util.Map&lt;java.lang.String,java.lang.String&gt; attributes)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="attributes" />
+  </hints>
+  <description>Parameter &lt;code&gt;attributes&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>attributes</highlighted_element>
+  <language>kotlin</language>
+  <offset>28</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>12</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SpanScope void setAttribute(java.lang.String key, java.lang.String value)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="key" />
+  </hints>
+  <description>Parameter &lt;code&gt;key&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>key</highlighted_element>
+  <language>kotlin</language>
+  <offset>21</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>12</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SpanScope void setAttribute(java.lang.String key, java.lang.String value)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="value" />
+  </hints>
+  <description>Parameter &lt;code&gt;value&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>value</highlighted_element>
+  <language>kotlin</language>
+  <offset>34</offset>
+  <length>5</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>13</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SpanScope void setAttribute(java.lang.String key, long value)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="key" />
+  </hints>
+  <description>Parameter &lt;code&gt;key&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>key</highlighted_element>
+  <language>kotlin</language>
+  <offset>21</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>13</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SpanScope void setAttribute(java.lang.String key, long value)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="value" />
+  </hints>
+  <description>Parameter &lt;code&gt;value&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>value</highlighted_element>
+  <language>kotlin</language>
+  <offset>34</offset>
+  <length>5</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>14</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SpanScope void recordException(java.lang.Throwable t)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="t" />
+  </hints>
+  <description>Parameter &lt;code&gt;t&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>t</highlighted_element>
+  <language>kotlin</language>
+  <offset>24</offset>
+  <length>1</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>15</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SpanScope void addEvent(java.lang.String name, java.util.Map&lt;java.lang.String,java.lang.String&gt; attributes)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="name" />
+  </hints>
+  <description>Parameter &lt;code&gt;name&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>name</highlighted_element>
+  <language>kotlin</language>
+  <offset>17</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/Tracer.kt</file>
+  <line>15</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SpanScope void addEvent(java.lang.String name, java.util.Map&lt;java.lang.String,java.lang.String&gt; attributes)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="attributes" />
+  </hints>
+  <description>Parameter &lt;code&gt;attributes&lt;/code&gt; is not used in any implementation</description>
+  <highlighted_element>attributes</highlighted_element>
+  <language>kotlin</language>
+  <offset>31</offset>
+  <length>10</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/OtelTracer.kt</file>
+  <line>47</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.OtelTracer java.lang.Object span(java.lang.String name, java.util.Map&lt;java.lang.String,java.lang.String&gt; attributes, kotlin.jvm.functions.Function2&lt;? super com.borinquenterrier.cef.SpanScope,? super kotlin.coroutines.Continuation&lt;? super T&gt;,? extends java.lang.Object&gt; block, kotlin.coroutines.Continuation&lt;? super T&gt; $completion)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="block" />
+  </hints>
+  <description>Parameter &lt;code&gt;block&lt;/code&gt; is not used</description>
+  <highlighted_element>block</highlighted_element>
+  <language>kotlin</language>
+  <offset>81</offset>
+  <length>5</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/OtelTracer.kt</file>
+  <line>106</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.OtelTracerKt com.borinquenterrier.cef.Tracer createTracer(com.russhwolf.settings.Settings settings, com.borinquenterrier.cef.AppEnv appEnv)" />
+  <problem_class id="unused" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused declaration</problem_class>
+  <hints>
+    <hint value="settings" />
+  </hints>
+  <description>Parameter &lt;code&gt;settings&lt;/code&gt; is not used</description>
+  <highlighted_element>settings</highlighted_element>
+  <language>kotlin</language>
+  <offset>24</offset>
+  <length>8</length>
+</problem>
+</problems>

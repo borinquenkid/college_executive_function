@@ -1,0 +1,314 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md</file>
+  <line>28</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Use a singular form of the numeral here.</description>
+  <highlighted_element>five hundreds</highlighted_element>
+  <language>Markdown</language>
+  <offset>46</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md</file>
+  <line>28</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Use a singular form of the numeral here.</description>
+  <highlighted_element>of</highlighted_element>
+  <language>Markdown</language>
+  <offset>61</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md</file>
+  <line>86</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>The word &quot;easy&quot; is an adjective and doesn't fit in this context. Did you mean the adverb easily?</description>
+  <highlighted_element>easy</highlighted_element>
+  <language>Markdown</language>
+  <offset>72</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md</file>
+  <line>90</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>This word is normally spelled as one.</description>
+  <highlighted_element>sub-modules</highlighted_element>
+  <language>Markdown</language>
+  <offset>31</offset>
+  <length>11</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md</file>
+  <line>122</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Use an instead of 'a' if the following word starts with a vowel sound, e.g. 'an article', 'an hour'.</description>
+  <highlighted_element>a</highlighted_element>
+  <language>Markdown</language>
+  <offset>150</offset>
+  <length>1</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md</file>
+  <line>325</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Use a instead of 'an' if the following word doesn't start with a vowel sound, e.g. 'a sentence', 'a university'.</description>
+  <highlighted_element>an</highlighted_element>
+  <language>Markdown</language>
+  <offset>32</offset>
+  <length>2</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md</file>
+  <line>355</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>This word is normally spelled with a hyphen.</description>
+  <highlighted_element>case insensitive</highlighted_element>
+  <language>Markdown</language>
+  <offset>116</offset>
+  <length>16</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md</file>
+  <line>355</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/@typescript-eslint/eslint-plugin/node_modules/ignore/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>This word is normally spelled with a hyphen.</description>
+  <highlighted_element>case sensitive</highlighted_element>
+  <language>Markdown</language>
+  <offset>205</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>28</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>The official spelling of this programming framework is Node.js.</description>
+  <highlighted_element>nodejs</highlighted_element>
+  <language>Markdown</language>
+  <offset>220</offset>
+  <length>6</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>32</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>The official spelling of this programming framework is Node.js.</description>
+  <highlighted_element>nodejs</highlighted_element>
+  <language>Markdown</language>
+  <offset>41</offset>
+  <length>6</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>51</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>File types are usually capitalized</description>
+  <highlighted_element>json</highlighted_element>
+  <language>Markdown</language>
+  <offset>40</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>55</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>File types are usually capitalized</description>
+  <highlighted_element>json</highlighted_element>
+  <language>Markdown</language>
+  <offset>52</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>59</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>File types are usually capitalized</description>
+  <highlighted_element>json</highlighted_element>
+  <language>Markdown</language>
+  <offset>55</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>63</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>File types are usually capitalized</description>
+  <highlighted_element>json</highlighted_element>
+  <language>Markdown</language>
+  <offset>62</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>144</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>File types are usually capitalized</description>
+  <highlighted_element>json</highlighted_element>
+  <language>Markdown</language>
+  <offset>23</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>150</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>File types are usually capitalized</description>
+  <highlighted_element>json</highlighted_element>
+  <language>Markdown</language>
+  <offset>35</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md</file>
+  <line>154</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/convert-source-map/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>File types are usually capitalized</description>
+  <highlighted_element>json</highlighted_element>
+  <language>Markdown</language>
+  <offset>38</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/electron-to-chromium/README.md</file>
+  <line>47</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/electron-to-chromium/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Use an instead of 'a' if the following word starts with a vowel sound, e.g. 'an article', 'an hour'.</description>
+  <highlighted_element>a</highlighted_element>
+  <language>Markdown</language>
+  <offset>34</offset>
+  <length>1</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/electron-to-chromium/README.md</file>
+  <line>182</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/electron-to-chromium/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>British roots ending with '-our' usually have '-or' in American English</description>
+  <highlighted_element>behaviour</highlighted_element>
+  <language>Markdown</language>
+  <offset>18</offset>
+  <length>9</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/eslint-visitor-keys/README.md</file>
+  <line>39</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/eslint-visitor-keys/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>The singular determiner 'this' may not agree with the plural noun 'keys'. Did you mean these?</description>
+  <highlighted_element>This</highlighted_element>
+  <language>Markdown</language>
+  <offset>14</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.md</file>
+  <line>486</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>An auxiliary verb seems to be missing from this progressive structure. Did you mean it's using, it is using, or it was using?</description>
+  <highlighted_element>it using</highlighted_element>
+  <language>Markdown</language>
+  <offset>91</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md</file>
+  <line>154</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Unpaired symbol: '&quot;' seems to be missing</description>
+  <highlighted_element>&quot;</highlighted_element>
+  <language>Markdown</language>
+  <offset>123</offset>
+  <length>1</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md</file>
+  <line>283</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Unpaired symbol: '&quot;' seems to be missing</description>
+  <highlighted_element>&quot;</highlighted_element>
+  <language>Markdown</language>
+  <offset>123</offset>
+  <length>1</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md</file>
+  <line>306</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Unpaired symbol: '&quot;' seems to be missing</description>
+  <highlighted_element>&quot;</highlighted_element>
+  <language>Markdown</language>
+  <offset>123</offset>
+  <length>1</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md</file>
+  <line>332</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>Unpaired symbol: '&quot;' seems to be missing</description>
+  <highlighted_element>&quot;</highlighted_element>
+  <language>Markdown</language>
+  <offset>123</offset>
+  <length>1</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md</file>
+  <line>540</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/web/node_modules/zod-validation-error/README.v3.md" />
+  <problem_class id="GrazieInspection" severity="GRAMMAR_ERROR" attribute_key="GRAMMAR_ERROR">Grammar</problem_class>
+  <description>An auxiliary verb seems to be missing from this progressive structure. Did you mean it's using, it is using, or it was using?</description>
+  <highlighted_element>it using</highlighted_element>
+  <language>Markdown</language>
+  <offset>91</offset>
+  <length>8</length>
+</problem>
+</problems>

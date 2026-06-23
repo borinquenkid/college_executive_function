@@ -1,0 +1,563 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build.gradle.kts</file>
+  <line>212</line>
+  <module>CollegeExecutiveFunction.composeApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/build.gradle.kts" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of com.russhwolf:multiplatform-settings than 1.1.1 is available: 1.3.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;com.russhwolf:multiplatform-settings:1.1.1&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>27</offset>
+  <length>44</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build.gradle.kts</file>
+  <line>212</line>
+  <module>CollegeExecutiveFunction.composeApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/build.gradle.kts" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of com.russhwolf:multiplatform-settings than 1.1.1 is available: 1.3.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;com.russhwolf:multiplatform-settings:1.1.1&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>27</offset>
+  <length>44</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>10</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.androidx.lifecycle:lifecycle-runtime-compose than 2.9.4 is available: 2.10.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.9.4&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>21</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>10</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.androidx.lifecycle:lifecycle-viewmodel-compose than 2.9.4 is available: 2.10.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.9.4&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>21</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>12</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.compose.hot-reload than 1.0.0-beta07 is available: 1.1.1&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.0.0-beta07&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>19</offset>
+  <length>14</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>13</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.compose than 1.10.3 is available: 1.11.1&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.10.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>23</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>15</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlin.android than 2.3.21 is available: 2.4.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.3.21&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>15</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlin.jvm than 2.3.21 is available: 2.4.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.3.21&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>15</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlin.multiplatform than 2.3.21 is available: 2.4.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.3.21&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>15</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlin.plugin.compose than 2.3.21 is available: 2.4.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.3.21&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>15</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlin.plugin.serialization than 2.3.21 is available: 2.4.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.3.21&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>16</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlinx:kotlinx-coroutines-swing than 1.10.2 is available: 1.11.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.10.2&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>21</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>17</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlinx:kotlinx-serialization-json than 1.7.1 is available: 1.11.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.7.1&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>24</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.kotest:kotest-assertions-core than 6.1.11 is available: 6.2.1&lt;/html&gt;</description>
+  <highlighted_element>&quot;6.1.11&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.kotest:kotest-framework-engine than 6.1.11 is available: 6.2.1&lt;/html&gt;</description>
+  <highlighted_element>&quot;6.1.11&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>18</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.kotest:kotest-runner-junit5 than 6.1.11 is available: 6.2.1&lt;/html&gt;</description>
+  <highlighted_element>&quot;6.1.11&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor.plugin than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-client-content-negotiation than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-client-core than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-client-darwin than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-client-java than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-client-mock than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-client-okhttp than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-serialization-kotlinx-json than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-server-core-jvm than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-server-netty-jvm than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>19</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.ktor:ktor-server-test-host-jvm than 3.4.3 is available: 3.5.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>20</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of com.russhwolf:multiplatform-settings than 1.1.1 is available: 1.3.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.1.1&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>25</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>20</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of com.russhwolf:multiplatform-settings-test than 1.1.1 is available: 1.3.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.1.1&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>25</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>25</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of com.google.http-client:google-http-client-gson than 1.44.1 is available: 2.1.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.44.1&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>26</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>26</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlinx:kotlinx-datetime than 0.7.1-0.6.x-compat is available: 0.8.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;0.7.1-0.6.x-compat&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>19</offset>
+  <length>20</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>27</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.mockk:mockk than 1.14.9 is available: 1.14.11&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.14.9&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>8</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>28</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.github.cdimascio:dotenv-kotlin than 6.4.1 is available: 6.5.1&lt;/html&gt;</description>
+  <highlighted_element>&quot;6.4.1&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>16</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>29</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of app.cash.sqldelight than 2.0.2 is available: 2.3.2&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.0.2&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>13</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>29</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of app.cash.sqldelight:android-driver than 2.0.2 is available: 2.3.2&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.0.2&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>13</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>29</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of app.cash.sqldelight:native-driver than 2.0.2 is available: 2.3.2&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.0.2&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>13</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>29</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of app.cash.sqldelight:sqlite-driver than 2.0.2 is available: 2.3.2&lt;/html&gt;</description>
+  <highlighted_element>&quot;2.0.2&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>13</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>30</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.opentelemetry:opentelemetry-exporter-otlp than 1.40.0 is available: 1.63.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.40.0&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>16</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>30</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of io.opentelemetry:opentelemetry-sdk than 1.40.0 is available: 1.63.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.40.0&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>16</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>31</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of com.llamatik:library than 1.2.0 is available: 1.8.1&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.2.0&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>11</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>32</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of com.squareup.okio:okio than 3.4.0 is available: 3.17.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.4.0&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>7</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>33</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.apache.pdfbox:pdfbox than 3.0.3 is available: 3.0.7&lt;/html&gt;</description>
+  <highlighted_element>&quot;3.0.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>9</offset>
+  <length>7</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>35</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintNewerVersionAvailable" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Newer Library Versions Available</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of org.jetbrains.kotlinx.kover than 0.8.3 is available: 0.9.8&lt;/html&gt;</description>
+  <highlighted_element>&quot;0.8.3&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>8</offset>
+  <length>7</length>
+</problem>
+</problems>

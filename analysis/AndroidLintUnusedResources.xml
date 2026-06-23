@@ -1,0 +1,76 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/src/main/res/values/strings.xml</file>
+  <line>2</line>
+  <module>CollegeExecutiveFunction.androidApp.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/androidApp/src/main/res/values/strings.xml" />
+  <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+  <hints />
+  <description>&lt;html&gt;The resource &lt;code&gt;R.string.app_name&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+  <highlighted_element>name=&quot;app_name&quot;</highlighted_element>
+  <language>XML</language>
+  <offset>12</offset>
+  <length>15</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/res/drawable/ic_launcher_background.xml</file>
+  <line>2</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/src/androidMain/res/drawable/ic_launcher_background.xml" />
+  <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+  <hints />
+  <description>&lt;html&gt;The resource &lt;code&gt;R.drawable.ic_launcher_background&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+  <highlighted_element>&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; android:width=&quot;108dp&quot; and...</highlighted_element>
+  <language>XML</language>
+  <offset>0</offset>
+  <length>5566</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/res/drawable-v24/ic_launcher_foreground.xml</file>
+  <line>1</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/src/androidMain/res/drawable-v24/ic_launcher_foreground.xml" />
+  <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+  <hints />
+  <description>&lt;html&gt;The resource &lt;code&gt;R.drawable.ic_launcher_foreground&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+  <highlighted_element>&lt;vector xmlns:android=&quot;http://schemas.android.com/apk/res/android&quot; xmlns:aapt=&quot;http://schemas.an...</highlighted_element>
+  <language>XML</language>
+  <offset>0</offset>
+  <length>1702</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/res/mipmap-hdpi/ic_launcher.png</file>
+  <line>1</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/src/androidMain/res/mipmap-hdpi/ic_launcher.png" />
+  <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+  <hints />
+  <description>&lt;html&gt;The resource &lt;code&gt;R.mipmap.ic_launcher&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/res/mipmap-hdpi/ic_launcher_round.png</file>
+  <line>1</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/src/androidMain/res/mipmap-hdpi/ic_launcher_round.png" />
+  <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+  <hints />
+  <description>&lt;html&gt;The resource &lt;code&gt;R.mipmap.ic_launcher_round&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/res/values/strings.xml</file>
+  <line>2</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/src/androidMain/res/values/strings.xml" />
+  <problem_class id="AndroidLintUnusedResources" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unused resources</problem_class>
+  <hints />
+  <description>&lt;html&gt;The resource &lt;code&gt;R.string.app_name&lt;/code&gt; appears to be unused&lt;/html&gt;</description>
+  <highlighted_element>name=&quot;app_name&quot;</highlighted_element>
+  <language>XML</language>
+  <offset>12</offset>
+  <length>15</length>
+</problem>
+</problems>

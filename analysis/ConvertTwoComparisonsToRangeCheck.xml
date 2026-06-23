@@ -1,0 +1,15 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ActiveSemesterDetector.kt</file>
+  <line>11</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SemesterRange boolean contains(kotlinx.datetime.LocalDate date)" />
+  <problem_class id="ConvertTwoComparisonsToRangeCheck" severity="WEAK WARNING" attribute_key="INFO_ATTRIBUTES">Two comparisons should be converted to a range check</problem_class>
+  <description>Two comparisons should be converted to a range check</description>
+  <highlighted_element>date &gt;= start &amp;&amp; date &lt;= end</highlighted_element>
+  <language>kotlin</language>
+  <offset>45</offset>
+  <length>28</length>
+</problem>
+</problems>

@@ -1,0 +1,14 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/webMain/resources/index.html</file>
+  <line>8</line>
+  <module>CollegeExecutiveFunction.composeApp</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/src/webMain/resources/index.html" />
+  <problem_class id="HtmlUnknownTarget" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unresolved file in a link</problem_class>
+  <description>Cannot resolve file 'composeApp.js'</description>
+  <highlighted_element>composeApp.js</highlighted_element>
+  <language>HTML</language>
+  <offset>47</offset>
+  <length>13</length>
+</problem>
+</problems>

@@ -1,0 +1,442 @@
+<problems>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.iosApp.iosMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' sources do not depend on module 'CollegeExecutiveFunction.iosApp.iosMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' does not depend on module 'CollegeExecutiveFunction.iosApp.appleMain'. Though 'CollegeExecutiveFunction.iosApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' does not depend on module 'CollegeExecutiveFunction.iosApp.nativeMain'. Though 'CollegeExecutiveFunction.iosApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.iosApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' sources do not depend on module 'CollegeExecutiveFunction.iosApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.iosMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.iosMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' does not depend on module 'CollegeExecutiveFunction.composeApp.appleMain'. Though 'CollegeExecutiveFunction.composeApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' does not depend on module 'CollegeExecutiveFunction.composeApp.nativeMain'. Though 'CollegeExecutiveFunction.composeApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosSimulatorArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.commonMain</file>
+  <module>CollegeExecutiveFunction.iosApp.commonMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.commonMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.iosMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.commonMain' sources do not depend on module 'CollegeExecutiveFunction.composeApp.iosMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.commonMain</file>
+  <module>CollegeExecutiveFunction.iosApp.commonMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.commonMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.commonMain' does not depend on module 'CollegeExecutiveFunction.composeApp.appleMain'. Though 'CollegeExecutiveFunction.composeApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.commonMain</file>
+  <module>CollegeExecutiveFunction.iosApp.commonMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.commonMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.commonMain' does not depend on module 'CollegeExecutiveFunction.composeApp.nativeMain'. Though 'CollegeExecutiveFunction.composeApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.commonMain</file>
+  <module>CollegeExecutiveFunction.iosApp.commonMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.commonMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.commonMain' sources do not depend on module 'CollegeExecutiveFunction.composeApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.shared.iosMain</file>
+  <module>CollegeExecutiveFunction.shared.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.shared.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.shared.iosMain' does not depend on module 'CollegeExecutiveFunction.shared.appleMain'. Though 'CollegeExecutiveFunction.shared.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.shared.iosMain</file>
+  <module>CollegeExecutiveFunction.shared.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.shared.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.shared.iosMain' does not depend on module 'CollegeExecutiveFunction.shared.nativeMain'. Though 'CollegeExecutiveFunction.shared.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.shared.iosMain</file>
+  <module>CollegeExecutiveFunction.shared.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.shared.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.shared.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.shared.iosMain' sources do not depend on module 'CollegeExecutiveFunction.shared.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.iosApp.iosMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' sources do not depend on module 'CollegeExecutiveFunction.iosApp.iosMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' does not depend on module 'CollegeExecutiveFunction.iosApp.appleMain'. Though 'CollegeExecutiveFunction.iosApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' does not depend on module 'CollegeExecutiveFunction.iosApp.nativeMain'. Though 'CollegeExecutiveFunction.iosApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.iosApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' sources do not depend on module 'CollegeExecutiveFunction.iosApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.iosArm64Main" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.iosArm64Main' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.iosMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.iosMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' does not depend on module 'CollegeExecutiveFunction.composeApp.appleMain'. Though 'CollegeExecutiveFunction.composeApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' does not depend on module 'CollegeExecutiveFunction.composeApp.nativeMain'. Though 'CollegeExecutiveFunction.composeApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.iosApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.iosMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.iosMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main' does not depend on module 'CollegeExecutiveFunction.composeApp.appleMain'. Though 'CollegeExecutiveFunction.composeApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main' does not depend on module 'CollegeExecutiveFunction.composeApp.nativeMain'. Though 'CollegeExecutiveFunction.composeApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main</file>
+  <module>CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.composeApp.iosSimulatorArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.composeApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.composeApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.composeApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.iosMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.composeApp.iosArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.iosMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.composeApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.composeApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.composeApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.composeApp.iosArm64Main' does not depend on module 'CollegeExecutiveFunction.composeApp.appleMain'. Though 'CollegeExecutiveFunction.composeApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.composeApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.composeApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.composeApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.composeApp.iosArm64Main' does not depend on module 'CollegeExecutiveFunction.composeApp.nativeMain'. Though 'CollegeExecutiveFunction.composeApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.composeApp.iosArm64Main</file>
+  <module>CollegeExecutiveFunction.composeApp.iosArm64Main</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.composeApp.iosArm64Main" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.composeApp.iosArm64Main' sources do not depend on module 'CollegeExecutiveFunction.composeApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosMain</file>
+  <module>CollegeExecutiveFunction.iosApp.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosMain' does not depend on module 'CollegeExecutiveFunction.iosApp.appleMain'. Though 'CollegeExecutiveFunction.iosApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosMain</file>
+  <module>CollegeExecutiveFunction.iosApp.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosMain' does not depend on module 'CollegeExecutiveFunction.iosApp.nativeMain'. Though 'CollegeExecutiveFunction.iosApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosMain</file>
+  <module>CollegeExecutiveFunction.iosApp.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.iosApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosMain' sources do not depend on module 'CollegeExecutiveFunction.iosApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosMain</file>
+  <module>CollegeExecutiveFunction.iosApp.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.iosMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosMain' sources do not depend on module 'CollegeExecutiveFunction.composeApp.iosMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosMain</file>
+  <module>CollegeExecutiveFunction.iosApp.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosMain' does not depend on module 'CollegeExecutiveFunction.composeApp.appleMain'. Though 'CollegeExecutiveFunction.composeApp.appleMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosMain</file>
+  <module>CollegeExecutiveFunction.iosApp.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints />
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosMain' does not depend on module 'CollegeExecutiveFunction.composeApp.nativeMain'. Though 'CollegeExecutiveFunction.composeApp.nativeMain' was not inspected for exported dependencies needed for scope 'Intersection of All and Project Production Files'</description>
+  <highlighted_element />
+  <language />
+</problem>
+<problem>
+  <file>CollegeExecutiveFunction.iosApp.iosMain</file>
+  <module>CollegeExecutiveFunction.iosApp.iosMain</module>
+  <entry_point TYPE="module" FQNAME="CollegeExecutiveFunction.iosApp.iosMain" />
+  <problem_class id="UnnecessaryModuleDependencyInspection" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Unnecessary module dependency</problem_class>
+  <hints>
+    <hint value="CollegeExecutiveFunction.composeApp.commonMain" />
+  </hints>
+  <description>Module 'CollegeExecutiveFunction.iosApp.iosMain' sources do not depend on module 'CollegeExecutiveFunction.composeApp.commonMain' sources</description>
+  <highlighted_element />
+  <language />
+</problem>
+</problems>

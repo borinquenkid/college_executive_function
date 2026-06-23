@@ -1,0 +1,138 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/build.gradle.kts</file>
+  <line>143</line>
+  <module>CollegeExecutiveFunction.androidApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/androidApp/build.gradle.kts" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of &lt;code&gt;compileSdk&lt;/code&gt; than 36 is available: 37&lt;/html&gt;</description>
+  <highlighted_element>compileSdk = libs.versions.android.compileSdk.get().toInt()</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>59</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/build.gradle.kts</file>
+  <line>202</line>
+  <module>CollegeExecutiveFunction.androidApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/androidApp/build.gradle.kts" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of androidx.compose:compose-bom than 2025.02.00 is available: 2026.06.00&lt;/html&gt;</description>
+  <highlighted_element>&quot;androidx.compose:compose-bom:2025.02.00&quot;</highlighted_element>
+  <language>kotlin</language>
+  <offset>28</offset>
+  <length>41</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build.gradle.kts</file>
+  <line>270</line>
+  <module>CollegeExecutiveFunction.composeApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/build.gradle.kts" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of &lt;code&gt;compileSdk&lt;/code&gt; than 36 is available: 37&lt;/html&gt;</description>
+  <highlighted_element>compileSdk = libs.versions.android.compileSdk.get().toInt()</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>59</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build.gradle.kts</file>
+  <line>270</line>
+  <module>CollegeExecutiveFunction.composeApp</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/composeApp/build.gradle.kts" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of &lt;code&gt;compileSdk&lt;/code&gt; than 36 is available: 37&lt;/html&gt;</description>
+  <highlighted_element>compileSdk = libs.versions.android.compileSdk.get().toInt()</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>59</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>3</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of &lt;code&gt;android-compileSdk&lt;/code&gt; than 36 is available: 37&lt;/html&gt;</description>
+  <highlighted_element>&quot;36&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>21</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>6</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of androidx.activity:activity-compose than 1.11.0 is available: 1.13.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.11.0&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>20</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>8</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of androidx.core:core-ktx than 1.17.0 is available: 1.19.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;1.17.0&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>16</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/gradle/libs.versions.toml</file>
+  <line>37</line>
+  <module>CollegeExecutiveFunction</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/gradle/libs.versions.toml" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of com.google.android.gms:play-services-auth than 21.0.0 is available: 21.6.0&lt;/html&gt;</description>
+  <highlighted_element>&quot;21.0.0&quot;</highlighted_element>
+  <language>TOML</language>
+  <offset>21</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/shared/build.gradle.kts</file>
+  <line>35</line>
+  <module>CollegeExecutiveFunction.shared</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/shared/build.gradle.kts" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of &lt;code&gt;compileSdk&lt;/code&gt; than 36 is available: 37&lt;/html&gt;</description>
+  <highlighted_element>compileSdk = libs.versions.android.compileSdk.get().toInt()</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>59</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/shared/build.gradle.kts</file>
+  <line>35</line>
+  <module>CollegeExecutiveFunction.shared</module>
+  <package>&lt;default&gt;</package>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/shared/build.gradle.kts" />
+  <problem_class id="AndroidLintGradleDependency" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Obsolete Gradle Dependency</problem_class>
+  <hints />
+  <description>&lt;html&gt;A newer version of &lt;code&gt;compileSdk&lt;/code&gt; than 36 is available: 37&lt;/html&gt;</description>
+  <highlighted_element>compileSdk = libs.versions.android.compileSdk.get().toInt()</highlighted_element>
+  <language>kotlin</language>
+  <offset>4</offset>
+  <length>59</length>
+</problem>
+</problems>

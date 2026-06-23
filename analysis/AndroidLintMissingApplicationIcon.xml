@@ -1,0 +1,15 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/androidApp/src/main/AndroidManifest.xml</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.androidApp.main</module>
+  <entry_point TYPE="file" FQNAME="file://$PROJECT_DIR$/androidApp/src/main/AndroidManifest.xml" />
+  <problem_class id="AndroidLintMissingApplicationIcon" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Missing application icon</problem_class>
+  <hints />
+  <description>&lt;html&gt;Should explicitly set &lt;code&gt;android:icon&lt;/code&gt;, there is no default&lt;/html&gt;</description>
+  <highlighted_element>application</highlighted_element>
+  <language>XML</language>
+  <offset>5</offset>
+  <length>11</length>
+</problem>
+</problems>

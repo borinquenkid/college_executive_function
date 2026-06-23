@@ -1,0 +1,18 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/PlatformUtils.android.kt</file>
+  <line>7</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.PlatformUtils void openBrowser(java.lang.String url)" />
+  <problem_class id="EmptyMethod" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Empty method</problem_class>
+  <hints>
+    <hint value="false" />
+  </hints>
+  <description>The method is empty</description>
+  <highlighted_element>openBrowser</highlighted_element>
+  <language>kotlin</language>
+  <offset>15</offset>
+  <length>11</length>
+</problem>
+</problems>

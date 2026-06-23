@@ -1,0 +1,30 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/IcsStringBuilder.kt</file>
+  <line>84</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.IcsStringBuilder kotlinx.datetime.LocalDate plusDays(kotlinx.datetime.LocalDate date, int days)" />
+  <problem_class id="SameParameterValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method parameter always has the same value</problem_class>
+  <hints />
+  <description>Value of parameter &lt;code&gt;days&lt;/code&gt; is always '1'</description>
+  <highlighted_element>days</highlighted_element>
+  <language>kotlin</language>
+  <offset>59</offset>
+  <length>4</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SchedulingAlgorithm.kt</file>
+  <line>61</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.SchedulingAlgorithm com.borinquenterrier.cef.Event findNextAvailableSlot(com.borinquenterrier.cef.Event event, java.util.List&lt;? extends com.borinquenterrier.cef.Event&gt; existingEvents, boolean skipCurrent)" />
+  <problem_class id="SameParameterValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method parameter always has the same value</problem_class>
+  <hints />
+  <description>Value of parameter &lt;code&gt;skipCurrent&lt;/code&gt; is always 'true'</description>
+  <highlighted_element>skipCurrent</highlighted_element>
+  <language>kotlin</language>
+  <offset>8</offset>
+  <length>11</length>
+</problem>
+</problems>

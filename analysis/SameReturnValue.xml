@@ -1,0 +1,156 @@
+<problems>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabaseQueries.kt</file>
+  <line>681</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.AppDatabaseQueries.SelectEventsInRangeQuery java.lang.String toString()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;toString()&lt;/code&gt; always returns &lt;code&gt;AppDatabase.sq:selectEventsInRange&lt;/code&gt;</description>
+  <highlighted_element>toString</highlighted_element>
+  <language>kotlin</language>
+  <offset>17</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabaseQueries.kt</file>
+  <line>703</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.AppDatabaseQueries.SelectBySyncStatusQuery java.lang.String toString()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;toString()&lt;/code&gt; always returns &lt;code&gt;AppDatabase.sq:selectBySyncStatus&lt;/code&gt;</description>
+  <highlighted_element>toString</highlighted_element>
+  <language>kotlin</language>
+  <offset>17</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabaseQueries.kt</file>
+  <line>726</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.AppDatabaseQueries.SelectIncompleteBeforeDateQuery java.lang.String toString()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;toString()&lt;/code&gt; always returns &lt;code&gt;AppDatabase.sq:selectIncompleteBeforeDate&lt;/code&gt;</description>
+  <highlighted_element>toString</highlighted_element>
+  <language>kotlin</language>
+  <offset>17</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabaseQueries.kt</file>
+  <line>747</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.AppDatabaseQueries.GetSelectedModelQuery java.lang.String toString()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;toString()&lt;/code&gt; always returns &lt;code&gt;AppDatabase.sq:getSelectedModel&lt;/code&gt;</description>
+  <highlighted_element>toString</highlighted_element>
+  <language>kotlin</language>
+  <offset>17</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabaseQueries.kt</file>
+  <line>769</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.AppDatabaseQueries.SelectSourceByIdQuery java.lang.String toString()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;toString()&lt;/code&gt; always returns &lt;code&gt;AppDatabase.sq:selectSourceById&lt;/code&gt;</description>
+  <highlighted_element>toString</highlighted_element>
+  <language>kotlin</language>
+  <offset>17</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabaseQueries.kt</file>
+  <line>791</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.AppDatabaseQueries.SelectFragmentsBySourceQuery java.lang.String toString()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;toString()&lt;/code&gt; always returns &lt;code&gt;AppDatabase.sq:selectFragmentsBySource&lt;/code&gt;</description>
+  <highlighted_element>toString</highlighted_element>
+  <language>kotlin</language>
+  <offset>17</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/AppDatabaseQueries.kt</file>
+  <line>813</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.AppDatabaseQueries.GetCachedAnalysisQuery java.lang.String toString()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;toString()&lt;/code&gt; always returns &lt;code&gt;AppDatabase.sq:getCachedAnalysis&lt;/code&gt;</description>
+  <highlighted_element>toString</highlighted_element>
+  <language>kotlin</language>
+  <offset>17</offset>
+  <length>8</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/build/generated/sqldelight/code/AppDatabase/commonMain/com/borinquenterrier/cef/db/composeApp/AppDatabaseImpl.kt</file>
+  <line>27</line>
+  <module>CollegeExecutiveFunction.composeApp.commonMain</module>
+  <package>com.borinquenterrier.cef.db.composeApp</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.db.composeApp.AppDatabaseImpl.Schema long getVersion()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;get()&lt;/code&gt; always returns &lt;code&gt;2&lt;/code&gt;</description>
+  <highlighted_element>get</highlighted_element>
+  <language>kotlin</language>
+  <offset>6</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/AppEnv.android.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.AppEnv java.lang.String get(java.lang.String key)" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;get()&lt;/code&gt; always returns &lt;code&gt;null&lt;/code&gt;</description>
+  <highlighted_element>get</highlighted_element>
+  <language>kotlin</language>
+  <offset>15</offset>
+  <length>3</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/androidMain/kotlin/com/borinquenterrier/cef/PlatformFileSystem.android.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.main</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.PlatformFileSystem_androidKt okio.FileSystem getFileSystem()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;getFileSystem()&lt;/code&gt; always returns &lt;code&gt;okio.FileSystem.SYSTEM&lt;/code&gt;</description>
+  <highlighted_element>getFileSystem</highlighted_element>
+  <language>kotlin</language>
+  <offset>11</offset>
+  <length>13</length>
+</problem>
+<problem>
+  <file>file://$PROJECT_DIR$/composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/PlatformFileSystem.jvm.kt</file>
+  <line>5</line>
+  <module>CollegeExecutiveFunction.composeApp.jvmMain</module>
+  <package>com.borinquenterrier.cef</package>
+  <entry_point TYPE="method" FQNAME="com.borinquenterrier.cef.PlatformFileSystem_jvmKt okio.FileSystem getFileSystem()" />
+  <problem_class id="SameReturnValue" severity="WARNING" attribute_key="WARNING_ATTRIBUTES">Method always returns the same value</problem_class>
+  <hints />
+  <description>Method &lt;code&gt;getFileSystem()&lt;/code&gt; always returns &lt;code&gt;okio.FileSystem.SYSTEM&lt;/code&gt;</description>
+  <highlighted_element>getFileSystem</highlighted_element>
+  <language>kotlin</language>
+  <offset>11</offset>
+  <length>13</length>
+</problem>
+</problems>

@@ -162,4 +162,70 @@ class IcsStringBuilderTest : FunSpec({
 
         ics shouldContain "BYDAY=MO,TU,WE,TH,FR,SA,SU"
     }
+
+    test("DESCRIPTION omits Warning line when event has no warning") {
+        val event = TimeEvent(
+            id = "no-warn",
+            title = "Regular Class",
+            source = EventSource.ROUTINE,
+            date = LocalDate(2026, 9, 7),
+            startTime = LocalTime(9, 0),
+            endTime = LocalTime(10, 0),
+            warning = null
+        )
+        val ics = IcsStringBuilder.buildIcsString(listOf(event))
+        (ics.contains("Warning:") shouldBe false)
+    }
+
+    test("multiple events each produce their own VEVENT block") {
+        val events = listOf(
+            TimeEvent(
+                id = "uid-1",
+                title = "Lecture",
+                source = EventSource.ROUTINE,
+                date = LocalDate(2026, 9, 7),
+                startTime = LocalTime(9, 0),
+                endTime = LocalTime(10, 0)
+            ),
+            DayEvent(
+                id = "uid-2",
+                title = "Holiday",
+                source = EventSource.SCHOOL,
+                date = LocalDate(2026, 9, 8)
+            )
+        )
+        val ics = IcsStringBuilder.buildIcsString(events)
+        ics.split("BEGIN:VEVENT").size - 1 shouldBe 2
+        ics shouldContain "SUMMARY:Lecture"
+        ics shouldContain "SUMMARY:Holiday"
+        ics.split("END:VEVENT").size - 1 shouldBe 2
+    }
+
+    test("no RRULE is emitted when recurrence is null") {
+        val event = TimeEvent(
+            id = "uid-no-recur",
+            title = "One-off",
+            source = EventSource.MANUAL,
+            date = LocalDate(2026, 9, 7),
+            startTime = LocalTime(10, 0),
+            endTime = LocalTime(11, 0),
+            recurrence = null
+        )
+        val ics = IcsStringBuilder.buildIcsString(listOf(event))
+        (ics.contains("RRULE:") shouldBe false)
+    }
+
+    test("time values are zero-padded to two digits") {
+        val event = TimeEvent(
+            id = "uid-pad",
+            title = "Early Class",
+            source = EventSource.ROUTINE,
+            date = LocalDate(2026, 1, 5),
+            startTime = LocalTime(8, 0),
+            endTime = LocalTime(9, 0)
+        )
+        val ics = IcsStringBuilder.buildIcsString(listOf(event))
+        ics shouldContain "DTSTART:20260105T080000"
+        ics shouldContain "DTEND:20260105T090000"
+    }
 })

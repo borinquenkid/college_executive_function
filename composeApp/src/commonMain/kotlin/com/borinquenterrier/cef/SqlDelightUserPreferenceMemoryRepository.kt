@@ -41,10 +41,12 @@ class SqlDelightUserPreferenceMemoryRepository(
                 endHour = endHour.toLong(),
                 timestamp = now
             )
+            Unit
         }
 
     override suspend fun pruneOldLogs(olderThanMs: Long) = withContext(Dispatchers.Default) {
         database.appDatabaseQueries.deleteOverrideLogsOlderThan(olderThanMs)
+        Unit
     }
 
     override suspend fun getDerivedConstraints(overrideThreshold: Int): List<UserPreferenceConstraint> =
@@ -101,5 +103,6 @@ class SqlDelightUserPreferenceMemoryRepository(
 
     override suspend fun clearAllLogs() = withContext(Dispatchers.Default) {
         database.appDatabaseQueries.deleteAllOverrideLogs()
+        Unit
     }
 }

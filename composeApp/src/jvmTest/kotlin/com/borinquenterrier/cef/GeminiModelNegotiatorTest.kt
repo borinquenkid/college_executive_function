@@ -1,7 +1,7 @@
 package com.borinquenterrier.cef
 
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
 import com.borinquenterrier.cef.db.AppDatabase
-import com.borinquenterrier.cef.db.AppDatabaseQueries
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.ktor.client.HttpClient
@@ -12,20 +12,17 @@ import io.ktor.http.HttpHeaders
 import io.ktor.http.HttpStatusCode
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
-import io.mockk.clearAllMocks
-import io.mockk.every
-import io.mockk.mockk
-import io.mockk.verify
 
 class GeminiModelNegotiatorTest : FunSpec({
 
-    val mockDatabase = mockk<AppDatabase>(relaxed = true)
-    val mockQueries = mockk<AppDatabaseQueries>(relaxed = true)
+    // Use a real in-memory SQLite database to avoid MockK's ValueClassSupport NPE
+    // with SQLDelight 2.3.x execute methods that return QueryResult<Long>.
+    lateinit var database: AppDatabase
 
     beforeTest {
-        clearAllMocks()
-        every { mockDatabase.appDatabaseQueries } returns mockQueries
-        // Reset shared blacklist companion state
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        database = AppDatabase(driver)
         GeminiAIService.clearBlacklistForTesting()
     }
 
@@ -50,15 +47,11 @@ class GeminiModelNegotiatorTest : FunSpec({
     )
 
     test("negotiateBestModel respects HEAVY task tier preferences") {
-        every {
-            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
-        } returns null
-
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
             accessToken = null,
             client = HttpClient(MockEngine { respond("") }),
-            database = mockDatabase,
+            database = database,
             logger = null
         )
 
@@ -67,21 +60,17 @@ class GeminiModelNegotiatorTest : FunSpec({
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.5-flash"
 
-        verify(exactly = 1) {
-            mockQueries.insertModel("preferred_gemini_model", "gemini-2.5-flash", any())
-        }
+        // Verify model was persisted to the database
+        database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
+            .executeAsOneOrNull() shouldBe "gemini-2.5-flash"
     }
 
     test("negotiateBestModel respects LIGHT task tier preferences") {
-        every {
-            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
-        } returns null
-
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
             accessToken = null,
             client = HttpClient(MockEngine { respond("") }),
-            database = mockDatabase,
+            database = database,
             logger = null
         )
 
@@ -90,21 +79,16 @@ class GeminiModelNegotiatorTest : FunSpec({
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.LIGHT)
         selected shouldBe "gemini-2.5-flash-lite"
 
-        verify(exactly = 1) {
-            mockQueries.insertModel("preferred_gemini_model", "gemini-2.5-flash-lite", any())
-        }
+        database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
+            .executeAsOneOrNull() shouldBe "gemini-2.5-flash-lite"
     }
 
     test("negotiateBestModel filters out non-text/unsupported models") {
-        every {
-            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
-        } returns null
-
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
             accessToken = null,
             client = HttpClient(MockEngine { respond("") }),
-            database = mockDatabase,
+            database = database,
             logger = null
         )
 
@@ -120,15 +104,17 @@ class GeminiModelNegotiatorTest : FunSpec({
     }
 
     test("negotiateBestModel uses cached model from database if not blacklisted") {
-        every {
-            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
-        } returns "gemini-2.0-flash"
+        // Pre-seed the database with a cached model
+        database.appDatabaseQueries.insertModel(
+            "preferred_gemini_model", "gemini-2.0-flash",
+            System.currentTimeMillis()
+        )
 
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
             accessToken = null,
             client = HttpClient(MockEngine { respond("") }),
-            database = mockDatabase,
+            database = database,
             logger = null
         )
 
@@ -136,47 +122,55 @@ class GeminiModelNegotiatorTest : FunSpec({
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.0-flash"
 
-        // Should not negotiate or save since it used the cache
-        verify(exactly = 0) { mockQueries.insertModel(any(), any(), any()) }
+        // Cache entry should still be "gemini-2.0-flash" (not overwritten)
+        database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
+            .executeAsOneOrNull() shouldBe "gemini-2.0-flash"
     }
 
     test("negotiateBestModel ignores cached model if it is blacklisted") {
-        every {
-            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
-        } returns "gemini-2.5-flash"
+        database.appDatabaseQueries.insertModel(
+            "preferred_gemini_model", "gemini-2.5-flash",
+            System.currentTimeMillis()
+        )
 
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
             accessToken = null,
             client = HttpClient(MockEngine { respond("") }),
-            database = mockDatabase,
+            database = database,
             logger = null
         )
 
         // Blacklist gemini-2.5-flash
         negotiator.blacklistModel("gemini-2.5-flash")
 
-        // Should ignore cache, select next best available non-blacklisted model (gemini-2.0-flash), and save it
+        // Should ignore cache, select next best available non-blacklisted model, and save it
         val selected =
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.0-flash"
 
-        verify(exactly = 1) {
-            mockQueries.insertModel("preferred_gemini_model", "gemini-2.0-flash", any())
-        }
+        database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
+            .executeAsOneOrNull() shouldBe "gemini-2.0-flash"
     }
 
     test("evictFromCache deletes preferred model from database") {
+        database.appDatabaseQueries.insertModel(
+            "preferred_gemini_model", "gemini-2.5-flash",
+            System.currentTimeMillis()
+        )
+
         val negotiator = GeminiModelNegotiator(
             apiKey = "fake-key",
             accessToken = null,
             client = HttpClient(MockEngine { respond("") }),
-            database = mockDatabase,
+            database = database,
             logger = null
         )
 
         negotiator.evictFromCache("gemini-2.5-flash")
-        verify(exactly = 1) { mockQueries.deleteModel("preferred_gemini_model") }
+
+        database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
+            .executeAsOneOrNull() shouldBe null
     }
 
     test("getAvailableModels parses model list successfully") {
@@ -217,39 +211,38 @@ class GeminiModelNegotiatorTest : FunSpec({
 
     test("cascade: server error in session 1 evicts model so session 2 renegotiates fresh") {
         // Session 1: DB has a cached model that then hits a 503
-        every {
-            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
-        } returns "gemini-2.5-flash-lite"
+        database.appDatabaseQueries.insertModel(
+            "preferred_gemini_model", "gemini-2.5-flash-lite",
+            System.currentTimeMillis()
+        )
 
         val negotiator1 = GeminiModelNegotiator(
             apiKey = "fake-key", accessToken = null,
             client = HttpClient(MockEngine { respond("") }),
-            database = mockDatabase, logger = null
+            database = database, logger = null
         )
         // GeminiErrorHandler.handleServerError does exactly these two calls
         negotiator1.blacklistModel("gemini-2.5-flash-lite")
         negotiator1.evictFromCache("gemini-2.5-flash-lite")
 
-        verify(exactly = 1) { mockQueries.deleteModel("preferred_gemini_model") }
-
-        // Simulate the DB state after deleteModel: subsequent reads return null
-        every {
-            mockQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
-        } returns null
+        // DB must now be empty
+        database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
+            .executeAsOneOrNull() shouldBe null
 
         // Session 2: new process, blacklist is reset, DB has no cached model
         GeminiAIService.clearBlacklistForTesting()
         val negotiator2 = GeminiModelNegotiator(
             apiKey = "fake-key", accessToken = null,
             client = HttpClient(MockEngine { respond("") }),
-            database = mockDatabase, logger = null
+            database = database, logger = null
         )
 
         val selected = negotiator2.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
 
         // Must NOT re-use the evicted model; must renegotiate and save the new choice
         selected shouldBe "gemini-2.5-flash"
-        verify(exactly = 1) { mockQueries.insertModel("preferred_gemini_model", "gemini-2.5-flash", any()) }
+        database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
+            .executeAsOneOrNull() shouldBe "gemini-2.5-flash"
     }
 
     test("getAvailableModels returns empty list on network error") {

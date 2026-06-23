@@ -31,10 +31,12 @@ class SqlDelightAnalysisCacheRepository(
                 cachedMetadataJson = analysis.cachedMetadataJson,
                 createdAt = analysis.createdAt
             )
+            Unit
         }
 
     override suspend fun evict(hash: String) =
         withContext(Dispatchers.Default) {
             database.appDatabaseQueries.deleteCachedAnalysis(hash)
+            Unit
         }
 }

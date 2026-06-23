@@ -236,6 +236,7 @@ kotlin {
                 implementation(libs.mockk)
                 implementation(libs.kotlinx.datetime)
                 implementation(libs.dotenv.kotlin)
+                implementation(libs.sqldelight.sqlite.driver)
             }
         }
         val androidUnitTest by getting {

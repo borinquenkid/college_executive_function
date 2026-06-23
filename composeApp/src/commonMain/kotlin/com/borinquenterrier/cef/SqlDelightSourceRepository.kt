@@ -65,6 +65,7 @@ class SqlDelightSourceRepository(
                     contentHash = null
                 )
             }
+            Unit
         }
 
     override suspend fun getSourceMetadata(sourceId: String): String? =
@@ -89,5 +90,6 @@ class SqlDelightSourceRepository(
     override suspend fun deleteSource(sourceId: String) = withContext(Dispatchers.Default) {
         database.appDatabaseQueries.deleteFragmentsBySource(sourceId)
         database.appDatabaseQueries.deleteSource(sourceId)
+        Unit
     }
 }

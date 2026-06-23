@@ -44,6 +44,7 @@ class OtelTracer(
         otelTracer = sdk.getTracer("com.borinquenterrier.cef")
     }
 
+    @Suppress("UNUSED_PARAMETER") // false positive: block is invoked as spanScope.block() below
     override suspend fun <T> span(name: String, attributes: Map<String, String>, block: suspend SpanScope.() -> T): T {
         val span = otelTracer.spanBuilder(name).startSpan()
         val scope = span.makeCurrent()
@@ -103,5 +104,6 @@ private class OtelSpanScope(private val span: Span) : SpanScope {
     }
 }
 
+@Suppress("UNUSED_PARAMETER")
 actual fun createTracer(settings: com.russhwolf.settings.Settings, appEnv: AppEnv): Tracer =
     OtelTracer.create(appEnv) ?: NoopTracer

@@ -16,17 +16,19 @@ interface SpanScope {
 }
 
 object NoopTracer : Tracer {
+    @Suppress("UNUSED_PARAMETER")
     override suspend fun <T> span(name: String, attributes: Map<String, String>, block: suspend SpanScope.() -> T): T =
         NoopSpanScope.block()
+    @Suppress("UNUSED_PARAMETER")
     override fun event(name: String, attributes: Map<String, String>) = Unit
     override fun shutdown() = Unit
 }
 
 private object NoopSpanScope : SpanScope {
-    override fun setAttribute(key: String, value: String) = Unit
-    override fun setAttribute(key: String, value: Long) = Unit
-    override fun recordException(t: Throwable) = Unit
-    override fun addEvent(name: String, attributes: Map<String, String>) = Unit
+    @Suppress("UNUSED_PARAMETER") override fun setAttribute(key: String, value: String) = Unit
+    @Suppress("UNUSED_PARAMETER") override fun setAttribute(key: String, value: Long) = Unit
+    @Suppress("UNUSED_PARAMETER") override fun recordException(t: Throwable) = Unit
+    @Suppress("UNUSED_PARAMETER") override fun addEvent(name: String, attributes: Map<String, String>) = Unit
 }
 
 object AppTracer {

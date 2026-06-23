@@ -9,6 +9,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun RoutineSetupScreen(modifier: Modifier = Modifier, onSetupComplete: () -> Unit) {
     Box(modifier = modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
         Text("Routine Setup Screen")

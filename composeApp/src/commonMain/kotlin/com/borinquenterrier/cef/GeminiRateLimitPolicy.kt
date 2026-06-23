@@ -11,7 +11,7 @@ internal object GeminiRateLimitPolicy {
     sealed class Decision {
         /** Extreme delay (>120s): blacklist, track extreme count, maybe advance attempt. */
         data class ExtremeDelay(
-            val blacklistModel: Boolean = true,
+            @Suppress("unused") val blacklistModel: Boolean = true,
             val advanceAttempt: Boolean,
             val errorMessage: String
         ) : Decision()

@@ -52,7 +52,10 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
     var startDate by remember { mutableStateOf(LocalDate(2024, 8, 26)) }
     var endDate by remember { mutableStateOf(LocalDate(2024, 12, 13)) }
 
+    // Suppress: IDE can't model Compose recomposition — null writes are read on the next frame.
+    @Suppress("AssignedValueIsNeverRead")
     var showDatePicker by remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
+    @Suppress("AssignedValueIsNeverRead")
     var showTimePicker by remember { mutableStateOf<Boolean?>(null) } // true: start, false: end
 
     Dialog(onDismissRequest = onDismiss) {

@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.CoroutineScope
 
+@Suppress("UNUSED_PARAMETER")
 @Composable
 internal fun GoogleCalendarSelector(
     googleCalendarId: String,

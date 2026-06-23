@@ -43,7 +43,6 @@ class DependencyContainer(
 
     val appEnv: AppEnv = AppEnv()
     val database: AppDatabase by lazy { createDatabase(driverFactory) }
-    val modelManager by lazy { ModelManager(httpClient, modelBasePath, logger) }
     val tokenRepository by lazy { GoogleTokenRepository(settings) }
     val authService by lazy { GoogleAuthService(settings, appEnv) }
     val tokenService by lazy { GoogleTokenService(tokenRepository, authService) }
@@ -314,10 +313,6 @@ class DependencyContainer(
             bugReporter
         )
     }
-
-    val googleAuthManager by lazy { GoogleAuthManager(authService, tokenRepository, logger) }
-
-    val calendarSyncManager by lazy { CalendarSyncManager(calendarAgent, logger) }
 
     val appController by lazy { AppController(this) }
 }

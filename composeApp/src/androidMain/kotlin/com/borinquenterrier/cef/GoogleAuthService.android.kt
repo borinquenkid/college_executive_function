@@ -25,6 +25,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         deferred.await()
     }
 
+    @Suppress("UNUSED_PARAMETER")
     actual suspend fun refreshAccessToken(refreshToken: String): String? =
         withContext(Dispatchers.IO) {
             // On Android with GoogleAuthUtil, we just ask for the token again.

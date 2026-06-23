@@ -209,7 +209,7 @@ kotlin {
             implementation(libs.ktor.client.core)
             implementation(libs.ktor.client.content.negotiation)
             implementation(libs.ktor.serialization.kotlinx.json)
-            implementation("com.russhwolf:multiplatform-settings:1.1.1")
+            implementation(libs.multiplatform.settings)
             implementation(libs.ical4j)
             implementation(libs.google.api.services.calendar)
             implementation(libs.google.api.client)

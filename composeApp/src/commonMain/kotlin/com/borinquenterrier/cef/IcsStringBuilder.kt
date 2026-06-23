@@ -45,7 +45,7 @@ object IcsStringBuilder {
 
                 is DayEvent -> {
                     val startStr = formatDate(event.date)
-                    val endStr = formatDate(plusDays(event.date, 1))
+                    val endStr = formatDate(plusDays(event.date))
                     sb.append("DTSTART;VALUE=DATE:").append(startStr).append("\r\n")
                     sb.append("DTEND;VALUE=DATE:").append(endStr).append("\r\n")
 
@@ -81,10 +81,8 @@ object IcsStringBuilder {
         return "$y$m$d"
     }
 
-    private fun plusDays(date: kotlinx.datetime.LocalDate, days: Int): kotlinx.datetime.LocalDate {
-        val epochDays = date.toEpochDays()
-        return kotlinx.datetime.LocalDate.fromEpochDays(epochDays + days)
-    }
+    private fun plusDays(date: kotlinx.datetime.LocalDate): kotlinx.datetime.LocalDate =
+        kotlinx.datetime.LocalDate.fromEpochDays(date.toEpochDays() + 1)
 
     private fun buildRecurrenceRule(recurrence: Recurrence): String {
         val daysStr = recurrence.daysOfWeek.mapNotNull {

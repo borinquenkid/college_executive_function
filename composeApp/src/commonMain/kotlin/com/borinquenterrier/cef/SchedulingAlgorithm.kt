@@ -49,7 +49,7 @@ class SchedulingAlgorithm(
         existingEvents: List<Event>,
         depth: Int
     ): ResolutionResult {
-        val shifted = findNextAvailableSlot(event, existingEvents, skipCurrent = true)
+        val shifted = findNextAvailableSlot(event, existingEvents)
             ?: return ResolutionResult.Conflict(event)
 
         return resolve(shifted, existingEvents, depth + 1)
@@ -58,7 +58,7 @@ class SchedulingAlgorithm(
     private fun findNextAvailableSlot(
         event: Event,
         existingEvents: List<Event>,
-        skipCurrent: Boolean = false
+        skipCurrent: Boolean = true
     ): Event? {
         return when (event) {
             is DayEvent -> detector.findNextDaySlot(event, existingEvents, validator, skipCurrent)

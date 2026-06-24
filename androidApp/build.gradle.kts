@@ -2,6 +2,7 @@ import org.jetbrains.kotlin.gradle.dsl.JvmTarget
 import java.util.Properties
 import java.io.OutputStream
 import java.io.ByteArrayOutputStream
+import java.io.File
 import javax.inject.Inject
 
 plugins {
@@ -26,7 +27,7 @@ abstract class PrepareEmulatorTask @Inject constructor(
         }
         
         val sdkDir = props.getProperty("sdk.dir")
-        val avdName = props.getProperty("avd.name") ?: "Medium_Phone_API_36.1"
+        val avdName = props.getProperty("avd.name") ?: "Medium_Phone_API_37.1"
         val adb = "${sdkDir}/platform-tools/adb"
         val emulator = "${sdkDir}/emulator/emulator"
         
@@ -47,7 +48,9 @@ abstract class PrepareEmulatorTask @Inject constructor(
             
             println("Waiting for device to be online...")
             var booted = false
-            while (!booted) {
+            var attempts = 0
+            while (!booted && attempts < 60) {
+                attempts++
                 val output = ByteArrayOutputStream()
                 val result = try {
                     execOperations.exec {
@@ -101,9 +104,77 @@ abstract class PrepareEmulatorTask @Inject constructor(
                     Thread.sleep(5000)
                 }
             }
-            println("Emulator ready.")
+            if (booted) {
+                println("Emulator ready.")
+            } else {
+                error("Emulator failed to boot in time.")
+            }
         } else {
             println("Device/Emulator already connected.")
+        }
+    }
+}
+
+// Task to download and setup Android 17 components
+abstract class SetupAndroid17Task @Inject constructor(
+    private val execOperations: ExecOperations
+) : DefaultTask() {
+    @get:Internal
+    abstract val localPropertiesFile: RegularFileProperty
+
+    @TaskAction
+    fun run() {
+        val props = Properties()
+        val file = localPropertiesFile.get().asFile
+        if (file.exists()) {
+            file.inputStream().use { props.load(it) }
+        }
+        val sdkDir = props.getProperty("sdk.dir") ?: error("sdk.dir not found in local.properties")
+        val avdName = props.getProperty("avd.name") ?: "Medium_Phone_API_37.1"
+        
+        val sdkManager = listOf(
+            "${sdkDir}/cmdline-tools/latest/bin/sdkmanager",
+            "${sdkDir}/cmdline-tools/bin/sdkmanager",
+            "${sdkDir}/tools/bin/sdkmanager"
+        ).firstOrNull { File(it).exists() } ?: error("sdkmanager not found in $sdkDir")
+
+        val avdManager = listOf(
+            "${sdkDir}/cmdline-tools/latest/bin/avdmanager",
+            "${sdkDir}/cmdline-tools/bin/avdmanager",
+            "${sdkDir}/tools/bin/avdmanager"
+        ).firstOrNull { File(it).exists() } ?: error("avdmanager not found in $sdkDir")
+
+        val arch = if (System.getProperty("os.arch") == "aarch64") "arm64-v8a" else "x86_64"
+        val systemImage = "system-images;android-37;google_apis;$arch"
+
+        println("Checking Android 17 (API 37) components...")
+        
+        // Fast check for platform
+        val platformDir = File("$sdkDir/platforms/android-37")
+        if (!platformDir.exists()) {
+            println("Installing platforms;android-37 and $systemImage...")
+            execOperations.exec {
+                commandLine("bash", "-c", "yes | $sdkManager --licenses")
+            }
+            execOperations.exec {
+                commandLine(sdkManager, "--install", "platforms;android-37", systemImage)
+            }
+        }
+
+        // Check if AVD exists
+        val avdListOutput = ByteArrayOutputStream()
+        execOperations.exec {
+            commandLine(avdManager, "list", "avd")
+            standardOutput = avdListOutput
+        }
+        
+        if (!avdListOutput.toString().contains(avdName)) {
+            println("Creating AVD: $avdName...")
+            execOperations.exec {
+                commandLine("bash", "-c", "echo no | $avdManager create avd -n $avdName -k '$systemImage' --force")
+            }
+        } else {
+            println("AVD $avdName already exists.")
         }
     }
 }
@@ -176,9 +247,16 @@ android {
     }
 }
 
+val setupAndroid17 = tasks.register<SetupAndroid17Task>("setupAndroid17") {
+    group = "application"
+    description = "Downloads Android 17 SDK components and creates the AVD if missing."
+    localPropertiesFile.set(project.rootProject.layout.projectDirectory.file("local.properties"))
+}
+
 val prepareEmulator = tasks.register<PrepareEmulatorTask>("prepareEmulator") {
     group = "application"
     description = "Ensures an Android device or emulator is running."
+    dependsOn(setupAndroid17)
     localPropertiesFile.set(project.rootProject.layout.projectDirectory.file("local.properties"))
 }
 

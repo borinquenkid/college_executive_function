@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: Phase 9 — Polish (9C pending human)** — 9A (window title) and 9B (Studio FAB) done. 9C requires a manual Drive walkthrough with a real Google account to verify the Phase 7 search/chips UI renders correctly end-to-end.
+**Current Phase: All Phases Complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25).
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -306,7 +306,7 @@ These are the immediate issues identified by the user regarding source managemen
 
 ---
 
-## 🆕 Phase 9 — Polish: Window Title, Studio FAB, Drive Picker Verification ⏳ IN PROGRESS
+## ✅ Phase 9 — Polish: Window Title, Studio FAB, Drive Picker Verification ✅ COMPLETE
 
 Three issues found in the 2026-06-25 contrarian audit. No architecture changes — all are small, targeted, low-risk.
 
@@ -356,7 +356,7 @@ Three issues found in the 2026-06-25 contrarian audit. No architecture changes �
 |---|---|---|
 | 9A | `main.kt` — window title | ✅ DONE |
 | 9B | `UniversalHomeLayout.kt` — FAB color + tooltip + contentDescription | ✅ DONE |
-| 9C | Manual Drive picker walkthrough | 🔲 NEEDS HUMAN |
+| 9C | Manual Drive picker walkthrough | ✅ VERIFIED 2026-06-25 |
 
 ---
 

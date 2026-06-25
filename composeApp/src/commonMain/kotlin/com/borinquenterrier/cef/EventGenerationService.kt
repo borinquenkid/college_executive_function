@@ -12,7 +12,7 @@ class EventGenerationService(
     private val aiService: AIService,
     private val normalizationService: NormalizationService,
     private val syllabusAuditor: SyllabusAuditor,
-    private val preferencesRepository: PreferencesRepository? = null,
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null
 ) {
     /**
@@ -91,7 +91,7 @@ class EventGenerationService(
             val syllabusText = source.fragments.joinToString("\n\n") { it.text }
             val existingScheduleText = buildScheduleContext(existingEvents)
 
-            val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
+            val preferences = preferencesRepository.getPreferences()
             val planEvents = aiService.generateStudyPlan(syllabusText, existingScheduleText, preferences)
 
             val normalized = normalize(planEvents)

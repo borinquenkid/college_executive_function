@@ -28,7 +28,7 @@ class EventAgent(
     private val repository: CalendarAgent,
     private val database: AppDatabase? = null,
     private val normalizationService: NormalizationService = NormalizationService(),
-    private val preferencesRepository: PreferencesRepository? = null,
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
     private val logger: Logger? = null,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
     private val clock: Clock = Clock.System

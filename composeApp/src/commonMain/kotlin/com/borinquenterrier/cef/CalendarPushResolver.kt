@@ -15,7 +15,7 @@ data class PushOutcome(
  */
 class CalendarPushResolver(
     private val repository: CalendarAgent,
-    private val preferencesRepository: PreferencesRepository? = null,
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
     private val logger: Logger? = null
 ) {
@@ -99,7 +99,7 @@ class CalendarPushResolver(
     }
 
     private suspend fun buildResolver(): CollisionResolver {
-        val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
+        val preferences = preferencesRepository.getPreferences()
         val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
         return CollisionResolver(preferences = preferences, userConstraints = userConstraints)
     }

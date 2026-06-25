@@ -9,7 +9,7 @@ class SyncNegotiator(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
-    private val preferencesRepository: PreferencesRepository? = null
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
 ) {
     private val studyBlockShiftResolver =
         StudyBlockShiftResolver(userPreferenceMemoryRepository, preferencesRepository)

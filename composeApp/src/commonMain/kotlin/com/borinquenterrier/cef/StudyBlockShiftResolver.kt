@@ -7,7 +7,7 @@ package com.borinquenterrier.cef
  */
 class StudyBlockShiftResolver(
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
-    private val preferencesRepository: PreferencesRepository? = null
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
 ) {
 
     suspend fun resolveShifts(
@@ -22,7 +22,7 @@ class StudyBlockShiftResolver(
         val resolvedStudyBlocks = mutableListOf<Event>()
         val proposals = mutableListOf<SyncProposal.StudyBlockShift>()
 
-        val preferences = preferencesRepository?.getPreferences() ?: StudyPreferences()
+        val preferences = preferencesRepository.getPreferences()
         val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
         val resolver =
             CollisionResolver(preferences = preferences, userConstraints = userConstraints)

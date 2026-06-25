@@ -5,7 +5,7 @@ package com.borinquenterrier.cef
  */
 class CalendarIdResolver(
     private val syncService: GoogleCalendarSyncService,
-    private val preferencesRepository: PreferencesRepository
+    private val preferencesRepository: PreferencesPort
 ) {
     /**
      * Finds the user-configured calendar ID, or creates/finds the default calendar if it doesn't exist.

@@ -19,11 +19,17 @@ import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.Build
 import androidx.compose.material.icons.filled.Close
 import androidx.compose.material.icons.filled.Menu
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.material3.TooltipBox
+import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
@@ -35,6 +41,27 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun StudioFab(isOpen: Boolean, onClick: () -> Unit) {
+    TooltipBox(
+        positionProvider = TooltipDefaults.rememberPlainTooltipPositionProvider(),
+        tooltip = { PlainTooltip { Text("AI Studio") } },
+        state = rememberTooltipState()
+    ) {
+        FloatingActionButton(
+            onClick = onClick,
+            containerColor = MaterialTheme.colorScheme.surfaceVariant,
+            modifier = Modifier.size(48.dp).testTag("studio_toggle_button")
+        ) {
+            Icon(
+                if (isOpen) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.Build,
+                contentDescription = "Open AI Studio panel"
+            )
+        }
+    }
+}
 
 @Composable
 fun UniversalHomeLayout(container: DependencyContainer) {
@@ -158,16 +185,10 @@ fun UniversalHomeLayout(container: DependencyContainer) {
             Modifier.fillMaxHeight().align(Alignment.CenterEnd).padding(end = 8.dp),
             contentAlignment = Alignment.Center
         ) {
-            FloatingActionButton(
-                onClick = { showStudio = !showStudio; if (showStudio) showSources = false },
-                containerColor = MaterialTheme.colorScheme.tertiaryContainer,
-                modifier = Modifier.size(48.dp).testTag("studio_toggle_button")
-            ) {
-                Icon(
-                    if (showStudio) Icons.AutoMirrored.Filled.KeyboardArrowRight else Icons.Default.Build,
-                    "Studio"
-                )
-            }
+            StudioFab(
+                isOpen = showStudio,
+                onClick = { showStudio = !showStudio; if (showStudio) showSources = false }
+            )
         }
     }
 }

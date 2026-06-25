@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All Phases Complete (through Phase 8)** — Phase 8 fixed two bugs from the 2026-06-25 contrarian audit: API key is now masked by default (8A) and midnight overflow events are now converted to DayEvent instead of 1-second TimeEvent(23:59:59) (8B).
+**Current Phase: Phase 9 — Polish (9C pending human)** — 9A (window title) and 9B (Studio FAB) done. 9C requires a manual Drive walkthrough with a real Google account to verify the Phase 7 search/chips UI renders correctly end-to-end.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -303,6 +303,60 @@ These are the immediate issues identified by the user regarding source managemen
 *   **Friendly Quota & Rate Limit Errors**:
     *   Refactored `GeminiAIService.executeWithRetry` and rate limit handling to throw clean, user-friendly messages instead of using unfriendly technical terms like "ms" or "exceeds threshold".
     *   Implemented a static `rateLimitResetTime` tracker. If a rate limit (429) is hit, subsequent requests fast-fail immediately during the lockout window, showing a remaining wait time in seconds that correctly decreases over time rather than increasing.
+
+---
+
+## 🆕 Phase 9 — Polish: Window Title, Studio FAB, Drive Picker Verification ⏳ IN PROGRESS
+
+Three issues found in the 2026-06-25 contrarian audit. No architecture changes — all are small, targeted, low-risk.
+
+### 9A — Window title `CollegeExecutiveFunction` → `College Executive Function` ⏳ PLANNED
+
+**Root cause:** `main.kt:12` passes the Kotlin class name as the display title. Visible in macOS title bar and ⌘+Tab.
+
+**Fix:** `title = "College Executive Function"` (1-line change, `main.kt:12`)
+
+---
+
+### 9B — Studio FAB: `tertiaryContainer` (pink) → `surfaceVariant` + tooltip + label ⏳ PLANNED
+
+**Root cause:** `Theme.kt` sets `tertiary = Pink40/Pink80`. M3 derives a pink/rose `tertiaryContainer`. On the lavender UI, pink reads as "error state" to users — especially AuADHD students who are attuned to visual affordances. No tooltip or label explains what the wrench does.
+
+**Files changed:**
+
+| File | Change |
+|---|---|
+| `UniversalHomeLayout.kt:163` | `containerColor = MaterialTheme.colorScheme.surfaceVariant` (matches Sources FAB's neutral tone) |
+| `UniversalHomeLayout.kt:168` | `contentDescription = "Open AI Studio panel"` (screen reader + tooltip text) |
+| `UniversalHomeLayout.kt` | Wrap FAB in M3 `TooltipBox` to show "AI Studio" label on hover |
+
+**CRAP acceptance:** No complexity change. Pure color/accessibility edit.
+
+---
+
+### 9C — Drive picker manual verification gate ⏳ NEEDS HUMAN
+
+**Problem:** The Phase 7 search/chips/typed-rows UI was built and unit-tested but never exercised end-to-end. A layout or rendering bug could exist that 16 unit tests would never catch.
+
+**What to verify (manual walkthrough):**
+1. Connect a Google account in Settings
+2. Click the Sources (left) FAB → "Add from Google Drive"
+3. Confirm: search field visible at top, chip row below (All / Google Doc / PDF / DOCX / ICS), file list alphabetically sorted with type labels
+4. Type a partial filename — confirm list filters live
+5. Click a chip — confirm list narrows to that type
+6. Confirm empty-state message distinguishes "No files found" vs "No files match your search"
+
+**No code needed.** Mark DONE when walkthrough passes. Phase 7 status should remain "Pending Manual Verification" until then.
+
+---
+
+### Phase 9 Progress
+
+| Step | Artifact | Status |
+|---|---|---|
+| 9A | `main.kt` — window title | ✅ DONE |
+| 9B | `UniversalHomeLayout.kt` — FAB color + tooltip + contentDescription | ✅ DONE |
+| 9C | Manual Drive picker walkthrough | 🔲 NEEDS HUMAN |
 
 ---
 

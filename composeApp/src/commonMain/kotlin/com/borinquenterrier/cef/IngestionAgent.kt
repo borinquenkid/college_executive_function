@@ -15,7 +15,7 @@ class IngestionAgent(
     private val webReader: WebSourceReader,
     private val driveService: GoogleDriveService,
     private val aiService: AIService,
-    private val sourceRepository: SourceRepository? = null
+    private val sourceRepository: SourceRepository
 ) {
     private val _isBusy = MutableStateFlow(false)
     val isBusy: StateFlow<Boolean> = _isBusy.asStateFlow()
@@ -126,6 +126,6 @@ class IngestionAgent(
     }
 
     private suspend fun persistSource(item: SourceItem, originUri: String?) {
-        sourceRepository?.saveSource(item, originUri)
+        sourceRepository.saveSource(item, originUri)
     }
 }

@@ -6,6 +6,45 @@ An application designed to assist students with executive function challenges by
 
 ## Agent Mandates
 
+### Clarify Protocol
+Before writing any phase plan into `ROADMAP.md`, ask these questions and get answers — do not proceed to the plan until each is resolved:
+
+1. **Verification** — How will we know this is working? Can it be tested automatically, or does it require a manual walkthrough? If manual, who does it and under what conditions?
+2. **Edge cases** — What inputs or states could break this? Name at least two.
+3. **CRAP impact** — Which existing files does this touch? Will any of them exceed complexity 5 per method or 15 per file after the change?
+4. **Dependencies** — Does this block or get blocked by anything else in the roadmap?
+
+If any answer is "I don't know," resolve it before planning. A plan built on an unresolved unknown will produce a phase with a gap (like 9C — Drive picker unverifiability — which was a planning gap, not an implementation gap).
+
+---
+
+### Analyze Protocol
+After writing a phase plan into `ROADMAP.md` but **before writing any code**, check cross-artifact consistency:
+
+1. **Spec ↔ Plan:** Every user-facing behavior described in the motivation has a corresponding deliverable row. Nothing in the deliverables table is absent from the motivation.
+2. **Plan ↔ Tests:** Every deliverable row has at least one corresponding test listed. No deliverable is marked done without a test requirement.
+3. **Plan ↔ CRAP:** Every file in the "files changed" column has a CRAP acceptance criterion. No file is added to the plan without specifying its complexity budget.
+4. **Plan ↔ Verification:** The plan explicitly states how 9C-class manual steps (things that can't be unit-tested) will be verified and by whom.
+
+If any check fails, fix the plan before implementing. An inconsistency found here costs one edit to `ROADMAP.md`; the same inconsistency found after implementation costs a phase rollback.
+
+---
+
+### Converge Protocol
+After completing a phase (after CRAP regeneration and build verification pass), perform a structured gap audit before closing the phase:
+
+1. **Spec coverage** — Read the phase motivation. For each stated goal, confirm there is a commit that addresses it. Name the commit.
+2. **Test coverage** — For each new class or method introduced, confirm a test exists that exercises its primary path. Check `CRAP.md` for 0% coverage entries in new files.
+3. **UI reachability** — For any UI change, confirm the changed surface was actually reached during the session (screenshot, manual walkthrough, or Compose test). Unreachable UI = unverified UI.
+4. **Regression check** — Run the full JVM test suite. Confirm no previously-passing tests now fail.
+5. **Mandate compliance** — Confirm the phase respected all AGENTS.md mandates: CRAP limits, build verification, integration test naming, StateFlowReader/Writer pattern, Confabulation Gate for any new AI method.
+
+If any item above is unresolved, document it as a named gap in ROADMAP.md under the phase (like `9C — NEEDS HUMAN`) rather than silently leaving it open. A gap that is named is a gap that gets closed; an unnamed gap becomes a bug.
+
+**Trigger:** This protocol is mandatory at phase completion, in addition to — not instead of — the CRAP Index Verification Protocol and Build Verification Protocol. Run all three.
+
+---
+
 ### Build Verification Protocol
 Whenever a task or feature is reported as "done" (except when specifically running unit tests or CRAP index checks), verify that all three primary build targets compile successfully:
 ```bash

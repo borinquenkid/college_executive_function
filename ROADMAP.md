@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All Phases Complete** — All core roadmap phases (Phases 1–6) are fully completed, verified, and integrated.
+**Current Phase: Phase 7 — Drive Picker UX** — All core roadmap phases (Phases 1–6) are complete. Phase 7 adds a search-first Drive file browser for AuADHD students.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -303,6 +303,85 @@ These are the immediate issues identified by the user regarding source managemen
 *   **Friendly Quota & Rate Limit Errors**:
     *   Refactored `GeminiAIService.executeWithRetry` and rate limit handling to throw clean, user-friendly messages instead of using unfriendly technical terms like "ms" or "exceeds threshold".
     *   Implemented a static `rateLimitResetTime` tracker. If a rate limit (429) is hit, subsequent requests fast-fail immediately during the lockout window, showing a remaining wait time in seconds that correctly decreases over time rather than increasing.
+
+---
+
+## 🆕 Phase 7 — Drive Picker UX: Search-First File Browser ⏳ PLANNED
+
+**Motivation:** The current `DrivePickerDialog` is a flat, unsorted plain-text list with no visual differentiation between file types and no way to find a specific file quickly. For students with AuADHD, search beats folder navigation: browsing a folder tree requires remembering *where* a file lives (executive function load), while name/type filtering meets users where they are — even a vague memory ("I know it was a PDF syllabus") is enough.
+
+**Scope:** Pure UI change to `DrivePickerDialog.kt` (commonMain) plus one extracted logic class. No new API calls, no service changes. The `DriveFile` model already carries `mimeType` — that is the only data needed.
+
+**Why search over folder navigation:**
+- Folders require organizational memory — high executive function burden, especially on an unstructured Drive
+- Client-side filtering gives instant feedback with zero network latency
+- Type chips narrow results even without remembering the exact file name
+
+### Deliverables
+
+| # | Artifact | Description |
+|---|---|---|
+| 1 | Search bar | `OutlinedTextField` at top of dialog; filters `file.name` case-insensitively as user types; client-side, no API calls |
+| 2 | Type-filter chips | Chip row below search: `All` / `Google Doc` / `PDF` / `DOCX` / `ICS`; tapping narrows the list; `All` resets |
+| 3 | Typed list rows | Each row: leading file-type icon + file name (primary) + type label (secondary, e.g. "Google Doc", "PDF"); replaces bare `Text` |
+| 4 | Alphabetical sort | List sorted by `file.name` ascending after every filter update |
+
+### Architecture & CRAP Constraints
+
+Per `AGENTS.md`, all extracted logic must stay ≤ 5 cyclomatic complexity per method. Filter logic must be extracted out of the Composable into a plain, testable class:
+
+```kotlin
+// DriveFileFilter.kt — pure logic, zero Compose dependencies
+class DriveFileFilter {
+    fun filter(files: List<DriveFile>, query: String, type: DriveFileType?): List<DriveFile>
+    fun sort(files: List<DriveFile>): List<DriveFile>
+}
+
+enum class DriveFileType(val label: String) {
+    GOOGLE_DOC("Google Doc"),
+    PDF("PDF"),
+    DOCX("DOCX"),
+    ICS("ICS")
+}
+```
+
+`DrivePickerDialog` becomes a thin Composable delegating all data manipulation to `DriveFileFilter`.
+
+### Files Changed
+
+| File | Change |
+|---|---|
+| `DrivePickerDialog.kt` | Replace flat `LazyColumn` with search bar + chip row + typed rows; delegate filter/sort to `DriveFileFilter` |
+| `DriveFileFilter.kt` | **New** — pure filter/sort logic; no Compose imports |
+| `DriveFileFilterTest.kt` | **New** — unit tests for all filter/sort combinations |
+
+### Tests Required (`DriveFileFilterTest`)
+
+- Empty query + no type → all files returned, sorted alphabetically
+- Name query matches substring case-insensitively → only matching files
+- Name query matches nothing → empty list
+- Type filter `PDF` → only `application/pdf` files
+- Type filter `GOOGLE_DOC` → only `application/vnd.google-apps.document` files
+- Type filter `null` (`All`) → all MIME types
+- Combined name query + type filter → intersection of both
+- ICS chip: matches files whose name ends in `.ics` (Drive does not guarantee `text/calendar` MIME for these)
+- Sort is stable: equal names preserve input order; output always alphabetical
+
+### Implementation Notes
+
+- ICS files from Drive carry inconsistent MIME types; use `file.name.endsWith(".ics", ignoreCase = true)` for the ICS chip filter rather than MIME.
+- The existing `AlertDialog` `text` slot + `LazyColumn` layout works fine — keep it.
+- Search `OutlinedTextField` should be `singleLine = true`, `modifier = Modifier.fillMaxWidth()`.
+
+### CRAP Acceptance Criteria
+
+- `DriveFileFilter`: CRAP < 10, coverage ≥ 90% (pure logic — no UI exemption)
+- `DrivePickerDialog`: CRAP < 15 (UI file — coverage exemption applies)
+- No existing file's CRAP score increases
+
+### Dependencies
+
+None. Pure UI change; no Phase 6 or earlier work required.
 
 ---
 

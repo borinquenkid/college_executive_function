@@ -37,10 +37,14 @@ class CalendarPushResolver(
         // An event is "already handled" only if it is confirmed SYNCED to remote.
         // LOCAL_ONLY events (saved locally when a previous remote push failed) must be
         // re-attempted here so they actually reach Google Calendar.
+        // Title comparison uses submissionCanonical() so AI casing/prefix variations
+        // ("homework 1 due" vs "Homework 1 Due", "Submit HW 1" vs "HW 1") on re-extraction
+        // don't bypass deduplication.
         val synced = existing.filter { it.syncStatus == SyncStatus.SYNCED }
         val newEvents = mergedEvents.filter { merged ->
+            val mergedCanon = EventDeduplicator.submissionCanonical(merged.title)
             synced.none { it.id == merged.id } &&
-            synced.none { it.title == merged.title && it.date == merged.date }
+            synced.none { EventDeduplicator.submissionCanonical(it.title) == mergedCanon && it.date == merged.date }
         }
 
         val conflicts = mutableListOf<Event>()

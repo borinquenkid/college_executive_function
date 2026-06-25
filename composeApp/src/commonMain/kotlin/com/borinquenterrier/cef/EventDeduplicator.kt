@@ -76,7 +76,13 @@ internal object EventDeduplicator {
 
     internal fun submissionCanonical(title: String): String =
         canonicalTitle(title)
-            .replace(Regex("^(submit|complete|upload|post)\\s+"), "")
+            .replace(Regex("\\s+"), " ").trim()                                    // collapse internal whitespace
+            .replace(Regex("#(\\d)"), "$1")                                        // "#1" → "1"
+            .replace(Regex("\\bdeadline\\b"), "due")                               // synonym
+            .replace(Regex("\\bdue\\s+date\\b"), "due")                            // "due date" → "due"
+            .trimEnd('.')                                                            // trailing period
+            .replace(Regex("^(submit|complete|upload|post|turn in|hand in|finish|do)\\s+"), "")
+            .replace(Regex("^the\\s+"), "")                                        // article after verb
             .replace(Regex("^your\\s+"), "")
 
     internal fun commonPrefixLength(a: String, b: String): Int {

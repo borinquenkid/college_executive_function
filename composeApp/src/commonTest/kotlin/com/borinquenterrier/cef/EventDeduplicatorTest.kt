@@ -33,11 +33,11 @@ class EventDeduplicatorTest : FunSpec({
     // ── submissionCanonical ───────────────────────────────────────────────────
 
     test("submissionCanonical strips leading submit verb") {
-        EventDeduplicator.submissionCanonical("Submit Issue Brief #1") shouldBe "issue brief #1"
+        EventDeduplicator.submissionCanonical("Submit Issue Brief #1") shouldBe "issue brief 1"
     }
 
     test("submissionCanonical strips leading complete verb") {
-        EventDeduplicator.submissionCanonical("Complete the assignment") shouldBe "the assignment"
+        EventDeduplicator.submissionCanonical("Complete the assignment") shouldBe "assignment"
     }
 
     test("submissionCanonical strips leading upload verb") {
@@ -48,8 +48,8 @@ class EventDeduplicatorTest : FunSpec({
         EventDeduplicator.submissionCanonical("Post discussion response") shouldBe "discussion response"
     }
 
-    test("submissionCanonical leaves non-verb titles unchanged") {
-        EventDeduplicator.submissionCanonical("Issue Brief #1") shouldBe "issue brief #1"
+    test("submissionCanonical strips hash from number references") {
+        EventDeduplicator.submissionCanonical("Issue Brief #1") shouldBe "issue brief 1"
     }
 
     // ── commonPrefixLength ────────────────────────────────────────────────────

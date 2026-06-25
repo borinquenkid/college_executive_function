@@ -23,7 +23,6 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
     val conflictDetector = mockk<EventConflictDetector>(relaxed = true)
     val repo = GoogleRemoteCalendarRepository(
         syncService,
-        preferencesRepository,
         idResolver,
         conflictDetector
     )

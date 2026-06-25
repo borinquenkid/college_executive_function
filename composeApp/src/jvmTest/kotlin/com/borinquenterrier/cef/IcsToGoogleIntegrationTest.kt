@@ -44,7 +44,6 @@ class IcsToGoogleIntegrationTest : FunSpec({
         val conflictDetector = EventConflictDetector()
         val googleRepo = GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             idResolver,
             conflictDetector,
         )

@@ -31,7 +31,6 @@ class CollisionResolutionIntegrationTest : FunSpec({
         val conflictDetector = EventConflictDetector()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             idResolver,
             conflictDetector,
         )

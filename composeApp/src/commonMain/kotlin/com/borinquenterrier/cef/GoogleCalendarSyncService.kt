@@ -176,7 +176,7 @@ class GoogleCalendarSyncService(
 
         do {
             val responsePage = fetchEventsPage(calendarId, pageToken)
-            allEvents.addAll(responsePage.items.map { item ->
+            allEvents.addAll(responsePage.items.mapNotNull { item ->
                 val start = item.start
                 val end = item.end
 
@@ -218,11 +218,14 @@ class GoogleCalendarSyncService(
                         updatedAt = updatedAt
                     )
                 } else {
+                    val dateStr = start?.date
+                        ?: start?.dateTime?.substringBefore("T")
+                        ?: return@mapNotNull null
                     DayEvent(
                         id = item.id,
                         title = item.summary ?: "Untitled Event",
                         source = EventSource.STUDENT,
-                        date = LocalDate.parse(start?.date ?: "2024-01-01"),
+                        date = LocalDate.parse(dateStr),
                         updatedAt = updatedAt
                     )
                 }

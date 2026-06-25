@@ -128,7 +128,6 @@ class CalendarSyncIntegrationTest : FunSpec({
         val conflictDetector = EventConflictDetector()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             idResolver,
             conflictDetector,
         )
@@ -175,7 +174,6 @@ class CalendarSyncIntegrationTest : FunSpec({
         val conflictDetector = EventConflictDetector()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             idResolver,
             conflictDetector,
         )
@@ -206,7 +204,6 @@ class CalendarSyncIntegrationTest : FunSpec({
         val conflictDetector = EventConflictDetector()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             idResolver,
             conflictDetector,
         )
@@ -262,7 +259,6 @@ class CalendarSyncIntegrationTest : FunSpec({
         val conflictDetector = EventConflictDetector()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             idResolver,
             conflictDetector,
         )

@@ -5,7 +5,7 @@ class RemoteFirstEventPersistence(
     private val remoteRepo: RemoteCalendarRepository,
     private val syncGate: SyncGate,
     private val logger: Logger?,
-    userPreferenceMemoryRepository: UserPreferenceMemoryRepository?
+    userPreferenceMemoryRepository: UserPreferenceMemoryRepository
 ) {
     private val tag = "RemoteFirstEventPersistence"
     private val overrideLogger = StudyBlockOverrideLogger(localRepo, userPreferenceMemoryRepository)

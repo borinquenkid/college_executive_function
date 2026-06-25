@@ -55,7 +55,6 @@ class DependencyContainer(
     val remoteRepository by lazy {
         GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             calendarIdResolver,
             conflictDetector
         )

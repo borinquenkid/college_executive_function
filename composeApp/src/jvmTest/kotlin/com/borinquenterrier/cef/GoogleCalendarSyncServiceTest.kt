@@ -79,7 +79,7 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
         (events[0] as DayEvent).date shouldBe LocalDate(2026, 9, 5)
     }
 
-    test("getEvents falls back to 2024-01-01 when start.date is null") {
+    test("getEvents skips event when start is absent") {
         val engine = MockEngine { _ ->
             respond(
                 """{"items":[{"id":"e1","summary":"Mystery"}],"nextPageToken":null}""",
@@ -87,8 +87,7 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
             )
         }
         val events = makeService(engine).getEvents("cal-id")
-        events shouldHaveSize 1
-        (events[0] as DayEvent).date shouldBe LocalDate(2024, 1, 1)
+        events shouldHaveSize 0
     }
 
     test("getEvents uses Untitled Event when summary is null") {
@@ -342,7 +341,7 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
 
     // ── getEvents start.dateTime non-null but end.dateTime null → DayEvent path
 
-    test("getEvents falls back to DayEvent when end has no dateTime") {
+    test("getEvents falls back to DayEvent when end has no dateTime, date from start.dateTime") {
         val engine = MockEngine { _ ->
             respond(
                 """{"items":[{"id":"e1","summary":"Mixed",
@@ -353,14 +352,13 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
         }
         val events = makeService(engine).getEvents("cal-id")
         events shouldHaveSize 1
-        (events[0] is DayEvent) shouldBe true
+        (events[0] as DayEvent).date shouldBe LocalDate(2026, 9, 1)
     }
 
     // ── DayEvent with non-null start but null date field ─────────────────────
 
-    test("getEvents uses fallback date when start.date is null on DayEvent path") {
+    test("getEvents skips event when start has no date or dateTime") {
         val engine = MockEngine { _ ->
-            // start exists but has no date or dateTime fields
             respond(
                 """{"items":[{"id":"e1","summary":"Mystery",
                    "start":{}}],"nextPageToken":null}""",
@@ -368,13 +366,12 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
             )
         }
         val events = makeService(engine).getEvents("cal-id")
-        events shouldHaveSize 1
-        (events[0] as DayEvent).date shouldBe LocalDate(2024, 1, 1)
+        events shouldHaveSize 0
     }
 
     // ── getEvents end absent when start.dateTime non-null ────────────────────
 
-    test("getEvents falls back to DayEvent when end is absent") {
+    test("getEvents falls back to DayEvent when end is absent, date from start.dateTime") {
         val engine = MockEngine { _ ->
             respond(
                 """{"items":[{"id":"e1","summary":"Test",
@@ -384,12 +381,12 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
         }
         val events = makeService(engine).getEvents("cal-id")
         events shouldHaveSize 1
-        (events[0] is DayEvent) shouldBe true
+        (events[0] as DayEvent).date shouldBe LocalDate(2026, 9, 1)
     }
 
     // ── GoogleCalendarItem with explicit null fields ───────────────────────
 
-    test("getEvents handles item where all nullable fields are explicitly null") {
+    test("getEvents skips item where all nullable fields are explicitly null") {
         val engine = MockEngine { _ ->
             respond(
                 """{"items":[{"id":"e1","summary":null,"description":null,
@@ -398,8 +395,7 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
             )
         }
         val events = makeService(engine).getEvents("cal-id")
-        events shouldHaveSize 1
-        (events[0] as DayEvent).date shouldBe LocalDate(2024, 1, 1)
+        events shouldHaveSize 0
     }
 
     // ── GoogleCalendarItem with description field in response ─────────────

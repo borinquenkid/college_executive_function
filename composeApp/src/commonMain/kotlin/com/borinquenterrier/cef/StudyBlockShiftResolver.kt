@@ -6,7 +6,7 @@ package com.borinquenterrier.cef
  * to move (or that couldn't be placed without a collision).
  */
 class StudyBlockShiftResolver(
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
     private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
 ) {
 
@@ -23,7 +23,7 @@ class StudyBlockShiftResolver(
         val proposals = mutableListOf<SyncProposal.StudyBlockShift>()
 
         val preferences = preferencesRepository.getPreferences()
-        val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
+        val userConstraints = userPreferenceMemoryRepository.getDerivedConstraints()
         val resolver =
             CollisionResolver(preferences = preferences, userConstraints = userConstraints)
 

@@ -8,7 +8,7 @@ package com.borinquenterrier.cef
 class SyncNegotiator(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
     private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
 ) {
     private val studyBlockShiftResolver =

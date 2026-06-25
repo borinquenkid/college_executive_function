@@ -42,7 +42,7 @@ class CalendarResetIntegrationTest : FunSpec({
         val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, prefs)
         val remoteRepo = GoogleRemoteCalendarRepository(
-            syncService, prefs, idResolver, EventConflictDetector()
+            syncService, idResolver, EventConflictDetector()
         )
         return Triple(localRepo, CalendarAgent(localRepo, remoteRepo), settings)
     }
@@ -137,7 +137,7 @@ class CalendarResetIntegrationTest : FunSpec({
         val prefs = PreferencesRepository(settings)
         val syncService = GoogleCalendarSyncService(httpClient, GoogleTokenService(tokenRepo, authService))
         val idResolver = CalendarIdResolver(syncService, prefs)
-        val remoteRepo = GoogleRemoteCalendarRepository(syncService, prefs, idResolver, EventConflictDetector())
+        val remoteRepo = GoogleRemoteCalendarRepository(syncService, idResolver, EventConflictDetector())
         val agent = CalendarAgent(localRepo, remoteRepo)
 
         agent.resetCalendar()

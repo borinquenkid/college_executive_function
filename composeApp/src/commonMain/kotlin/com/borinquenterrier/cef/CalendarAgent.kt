@@ -9,7 +9,7 @@ class CalendarAgent(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
     private val logger: Logger? = null,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
     private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
 ) {
     private val _resetVersion = MutableStateFlow(0)

@@ -108,7 +108,6 @@ class SyncNegotiationIntegrationTest : FunSpec({
         val conflictDetector = EventConflictDetector()
         val remoteRepo = GoogleRemoteCalendarRepository(
             syncService,
-            preferencesRepository,
             idResolver,
             conflictDetector,
         )
@@ -116,7 +115,7 @@ class SyncNegotiationIntegrationTest : FunSpec({
         val unifiedRepo = CalendarAgent(
             localRepo = localRepo,
             remoteRepo = remoteRepo,
-            userPreferenceMemoryRepository = null,
+            userPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
             preferencesRepository = preferencesRepository
         )
 

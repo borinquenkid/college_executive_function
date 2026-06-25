@@ -13,7 +13,7 @@ class EventGenerationService(
     private val normalizationService: NormalizationService,
     private val syllabusAuditor: SyllabusAuditor,
     private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp
 ) {
     /**
      * Extracts deliverables from [source]'s full text, auditing syllabi for ambiguities
@@ -107,7 +107,7 @@ class EventGenerationService(
             }
         }
 
-        val userConstraints = userPreferenceMemoryRepository?.getDerivedConstraints() ?: emptyList()
+        val userConstraints = userPreferenceMemoryRepository.getDerivedConstraints()
         if (userConstraints.isNotEmpty()) {
             val formatHour = { hour: Int -> "${hour.toString().padStart(2, '0')}:00" }
             val constraintsStr = userConstraints.joinToString("\n") {

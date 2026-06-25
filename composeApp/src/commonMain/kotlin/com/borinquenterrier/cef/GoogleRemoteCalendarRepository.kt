@@ -8,7 +8,6 @@ import kotlinx.datetime.LocalDate
  */
 class GoogleRemoteCalendarRepository(
     private val syncService: GoogleCalendarSyncService,
-    private val preferencesRepository: PreferencesRepository,
     private val calendarIdResolver: CalendarIdResolver,
     private val conflictDetector: EventConflictDetector
 ) : RemoteCalendarRepository {
@@ -63,12 +62,11 @@ class GoogleRemoteCalendarRepository(
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)
         val events = syncService.getEvents(targetId)
         events.forEach { event ->
-            event.id?.let { id ->
-                try {
-                    syncService.deleteEvent(targetId, id)
-                } catch (e: GoogleApiException) {
-                    if (e.statusCode != 410) throw e
-                }
+            val id = event.id ?: return@forEach
+            try {
+                syncService.deleteEvent(targetId, id)
+            } catch (e: GoogleApiException) {
+                if (e.statusCode != 410) throw e
             }
         }
     }

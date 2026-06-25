@@ -9,7 +9,7 @@ class SyncNegotiationApplier(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
     private val logger: Logger? = null,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp
 ) {
 
     suspend fun apply(negotiation: SyncNegotiation, calendarId: String) {
@@ -33,7 +33,7 @@ class SyncNegotiationApplier(
         deletedLocalIds.forEach { id ->
             val local = localEvents.find { it.id == id }
             if (local != null && local.category == AcademicCategory.STUDY_BLOCK) {
-                userPreferenceMemoryRepository?.logOverride(OverrideAction.DELETE, local)
+                userPreferenceMemoryRepository.logOverride(OverrideAction.DELETE, local)
             }
             localRepo.hardDeleteEvent(id, calendarId)
         }
@@ -48,7 +48,7 @@ class SyncNegotiationApplier(
             val local = localEvents.find { it.id == remote.id }
             if (local != null && local.syncStatus == SyncStatus.SYNCED && local.updatedAt != remote.updatedAt) {
                 if (local.category == AcademicCategory.STUDY_BLOCK && (local.date != remote.date || (local is TimeEvent && remote is TimeEvent && (local.startTime != remote.startTime || local.endTime != remote.endTime)))) {
-                    userPreferenceMemoryRepository?.logOverride(OverrideAction.MOVE, local)
+                    userPreferenceMemoryRepository.logOverride(OverrideAction.MOVE, local)
                 }
                 logger?.i(
                     "SyncConflict",

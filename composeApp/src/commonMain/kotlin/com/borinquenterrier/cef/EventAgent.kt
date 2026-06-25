@@ -30,7 +30,7 @@ class EventAgent(
     private val normalizationService: NormalizationService = NormalizationService(),
     private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
     private val logger: Logger? = null,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository? = null,
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
     private val clock: Clock = Clock.System
 ) {
     private val tag = "EventAgent"

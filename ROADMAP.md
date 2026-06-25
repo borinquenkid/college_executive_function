@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All Phases Complete (through Phase 7)** — Phases 1–7 fully completed. Phase 7 delivered a search-first Drive file browser with type-filter chips, typed list rows, and alphabetical sort.
+**Current Phase: Phase 8 — Bug Fixes** — Phases 1–7 complete. Phase 8 addresses two bugs found in the 2026-06-25 contrarian audit: API key plaintext exposure (8A) and midnight event overflow producing 1-second calendar entries (8B).
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -303,6 +303,93 @@ These are the immediate issues identified by the user regarding source managemen
 *   **Friendly Quota & Rate Limit Errors**:
     *   Refactored `GeminiAIService.executeWithRetry` and rate limit handling to throw clean, user-friendly messages instead of using unfriendly technical terms like "ms" or "exceeds threshold".
     *   Implemented a static `rateLimitResetTime` tracker. If a rate limit (429) is hit, subsequent requests fast-fail immediately during the lockout window, showing a remaining wait time in seconds that correctly decreases over time rather than increasing.
+
+---
+
+## 🆕 Phase 8 — Bug Fixes: API Key Masking + Midnight Event Overflow ⏳ PLANNED
+
+Discovered via contrarian JVM app audit (2026-06-25). Two bugs with confirmed root causes and exact file locations.
+
+### Phase 8A — API Key Plaintext (`GeminiSetupPanel.kt`) ⏳ PLANNED
+
+**Root cause:** `OutlinedTextField` for the Gemini API key has no `visualTransformation`, rendering the full key in plaintext. Visible in screenshots, screen shares, and pair-programming sessions — a real exposure risk for students.
+
+**Files changed:**
+
+| File | Change |
+|---|---|
+| `GeminiSetupPanel.kt` | Add `keyVisible` state; add `PasswordVisualTransformation`; replace `trailingIcon` with eye-toggle + clear in a `Row` |
+
+**Implementation:**
+1. Add `var keyVisible by remember { mutableStateOf(false) }` above the field
+2. Add `visualTransformation = if (keyVisible) VisualTransformation.None else PasswordVisualTransformation()` to the `OutlinedTextField`
+3. Replace `trailingIcon` with a `Row` containing: eye/eye-off visibility toggle + existing clear button
+
+**Tests required:**
+- Field renders masked (dots) when key is pre-populated
+- Clicking eye reveals plaintext; clicking again re-masks
+- Clear button still clears the key when visible or masked
+
+**CRAP acceptance:** No complexity change — `PasswordVisualTransformation` is a leaf call. Implement first; zero risk.
+
+---
+
+### Phase 8B — `23:59 to 23:59:59` Midnight Event Overflow ⏳ PLANNED
+
+**Root cause:** Two places share the same flawed overflow fallback. When a `TimeEvent`'s `startTime ≥ 23:00` and end time is missing or invalid (AI omitted it, defaulted to 10:00), adding 60 minutes would cross midnight, so both sites fall back to `LocalTime(23, 59, 59)` to pass validation. This creates a 1-second event — useless on the calendar and confusing for students.
+
+The comment in the parser even says *"so validate() passes"* — the sentinel value was a workaround, not a correct value.
+
+**Files changed:**
+
+| File | Lines | Change |
+|---|---|---|
+| `GeminiResponseParser.kt` | 91 | Replace `LocalTime(23, 59, 59)` fallback: return `DayEvent(...)` when overflow detected |
+| `EventTimeRepairer.kt` | 12 | Replace `LocalTime(23, 59, 59)` fallback: return `DayEvent(...)` when overflow detected |
+| `EventTimeRepairerTest.kt` | new | Unit tests for all repair paths |
+| `GeminiResponseParserTest.kt` | additions | Overflow case: parser returns DayEvent, not 1-second TimeEvent |
+
+**Implementation — `EventTimeRepairer.kt`:**
+```kotlin
+object EventTimeRepairer {
+    fun repair(event: Event): Event {
+        if (event !is TimeEvent || event.endTime > event.startTime) return event
+        val plusHourMins = event.startTime.hour * 60 + event.startTime.minute + 60
+        return if (plusHourMins < 24 * 60)
+            event.copy(endTime = LocalTime(plusHourMins / 60, plusHourMins % 60))
+        else
+            DayEvent(title = event.title, source = event.source, date = event.date,
+                     category = event.category, warning = event.warning)
+    }
+}
+```
+
+Apply the same pattern in `GeminiResponseParser.kt:91` — instead of `TimeEvent` with `LocalTime(23, 59, 59)`, return a `DayEvent`.
+
+**Tests required (`EventTimeRepairerTest`):**
+- `TimeEvent(startTime=23:59, endTime=23:00)` → `DayEvent` (overflow)
+- `TimeEvent(startTime=23:30, endTime=22:00)` → `DayEvent` (overflow)
+- `TimeEvent(startTime=22:30, endTime=21:00)` → `TimeEvent(endTime=23:30)` (normal 1-hr add, no overflow)
+- `TimeEvent(startTime=10:00, endTime=11:00)` → unchanged (already valid)
+- `DayEvent` input → unchanged (not a TimeEvent)
+
+**Tests required (`GeminiResponseParserTest` additions):**
+- Raw event `type=TIME`, `startTime=23:59`, `endTime=` omitted (defaults to 10:00) → parser returns `DayEvent`
+
+**CRAP acceptance:** `EventTimeRepairer` complexity stays ≤ 3. `GeminiResponseParser` complexity unchanged (replacing one branch, not adding one).
+
+**Implement after 8A** — touches the parsing pipeline so deserves its own isolated commit.
+
+---
+
+### Phase 8 Progress
+
+| Step | Artifact | Status |
+|---|---|---|
+| 8A | `GeminiSetupPanel.kt` — API key masking + reveal toggle | ⏳ PLANNED |
+| 8B-1 | `EventTimeRepairer.kt` — DayEvent conversion on overflow | ⏳ PLANNED |
+| 8B-2 | `GeminiResponseParser.kt` — DayEvent conversion on overflow | ⏳ PLANNED |
+| 8B-3 | `EventTimeRepairerTest.kt` (new) + `GeminiResponseParserTest.kt` additions | ⏳ PLANNED |
 
 ---
 

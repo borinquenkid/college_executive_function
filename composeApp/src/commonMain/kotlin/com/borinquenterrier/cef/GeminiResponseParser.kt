@@ -82,24 +82,32 @@ object GeminiResponseParser {
         return if (raw.type == "TIME") {
             val start = parseClockTime(raw.startTime, LocalTime(9, 0), telemetry)
             val rawEnd = parseClockTime(raw.endTime, LocalTime(10, 0), telemetry)
-            // If end <= start (e.g. AI gave startTime=23:59 but omitted endTime, so it defaulted
-            // to 10:00), derive a safe 1-hour window. If that would overflow midnight (start >= 23:00)
-            // use 23:59:59 — 1 second past the start-minute so validate() passes.
-            val end = if (rawEnd > start) rawEnd else {
-                val plusHourMins = start.hour * 60 + start.minute + 60
-                if (plusHourMins < 24 * 60) LocalTime(plusHourMins / 60, plusHourMins % 60)
-                else LocalTime(23, 59, 59)
+            val plusHourMins = start.hour * 60 + start.minute + 60
+            // If end <= start and adding 1 hour would overflow midnight, the AI placed this event
+            // at an unschedulable time — treat it as an all-day DayEvent rather than a 1-second sentinel.
+            if (rawEnd <= start && plusHourMins >= 24 * 60) {
+                DayEvent(
+                    title = raw.title,
+                    source = EventSource.AI_GENERATED,
+                    date = date,
+                    category = category,
+                    warning = raw.warning,
+                    gradeWeight = raw.gradeWeight
+                )
+            } else {
+                val end = if (rawEnd > start) rawEnd
+                          else LocalTime(plusHourMins / 60, plusHourMins % 60)
+                TimeEvent(
+                    title = raw.title,
+                    source = EventSource.AI_GENERATED,
+                    date = date,
+                    startTime = start,
+                    endTime = end,
+                    category = category,
+                    warning = raw.warning,
+                    gradeWeight = raw.gradeWeight
+                )
             }
-            TimeEvent(
-                title = raw.title,
-                source = EventSource.AI_GENERATED,
-                date = date,
-                startTime = start,
-                endTime = end,
-                category = category,
-                warning = raw.warning,
-                gradeWeight = raw.gradeWeight
-            )
         } else {
             DayEvent(
                 title = raw.title,

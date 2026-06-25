@@ -130,4 +130,45 @@ class GeminiResponseParserTest : FunSpec({
             .map { it.title } shouldBe listOf("A")
         GeminiResponseParser.filterToSourceYears(events, emptySet()) shouldBe events
     }
+
+    // --- midnight overflow (Bug 8B) ---
+
+    test("TIME event at 23:59 with omitted endTime (defaults to 10:00) overflows midnight → DayEvent") {
+        val response = """[{
+            "title": "Late Night Alarm",
+            "type": "TIME",
+            "date": "2026-09-01",
+            "startTime": "23:59",
+            "category": "DEADLINE"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response).first()
+        (event is DayEvent) shouldBe true
+        event.title shouldBe "Late Night Alarm"
+    }
+
+    test("TIME event at 23:30 with endTime before start overflows midnight → DayEvent") {
+        val response = """[{
+            "title": "Midnight Session",
+            "type": "TIME",
+            "date": "2026-09-01",
+            "startTime": "23:30",
+            "endTime": "22:00",
+            "category": "STUDY_BLOCK"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response).first()
+        (event is DayEvent) shouldBe true
+    }
+
+    test("TIME event at 22:30 with invalid endTime adds 1h without overflow → TimeEvent(endTime=23:30)") {
+        val response = """[{
+            "title": "Evening Review",
+            "type": "TIME",
+            "date": "2026-09-01",
+            "startTime": "22:30",
+            "endTime": "21:00",
+            "category": "STUDY_BLOCK"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response).first() as TimeEvent
+        event.endTime shouldBe LocalTime(23, 30)
+    }
 })

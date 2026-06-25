@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: Phase 8 — Bug Fixes** — Phases 1–7 complete. Phase 8 addresses two bugs found in the 2026-06-25 contrarian audit: API key plaintext exposure (8A) and midnight event overflow producing 1-second calendar entries (8B).
+**Current Phase: All Phases Complete (through Phase 8)** — Phase 8 fixed two bugs from the 2026-06-25 contrarian audit: API key is now masked by default (8A) and midnight overflow events are now converted to DayEvent instead of 1-second TimeEvent(23:59:59) (8B).
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -306,7 +306,7 @@ These are the immediate issues identified by the user regarding source managemen
 
 ---
 
-## 🆕 Phase 8 — Bug Fixes: API Key Masking + Midnight Event Overflow ⏳ PLANNED
+## ✅ Phase 8 — Bug Fixes: API Key Masking + Midnight Event Overflow ✅ COMPLETE
 
 Discovered via contrarian JVM app audit (2026-06-25). Two bugs with confirmed root causes and exact file locations.
 
@@ -386,10 +386,10 @@ Apply the same pattern in `GeminiResponseParser.kt:91` — instead of `TimeEvent
 
 | Step | Artifact | Status |
 |---|---|---|
-| 8A | `GeminiSetupPanel.kt` — API key masking + reveal toggle | ⏳ PLANNED |
-| 8B-1 | `EventTimeRepairer.kt` — DayEvent conversion on overflow | ⏳ PLANNED |
-| 8B-2 | `GeminiResponseParser.kt` — DayEvent conversion on overflow | ⏳ PLANNED |
-| 8B-3 | `EventTimeRepairerTest.kt` (new) + `GeminiResponseParserTest.kt` additions | ⏳ PLANNED |
+| 8A | `GeminiSetupPanel.kt` — API key masking + reveal toggle | ✅ DONE |
+| 8B-1 | `EventTimeRepairer.kt` — DayEvent conversion on overflow | ✅ DONE |
+| 8B-2 | `GeminiResponseParser.kt` — DayEvent conversion on overflow | ✅ DONE |
+| 8B-3 | `EventTimeRepairerTest.kt` updated + `GeminiResponseParserTest.kt` additions | ✅ DONE |
 
 ---
 

@@ -15,6 +15,8 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Info
+import androidx.compose.material.icons.filled.Visibility
+import androidx.compose.material.icons.filled.VisibilityOff
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -24,10 +26,16 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.testTag
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import com.russhwolf.settings.Settings
 
@@ -37,6 +45,8 @@ fun GeminiSetupPanel(
     onApiKeyChange: (String) -> Unit,
     settings: Settings
 ) {
+    var keyVisible by remember { mutableStateOf(false) }
+
     Card(
         modifier = Modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -89,21 +99,37 @@ fun GeminiSetupPanel(
                 label = { Text("Gemini API Key") },
                 textStyle = MaterialTheme.typography.bodySmall,
                 placeholder = { Text("Paste your key here...") },
+                visualTransformation = if (keyVisible) VisualTransformation.None
+                                       else PasswordVisualTransformation(),
                 trailingIcon = {
                     if (apiKey.isNotBlank()) {
-                        IconButton(
-                            onClick = {
-                                onApiKeyChange("")
-                                settings.putString("CEF_GEMINI_API_KEY", "")
-                            },
-                            modifier = Modifier.testTag("settings_api_key_clear_button")
-                        ) {
-                            Icon(
-                                imageVector = Icons.Default.Clear,
-                                contentDescription = "Clear",
-                                tint = MaterialTheme.colorScheme.onSurfaceVariant,
-                                modifier = Modifier.size(18.dp)
-                            )
+                        Row {
+                            IconButton(
+                                onClick = { keyVisible = !keyVisible },
+                                modifier = Modifier.testTag("settings_api_key_visibility_toggle")
+                            ) {
+                                Icon(
+                                    imageVector = if (keyVisible) Icons.Default.VisibilityOff
+                                                  else Icons.Default.Visibility,
+                                    contentDescription = if (keyVisible) "Hide key" else "Show key",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
+                            IconButton(
+                                onClick = {
+                                    onApiKeyChange("")
+                                    settings.putString("CEF_GEMINI_API_KEY", "")
+                                },
+                                modifier = Modifier.testTag("settings_api_key_clear_button")
+                            ) {
+                                Icon(
+                                    imageVector = Icons.Default.Clear,
+                                    contentDescription = "Clear",
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(18.dp)
+                                )
+                            }
                         }
                     }
                 }

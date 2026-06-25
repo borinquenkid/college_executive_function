@@ -39,10 +39,43 @@ class EventTimeRepairerTest : FunSpec({
         repaired.endTime shouldBe time(11)
     }
 
-    test("clamps endTime to 23:59:59 when startTime is at 23:xx") {
+    test("converts to DayEvent when startTime is at 23:30 and adding 1h overflows midnight") {
         val e = event(time(23, 30), time(22, 0))
+        val repaired = EventTimeRepairer.repair(e)
+        repaired shouldBe DayEvent(
+            title = "E",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.STUDY_BLOCK,
+            date = date
+        )
+    }
+
+    test("converts to DayEvent when startTime is exactly 23:59 and adding 1h overflows midnight") {
+        val e = event(time(23, 59), time(23, 0))
+        val repaired = EventTimeRepairer.repair(e)
+        (repaired is DayEvent) shouldBe true
+        repaired.date shouldBe date
+        repaired.title shouldBe "E"
+    }
+
+    test("preserves gradeWeight when converting to DayEvent on overflow") {
+        val e = TimeEvent(
+            title = "Final Exam",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.FINALS,
+            date = date,
+            startTime = time(23, 0),
+            endTime = time(22, 0),
+            gradeWeight = 0.4f
+        )
+        val repaired = EventTimeRepairer.repair(e) as DayEvent
+        repaired.gradeWeight shouldBe 0.4f
+    }
+
+    test("does not convert to DayEvent when startTime is 22:30 (no overflow)") {
+        val e = event(time(22, 30), time(21, 0))
         val repaired = EventTimeRepairer.repair(e) as TimeEvent
-        repaired.endTime shouldBe LocalTime(23, 59, 59)
+        repaired.endTime shouldBe time(23, 30)
     }
 
     test("returns DayEvent unchanged (no time to repair)") {

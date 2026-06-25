@@ -306,7 +306,17 @@ These are the immediate issues identified by the user regarding source managemen
 
 ---
 
-## 🆕 Phase 7 — Drive Picker UX: Search-First File Browser ⏳ PLANNED
+## 🔄 Phase 7 — Drive Picker UX: Search-First File Browser 🚧 IN PROGRESS
+
+### Progress
+
+| Step | Artifact | Status |
+|---|---|---|
+| 0 | `DriveFileFilter.kt` + `DriveFileFilterTest.kt` (16 tests, all pass) | ✅ DONE |
+| 1 | Search bar in `DrivePickerDialog.kt` | ⏳ next |
+| 2 | Type-filter chips in `DrivePickerDialog.kt` | ⏳ |
+| 3 | Typed list rows (icon + name + type label) | ⏳ |
+| 4 | Alphabetical sort wired end-to-end | ⏳ |
 
 **Motivation:** The current `DrivePickerDialog` is a flat, unsorted plain-text list with no visual differentiation between file types and no way to find a specific file quickly. For students with AuADHD, search beats folder navigation: browsing a folder tree requires remembering *where* a file lives (executive function load), while name/type filtering meets users where they are — even a vague memory ("I know it was a PDF syllabus") is enough.
 

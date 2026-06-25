@@ -4,13 +4,14 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **91.03%** (9300/10216 lines)
-- **Total Source Files**: 171
+- **Overall Line Coverage**: **91.17%** (9330/10234 lines)
+- **Total Source Files**: 172
 
 ## Coverage by File (🔴 and 🟡 only)
 
 | Status | File | Line Coverage | Branch Coverage | Instruction Coverage |
 | :---: | :--- | :---: | :---: | :---: |
+| 🔴 | PreferencesPort.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | SourceInterfaces.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | AgentAction.kt | 0.0% (0/0) | N/A | 0.0% |
@@ -23,18 +24,17 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | SourceRepository.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | PdfReader.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% |
-| 🔴 | SourceLoader.kt | 19.0% (8/42) | 0.0% (0/4) | 9.0% |
+| 🔴 | SourceLoader.kt | 19.0% (8/42) | 0.0% (0/4) | 9.7% |
 | 🔴 | GoogleAuthManager.kt | 40.0% (12/30) | N/A | 20.7% |
-| 🔴 | DependencyContainer.kt | 48.6% (208/428) | 0.0% (0/4) | 77.2% |
+| 🔴 | DependencyContainer.kt | 47.9% (202/422) | 0.0% (0/4) | 76.0% |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% |
-| 🟡 | GoogleCalendarSelector.kt | 58.2% (92/158) | 70.8% (34/48) | 60.2% |
-| 🟡 | AppContent.kt | 61.5% (128/208) | 59.1% (26/44) | 64.2% |
+| 🟡 | GoogleCalendarSelector.kt | 58.2% (92/158) | 70.8% (34/48) | 60.7% |
+| 🟡 | AppContent.kt | 61.5% (128/208) | 57.7% (30/52) | 64.2% |
 | 🟡 | LocalFileFilter.kt | 62.5% (10/16) | 100.0% (4/4) | 33.3% |
-| 🟡 | Tracer.kt | 63.6% (14/22) | N/A | 47.0% |
+| 🟡 | Tracer.kt | 63.6% (14/22) | N/A | 45.3% |
 | 🟡 | DriveQueryBuilder.kt | 64.3% (18/28) | N/A | 68.2% |
-| 🟡 | SourcesPanel.kt | 66.7% (72/108) | 63.2% (48/76) | 77.6% |
+| 🟡 | SourcesPanel.kt | 66.7% (72/108) | 42.4% (56/132) | 77.3% |
 | 🟡 | OAuthExchange.kt | 67.9% (38/56) | 25.0% (8/32) | 59.3% |
 | 🟡 | GeminiBodyBuilder.kt | 71.4% (20/28) | 100.0% (4/4) | 83.1% |
 | 🟡 | DriveFileFetcher.kt | 71.4% (10/14) | N/A | 81.6% |
-| 🟡 | SyncProposal.kt | 75.0% (36/48) | 25.0% (4/16) | 55.3% |
-| 🟡 | ContributionValidator.kt | 78.1% (50/64) | 75.0% (6/8) | 83.8% |
+| 🟡 | ContributionValidator.kt | 78.1% (50/64) | 75.0% (6/8) | 83.7% |

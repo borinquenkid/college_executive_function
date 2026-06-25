@@ -13,16 +13,48 @@ import kotlinx.serialization.json.buildJsonArray
 /**
  * Common implementation for interacting with the Google Gemini API.
  */
-class GeminiAIService(
-    private val apiKey: String? = null,
-    private val accessToken: String? = null,
-    private val logger: Logger? = null,
-    private val database: AppDatabase? = null,
-    private val settings: com.russhwolf.settings.Settings? = null,
-    private val customClient: HttpClient? = null,
-    /** Injectable delay — override in tests to skip real sleeps. */
-    private val delayFn: suspend (Long) -> Unit = { ms -> kotlinx.coroutines.delay(ms) }
+class GeminiAIService private constructor(
+    private val apiKey: String?,
+    private val accessToken: String?,
+    private val logger: Logger?,
+    private val database: AppDatabase?,
+    private val settings: com.russhwolf.settings.Settings?,
+    private val customClient: HttpClient?,
+    private val delayFn: suspend (Long) -> Unit
 ) {
+    /** Production constructor. apiKey, logger, settings are required. database is optional — omitting disables persistent model blacklist caching. */
+    constructor(
+        apiKey: String,
+        logger: Logger,
+        settings: com.russhwolf.settings.Settings,
+        database: AppDatabase? = null
+    ) : this(
+        apiKey = apiKey,
+        accessToken = null,
+        logger = logger,
+        database = database,
+        settings = settings,
+        customClient = null,
+        delayFn = { ms -> kotlinx.coroutines.delay(ms) }
+    )
+
+    /** Test constructor — injects a mock HTTP client; optional logger/settings for tests that verify those paths. */
+    internal constructor(
+        apiKey: String,
+        customClient: HttpClient,
+        logger: Logger? = null,
+        settings: com.russhwolf.settings.Settings? = null,
+        delayFn: suspend (Long) -> Unit = { ms -> kotlinx.coroutines.delay(ms) }
+    ) : this(
+        apiKey = apiKey,
+        accessToken = null,
+        logger = logger,
+        database = null,
+        settings = settings,
+        customClient = customClient,
+        delayFn = delayFn
+    )
+
     private val tag = "GeminiAI"
     private val telemetryManager = settings?.let { TelemetryManager(it) }
     private val client = customClient ?: HttpClient {

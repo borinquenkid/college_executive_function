@@ -27,10 +27,10 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | CriticActorAIService.kt | 23 | 87.2% | 24.11 | 🟡 MEDIUM |
 | CriticJsonCodec.kt | 23 | 93.8% | 23.13 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 23 | 100.0% | 23.00 | 🟡 MEDIUM |
+| AppContent.kt | 12 | 58.6% | 22.22 | 🟡 MEDIUM |
 | GoogleRemoteCalendarRepository.kt | 21 | 86.1% | 22.18 | 🟡 MEDIUM |
 | EventBuilder.kt | 22 | 93.8% | 22.12 | 🟡 MEDIUM |
 | Event.kt | 22 | 96.5% | 22.02 | 🟡 MEDIUM |
-| SyncNegotiator.kt | 22 | 98.2% | 22.00 | 🟡 MEDIUM |
 
 ---
 
@@ -213,6 +213,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `postToModel` | 1 |
 | `<T> executeWithRetry` | 1 |
 | `<T> executeWithRetryInternal` | 1 |
+
+### AppContent.kt (Score: 22.22 - 🟡 MEDIUM)
+- **Total Complexity**: 12
+- **Real Coverage**: 58.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `AppContent` | 12 |
 
 ### GoogleRemoteCalendarRepository.kt (Score: 22.18 - 🟡 MEDIUM)
 - **Total Complexity**: 21
@@ -445,15 +454,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `applyDeletedLocalEvents` | 1 |
 | `applyRemoteEventsToLocal` | 1 |
 | `applyShiftedStudyBlocks` | 1 |
-
-### AppContent.kt (Score: 15.69 - 🟡 MEDIUM)
-- **Total Complexity**: 10
-- **Real Coverage**: 61.5%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AppContent` | 10 |
 
 ### DecompositionOrchestrator.kt (Score: 15.05 - 🟡 MEDIUM)
 - **Total Complexity**: 14

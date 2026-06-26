@@ -24,11 +24,13 @@ import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.ModalBottomSheet
 import androidx.compose.material3.PlainTooltip
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TooltipBox
 import androidx.compose.material3.TooltipDefaults
+import androidx.compose.material3.rememberModalBottomSheetState
 import androidx.compose.material3.rememberTooltipState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -65,6 +67,7 @@ private fun StudioFab(isOpen: Boolean, onClick: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun UniversalHomeLayout(container: DependencyContainer) {
     val appController = container.appController
@@ -122,72 +125,107 @@ fun UniversalHomeLayout(container: DependencyContainer) {
         )
 
         // --- LAYER 3: ADAPTIVE OVERLAY DRAWERS ---
-        // Sources Overlay (Left)
-        androidx.compose.animation.AnimatedVisibility(
-            visible = showSources,
-            enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
-            exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(),
-            modifier = Modifier.align(Alignment.CenterStart)
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxHeight().width(320.dp).shadow(16.dp)
-                    .testTag("sources_drawer"),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+        if (isDesktop) {
+            // Desktop: slide-in side panels
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showSources,
+                enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(),
+                modifier = Modifier.align(Alignment.CenterStart)
             ) {
-                Box {
+                Surface(
+                    modifier = Modifier.fillMaxHeight().width(320.dp).shadow(16.dp)
+                        .testTag("sources_drawer"),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Box {
+                        SourcesPanel(
+                            sourceItems = sourceItems,
+                            selectedSource = selectedSource,
+                            onSourceSelected = { appController.selectSource(it); showSources = false },
+                            onSourceAdded = { source ->
+                                if (preferences.semesterStart != null && preferences.semesterEnd != null) {
+                                    appController.addSource(source)
+                                } else {
+                                    pendingSemesterSource = source
+                                }
+                            },
+                            onSourceDeleted = { appController.deleteSource(it) },
+                            onSourceReanalyzed = { appController.reanalyzeSource(it) },
+                            providers = sourceProviders
+                        )
+                        IconButton(
+                            onClick = { showSources = false },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                        ) { Icon(Icons.Default.Close, null) }
+                    }
+                }
+            }
+
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showStudio,
+                enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
+                modifier = Modifier.align(Alignment.CenterEnd)
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxHeight().width(360.dp).shadow(16.dp)
+                        .testTag("studio_drawer"),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Box {
+                        StudioPanel(
+                            selectedSource = selectedSource,
+                            calendarAgent = container.calendarAgent,
+                            container = container
+                        )
+                        IconButton(
+                            onClick = { showStudio = false },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                        ) { Icon(Icons.Default.Close, null) }
+                    }
+                }
+            }
+        } else {
+            // Mobile: full-width modal bottom sheets
+            if (showSources) {
+                ModalBottomSheet(
+                    onDismissRequest = { showSources = false },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    modifier = Modifier.testTag("sources_drawer")
+                ) {
                     SourcesPanel(
                         sourceItems = sourceItems,
                         selectedSource = selectedSource,
                         onSourceSelected = { appController.selectSource(it); showSources = false },
                         onSourceAdded = { source ->
+                            showSources = false
                             if (preferences.semesterStart != null && preferences.semesterEnd != null) {
                                 appController.addSource(source)
                             } else {
                                 pendingSemesterSource = source
                             }
                         },
-                        onSourceDeleted = { source ->
-                            appController.deleteSource(source)
-                        },
-                        onSourceReanalyzed = { source ->
-                            appController.reanalyzeSource(source)
-                        },
+                        onSourceDeleted = { appController.deleteSource(it) },
+                        onSourceReanalyzed = { appController.reanalyzeSource(it) },
                         providers = sourceProviders
                     )
-                    // Close shortcut
-                    IconButton(
-                        onClick = { showSources = false },
-                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
-                    ) { Icon(Icons.Default.Close, null) }
                 }
             }
-        }
 
-        // Studio Overlay (Right)
-        androidx.compose.animation.AnimatedVisibility(
-            visible = showStudio,
-            enter = slideInHorizontally(initialOffsetX = { it }) + fadeIn(),
-            exit = slideOutHorizontally(targetOffsetX = { it }) + fadeOut(),
-            modifier = Modifier.align(Alignment.CenterEnd)
-        ) {
-            Surface(
-                modifier = Modifier.fillMaxHeight().width(360.dp).shadow(16.dp)
-                    .testTag("studio_drawer"),
-                color = MaterialTheme.colorScheme.surface,
-                border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
-            ) {
-                Box {
+            if (showStudio) {
+                ModalBottomSheet(
+                    onDismissRequest = { showStudio = false },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    modifier = Modifier.testTag("studio_drawer")
+                ) {
                     StudioPanel(
                         selectedSource = selectedSource,
                         calendarAgent = container.calendarAgent,
                         container = container
                     )
-                    // Close shortcut
-                    IconButton(
-                        onClick = { showStudio = false },
-                        modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
-                    ) { Icon(Icons.Default.Close, null) }
                 }
             }
         }

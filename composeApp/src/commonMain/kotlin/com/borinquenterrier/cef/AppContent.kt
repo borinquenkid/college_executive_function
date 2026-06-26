@@ -28,6 +28,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.height
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.NavigationBar
+import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.TextButton
 import kotlin.time.Clock
 import kotlinx.coroutines.delay
@@ -131,26 +133,55 @@ fun AppContent(container: DependencyContainer) {
                     )
                 },
                 actions = {
-                    IconButton(
-                        onClick = { appController.navigateTo(AppScreen.Home) },
-                        modifier = Modifier.testTag("nav_home_button")
-                    ) {
-                        Icon(Icons.Default.Home, contentDescription = "Home")
-                    }
-                    IconButton(
-                        onClick = { appController.navigateTo(AppScreen.Calendar) },
-                        modifier = Modifier.testTag("nav_calendar_button")
-                    ) {
-                        Icon(Icons.Default.DateRange, contentDescription = "Academic Calendar")
-                    }
-                    IconButton(
-                        onClick = { appController.navigateTo(AppScreen.Settings) },
-                        modifier = Modifier.testTag("nav_settings_button")
-                    ) {
-                        Icon(Icons.Default.Settings, contentDescription = "Settings")
+                    if (isDesktop) {
+                        IconButton(
+                            onClick = { appController.navigateTo(AppScreen.Home) },
+                            modifier = Modifier.testTag("nav_home_button")
+                        ) {
+                            Icon(Icons.Default.Home, contentDescription = "Home")
+                        }
+                        IconButton(
+                            onClick = { appController.navigateTo(AppScreen.Calendar) },
+                            modifier = Modifier.testTag("nav_calendar_button")
+                        ) {
+                            Icon(Icons.Default.DateRange, contentDescription = "Academic Calendar")
+                        }
+                        IconButton(
+                            onClick = { appController.navigateTo(AppScreen.Settings) },
+                            modifier = Modifier.testTag("nav_settings_button")
+                        ) {
+                            Icon(Icons.Default.Settings, contentDescription = "Settings")
+                        }
                     }
                 }
             )
+        },
+        bottomBar = {
+            if (!isDesktop) {
+                NavigationBar {
+                    NavigationBarItem(
+                        selected = currentScreen is AppScreen.Home,
+                        onClick = { appController.navigateTo(AppScreen.Home) },
+                        icon = { Icon(Icons.Default.Home, contentDescription = "Home") },
+                        label = { Text("Home") },
+                        modifier = Modifier.testTag("nav_home_button")
+                    )
+                    NavigationBarItem(
+                        selected = currentScreen is AppScreen.Calendar,
+                        onClick = { appController.navigateTo(AppScreen.Calendar) },
+                        icon = { Icon(Icons.Default.DateRange, contentDescription = "Calendar") },
+                        label = { Text("Calendar") },
+                        modifier = Modifier.testTag("nav_calendar_button")
+                    )
+                    NavigationBarItem(
+                        selected = currentScreen is AppScreen.Settings,
+                        onClick = { appController.navigateTo(AppScreen.Settings) },
+                        icon = { Icon(Icons.Default.Settings, contentDescription = "Settings") },
+                        label = { Text("Settings") },
+                        modifier = Modifier.testTag("nav_settings_button")
+                    )
+                }
+            }
         }
     ) { paddingValues ->
         Column(Modifier.fillMaxSize().padding(paddingValues)) {

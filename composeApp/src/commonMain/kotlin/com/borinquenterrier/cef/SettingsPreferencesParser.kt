@@ -22,7 +22,9 @@ object SettingsPreferencesParser {
         shareAnonymousBugReports: Boolean,
         googleCalendarId: String,
         googleCalendarName: String,
-        currentPrefs: StudyPreferences = StudyPreferences()
+        currentPrefs: StudyPreferences = StudyPreferences(),
+        semesterStart: String? = currentPrefs.semesterStart,
+        semesterEnd: String? = currentPrefs.semesterEnd
     ): StudyPreferences = StudyPreferences(
         studyStartHour = studyStartStr.toIntOrNull() ?: currentPrefs.studyStartHour,
         studyEndHour = studyEndStr.toIntOrNull() ?: currentPrefs.studyEndHour,
@@ -35,6 +37,8 @@ object SettingsPreferencesParser {
             ?: currentPrefs.preferredBreakMinutes,
         shareAnonymousBugReports = shareAnonymousBugReports,
         googleCalendarId = googleCalendarId,
-        googleCalendarName = googleCalendarName
+        googleCalendarName = googleCalendarName,
+        semesterStart = semesterStart?.ifBlank { null },
+        semesterEnd = semesterEnd?.ifBlank { null }
     )
 }

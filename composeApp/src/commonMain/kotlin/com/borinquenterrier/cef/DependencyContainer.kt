@@ -11,6 +11,8 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
 import kotlin.time.Clock
 import kotlinx.serialization.json.Json
 
@@ -48,6 +50,7 @@ class DependencyContainer(
     val tokenService by lazy { GoogleTokenService(tokenRepository, authService) }
     val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }
     val preferencesRepository by lazy { PreferencesRepository(settings) }
+    val preferencesFlow: StateFlow<StudyPreferences> by lazy { preferencesRepository.flow.asStateFlow() }
     val userPreferenceMemoryRepository by lazy { SqlDelightUserPreferenceMemoryRepository(database) }
     val syncService by lazy { GoogleCalendarSyncService(httpClient, tokenService) }
     val calendarIdResolver by lazy { CalendarIdResolver(syncService, preferencesRepository) }
@@ -268,12 +271,10 @@ class DependencyContainer(
             sourceRepository,
             onEventsAdded = { newEvents ->
                 val existing = eventAgent.lastGeneratedEvents.value
-                val toAdd = newEvents.filter { new ->
-                    existing.none { it.title == new.title && it.date == new.date }
-                }
-                eventAgent.setGeneratedEvents(existing + toAdd)
+                eventAgent.setGeneratedEvents(EventDeduplicator.dedup(existing + newEvents))
             },
-            onError = { error -> eventAgent.reportError(error) }
+            onError = { error -> eventAgent.reportError(error) },
+            preferencesRepository = preferencesRepository
         )
     }
 

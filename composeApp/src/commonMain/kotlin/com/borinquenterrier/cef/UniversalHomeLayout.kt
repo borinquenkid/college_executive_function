@@ -35,7 +35,9 @@ import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
+import kotlinx.coroutines.launch
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
@@ -71,6 +73,32 @@ fun UniversalHomeLayout(container: DependencyContainer) {
 
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
+
+    val scope = rememberCoroutineScope()
+    val preferences by container.preferencesFlow.collectAsState()
+    var pendingSemesterSource by remember { mutableStateOf<SourceItem?>(null) }
+
+    pendingSemesterSource?.let { pending ->
+        if (preferences.semesterStart != null && preferences.semesterEnd != null) {
+            pendingSemesterSource = null
+            appController.addSource(pending)
+        } else {
+            SemesterSetupDialog(
+                onSave = { start, end ->
+                    scope.launch {
+                        val prefs = container.preferencesRepository.getPreferences()
+                        container.preferencesRepository.savePreferences(
+                            prefs.copy(semesterStart = start, semesterEnd = end)
+                        )
+                        val src = pendingSemesterSource
+                        pendingSemesterSource = null
+                        if (src != null) appController.addSource(src)
+                    }
+                },
+                onSkip = { pendingSemesterSource = null }
+            )
+        }
+    }
 
     val sourceProviders = remember(container) {
         listOf(
@@ -113,7 +141,11 @@ fun UniversalHomeLayout(container: DependencyContainer) {
                         selectedSource = selectedSource,
                         onSourceSelected = { appController.selectSource(it); showSources = false },
                         onSourceAdded = { source ->
-                            appController.addSource(source)
+                            if (preferences.semesterStart != null && preferences.semesterEnd != null) {
+                                appController.addSource(source)
+                            } else {
+                                pendingSemesterSource = source
+                            }
                         },
                         onSourceDeleted = { source ->
                             appController.deleteSource(source)

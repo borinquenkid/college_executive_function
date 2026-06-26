@@ -9,20 +9,23 @@ class PreferencesRepository(private val settings: Settings) : PreferencesPort {
 
     private val preferencesKey = "STUDY_PREFERENCES"
 
+    fun readSync(): StudyPreferences {
+        val json = settings.getString(preferencesKey, "")
+        return if (json.isBlank()) StudyPreferences()
+        else try { Json.decodeFromString(json) } catch (e: Exception) { StudyPreferences() }
+    }
+
+    val flow: kotlinx.coroutines.flow.MutableStateFlow<StudyPreferences> by lazy {
+        kotlinx.coroutines.flow.MutableStateFlow(readSync())
+    }
+
     override suspend fun getPreferences(): StudyPreferences = withContext(Dispatchers.Default) {
-        val jsonString = settings.getString(preferencesKey, "")
-        if (jsonString.isBlank()) {
-            return@withContext StudyPreferences()
-        }
-        try {
-            Json.decodeFromString(jsonString)
-        } catch (e: Exception) {
-            StudyPreferences()
-        }
+        readSync()
     }
 
     override suspend fun savePreferences(preferences: StudyPreferences) = withContext(Dispatchers.Default) {
         val jsonString = Json.encodeToString(preferences)
         settings.putString(preferencesKey, jsonString)
+        flow.value = preferences
     }
 }

@@ -5,6 +5,7 @@ import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
 import kotlin.time.Clock
+import kotlinx.datetime.LocalDate
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -22,7 +23,8 @@ class SourceAdder(
     private val cacheRepository: AnalysisCacheRepository,
     private val sourceRepository: SourceRepository,
     private val onEventsAdded: (List<Event>) -> Unit = {},
-    private val onError: (AgentError) -> Unit = {}
+    private val onError: (AgentError) -> Unit = {},
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
 ) {
     private val processingMutex = Mutex()
 
@@ -41,37 +43,73 @@ class SourceAdder(
         }
     }
 
+    private fun semesterFilter(prefs: StudyPreferences): Pair<LocalDate, LocalDate>? {
+        val start = prefs.semesterStart?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        val end = prefs.semesterEnd?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
+        return if (start != null && end != null) start to end else null
+    }
+
+    private fun applyFilter(events: List<Event>, filter: Pair<LocalDate, LocalDate>?): List<Event> {
+        if (filter == null) return events
+        return events.filter { EventDeduplicator.dateOf(it) in filter.first..filter.second }
+    }
+
     private suspend fun processSourceWithCache(source: SourceItem, hash: String, forceRefresh: Boolean) {
-        if (!forceRefresh) {
-            val cached = cacheRepository.getCached(hash)
-            if (cached != null && !isCacheStale(cached)) {
-                logger.d("SourceAdder", "Cache hit for source: ${source.title}")
-                if (cached.cachedMetadataJson != null) {
-                    sourceRepository.updateSourceMetadata(source.title, cached.cachedMetadataJson)
-                }
-                if (cached.cachedEventsJson.isNotBlank()) {
-                    val events = Json.decodeFromString<List<Event>>(cached.cachedEventsJson)
-                    onEventsAdded(events)
-                }
-                return
-            }
-        }
-
-        logger.d("SourceAdder", "Cache miss or forceRefresh. Extracting source: ${source.title}")
-        val allEvents = eventGenerationService.extractDeliverables(source)
-        onEventsAdded(allEvents)
-        contextAgent.analyzeSource(source)
-
-        val metadataJson = sourceRepository.getSourceMetadata(source.title)
-        val eventsJson = Json.encodeToString<List<Event>>(allEvents)
-        cacheRepository.putCache(
-            CachedAnalysis(
-                sourceHash = hash,
-                cachedEventsJson = eventsJson,
-                cachedMetadataJson = metadataJson,
-                createdAt = Clock.System.now().toEpochMilliseconds()
+        val filter = semesterFilter(preferencesRepository.getPreferences())
+        AppTracer.current.span(
+            "sourceadder.process",
+            mapOf(
+                "source.title" to source.title,
+                "source.hash" to hash.take(16),
+                "force_refresh" to forceRefresh.toString()
             )
-        )
+        ) {
+            if (!forceRefresh) {
+                val cached = cacheRepository.getCached(hash)
+                if (cached != null && !isCacheStale(cached)) {
+                    val hasEvents = cached.cachedEventsJson.isNotBlank()
+                    logger.d("SourceAdder", "Cache hit for source: ${source.title}")
+                    addEvent(
+                        "sourceadder.cache.hit",
+                        mapOf(
+                            "has_events" to hasEvents.toString(),
+                            "has_metadata" to (cached.cachedMetadataJson != null).toString()
+                        )
+                    )
+                    if (cached.cachedMetadataJson != null) {
+                        sourceRepository.updateSourceMetadata(source.title, cached.cachedMetadataJson)
+                    }
+                    if (hasEvents) {
+                        val events = applyFilter(
+                            Json.decodeFromString<List<Event>>(cached.cachedEventsJson),
+                            filter
+                        )
+                        setAttribute("cache.events", events.size.toLong())
+                        onEventsAdded(events)
+                    }
+                    return@span
+                }
+            }
+
+            addEvent("sourceadder.cache.miss", mapOf("force_refresh" to forceRefresh.toString()))
+            logger.d("SourceAdder", "Cache miss or forceRefresh. Extracting source: ${source.title}")
+            val allEvents = eventGenerationService.extractDeliverables(source)
+            val filteredEvents = applyFilter(allEvents, filter)
+            setAttribute("extracted.events", filteredEvents.size.toLong())
+            onEventsAdded(filteredEvents)
+            contextAgent.analyzeSource(source)
+
+            val metadataJson = sourceRepository.getSourceMetadata(source.title)
+            val eventsJson = Json.encodeToString<List<Event>>(allEvents)
+            cacheRepository.putCache(
+                CachedAnalysis(
+                    sourceHash = hash,
+                    cachedEventsJson = eventsJson,
+                    cachedMetadataJson = metadataJson,
+                    createdAt = Clock.System.now().toEpochMilliseconds()
+                )
+            )
+        }
     }
 
     private fun isCacheStale(cached: CachedAnalysis): Boolean {

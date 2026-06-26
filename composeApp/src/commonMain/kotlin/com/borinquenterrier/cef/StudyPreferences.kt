@@ -14,5 +14,7 @@ data class StudyPreferences(
     val preferredBreakMinutes: Int = 30,
     val shareAnonymousBugReports: Boolean = false,
     val googleCalendarId: String = "default",
-    val googleCalendarName: String = "CEF Academic"
+    val googleCalendarName: String = "CEF Academic",
+    val semesterStart: String? = null,
+    val semesterEnd: String? = null
 )

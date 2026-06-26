@@ -72,6 +72,8 @@ fun SettingsScreen(
     var shareAnonymousBugReports by remember { mutableStateOf(preferences.shareAnonymousBugReports) }
     var googleCalendarId by remember { mutableStateOf(preferences.googleCalendarId) }
     var googleCalendarName by remember { mutableStateOf(preferences.googleCalendarName) }
+    var semesterStartStr by remember { mutableStateOf(preferences.semesterStart ?: "") }
+    var semesterEndStr by remember { mutableStateOf(preferences.semesterEnd ?: "") }
 
     var calendars by remember { mutableStateOf<List<RemoteCalendarMetadata>>(emptyList()) }
     var isLoadingCalendars by remember { mutableStateOf(false) }
@@ -89,6 +91,8 @@ fun SettingsScreen(
         shareAnonymousBugReports = preferences.shareAnonymousBugReports
         googleCalendarId = preferences.googleCalendarId
         googleCalendarName = preferences.googleCalendarName
+        semesterStartStr = preferences.semesterStart ?: ""
+        semesterEndStr = preferences.semesterEnd ?: ""
     }
 
     fun savePreferences(
@@ -101,7 +105,9 @@ fun SettingsScreen(
         maxBlock: String = maxStudyBlockStr,
         breakLen: String = preferredBreakStr,
         calId: String = googleCalendarId,
-        calName: String = googleCalendarName
+        calName: String = googleCalendarName,
+        semStart: String = semesterStartStr,
+        semEnd: String = semesterEndStr
     ) {
         val newPrefs = SettingsPreferencesParser.parse(
             studyStartStr = studyStart,
@@ -115,7 +121,9 @@ fun SettingsScreen(
             shareAnonymousBugReports = shareAnonymousBugReports,
             googleCalendarId = calId,
             googleCalendarName = calName,
-            currentPrefs = preferences
+            currentPrefs = preferences,
+            semesterStart = semStart.ifBlank { null },
+            semesterEnd = semEnd.ifBlank { null }
         )
         preferences = newPrefs
         googleCalendarId = calId
@@ -179,6 +187,14 @@ fun SettingsScreen(
             onCalendarsRefresh = { calendars = container.remoteRepository.getAvailableCalendars() },
             onCalendarLoadError = { calendarLoadError = it },
             scope = scope
+        )
+
+        SemesterWindowCard(
+            semesterStartStr = semesterStartStr,
+            semesterEndStr = semesterEndStr,
+            onSemesterStartChange = { semesterStartStr = it },
+            onSemesterEndChange = { semesterEndStr = it },
+            onSave = { savePreferences(semStart = semesterStartStr, semEnd = semesterEndStr) }
         )
 
         StudyPreferencesPanel(

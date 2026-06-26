@@ -1,0 +1,748 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>College Executive Function — App Overview</title>
+  <style>
+    :root {
+      --bg: #0f1117;
+      --surface: #1a1d27;
+      --card: #21253a;
+      --accent: #6c8ef7;
+      --accent2: #9b72f7;
+      --green: #4ecb71;
+      --yellow: #f7c948;
+      --red: #f76868;
+      --text: #e4e6f0;
+      --muted: #8890aa;
+      --border: #2e3347;
+      --radius: 12px;
+      --font: "Inter", "Segoe UI", system-ui, sans-serif;
+      --mono: "JetBrains Mono", "Fira Code", "Courier New", monospace;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: var(--font);
+      font-size: 15px;
+      line-height: 1.7;
+    }
+
+    /* ── Hero ── */
+    .hero {
+      background: linear-gradient(135deg, #1a1d27 0%, #1a2040 50%, #1a1d27 100%);
+      padding: 80px 40px 60px;
+      text-align: center;
+      border-bottom: 1px solid var(--border);
+      position: relative;
+      overflow: hidden;
+    }
+    .hero::before {
+      content: "";
+      position: absolute;
+      inset: 0;
+      background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(108,142,247,.15), transparent);
+      pointer-events: none;
+    }
+    .badge {
+      display: inline-block;
+      background: rgba(108,142,247,.15);
+      border: 1px solid rgba(108,142,247,.35);
+      color: var(--accent);
+      font-size: 12px;
+      font-weight: 600;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      padding: 4px 14px;
+      border-radius: 999px;
+      margin-bottom: 22px;
+    }
+    h1 {
+      font-size: clamp(2rem, 5vw, 3.2rem);
+      font-weight: 800;
+      letter-spacing: -.02em;
+      background: linear-gradient(135deg, #fff 30%, var(--accent));
+      -webkit-background-clip: text;
+      -webkit-text-fill-color: transparent;
+      background-clip: text;
+      margin-bottom: 16px;
+    }
+    .hero-sub {
+      color: var(--muted);
+      font-size: 17px;
+      max-width: 620px;
+      margin: 0 auto 36px;
+    }
+    .platforms {
+      display: flex;
+      gap: 10px;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    .platform-chip {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 18px;
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .platform-chip span { color: var(--text); font-weight: 600; }
+
+    /* ── Layout ── */
+    main {
+      max-width: 1080px;
+      margin: 0 auto;
+      padding: 60px 24px 100px;
+    }
+
+    section { margin-bottom: 72px; }
+
+    h2 {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #fff;
+      margin-bottom: 28px;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    h2 .icon {
+      width: 32px; height: 32px;
+      background: rgba(108,142,247,.12);
+      border: 1px solid rgba(108,142,247,.25);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 16px;
+      flex-shrink: 0;
+    }
+
+    h3 {
+      font-size: 1rem;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 8px;
+    }
+
+    p { color: var(--muted); margin-bottom: 12px; }
+    p:last-child { margin-bottom: 0; }
+
+    /* ── Cards ── */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+      gap: 16px;
+    }
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 24px;
+      transition: border-color .2s, transform .2s;
+    }
+    .card:hover {
+      border-color: rgba(108,142,247,.4);
+      transform: translateY(-2px);
+    }
+    .card-icon {
+      font-size: 24px;
+      margin-bottom: 14px;
+    }
+
+    /* ── Architecture flow ── */
+    .flow {
+      display: flex;
+      align-items: stretch;
+      gap: 0;
+      flex-wrap: wrap;
+    }
+    .flow-col {
+      flex: 1;
+      min-width: 180px;
+    }
+    .flow-header {
+      background: rgba(108,142,247,.08);
+      border: 1px solid rgba(108,142,247,.2);
+      border-radius: 8px 8px 0 0;
+      padding: 10px 16px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--accent);
+      text-align: center;
+    }
+    .flow-items {
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 8px 8px;
+      overflow: hidden;
+    }
+    .flow-item {
+      padding: 10px 16px;
+      border-bottom: 1px solid var(--border);
+      font-size: 13px;
+      color: var(--muted);
+    }
+    .flow-item:last-child { border-bottom: none; }
+    .flow-arrow {
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 0 8px;
+      padding-top: 44px; /* align with flow-items */
+      font-size: 22px;
+      color: var(--border);
+    }
+
+    /* ── Tech stack ── */
+    .stack-table {
+      width: 100%;
+      border-collapse: collapse;
+    }
+    .stack-table th {
+      text-align: left;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      padding: 0 16px 10px;
+    }
+    .stack-table td {
+      padding: 10px 16px;
+      border-top: 1px solid var(--border);
+      font-size: 13px;
+      vertical-align: top;
+    }
+    .stack-table tr:hover td { background: rgba(255,255,255,.02); }
+    .tag {
+      display: inline-block;
+      background: rgba(108,142,247,.12);
+      color: var(--accent);
+      border-radius: 4px;
+      padding: 1px 8px;
+      font-size: 12px;
+      font-family: var(--mono);
+      margin-right: 4px;
+    }
+    .tag.green { background: rgba(78,203,113,.12); color: var(--green); }
+    .tag.yellow { background: rgba(247,201,72,.12); color: var(--yellow); }
+
+    /* ── Agents ── */
+    .agent-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+      gap: 16px;
+    }
+    .agent-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+      border-left: 3px solid var(--accent2);
+    }
+    .agent-name {
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      font-weight: 700;
+      margin-bottom: 6px;
+    }
+
+    /* ── AI section ── */
+    .ai-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 28px;
+      display: flex;
+      gap: 24px;
+      flex-wrap: wrap;
+    }
+    .ai-card-block { flex: 1; min-width: 200px; }
+    .ai-card-block h3 { color: var(--accent); margin-bottom: 10px; }
+
+    /* ── Quality section ── */
+    .quality-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+      gap: 16px;
+    }
+    .quality-item {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      padding: 20px;
+    }
+    .quality-label {
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: .08em;
+      text-transform: uppercase;
+      color: var(--muted);
+      margin-bottom: 6px;
+    }
+    .quality-value {
+      font-size: 1.4rem;
+      font-weight: 800;
+      color: var(--green);
+    }
+    .quality-desc { font-size: 13px; color: var(--muted); margin-top: 4px; }
+
+    /* ── Status banner ── */
+    .status-banner {
+      background: rgba(78,203,113,.07);
+      border: 1px solid rgba(78,203,113,.2);
+      border-radius: var(--radius);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      margin-bottom: 28px;
+    }
+    .status-dot {
+      width: 10px; height: 10px;
+      background: var(--green);
+      border-radius: 50%;
+      flex-shrink: 0;
+      box-shadow: 0 0 8px rgba(78,203,113,.6);
+    }
+    .status-text { font-size: 14px; }
+    .status-text strong { color: var(--green); }
+
+    /* ── Divider ── */
+    .divider {
+      border: none;
+      border-top: 1px solid var(--border);
+      margin: 64px 0;
+    }
+
+    /* ── Code block ── */
+    pre {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: 16px 20px;
+      font-family: var(--mono);
+      font-size: 13px;
+      color: var(--accent);
+      overflow-x: auto;
+      line-height: 1.6;
+    }
+
+    /* ── Footer ── */
+    footer {
+      text-align: center;
+      padding: 32px;
+      border-top: 1px solid var(--border);
+      color: var(--muted);
+      font-size: 13px;
+    }
+  </style>
+</head>
+<body>
+
+<!-- ══ HERO ══════════════════════════════════════════════════════════ -->
+<div class="hero">
+  <div class="badge">Student Productivity App</div>
+  <h1>College Executive Function</h1>
+  <p class="hero-sub">
+    An AI-powered academic assistant that turns course syllabi and calendars into
+    a single, synchronized master schedule — designed for students with executive
+    function challenges.
+  </p>
+  <div class="platforms">
+    <div class="platform-chip"><span>Android</span></div>
+    <div class="platform-chip"><span>iOS</span></div>
+    <div class="platform-chip"><span>Desktop (JVM)</span></div>
+    <div class="platform-chip">Kotlin Multiplatform</div>
+    <div class="platform-chip">Compose Multiplatform</div>
+  </div>
+</div>
+
+<!-- ══ MAIN ══════════════════════════════════════════════════════════ -->
+<main>
+
+  <!-- STATUS -->
+  <div class="status-banner">
+    <div class="status-dot"></div>
+    <div class="status-text">
+      <strong>All 9 phases complete</strong> — Phase 9 closed June 25 2026 after full end-to-end Drive picker verification with a real Google account.
+    </div>
+  </div>
+
+  <!-- WHAT IT IS -->
+  <section>
+    <h2><span class="icon">🎯</span> What It Does</h2>
+    <p>
+      Students with executive function difficulties struggle to turn a pile of syllabi and
+      calendar invites into an actionable study plan. CEF automates that translation.
+    </p>
+    <div class="card-grid">
+      <div class="card">
+        <div class="card-icon">📄</div>
+        <h3>Ingest syllabi &amp; documents</h3>
+        <p>Upload PDFs, DOCX files, or Google Drive links. The AI reads every deadline, exam date, and assignment weight automatically.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🗓️</div>
+        <h3>Build the master calendar</h3>
+        <p>All extracted events are de-duplicated and merged with your existing Google Calendar into one unified schedule.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">📚</div>
+        <h3>Generate study plans</h3>
+        <p>The AI creates proactive study blocks proportional to each deliverable's grade weight, respecting your configured work hours and break rules.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">💬</div>
+        <h3>Chat with your courses</h3>
+        <p>Ask questions against all loaded syllabi — the context agent retrieves the most relevant fragments and keeps conversation history.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">✂️</div>
+        <h3>Break down tasks</h3>
+        <p>Any deadline can be recursively decomposed into subtasks up to 3 levels deep via the "Break It Down" dialog.</p>
+      </div>
+      <div class="card">
+        <div class="card-icon">🔄</div>
+        <h3>Two-way sync</h3>
+        <p>Changes in Google Calendar are pulled back into the app; local edits are pushed out. Conflicts surface an interactive proposal diff before anything is written.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- ARCHITECTURE -->
+  <section>
+    <h2><span class="icon">🏗️</span> Architecture — Data Flow</h2>
+    <p style="margin-bottom:28px;">
+      All inputs converge into a unified <code style="font-family:var(--mono);color:var(--accent)">Event</code> model
+      and flow into the student's master calendar through a four-agent pipeline.
+    </p>
+    <div class="flow">
+      <div class="flow-col">
+        <div class="flow-header">Inputs</div>
+        <div class="flow-items">
+          <div class="flow-item">📁 Local Files (PDF / DOCX)</div>
+          <div class="flow-item">🌐 Web URLs</div>
+          <div class="flow-item">☁️ Google Drive</div>
+          <div class="flow-item">📅 Google Calendar feed</div>
+          <div class="flow-item">📆 iCalendar (.ics) URLs</div>
+        </div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-col">
+        <div class="flow-header">Agents</div>
+        <div class="flow-items">
+          <div class="flow-item">🔬 IngestionAgent</div>
+          <div class="flow-item">⚡ EventAgent</div>
+          <div class="flow-item">🧹 NormalizationService</div>
+          <div class="flow-item">📡 CalendarAgent</div>
+        </div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-col">
+        <div class="flow-header">Unified Event</div>
+        <div class="flow-items">
+          <div class="flow-item">TimeEvent / DayEvent</div>
+          <div class="flow-item">AcademicCategory</div>
+          <div class="flow-item">SyncStatus</div>
+          <div class="flow-item">Grade weight</div>
+          <div class="flow-item">Study progress</div>
+        </div>
+      </div>
+      <div class="flow-arrow">→</div>
+      <div class="flow-col">
+        <div class="flow-header">Output</div>
+        <div class="flow-items">
+          <div class="flow-item">📅 Master Calendar</div>
+          <div class="flow-item">☁️ Google Calendar push</div>
+          <div class="flow-item">📤 .ics Export</div>
+          <div class="flow-item">💬 Chat context</div>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- AGENTS -->
+  <section>
+    <h2><span class="icon">🤖</span> Agent Layer</h2>
+    <p style="margin-bottom:24px;">Four specialized agents coordinate ingestion, event generation, dedup, and calendar sync.</p>
+    <div class="agent-grid">
+      <div class="agent-card">
+        <div class="agent-name">IngestionAgent</div>
+        <p>Reads raw source files and URLs and extracts high-fidelity <code style="font-family:var(--mono);font-size:12px">SourceFragments</code>. Calls <code style="font-family:var(--mono);font-size:12px">categorizeSource()</code> on every non-ICS source to tag it by type (syllabus, lecture, handout…).</p>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">EventAgent</div>
+        <p>Consumes structured fragments and calls Gemini to produce both Deliverable events (exams, assignments) and proactive Study Plan blocks, weighted by grade percentage.</p>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">NormalizationService</div>
+        <p>Programmatic safety net: deduplicates events via SHA-256 content hashing, standardizes category labels, and enforces 9–21 hr study-hour constraints before persistence.</p>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">CalendarAgent</div>
+        <p>Intelligent sync gateway. Manages OAuth refresh, pagination, and conflict detection. Surfaces a <em>SyncNegotiationDialog</em> so the student approves proposal diffs before any write.</p>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">ContextAgent</div>
+        <p>Multi-source retrieval for the chat panel. Scores fragments with TF-IDF + recency, injects the top-k into the Gemini prompt, and maintains conversation history.</p>
+      </div>
+      <div class="agent-card">
+        <div class="agent-name">AgentHarness</div>
+        <p>Active lifecycle driver. Runs the full agent pipeline at startup and once per day, ensuring the calendar stays fresh without any manual "Sync" tap from the student.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- UI SCREENS -->
+  <section>
+    <h2><span class="icon">📱</span> UI Screens</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Academic Calendar</h3>
+        <p>Central dashboard. Events grouped by date, colour-coded by category. Shows countdown chips, study progress bars, and a Semester Health card summarising upcoming workload.</p>
+      </div>
+      <div class="card">
+        <h3>Sources Panel</h3>
+        <p>Manage all inputs — local files, web URLs, and Google Drive. Each source shows its sync/analysis status and can be re-processed on demand.</p>
+      </div>
+      <div class="card">
+        <h3>Studio Panel</h3>
+        <p>AI workspace. Chat with your loaded syllabi, trigger manual analysis, and review AI-generated study blocks before they land on the calendar.</p>
+      </div>
+      <div class="card">
+        <h3>Settings</h3>
+        <p>Connect your Google account, enter your Gemini API key, configure preferred study hours and break rules, and select which Google Calendar to sync into.</p>
+      </div>
+      <div class="card">
+        <h3>Task Decomposition Dialog</h3>
+        <p>"Break It Down" — recursively decomposes any DEADLINE or FINALS event into subtasks up to depth 3 via the Critic-Actor AI loop.</p>
+      </div>
+      <div class="card">
+        <h3>Sync Negotiation Dialog</h3>
+        <p>Interactive proposal diff that replaces silent conflict resolution. The student approves, rejects, or merges each proposed calendar change before it is written.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- AI STRATEGY -->
+  <section>
+    <h2><span class="icon">✨</span> AI Strategy</h2>
+    <div class="ai-card">
+      <div class="ai-card-block">
+        <h3>Primary Engine</h3>
+        <p><strong style="color:var(--text)">Gemini 1.5 Flash</strong> via direct REST API — 1 M token context window, chosen for stability and the ability to ingest an entire syllabus in one call.</p>
+      </div>
+      <div class="ai-card-block">
+        <h3>Privacy-First</h3>
+        <p>Students supply their own free Gemini API key from Google AI Studio. Documents never leave the student's Google ecosystem.</p>
+      </div>
+      <div class="ai-card-block">
+        <h3>Model Auto-Negotiation</h3>
+        <p><code style="font-family:var(--mono);font-size:12px">ModelManager</code> caches the best available model in SQLite and retries automatically against a fallback preference list on quota exhaustion.</p>
+      </div>
+      <div class="ai-card-block">
+        <h3>Confabulation Gate</h3>
+        <p><code style="font-family:var(--mono);font-size:12px">GroundingGuardAIService</code> filters every AI-generated event against years explicitly mentioned in the source text — silently dropping dates that can't be grounded.</p>
+      </div>
+      <div class="ai-card-block">
+        <h3>Critic-Actor Loop</h3>
+        <p>Complex tasks (study plans, decompositions) run through <code style="font-family:var(--mono);font-size:12px">CriticActorAIService</code> with graph-based cycle detection to prevent oscillation.</p>
+      </div>
+      <div class="ai-card-block">
+        <h3>Source Fact Grounding</h3>
+        <p><code style="font-family:var(--mono);font-size:12px">SourceFactGrounder</code> extracts date and grade-weight claims from free-text AI output and cross-checks each against the source text, appending structured warnings for ungrounded claims.</p>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- TECH STACK -->
+  <section>
+    <h2><span class="icon">🛠️</span> Technology Stack</h2>
+    <table class="stack-table">
+      <thead>
+        <tr>
+          <th>Layer</th>
+          <th>Technology</th>
+          <th>Purpose</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td><strong style="color:var(--text)">Language</strong></td>
+          <td><span class="tag">Kotlin</span></td>
+          <td>Shared across all platforms via Kotlin Multiplatform</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">UI</strong></td>
+          <td><span class="tag">Compose Multiplatform</span></td>
+          <td>Single UI codebase for Android, iOS, and Desktop</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Networking</strong></td>
+          <td><span class="tag">Ktor Client</span></td>
+          <td>KMP-compatible HTTP; Google Calendar REST + Gemini REST</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Database</strong></td>
+          <td><span class="tag">SQLDelight</span></td>
+          <td>Type-safe SQLite for sources, events, model cache, analysis cache</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Auth</strong></td>
+          <td><span class="tag">OAuth 2.0</span></td>
+          <td>JVM local-server flow (Desktop), GoogleSignIn (Android), ASWebAuth (iOS)</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">AI</strong></td>
+          <td><span class="tag">Gemini 1.5 Flash</span></td>
+          <td>Syllabus parsing, event extraction, study plan, chat, task decomposition</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Serialization</strong></td>
+          <td><span class="tag">kotlinx.serialization</span></td>
+          <td>JSON DTOs for Gemini API, Google Calendar API, preferences</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">DI</strong></td>
+          <td><span class="tag">Manual (DependencyContainer)</span></td>
+          <td>Constructor injection; no framework overhead for KMP compatibility</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Testing</strong></td>
+          <td><span class="tag">Kotest</span> <span class="tag">MockK</span></td>
+          <td>Unit tests + integration tests with real API keys</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">PDF / DOCX</strong></td>
+          <td><span class="tag">Native expect/actual</span></td>
+          <td>PDFKit (iOS), PdfRenderer (Android), Apache PDFBox (JVM)</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Observability</strong></td>
+          <td><span class="tag">OTEL SDK</span> <span class="tag">TelemetryManager</span></td>
+          <td>Traces + rate-limit / parse-exception metrics, configurable OTLP endpoint</td>
+        </tr>
+        <tr>
+          <td><strong style="color:var(--text)">Build</strong></td>
+          <td><span class="tag">Gradle</span> <span class="tag">Kover</span></td>
+          <td>Multi-target build; CRAP index via custom Gradle task + Kover coverage</td>
+        </tr>
+      </tbody>
+    </table>
+  </section>
+
+  <hr class="divider">
+
+  <!-- QUALITY -->
+  <section>
+    <h2><span class="icon">📊</span> Code Quality &amp; Engineering Practices</h2>
+    <div class="quality-grid">
+      <div class="quality-item">
+        <div class="quality-label">CRAP Index</div>
+        <div class="quality-value">0</div>
+        <div class="quality-desc">High-risk files (CRAP &gt; 20) after Phase 0.23 remediation campaign</div>
+      </div>
+      <div class="quality-item">
+        <div class="quality-label">Test Files</div>
+        <div class="quality-value">33+</div>
+        <div class="quality-desc">Unit + integration test files across Kotest specs</div>
+      </div>
+      <div class="quality-item">
+        <div class="quality-label">Per-Method Complexity</div>
+        <div class="quality-value">≤ 5</div>
+        <div class="quality-desc">Hard limit enforced via CRAP report; excess triggers decomposition</div>
+      </div>
+      <div class="quality-item">
+        <div class="quality-label">Per-File Complexity</div>
+        <div class="quality-value">≤ 15</div>
+        <div class="quality-desc">Files nearing limit are extracted into focused services</div>
+      </div>
+      <div class="quality-item">
+        <div class="quality-label">Business Logic Coverage</div>
+        <div class="quality-value">100%</div>
+        <div class="quality-desc">Target for all non-UI services; 0% coverage blocks merge</div>
+      </div>
+      <div class="quality-item">
+        <div class="quality-label">Build Targets</div>
+        <div class="quality-value">3</div>
+        <div class="quality-desc">assembleDebug (Android) + assemble (iOS) + assemble (Server) must all green before closing any phase</div>
+      </div>
+    </div>
+
+    <div style="margin-top: 28px;">
+      <h3 style="color: var(--muted); font-size: 13px; font-weight: 700; letter-spacing: .08em; text-transform: uppercase; margin-bottom: 14px;">Key Patterns</h3>
+      <div class="card-grid">
+        <div class="card">
+          <h3>StateFlowReader / StateFlowWriter</h3>
+          <p>Raw <code style="font-family:var(--mono);font-size:12px">StateFlow&lt;T&gt;</code> is never exposed publicly. Read-only and write-only interfaces separate concerns, making every reactive dependency trivially mockable in tests.</p>
+        </div>
+        <div class="card">
+          <h3>Thin Facade + Service Extraction</h3>
+          <p>Any class coordinating 3+ responsibilities delegates to focused single-responsibility services injected via constructor. The facade itself stays under complexity 5.</p>
+        </div>
+        <div class="card">
+          <h3>Deterministic Event IDs</h3>
+          <p>Events are keyed by SHA-256 hash of their content fields rather than random UUIDs — preventing duplicate entries on every save.</p>
+        </div>
+        <div class="card">
+          <h3>Integration Test Naming Gate</h3>
+          <p>Any test that makes real API calls <em>must</em> carry the <code style="font-family:var(--mono);font-size:12px">IntegrationTest</code> suffix. Default Gradle run excludes these; <code style="font-family:var(--mono);font-size:12px">-PrunAITests=true</code> enables them.</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <hr class="divider">
+
+  <!-- SETUP -->
+  <section>
+    <h2><span class="icon">⚙️</span> Setup &amp; Build</h2>
+    <div class="card-grid">
+      <div class="card">
+        <h3>Prerequisites</h3>
+        <p>JDK 17+, Android SDK, Xcode (for iOS), and a free Gemini API key from Google AI Studio. Google Cloud project with Calendar + Drive APIs enabled.</p>
+      </div>
+      <div class="card">
+        <h3>Environment</h3>
+        <p>Copy <code style="font-family:var(--mono);font-size:12px">.env_template</code> → <code style="font-family:var(--mono);font-size:12px">.env</code> and populate <code style="font-family:var(--mono);font-size:12px">GOOGLE_CLIENT_ID</code> and <code style="font-family:var(--mono);font-size:12px">GOOGLE_CLIENT_SECRET</code>. The Gemini API key is entered per-user at runtime in Settings, not in the build.</p>
+      </div>
+      <div class="card">
+        <h3>Run Profiles</h3>
+        <p><strong style="color:var(--text)">local</strong> — real Google Calendar &amp; OAuth. <strong style="color:var(--text)">test</strong> — mock calendar, deterministic data, no network required.</p>
+      </div>
+    </div>
+    <div style="margin-top: 20px;">
+      <pre>./gradlew :composeApp:assembleDebug          # Android
+./gradlew :composeApp:run                    # Desktop (JVM)
+# Open iosApp/ in Xcode for iOS
+./gradlew :composeApp:jvmTest                # Unit tests (no API calls)
+./gradlew :composeApp:jvmTest -PrunAITests=true  # Include integration tests</pre>
+    </div>
+  </section>
+
+</main>
+
+<footer>
+  College Executive Function &mdash; Kotlin Multiplatform &mdash; Built for students with executive function challenges
+</footer>
+
+</body>
+</html>

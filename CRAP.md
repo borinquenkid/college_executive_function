@@ -287,7 +287,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ### SourceAdder.kt (Score: 21.00 - 🟡 MEDIUM)
 - **Total Complexity**: 21
-- **Real Coverage**: 98.6%
+- **Real Coverage**: 100.0%
 
 #### Methods list:
 | Method | Complexity |

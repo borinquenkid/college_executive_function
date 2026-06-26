@@ -7,7 +7,6 @@ import platform.Foundation.NSURL
 import platform.UIKit.UIApplication
 import platform.UIKit.UIDocumentPickerDelegateProtocol
 import platform.UIKit.UIDocumentPickerViewController
-import platform.UIKit.UIWindow
 import platform.UniformTypeIdentifiers.UTType
 import platform.UniformTypeIdentifiers.UTTypePDF
 import platform.UniformTypeIdentifiers.UTTypePlainText
@@ -47,11 +46,7 @@ actual fun FilePicker(show: Boolean, onFilesSelected: (List<String>) -> Unit) {
             picker.delegate = delegate
             picker.allowsMultipleSelection = true
 
-            val root = UIApplication.sharedApplication.keyWindow?.rootViewController
-                ?: UIApplication.sharedApplication.windows.mapNotNull { it as? UIWindow }
-                    .firstOrNull { it.isKeyWindow() }?.rootViewController
-
-            root?.presentViewController(picker, true, null)
+            findKeyWindow()?.rootViewController?.presentViewController(picker, true, null)
         }
     }
 }

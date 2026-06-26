@@ -1,7 +1,14 @@
 package com.borinquenterrier.cef
 
+import android.content.Intent
+import android.net.Uri
+
 actual object PlatformUtils {
-    // Requires an Android Context not available at this call site; browser launch is handled by the UI layer.
-    @Suppress("EmptyMethod", "UNUSED_PARAMETER")
-    actual fun openBrowser(url: String) {}
+    actual fun openBrowser(url: String) {
+        val context = AndroidAppContext.applicationContext ?: return
+        val intent = Intent(Intent.ACTION_VIEW, Uri.parse(url)).apply {
+            flags = Intent.FLAG_ACTIVITY_NEW_TASK
+        }
+        context.startActivity(intent)
+    }
 }

@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **91.32%** (9494/10396 lines)
+- **Overall Line Coverage**: **91.34%** (9496/10396 lines)
 - **Total Source Files**: 173
 
 ## Coverage by File (🔴 and 🟡 only)

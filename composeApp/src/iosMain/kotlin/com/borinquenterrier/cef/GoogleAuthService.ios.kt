@@ -16,7 +16,6 @@ import platform.Foundation.NSError
 import platform.Foundation.NSURL
 import platform.Foundation.NSURLComponents
 import platform.Foundation.NSURLQueryItem
-import platform.UIKit.UIApplication
 import platform.darwin.NSObject
 import kotlin.coroutines.resume
 import kotlin.coroutines.resumeWithException
@@ -132,6 +131,6 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
 private class PresentationContextProvider : NSObject(),
     ASWebAuthenticationPresentationContextProvidingProtocol {
     override fun presentationAnchorForWebAuthenticationSession(session: ASWebAuthenticationSession): ASPresentationAnchor {
-        return UIApplication.sharedApplication.keyWindow ?: ASPresentationAnchor()
+        return findKeyWindow() ?: ASPresentationAnchor()
     }
 }

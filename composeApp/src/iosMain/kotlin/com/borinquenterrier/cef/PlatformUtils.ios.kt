@@ -1,7 +1,11 @@
 package com.borinquenterrier.cef
 
+import platform.Foundation.NSURL
+import platform.UIKit.UIApplication
+
 actual object PlatformUtils {
     actual fun openBrowser(url: String) {
-        // Implementation would use UIApplication.sharedApplication.openURL(NSURL(string = url)!!)
+        val nsUrl = NSURL(string = url) ?: return
+        UIApplication.sharedApplication.openURL(nsUrl, options = emptyMap<Any?, Any?>(), completionHandler = null)
     }
 }

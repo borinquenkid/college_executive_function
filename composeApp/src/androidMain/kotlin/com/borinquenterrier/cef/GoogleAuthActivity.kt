@@ -1,6 +1,5 @@
 package com.borinquenterrier.cef
 
-import android.app.Activity
 import android.content.Intent
 import android.os.Bundle
 import androidx.activity.ComponentActivity
@@ -33,12 +32,7 @@ class GoogleAuthActivity : ComponentActivity() {
             )
             .build()
 
-        val googleSignInClient = GoogleSignIn.getClient(this, gso)
-
-        // Ensure we start with a clean slate to avoid stale session issues
-        googleSignInClient.signOut().addOnCompleteListener {
-            startActivityForResult(googleSignInClient.signInIntent, 1001)
-        }
+        startActivityForResult(GoogleSignIn.getClient(this, gso).signInIntent, 1001)
     }
 
     override fun onActivityResult(requestCode: Int, resultCode: Int, data: Intent?) {

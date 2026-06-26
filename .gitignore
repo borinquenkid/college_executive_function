@@ -31,3 +31,4 @@ img*.png
 *.log
 *.ics
 ~$*
+composeApp/composeApp/

@@ -16,7 +16,7 @@ import io.ktor.serialization.kotlinx.json.json
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
-class SyncNegotiationIntegrationTest : FunSpec({
+class SyncNegotiationTest : FunSpec({
 
     val date = LocalDate(2026, 10, 1) // Thursday
 

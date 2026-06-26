@@ -10,7 +10,7 @@ import kotlinx.serialization.json.jsonPrimitive
 import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
-class SyllabusEvaluationSuite : FunSpec({
+class SyllabusEvaluationIntegrationTest : FunSpec({
 
     data class ExpectedEvent(
         val title: String,

@@ -7,10 +7,10 @@
 
 ---
 
-## 1. CollisionResolutionIntegrationTest (2 failures)
+## 1. CollisionResolutionTest (2 failures)
 
 ### Test 1: "Headless Integration: Priority Bump and Shift Cascade"
-**File:** `CollisionResolutionIntegrationTest.kt:95-160`  
+**File:** `CollisionResolutionTest.kt:95-160`  
 **Failure Type:** AssertionFailedError at line 151  
 **Root Cause:** Collision resolution algorithm not fully implemented  
 **Issue:**
@@ -26,7 +26,7 @@
 ---
 
 ### Test 2: "Headless Integration: Post-Deadline Shift (Late Leeway warning)"
-**File:** `CollisionResolutionIntegrationTest.kt:168-291`  
+**File:** `CollisionResolutionTest.kt:168-291`  
 **Failure Type:** NullPointerException at line 269  
 **Root Cause:** Missing null check in deadline handling logic  
 **Issue:**
@@ -179,7 +179,7 @@
 5. **DriveFileScannerTest** - Add exception-handling-per-folder logic
 
 ### Hard (3 tests)  
-6. **CollisionResolutionIntegrationTest (×2)** - Implement full collision resolution algorithm
+6. **CollisionResolutionTest (×2)** - Implement full collision resolution algorithm
 7. **ConflictResolutionHeadlessTest** - Complete e2e conflict pipeline
 
 ---

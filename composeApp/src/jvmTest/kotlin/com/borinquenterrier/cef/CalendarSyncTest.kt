@@ -14,7 +14,7 @@ import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.datetime.LocalDate
 
-class CalendarSyncIntegrationTest : FunSpec({
+class CalendarSyncTest : FunSpec({
 
     val date = LocalDate(2024, 9, 2)
     val preferencesRepository = PreferencesRepository(MapSettings())
@@ -81,7 +81,8 @@ class CalendarSyncIntegrationTest : FunSpec({
         localRepo.updateEvent(event)
 
         // 2. Synchronize (now online)
-        var getCallCount = 0
+        // The remote is queried once (in buildNegotiation) AFTER pushLocalChanges has already
+        // posted local-1. At that point remote already has remote-1, so always return it.
         val mockEngine = MockEngine { request ->
             val path = request.url.encodedPath
             when {
@@ -94,13 +95,8 @@ class CalendarSyncIntegrationTest : FunSpec({
                 }
 
                 path.endsWith("/events") && request.method == io.ktor.http.HttpMethod.Get -> {
-                    getCallCount++
-                    // 1st call: inside saveEvent() overlap check
-                    // 2nd call: Step 3 final state fetch
-                    val content = if (getCallCount == 1) "{\"items\": []}"
-                    else """{"items": [{"id": "remote-1", "summary": "Offline Class", "start": {"date": "2024-09-02"}, "end": {"date": "2024-09-02"}}]}"""
                     respond(
-                        content = content,
+                        content = """{"items": [{"id": "remote-1", "summary": "Offline Class", "start": {"date": "2024-09-02"}, "end": {"date": "2024-09-02"}}]}""",
                         status = HttpStatusCode.OK,
                         headers = headersOf(HttpHeaders.ContentType, "application/json")
                     )

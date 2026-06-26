@@ -13,7 +13,7 @@ import kotlinx.datetime.LocalTime
 import kotlinx.datetime.minus
 import kotlinx.datetime.plus
 
-class CollisionResolutionIntegrationTest : FunSpec({
+class CollisionResolutionTest : FunSpec({
 
     val date = LocalDate(2026, 10, 1)
 

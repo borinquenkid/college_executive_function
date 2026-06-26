@@ -7,7 +7,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.every
 import io.mockk.mockk
 
-class FragmentRankerIntegrationTest : FunSpec({
+class FragmentRankerScoringTest : FunSpec({
     val ranker = FragmentRanker()
 
     test("rankFragments returns empty for empty sources") {

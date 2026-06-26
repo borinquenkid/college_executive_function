@@ -16,7 +16,7 @@ import kotlinx.datetime.LocalDate
 
 private const val TEST_CALENDAR_ID = "test-calendar@group.calendar.google.com"
 
-class CalendarResetIntegrationTest : FunSpec({
+class CalendarResetTest : FunSpec({
 
     val date = LocalDate(2025, 9, 15)
 

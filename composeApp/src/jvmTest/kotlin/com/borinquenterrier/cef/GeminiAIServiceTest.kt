@@ -17,6 +17,7 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.buildJsonArray
 import kotlinx.serialization.json.buildJsonObject
+import kotlinx.serialization.json.put
 
 class GeminiAIServiceTest : FunSpec({
 
@@ -27,6 +28,18 @@ class GeminiAIServiceTest : FunSpec({
     afterEach {
         GeminiAIService.clearBlacklistForTesting()
         GeminiRequestExecutor.clearRateLimitResetForTesting()
+    }
+
+    // ── production constructor (null customClient → real HttpClient init) ──────
+
+    test("production constructor builds service with internal HttpClient") {
+        // Exercises the HttpClient{install(ContentNegotiation){json(…)}} init block
+        // (the 13 lines only reachable when customClient is null)
+        GeminiAIService(
+            apiKey = "test-key",
+            logger = mockk(relaxed = true),
+            settings = com.russhwolf.settings.MapSettings()
+        )
     }
 
     fun makeService(engine: MockEngine) = GeminiAIService(
@@ -174,6 +187,38 @@ class GeminiAIServiceTest : FunSpec({
         val ex = shouldThrow<Exception> { makeService(engine).analyzeDocument("document text") }
         ex.message shouldContain "QuotaExhausted"
         GeminiRetryService.skipLongDelaysInTests = false
+    }
+
+    // ── categorizeSource success path ─────────────────────────────────────────
+
+    fun makeCategoryResponse(category: String): String {
+        val textContent = buildJsonObject {
+            put("category", category)
+            put("isValid", true)
+        }.toString()
+        return buildJsonObject {
+            put("candidates", buildJsonArray {
+                add(buildJsonObject {
+                    put("content", buildJsonObject {
+                        put("parts", buildJsonArray {
+                            add(buildJsonObject { put("text", textContent) })
+                        })
+                    })
+                })
+            })
+        }.toString()
+    }
+
+    test("categorizeSource returns correct category on success") {
+        val engine = statelessEngine(HttpStatusCode.OK, makeCategoryResponse("SYLLABUS"))
+        val result = makeService(engine).categorizeSource("short text")
+        result shouldBe SourceCategory.SYLLABUS
+    }
+
+    test("categorizeSource truncates text longer than 50000 chars") {
+        val engine = statelessEngine(HttpStatusCode.OK, makeCategoryResponse("CALENDAR"))
+        val result = makeService(engine).categorizeSource("a".repeat(60000))
+        result shouldBe SourceCategory.CALENDAR
     }
 
     // ── categorizeSource non-QuotaExhausted failure path ─────────────────────

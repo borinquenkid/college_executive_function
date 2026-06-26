@@ -38,6 +38,16 @@ class GeminiRetryService(
             _globalHoldState.value = null
         }
 
+        fun isGlobalHoldActive(): Boolean {
+            val now = Clock.System.now().toEpochMilliseconds()
+            return now < globalHoldUntil
+        }
+
+        fun isRateLimitWindowActive(): Boolean {
+            val now = Clock.System.now().toEpochMilliseconds()
+            return now < rateLimitResetTime
+        }
+
         fun clearGlobalHoldForTesting() {
             globalHoldUntil = 0L
             isHoldCancelled = false

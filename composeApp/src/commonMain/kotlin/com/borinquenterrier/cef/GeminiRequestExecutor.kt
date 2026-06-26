@@ -57,6 +57,13 @@ class GeminiRequestExecutor(
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T {
+        AppTracer.current.event(
+            "gemini.preflight",
+            mapOf(
+                "global_hold_active" to GeminiRetryService.isGlobalHoldActive().toString(),
+                "rate_limit_window_active" to GeminiRetryService.isRateLimitWindowActive().toString()
+            )
+        )
         retryService.checkRateLimitWindow()
 
         val available = modelNegotiator.getAvailableModels()
@@ -70,8 +77,16 @@ class GeminiRequestExecutor(
             val modelName = modelNegotiator.negotiateBestModel(available, tier)
             lastNegotiatedModel = modelName
             try {
-                val httpResponse = postToModel(modelName, body(modelName))
-                val responseBody = httpResponse.bodyAsText()
+                val (httpResponse, responseBody) = AppTracer.current.span(
+                    "gemini.http_request",
+                    mapOf("model" to modelName, "attempt" to (attempts + 1).toString())
+                ) {
+                    val response = postToModel(modelName, body(modelName))
+                    val body = response.bodyAsText()
+                    setAttribute("http.status", response.status.value.toLong())
+                    setAttribute("response.bytes", body.length.toLong())
+                    Pair(response, body)
+                }
 
                 if (httpResponse.status.isSuccess()) {
                     consecutiveRateLimitCount = 0

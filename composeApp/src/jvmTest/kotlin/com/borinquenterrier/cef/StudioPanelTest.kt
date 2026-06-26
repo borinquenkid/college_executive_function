@@ -149,9 +149,7 @@ class StudioPanelTest {
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Sync pending")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(generatedEvents)
-        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns MutableStateFlow(null)
-        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
         every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
         every { mockEventAgent.unresolvedConflicts } returns MutableStateFlow(emptyList())
 
@@ -172,12 +170,6 @@ class StudioPanelTest {
         // Verify event displays
         onNodeWithText("Calculus Homework 1").assertExists()
         onNodeWithText("2026-06-15").assertExists()
-
-        // Verify warnings card shows with deduplicated warning text (not repeated per event)
-        onNodeWithTag("source_discrepancies_card").assertExists()
-        onNodeWithText("Source Notes").assertExists()
-        onNodeWithText("- Due soon").assertExists()
-        onNodeWithText("- Calculus Homework 1: Due soon").assertDoesNotExist()
 
         // Verify push button exists and click triggers push
         val pushButton = onNodeWithTag("push_calendar_button")
@@ -233,106 +225,6 @@ class StudioPanelTest {
 
         // Verify process button is disabled
         onNodeWithTag("process_syllabus_button").assertIsNotEnabled()
-    }
-
-    @Test
-    fun testSourceNotesDeduplicateWarnings() = runComposeUiTest {
-        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
-        val mockContainer = mockk<DependencyContainer>(relaxed = true)
-        val mockEventAgent = mockk<EventAgent>(relaxed = true)
-
-        every { mockContainer.eventAgent } returns mockEventAgent
-        every { mockContainer.appController } returns mockk(relaxed = true)
-
-        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns MutableStateFlow(false)
-        every { mockContainer.tokenRepository } returns tokenRepo
-
-        // All 4 events share the identical warning (like STLCC source audit stamps on every event)
-        val sharedWarning = "[TENTATIVE] Schedule subject to change; [EXTERNAL_LMS] Grades on Canvas"
-        val generatedEvents = listOf(
-            DayEvent(id = "e1", title = "Issue Brief #1", source = EventSource.AI_GENERATED,
-                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 7, 1), warning = sharedWarning),
-            DayEvent(id = "e2", title = "Issue Brief #2", source = EventSource.AI_GENERATED,
-                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 7, 15), warning = sharedWarning),
-            DayEvent(id = "e3", title = "Issue Brief #3", source = EventSource.AI_GENERATED,
-                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 7, 22), warning = sharedWarning),
-            DayEvent(id = "e4", title = "Final Paper", source = EventSource.AI_GENERATED,
-                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 7, 31), warning = sharedWarning),
-        )
-
-        every { mockEventAgent.isLoading } returns MutableStateFlow(false)
-        every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
-        every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(generatedEvents)
-        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
-        every { mockEventAgent.errorState } returns MutableStateFlow(null)
-        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
-        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
-        every { mockEventAgent.unresolvedConflicts } returns MutableStateFlow(emptyList())
-
-        val testSource = SourceItem(
-            title = "ENG 101 Syllabus",
-            fragments = listOf(SourceFragment(text = "text")),
-            category = SourceCategory.SYLLABUS
-        )
-
-        setContent {
-            StudioPanel(selectedSource = testSource, calendarAgent = mockCalendarAgent,
-                container = mockContainer)
-        }
-
-        onNodeWithTag("source_discrepancies_card").assertExists()
-        // Warning appears exactly once, not repeated 4× with event titles
-        onNodeWithText("- $sharedWarning").assertExists()
-        onNodeWithText("- Issue Brief #1: $sharedWarning").assertDoesNotExist()
-        onNodeWithText("- Issue Brief #2: $sharedWarning").assertDoesNotExist()
-    }
-
-    @Test
-    fun testSourceNotesShowsDistinctWarningsSeparately() = runComposeUiTest {
-        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
-        val mockContainer = mockk<DependencyContainer>(relaxed = true)
-        val mockEventAgent = mockk<EventAgent>(relaxed = true)
-
-        every { mockContainer.eventAgent } returns mockEventAgent
-        every { mockContainer.appController } returns mockk(relaxed = true)
-
-        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns MutableStateFlow(false)
-        every { mockContainer.tokenRepository } returns tokenRepo
-
-        val generatedEvents = listOf(
-            DayEvent(id = "e1", title = "Assignment A", source = EventSource.AI_GENERATED,
-                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 7, 1),
-                warning = "[TENTATIVE] Dates may shift"),
-            DayEvent(id = "e2", title = "Assignment B", source = EventSource.AI_GENERATED,
-                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 7, 15),
-                warning = "[EXTERNAL_LMS] Details on Canvas"),
-        )
-
-        every { mockEventAgent.isLoading } returns MutableStateFlow(false)
-        every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
-        every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(generatedEvents)
-        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
-        every { mockEventAgent.errorState } returns MutableStateFlow(null)
-        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
-        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
-        every { mockEventAgent.unresolvedConflicts } returns MutableStateFlow(emptyList())
-
-        val testSource = SourceItem(
-            title = "Test Syllabus",
-            fragments = listOf(SourceFragment(text = "text")),
-            category = SourceCategory.SYLLABUS
-        )
-
-        setContent {
-            StudioPanel(selectedSource = testSource, calendarAgent = mockCalendarAgent,
-                container = mockContainer)
-        }
-
-        onNodeWithTag("source_discrepancies_card").assertExists()
-        onNodeWithText("- [TENTATIVE] Dates may shift").assertExists()
-        onNodeWithText("- [EXTERNAL_LMS] Details on Canvas").assertExists()
     }
 
     @Test

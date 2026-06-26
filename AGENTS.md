@@ -251,11 +251,15 @@ All business logic classes (Models, Agents, Services, and Utilities) MUST have a
 
 ### Integration Test Naming Convention
 
-Any test class that makes real external calls (Gemini API, Google Calendar, live databases) **must** include `IntegrationTest` in its class name (e.g. `StlccIntegrationTest`, `CalendarSyncIntegrationTest`). This is the project's equivalent of the JUnit `*IT` suffix convention.
+Any test class that makes **real external calls** (Gemini API, Google Calendar, live OAuth endpoints) **must** include `IntegrationTest` in its class name (e.g. `StlccIntegrationTest`, `IcsToGoogleIntegrationTest`). Tests that use `MockEngine`, `mockk`, or an in-memory database only — even if they wire up multiple components — do **not** qualify and must **not** carry the `IntegrationTest` suffix.
 
 **Why naming, not tags:** Kotest 6's tag-filtering system property (`kotest.filter.tags`) is not reliably forwarded to the test JVM when Gradle reuses a daemon. Both `tags(Flaky)` in the spec body and `@Tags("Flaky")` class annotations were tried and failed to skip tests in practice.
 
-**Integration tests are excluded by default.** Plain `./gradlew :composeApp:jvmTest` runs unit tests only.
+**Default run — unit tests + fully-mocked tests (no API calls):**
+```bash
+./gradlew :composeApp:jvmTest
+```
+This excludes every class whose name contains `IntegrationTest` or `ContributorPdf`.
 
 **To include AI/integration tests** (CI or explicit manual run):
 ```bash
@@ -266,6 +270,8 @@ Any test class that makes real external calls (Gemini API, Google Calendar, live
 ```bash
 ./gradlew :composeApp:jvmTest --tests "com.borinquenterrier.cef.StlccIntegrationTest"
 ```
+
+> **Warning — Android Studio "Run Tests" / `composeTest`:** Android Studio's built-in test runner may not pass `-PrunAITests`, but if your dev machine has a `CEF_GEMINI_API_KEY` or `GOOGLE_REFRESH_TOKEN` set, any leaked real-API test (one named without `IntegrationTest`) will still hit the live API. Always verify new test files follow the naming rule above.
 
 Never use Kotest tags (`object Flaky : Tag()`, `tags(Flaky)`, `@io.kotest.core.annotation.Tags`) to gate integration tests in this project.
 
@@ -295,7 +301,7 @@ Never use Kotest tags (`object Flaky : Tag()`, `tags(Flaky)`, `@io.kotest.core.a
 *   Recursive Task Decomposition — `DecompositionOrchestrator` (depth-3 FIFO), full Kotest specs
 *   Automatic Source Categorization — `IngestionAgent` calls `categorizeSource()` on all non-ICS content
 *   "Break It Down" UI — `TaskDecompositionDialog` wired end-to-end for DEADLINE/FINALS events
-*   Two-Way Sync — all four mutation scenarios verified by `CalendarSyncIntegrationTest`
+*   Two-Way Sync — all four mutation scenarios verified by `CalendarSyncTest`
 *   Multi-Source Chat Context — `ContextAgent.queryAllSources()`, conversation history, scope toggle
 *   Critic-Actor Loop — `CriticActorAIService` with graph-based cycle/oscillation detection
 *   .ics Export — `ICalGenerator` + expect/actual `writeIcsFile` (Downloads on JVM/Android, Share Sheet on iOS)

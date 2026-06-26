@@ -572,7 +572,7 @@ All items below have been verified against the actual codebase — not just the 
 | **Visual Progress Tracking** | `timeUntilDue` and `studyProgress` helpers on `Event`, linear progress and countdown chips in calendar list, and Semester Health summary card in StudioPanel |
 | **Scheduling Fine-Tuning** | User-configurable study hours, break lengths, and limits in Settings; injected into AI study plan generation and collision resolver |
 | **Weighted Deliverables** | Syllabus grade weights extracted by AI, stored in Event models, and used to allocate study block durations proportionally |
-| **Lenient Title Matching** | Refactored `SyllabusEvaluationSuite` matching logic with normalized containment check to eliminate false negatives |
+| **Lenient Title Matching** | Refactored `SyllabusEvaluationIntegrationTest` matching logic with normalized containment check to eliminate false negatives |
 | **Observability & Telemetry** | Multiplatform `TelemetryManager` logging rate limits, JSON parsing exceptions, and Critic-Actor decorator outcomes |
 | **Client Secrets Management** | Automated build-time Google API client secrets injection via custom Gradle task |
 | **Compose UI Tests** | Added Composable flow verification tests for key screens and dialogs |
@@ -755,7 +755,7 @@ Implemented relevance ranking (TF-IDF) in `ContextAgent.rankFragments` to select
 - Verify native format readers (PDF, DOCX, text) parse their content accurately.
 
 ### 4.2 — Offline Evaluation Framework (COMPLETED)
-- Create a test runner script/class (`SyllabusEvaluationSuite`) that parses the test syllabi.
+- Create a test runner script/class (`SyllabusEvaluationIntegrationTest`) that parses the test syllabi.
 - Save companion "ground truth" JSON files containing manually verified academic events (dates, weights, categories) for each syllabus.
 - Compute performance metrics: **Precision** (avoiding spurious events), **Recall** (finding all deadlines), and **Date Accuracy** (verifying correct date computation).
 

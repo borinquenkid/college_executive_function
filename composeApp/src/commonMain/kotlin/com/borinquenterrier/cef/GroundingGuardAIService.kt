@@ -26,7 +26,10 @@ class GroundingGuardAIService(
         val sourceText = fragments.joinToString("\n\n") { it.text }
         return AppTracer.current.span(
             "pipeline.generate_calendar_events",
-            mapOf("fragment.count" to fragments.size.toString())
+            mapOf(
+                "fragment.count" to fragments.size.toString(),
+                "fragment.chars" to fragments.sumOf { it.text.length }.toString()
+            )
         ) {
             val events = delegate.generateCalendarEvents(fragments)
             val result = groundToSource("generateCalendarEvents", sourceText, events, spanScope = this)

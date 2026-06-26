@@ -1,8 +1,8 @@
 package com.borinquenterrier.cef
 
+import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.border
 import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
@@ -18,7 +18,6 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AutoAwesome
-import androidx.compose.material.icons.filled.Warning
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
@@ -56,8 +55,6 @@ fun StudioPanel(
     val isLoading by eventAgent.isLoading.collectAsState()
     val statusMessage by eventAgent.statusMessage.collectAsState()
     val lastGeneratedEvents by eventAgent.lastGeneratedEvents.collectAsState()
-    val persistedWarnings by eventAgent.persistedWarnings.collectAsState()
-    val extractionWarning by eventAgent.extractionWarning.collectAsState()
     val isConnected by container.tokenRepository.isLinked.collectAsState()
     val pendingRequests by eventAgent.pendingRequestCount.collectAsState()
     val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
@@ -77,10 +74,6 @@ fun StudioPanel(
 
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }
     val deadlineSummary = remember(eventsList, today) { DeadlineSummary.from(eventsList, today) }
-    val allWarnings = remember(lastGeneratedEvents, persistedWarnings, extractionWarning) {
-        WarningAggregator.collect(lastGeneratedEvents, persistedWarnings, extractionWarning, today)
-    }
-
 
     Column(
         modifier = modifier
@@ -180,47 +173,6 @@ fun StudioPanel(
                     }
                 }
 
-                // Source Notes are shown whenever there are warnings — including the case where
-                // extraction completed but found zero events (extractionWarning is non-null).
-                if (allWarnings.isNotEmpty()) {
-                    item {
-                        HorizontalDivider(modifier = Modifier.padding(vertical = 8.dp))
-                    }
-                    item {
-                        Card(
-                            colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.secondaryContainer),
-                            modifier = Modifier.fillMaxWidth()
-                                .testTag("source_discrepancies_card")
-                        ) {
-                            Column(modifier = Modifier.padding(8.dp)) {
-                                Row(verticalAlignment = Alignment.CenterVertically) {
-                                    Icon(
-                                        Icons.Default.Warning,
-                                        contentDescription = null,
-                                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                    Spacer(Modifier.width(8.dp))
-                                    Text(
-                                        "Source Notes",
-                                        style = MaterialTheme.typography.titleSmall,
-                                        color = MaterialTheme.colorScheme.onSecondaryContainer
-                                    )
-                                }
-                                SelectionContainer {
-                                    Column {
-                                        allWarnings.forEach { warning ->
-                                            Text(
-                                                "- $warning",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = MaterialTheme.colorScheme.onSecondaryContainer
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
 
                 if (lastGeneratedEvents.isNotEmpty()) {
                     val pushVariant = PushButtonState.variant(

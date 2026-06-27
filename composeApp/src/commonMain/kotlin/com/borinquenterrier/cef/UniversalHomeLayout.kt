@@ -210,7 +210,8 @@ fun UniversalHomeLayout(container: DependencyContainer) {
                         },
                         onSourceDeleted = { appController.deleteSource(it) },
                         onSourceReanalyzed = { appController.reanalyzeSource(it) },
-                        providers = sourceProviders
+                        providers = sourceProviders,
+                        onProviderDismissed = { showSources = false }
                     )
                 }
             }

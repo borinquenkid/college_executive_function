@@ -30,7 +30,8 @@ fun SourcesPanel(
     onSourceAdded: (SourceItem) -> Unit,
     onSourceDeleted: (SourceItem) -> Unit,
     onSourceReanalyzed: (SourceItem) -> Unit,
-    providers: List<SourceProvider>
+    providers: List<SourceProvider>,
+    onProviderDismissed: () -> Unit = {}
 ) {
     var activeProviderId by remember { mutableStateOf<String?>(null) }
 
@@ -91,7 +92,10 @@ fun SourcesPanel(
                 activeProviderId = null
                 onSourceAdded(it)
             },
-            onDismiss = { activeProviderId = null }
+            onDismiss = {
+                activeProviderId = null
+                onProviderDismissed()
+            }
         )
     }
 }

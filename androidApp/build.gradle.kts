@@ -381,7 +381,6 @@ val setupAndroid17 = tasks.register<SetupAndroid17Task>("setupAndroid17") {
 val prepareEmulator = tasks.register<PrepareEmulatorTask>("prepareEmulator") {
     group = "application"
     description = "Ensures an Android emulator is running and fully booted."
-    dependsOn(setupAndroid17)
     localPropertiesFile.set(localProps)
 }
 

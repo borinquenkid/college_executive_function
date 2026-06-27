@@ -26,7 +26,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | SqlDelightLocalCalendarRepository.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 25 | 98.1% | 25.00 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 87.2% | 24.11 | 🟡 MEDIUM |
-| GoogleRemoteCalendarRepository.kt | 22 | 86.1% | 23.30 | 🟡 MEDIUM |
+| GoogleRemoteCalendarRepository.kt | 22 | 86.5% | 23.19 | 🟡 MEDIUM |
 | CriticJsonCodec.kt | 23 | 93.8% | 23.13 | 🟡 MEDIUM |
 | AppContent.kt | 12 | 58.6% | 22.22 | 🟡 MEDIUM |
 | EventBuilder.kt | 22 | 93.8% | 22.12 | 🟡 MEDIUM |
@@ -200,9 +200,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateStudyPlan` | 1 |
 | `<T> runCritiqueLoop` | 1 |
 
-### GoogleRemoteCalendarRepository.kt (Score: 23.30 - 🟡 MEDIUM)
+### GoogleRemoteCalendarRepository.kt (Score: 23.19 - 🟡 MEDIUM)
 - **Total Complexity**: 22
-- **Real Coverage**: 86.1%
+- **Real Coverage**: 86.5%
 
 #### Methods list:
 | Method | Complexity |
@@ -334,9 +334,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `pruneOldLogs` | 1 |
 | `clearAllLogs` | 1 |
 
-### GeminiModelNegotiator.kt (Score: 20.39 - 🟡 MEDIUM)
+### GeminiModelNegotiator.kt (Score: 20.31 - 🟡 MEDIUM)
 - **Total Complexity**: 20
-- **Real Coverage**: 90.1%
+- **Real Coverage**: 90.8%
 
 #### Methods list:
 | Method | Complexity |

@@ -40,6 +40,16 @@ class GeminiModelNegotiator(
             "gemini-2.5-flash",
             "gemini-flash-latest"
         )
+
+        // Models confirmed to return 404 from the generateContent endpoint despite appearing
+        // in the /v1beta/models list. Exact-match to avoid blocking any future 2.0-family
+        // models that may be introduced.
+        internal val DEPRECATED_MODELS = setOf(
+            "gemini-2.0-flash",
+            "gemini-2.0-flash-lite",
+            "gemini-2.0-flash-001",
+            "gemini-2.0-flash-lite-001"
+        )
     }
 
     private val json = Json {
@@ -115,6 +125,7 @@ class GeminiModelNegotiator(
         val textCapableNames = names.filter { name ->
             val expiry = blacklistedModels[name]
             val notBlacklisted = expiry == null || currentTime > expiry
+            val notDeprecated = name !in DEPRECATED_MODELS
             val isTextCapable = !name.contains("tts") &&
                     !name.contains("-image") &&
                     !name.contains("-audio") &&
@@ -123,7 +134,7 @@ class GeminiModelNegotiator(
                     !name.contains("deep-research") &&
                     !name.contains("computer-use") &&
                     !name.contains("nano-banana")
-            notBlacklisted && isTextCapable
+            notBlacklisted && notDeprecated && isTextCapable
         }
 
         logger?.d(

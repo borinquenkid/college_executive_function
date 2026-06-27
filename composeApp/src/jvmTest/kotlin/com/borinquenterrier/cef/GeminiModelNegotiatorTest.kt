@@ -245,6 +245,56 @@ class GeminiModelNegotiatorTest : FunSpec({
             .executeAsOneOrNull() shouldBe "gemini-2.5-flash"
     }
 
+    test("deprecated 2.0-flash models are never selected even as fallback") {
+        val negotiator = GeminiModelNegotiator(
+            apiKey = "fake-key",
+            accessToken = null,
+            client = HttpClient(MockEngine { respond("") }),
+            database = database,
+            logger = null
+        )
+
+        // Offer only deprecated models + the HEAVY preference winner so the fallback path is exercised
+        val deprecatedAndOneGood = listOf(
+            ModelInfo("models/gemini-2.0-flash", listOf("generateContent")),
+            ModelInfo("models/gemini-2.0-flash-lite", listOf("generateContent")),
+            ModelInfo("models/gemini-2.0-flash-001", listOf("generateContent")),
+            ModelInfo("models/gemini-2.0-flash-lite-001", listOf("generateContent")),
+            ModelInfo("models/gemini-2.5-flash", listOf("generateContent"))
+        )
+        val selected = negotiator.negotiateBestModel(deprecatedAndOneGood, GeminiAIService.TaskTier.HEAVY)
+        selected shouldBe "gemini-2.5-flash"
+    }
+
+    test("deprecated flash models are skipped by the flash-contains fallback") {
+        val negotiator = GeminiModelNegotiator(
+            apiKey = "fake-key",
+            accessToken = null,
+            client = HttpClient(MockEngine { respond("") }),
+            database = database,
+            logger = null
+        )
+
+        // Blacklist all HEAVY preferences except gemini-2.5-pro so the preference path hits
+        // gemini-2.5-flash (blacklisted), gemini-2.5-pro (available) → selects gemini-2.5-pro.
+        // The key assertion: gemini-2.0-flash is in the list but must NOT be selected.
+        negotiator.blacklistModel("gemini-2.5-flash")
+        negotiator.blacklistModel("gemini-2.5-flash-lite")
+        negotiator.blacklistModel("gemini-3.5-flash")
+
+        val mixedList = listOf(
+            ModelInfo("models/gemini-2.0-flash", listOf("generateContent")),
+            ModelInfo("models/gemini-2.0-flash-lite", listOf("generateContent")),
+            ModelInfo("models/gemini-2.0-flash-001", listOf("generateContent")),
+            ModelInfo("models/gemini-2.0-flash-lite-001", listOf("generateContent")),
+            ModelInfo("models/gemini-2.5-pro", listOf("generateContent"))
+        )
+        val selected = negotiator.negotiateBestModel(mixedList, GeminiAIService.TaskTier.HEAVY)
+        // Without the denylist, the flash-contains fallback would pick gemini-2.0-flash
+        selected shouldBe "gemini-2.5-pro"
+        (selected in GeminiModelNegotiator.DEPRECATED_MODELS) shouldBe false
+    }
+
     test("getAvailableModels returns empty list on network error") {
         val mockClient = HttpClient(MockEngine { request ->
             respond(

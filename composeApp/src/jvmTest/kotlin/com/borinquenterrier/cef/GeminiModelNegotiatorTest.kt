@@ -55,7 +55,7 @@ class GeminiModelNegotiatorTest : FunSpec({
             logger = null
         )
 
-        // HEAVY prefers: gemini-2.5-flash, gemini-2.0-flash, gemini-2.5-flash-lite, gemini-2.0-flash-lite
+        // HEAVY prefers: gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite, gemini-3.5-flash
         val selected =
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.5-flash"
@@ -74,7 +74,7 @@ class GeminiModelNegotiatorTest : FunSpec({
             logger = null
         )
 
-        // LIGHT prefers: gemini-2.5-flash-lite, gemini-2.0-flash-lite, gemini-2.0-flash, gemini-2.5-flash
+        // LIGHT prefers: gemini-2.5-flash-lite, gemini-flash-lite-latest, gemini-2.5-flash, gemini-flash-latest
         val selected =
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.LIGHT)
         selected shouldBe "gemini-2.5-flash-lite"
@@ -100,7 +100,7 @@ class GeminiModelNegotiatorTest : FunSpec({
 
         val selected =
             negotiator.negotiateBestModel(unsupportedList, GeminiAIService.TaskTier.HEAVY)
-        selected shouldBe "gemini-2.0-flash" // fallback default
+        selected shouldBe "gemini-2.5-flash" // fallback default
     }
 
     test("negotiateBestModel uses cached model from database if not blacklisted") {
@@ -147,10 +147,10 @@ class GeminiModelNegotiatorTest : FunSpec({
         // Should ignore cache, select next best available non-blacklisted model, and save it
         val selected =
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
-        selected shouldBe "gemini-2.0-flash"
+        selected shouldBe "gemini-2.5-flash-lite"
 
         database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
-            .executeAsOneOrNull() shouldBe "gemini-2.0-flash"
+            .executeAsOneOrNull() shouldBe "gemini-2.5-flash-lite"
     }
 
     test("evictFromCache deletes preferred model from database") {

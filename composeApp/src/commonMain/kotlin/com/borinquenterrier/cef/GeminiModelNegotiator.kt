@@ -29,16 +29,16 @@ class GeminiModelNegotiator(
 
         internal val HEAVY_PREFERENCES = listOf(
             "gemini-2.5-flash",
-            "gemini-2.0-flash",
+            "gemini-2.5-pro",
             "gemini-2.5-flash-lite",
-            "gemini-2.0-flash-lite"
+            "gemini-3.5-flash"
         )
 
         internal val LIGHT_PREFERENCES = listOf(
             "gemini-2.5-flash-lite",
-            "gemini-2.0-flash-lite",
-            "gemini-2.0-flash",
-            "gemini-2.5-flash"
+            "gemini-flash-lite-latest",
+            "gemini-2.5-flash",
+            "gemini-flash-latest"
         )
     }
 
@@ -139,7 +139,7 @@ class GeminiModelNegotiator(
         val selected = preferences.firstOrNull { pref -> textCapableNames.contains(pref) }
             ?: textCapableNames.firstOrNull { it.contains("flash") && !it.contains("tts") }
             ?: textCapableNames.firstOrNull()
-            ?: "gemini-2.0-flash"
+            ?: "gemini-2.5-flash"
 
         try {
             database?.appDatabaseQueries?.insertModel(PREFERRED_MODEL_KEY, selected, currentTime)

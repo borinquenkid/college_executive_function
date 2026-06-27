@@ -13,6 +13,7 @@ import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.withContext
 
 object GoogleAuthCallback {
     var pendingDeferred: CompletableDeferred<Pair<String, String?>>? = null
@@ -52,15 +53,17 @@ class GoogleAuthActivity : ComponentActivity() {
                                 scopes
                             )
                             GoogleAuthCallback.pendingDeferred?.complete(Pair(token, null))
-                            finish()
+                            withContext(Dispatchers.Main) { finish() }
                         } catch (e: com.google.android.gms.auth.UserRecoverableAuthException) {
-                            // If the error is recoverable, start the intent provided by Google
+                            // Must switch to Main — startActivityForResult requires the main thread
                             val recoveryIntent = e.intent
                             if (recoveryIntent != null) {
-                                startActivityForResult(recoveryIntent, 1002)
+                                withContext(Dispatchers.Main) {
+                                    startActivityForResult(recoveryIntent, 1002)
+                                }
                             } else {
                                 GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)
-                                finish()
+                                withContext(Dispatchers.Main) { finish() }
                             }
                         } catch (e: Exception) {
                             GoogleAuthCallback.pendingDeferred?.completeExceptionally(e)

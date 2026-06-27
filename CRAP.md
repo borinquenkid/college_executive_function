@@ -22,7 +22,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GeminiRetryService.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 27 | 100.0% | 27.00 | 🟡 MEDIUM |
-| GeminiRequestExecutor.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
+| GeminiRequestExecutor.kt | 27 | 100.0% | 27.00 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 25 | 98.1% | 25.00 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 87.2% | 24.11 | 🟡 MEDIUM |
@@ -138,8 +138,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `deleteEvent` | 1 |
 | `fetchEventsPage` | 1 |
 
-### GeminiRequestExecutor.kt (Score: 26.00 - 🟡 MEDIUM)
-- **Total Complexity**: 26
+### GeminiRequestExecutor.kt (Score: 27.00 - 🟡 MEDIUM)
+- **Total Complexity**: 27
 - **Real Coverage**: 100.0%
 
 #### Methods list:
@@ -610,6 +610,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `applySyncNegotiation` | 1 |
 | *... and 2 more* | |
 
+### Logger.kt (Score: 11.41 - 🟢 LOW)
+- **Total Complexity**: 11
+- **Real Coverage**: 85.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `e` | 3 |
+| `d` | 2 |
+| `appendToFile` | 2 |
+| `isDebugEnabled` | 1 |
+| `i` | 1 |
+| `writeLogToFile` | 1 |
+| `rememberLogger` | 1 |
+
 ### SourceIngestionHandler.kt (Score: 11.11 - 🟢 LOW)
 - **Total Complexity**: 11
 - **Real Coverage**: 90.3%
@@ -804,21 +819,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `downloadModel` | 7 |
 | `isModelDownloaded` | 2 |
 | `getModelFile` | 1 |
-
-### Logger.kt (Score: 9.27 - 🟢 LOW)
-- **Total Complexity**: 9
-- **Real Coverage**: 85.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `d` | 2 |
-| `appendToFile` | 2 |
-| `isDebugEnabled` | 1 |
-| `e` | 1 |
-| `i` | 1 |
-| `writeLogToFile` | 1 |
-| `rememberLogger` | 1 |
 
 ### NormalizationService.kt (Score: 9.00 - 🟢 LOW)
 - **Total Complexity**: 9

@@ -16,7 +16,11 @@ class GoogleRemoteCalendarRepository(
     override fun getSettings(): com.russhwolf.settings.Settings? = null
 
     override suspend fun getAvailableCalendars(): List<RemoteCalendarMetadata> =
-        syncService.listCalendars()
+        try {
+            syncService.listCalendars()
+        } catch (e: GoogleApiException) {
+            throw e.toCalendarException("calendarList")
+        }
 
     override suspend fun getAllEvents(calendarId: String): List<Event> {
         val targetId = calendarIdResolver.resolveCalendarId(calendarId)

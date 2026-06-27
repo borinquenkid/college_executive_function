@@ -132,7 +132,15 @@ fun GoogleCalendarPanel(
                     calendarLoadError = calendarLoadError,
                     onCalendarSelect = onCalendarIdChange,
                     onCreateClick = { showCreateCalendarDialog = true },
-                    onRetryLoad = { scope.launch { onCalendarsRefresh() } },
+                    onRetryLoad = {
+                        scope.launch {
+                            try {
+                                onCalendarsRefresh()
+                            } catch (e: Exception) {
+                                onCalendarLoadError(CalendarErrorFormatter.format(e))
+                            }
+                        }
+                    },
                     onLoadError = onCalendarLoadError,
                     scope = scope,
                     container = container

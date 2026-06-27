@@ -97,6 +97,20 @@ class GoogleRemoteCalendarRepositoryTest : FunSpec({
         coVerify(exactly = 1) { syncService.listCalendars() }
     }
 
+    test("getAvailableCalendars converts 404 GoogleApiException to CalendarNotFoundException") {
+        coEvery { syncService.listCalendars() } throws GoogleApiException(404, """{"error":{"code":404}}""")
+
+        val ex = shouldThrow<CalendarNotFoundException> { repo.getAvailableCalendars() }
+        ex.calendarId shouldBe "calendarList"
+    }
+
+    test("getAvailableCalendars propagates non-404 GoogleApiException unchanged") {
+        coEvery { syncService.listCalendars() } throws GoogleApiException(500, "server error")
+
+        val ex = shouldThrow<GoogleApiException> { repo.getAvailableCalendars() }
+        ex.statusCode shouldBe 500
+    }
+
     // ─── saveEvent ───────────────────────────────────────────────────────────
 
     test("saveEvent syncs event when no overlap exists") {

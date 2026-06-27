@@ -14,7 +14,14 @@ class GoogleTokenService(
                 val refreshToken = tokenRepository.getRefreshToken() ?: throw e
                 val newToken = authService.refreshAccessToken(refreshToken) ?: throw e
                 tokenRepository.saveTokens(newToken, refreshToken)
-                block(newToken)
+                try {
+                    block(newToken)
+                } catch (retryEx: GoogleApiException) {
+                    if (retryEx.statusCode == 401) {
+                        throw Exception("Google session expired. Please reconnect your Google account.", retryEx)
+                    }
+                    throw retryEx
+                }
             } else {
                 throw e
             }

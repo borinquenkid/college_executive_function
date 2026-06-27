@@ -14,6 +14,11 @@ class GoogleTokenServiceTest : FunSpec({
     val authService = mockk<GoogleAuthService>(relaxed = true)
     val service = GoogleTokenService(tokenRepository, authService)
 
+    // Helper to capture auth-expired callback invocations
+    fun serviceWithCallback(captured: MutableList<String>): GoogleTokenService {
+        return GoogleTokenService(tokenRepository, authService) { msg -> captured.add(msg) }
+    }
+
     context("withToken — happy path") {
 
         test("calls block with current access token") {
@@ -62,6 +67,19 @@ class GoogleTokenServiceTest : FunSpec({
             ex.statusCode shouldBe 401
         }
 
+        test("invokes onAuthExpired callback when no refresh token is stored") {
+            val callbackMessages = mutableListOf<String>()
+            val svc = serviceWithCallback(callbackMessages)
+            coEvery { tokenRepository.getAccessToken() } returns "expired-tok"
+            coEvery { tokenRepository.getRefreshToken() } returns null
+
+            shouldThrow<GoogleApiException> {
+                svc.withToken<Unit> { throw GoogleApiException(401, "Unauthorized") }
+            }
+            callbackMessages.size shouldBe 1
+            callbackMessages[0] shouldContain "session expired"
+        }
+
         test("rethrows 401 when refreshAccessToken returns null") {
             coEvery { tokenRepository.getAccessToken() } returns "expired-tok"
             coEvery { tokenRepository.getRefreshToken() } returns "refresh-tok"
@@ -73,6 +91,20 @@ class GoogleTokenServiceTest : FunSpec({
             ex.statusCode shouldBe 401
         }
 
+        test("invokes onAuthExpired callback when refreshAccessToken returns null") {
+            val callbackMessages = mutableListOf<String>()
+            val svc = serviceWithCallback(callbackMessages)
+            coEvery { tokenRepository.getAccessToken() } returns "expired-tok"
+            coEvery { tokenRepository.getRefreshToken() } returns "refresh-tok"
+            coEvery { authService.refreshAccessToken("refresh-tok") } returns null
+
+            shouldThrow<GoogleApiException> {
+                svc.withToken<Unit> { throw GoogleApiException(401, "Unauthorized") }
+            }
+            callbackMessages.size shouldBe 1
+            callbackMessages[0] shouldContain "session expired"
+        }
+
         test("retry also returns 401 — throws session-expired Exception") {
             coEvery { tokenRepository.getAccessToken() } returns "tok"
             coEvery { tokenRepository.getRefreshToken() } returns "refresh-tok"
@@ -82,6 +114,30 @@ class GoogleTokenServiceTest : FunSpec({
                 service.withToken<Unit> { throw GoogleApiException(401, "Unauthorized") }
             }
             ex.message shouldContain "session expired"
+        }
+
+        test("invokes onAuthExpired callback when retry also returns 401") {
+            val callbackMessages = mutableListOf<String>()
+            val svc = serviceWithCallback(callbackMessages)
+            coEvery { tokenRepository.getAccessToken() } returns "tok"
+            coEvery { tokenRepository.getRefreshToken() } returns "refresh-tok"
+            coEvery { authService.refreshAccessToken("refresh-tok") } returns "fresh-tok"
+
+            shouldThrow<Exception> {
+                svc.withToken<Unit> { throw GoogleApiException(401, "Unauthorized") }
+            }
+            callbackMessages.size shouldBe 1
+            callbackMessages[0] shouldContain "session expired"
+        }
+
+        test("does not invoke onAuthExpired when no callback provided") {
+            // Regression guard: default constructor must not NPE
+            coEvery { tokenRepository.getAccessToken() } returns "expired-tok"
+            coEvery { tokenRepository.getRefreshToken() } returns null
+
+            shouldThrow<GoogleApiException> {
+                service.withToken<Unit> { throw GoogleApiException(401, "Unauthorized") }
+            }
         }
     }
 

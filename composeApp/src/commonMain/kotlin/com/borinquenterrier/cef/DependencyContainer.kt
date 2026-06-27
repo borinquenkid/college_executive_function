@@ -47,7 +47,11 @@ class DependencyContainer(
     val database: AppDatabase by lazy { createDatabase(driverFactory) }
     val tokenRepository by lazy { GoogleTokenRepository(settings) }
     val authService by lazy { GoogleAuthService(settings, appEnv) }
-    val tokenService by lazy { GoogleTokenService(tokenRepository, authService) }
+    val tokenService by lazy {
+        GoogleTokenService(tokenRepository, authService) { message ->
+            googleAccountFlow.reportAuthError(message)
+        }
+    }
     val localRepository by lazy { SqlDelightLocalCalendarRepository(database, settings) }
     val preferencesRepository by lazy { PreferencesRepository(settings) }
     val preferencesFlow: StateFlow<StudyPreferences> by lazy { preferencesRepository.flow.asStateFlow() }

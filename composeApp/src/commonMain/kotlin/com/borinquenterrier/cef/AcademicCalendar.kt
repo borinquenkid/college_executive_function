@@ -72,6 +72,9 @@ fun AcademicCalendar(
                     ) {
                         displayedEvents = it
                     }
+                } catch (_: Exception) {
+                    // Auth errors already handled by GoogleTokenService.onAuthExpired;
+                    // other transient errors are silently dropped so the app stays alive.
                 } finally {
                     if (isSyncing) isSyncing = false
                 }
@@ -118,7 +121,11 @@ fun AcademicCalendar(
                 activeSyncNegotiation = null
             }
             scope.launch {
-                displayedEvents = syncManager.refreshEvents()
+                try {
+                    displayedEvents = syncManager.refreshEvents()
+                } catch (_: Exception) {
+                    // Auth errors already handled by GoogleTokenService.onAuthExpired.
+                }
             }
         }
     ) {
@@ -164,6 +171,8 @@ fun AcademicCalendar(
                             ) {
                                 displayedEvents = it
                             }
+                        } catch (_: Exception) {
+                            // Auth errors already handled by GoogleTokenService.onAuthExpired.
                         } finally {
                             if (isSyncing) isSyncing = false
                         }

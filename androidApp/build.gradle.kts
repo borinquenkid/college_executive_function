@@ -336,12 +336,31 @@ android {
     namespace = "com.borinquenterrier.cef"
     compileSdk = libs.versions.android.compileSdk.get().toInt()
 
+    signingConfigs {
+        create("release") {
+            val props = Properties()
+            val propsFile = rootProject.layout.projectDirectory.file("local.properties").asFile
+            if (propsFile.exists()) propsFile.inputStream().use { props.load(it) }
+            storeFile = props.getProperty("keystore.path")?.let { file(it) }
+            storePassword = props.getProperty("keystore.password")
+            keyAlias = props.getProperty("keystore.alias")
+            keyPassword = props.getProperty("keystore.keyPassword")
+        }
+    }
+
     defaultConfig {
         applicationId = "com.borinquenterrier.cef"
         minSdk = libs.versions.android.minSdk.get().toInt()
         targetSdk = libs.versions.android.targetSdk.get().toInt()
         versionCode = 1
         versionName = (findProperty("cef.versionName") as String?) ?: "1.0.0"
+    }
+
+    buildTypes {
+        release {
+            signingConfig = signingConfigs.getByName("release")
+            isMinifyEnabled = false
+        }
     }
 
     buildFeatures { compose = true }

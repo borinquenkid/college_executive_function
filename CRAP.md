@@ -974,17 +974,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `save` | 4 |
 | `update` | 4 |
 
-### OAuthExchange.kt (Score: 7.20 - 🟢 LOW)
-- **Total Complexity**: 6
-- **Real Coverage**: 67.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `performTokenExchange` | 2 |
-| `exchangeCodeForTokens` | 1 |
-| `refreshAccessToken` | 1 |
-
 ### PreferenceSerializer.kt (Score: 7.07 - 🟢 LOW)
 - **Total Complexity**: 7
 - **Real Coverage**: 88.9%
@@ -1147,6 +1136,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getCached` | 1 |
 | `evict` | 1 |
+
+### OAuthExchange.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 6
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `performTokenExchange` | 2 |
+| `exchangeCodeForTokens` | 1 |
+| `refreshAccessToken` | 1 |
 
 ### TaskDecompositionService.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 6
@@ -1559,15 +1559,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `buildJsonRequestBody` | 1 |
 | `buildTextRequestBody` | 1 |
 
-### ContributionValidator.kt (Score: 3.09 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 78.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `validate` | 3 |
-
 ### HarnessSourceProcessor.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3
 - **Real Coverage**: 100.0%
@@ -1656,6 +1647,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `categorizeError` | 1 |
 | `handleStructuralError` | 1 |
 | `handleServerError` | 1 |
+
+### ContributionValidator.kt (Score: 3.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `validate` | 3 |
 
 ### FileDuplicateFilter.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3
@@ -1770,11 +1770,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `secondsRemaining` | 2 |
 
-### RoutineItem.kt (Score: 2.00 - 🟢 LOW)
-- **Total Complexity**: 1
-- **Real Coverage**: 0.0%
-
-
 ### WarningAggregator.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 2
 - **Real Coverage**: 100.0%
@@ -1830,6 +1825,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `decomposeTask` | 1 |
+
+### RoutineItem.kt (Score: 1.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 83.3%
+
 
 ### IcsCalendarSource.kt (Score: 1.00 - 🟢 LOW)
 - **Total Complexity**: 1

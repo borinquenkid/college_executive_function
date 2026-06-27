@@ -245,6 +245,17 @@ kotlin {
                 implementation(libs.mockk)
             }
         }
+        val androidInstrumentedTest by getting {
+            dependencies {
+                implementation(libs.androidx.test.ext.junit)
+                implementation(libs.androidx.test.core)
+                implementation(libs.androidx.test.runner)
+                implementation(libs.androidx.espresso.core)
+                implementation(libs.androidx.espresso.intents)
+                implementation(libs.play.services.auth)
+                implementation(libs.multiplatform.settings.test)
+            }
+        }
         jvmMain.dependencies {
             implementation(compose.desktop.currentOs)
             implementation(libs.kotlinx.coroutinesSwing)

@@ -567,4 +567,142 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
         rt.summary shouldBe "Test"
         rt.end.date shouldBe "2026-09-02"
     }
+
+    // ── listCalendars auth / error paths ──────────────────────────────────────
+
+    test("listCalendars throws GoogleApiException on non-2xx non-401") {
+        val engine = MockEngine { _ -> respond("Forbidden", HttpStatusCode.Forbidden, jsonHeader) }
+        val ex = shouldThrow<GoogleApiException> { makeService(engine).listCalendars() }
+        ex.statusCode shouldBe 403
+    }
+
+    test("listCalendars 401 triggers token refresh and retries successfully") {
+        var callCount = 0
+        val engine = MockEngine { _ ->
+            callCount++
+            if (callCount == 1) respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeader)
+            else respond("""{"items":[]}""", HttpStatusCode.OK, jsonHeader)
+        }
+        val repo = tokenRepo()
+        val auth = authService(newToken = "refreshed-token")
+        makeService(engine, repo, auth).listCalendars()
+        coVerify { repo.saveTokens("refreshed-token", any()) }
+        callCount shouldBe 2
+    }
+
+    test("listCalendars 401 with no refresh token rethrows GoogleApiException") {
+        val engine = MockEngine { _ -> respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeader) }
+        val repo = tokenRepo(refresh = null)
+        shouldThrow<GoogleApiException> { makeService(engine, repo).listCalendars() }
+    }
+
+    test("listCalendars 401 with auth returning null rethrows GoogleApiException") {
+        val engine = MockEngine { _ -> respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeader) }
+        val auth = authService(newToken = null)
+        shouldThrow<GoogleApiException> { makeService(engine, auth = auth).listCalendars() }
+    }
+
+    // ── syncEvent error paths ─────────────────────────────────────────────────
+
+    test("syncEvent throws GoogleApiException on non-2xx") {
+        val engine = MockEngine { _ -> respond("Not Found", HttpStatusCode.NotFound, jsonHeader) }
+        val event = DayEvent(
+            title = "Essay", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 9, 1)
+        )
+        val ex = shouldThrow<GoogleApiException> { makeService(engine).syncEvent(event, "cal-id") }
+        ex.statusCode shouldBe 404
+    }
+
+    test("syncEvent 401 triggers token refresh and retries") {
+        var callCount = 0
+        val engine = MockEngine { _ ->
+            callCount++
+            if (callCount == 1) respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeader)
+            else respond("""{"id":"new-id"}""", HttpStatusCode.OK, jsonHeader)
+        }
+        val repo = tokenRepo()
+        val auth = authService(newToken = "refreshed-token")
+        val event = DayEvent(
+            title = "Essay", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 9, 1)
+        )
+        makeService(engine, repo, auth).syncEvent(event, "cal-id")
+        coVerify { repo.saveTokens("refreshed-token", any()) }
+        callCount shouldBe 2
+    }
+
+    // ── deleteEvent error paths ───────────────────────────────────────────────
+
+    test("deleteEvent throws GoogleApiException on non-2xx") {
+        val engine = MockEngine { _ -> respond("Not Found", HttpStatusCode.NotFound, jsonHeader) }
+        val ex = shouldThrow<GoogleApiException> { makeService(engine).deleteEvent("cal-id", "event-id") }
+        ex.statusCode shouldBe 404
+    }
+
+    test("deleteEvent 401 triggers token refresh and retries") {
+        var callCount = 0
+        val engine = MockEngine { _ ->
+            callCount++
+            if (callCount == 1) respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeader)
+            else respond("", HttpStatusCode.OK, jsonHeader)
+        }
+        val repo = tokenRepo()
+        val auth = authService(newToken = "refreshed-token")
+        makeService(engine, repo, auth).deleteEvent("cal-id", "event-id")
+        coVerify { repo.saveTokens("refreshed-token", any()) }
+        callCount shouldBe 2
+    }
+
+    // ── createCalendar error paths ────────────────────────────────────────────
+
+    test("createCalendar throws GoogleApiException on non-2xx") {
+        val engine = MockEngine { _ -> respond("Forbidden", HttpStatusCode.Forbidden, jsonHeader) }
+        val ex = shouldThrow<GoogleApiException> { makeService(engine).createCalendar("New Cal") }
+        ex.statusCode shouldBe 403
+    }
+
+    test("createCalendar 401 triggers token refresh and retries") {
+        var callCount = 0
+        val engine = MockEngine { _ ->
+            callCount++
+            if (callCount == 1) respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeader)
+            else respond("""{"id":"new-cal","summary":"New Cal"}""", HttpStatusCode.OK, jsonHeader)
+        }
+        val repo = tokenRepo()
+        val auth = authService(newToken = "refreshed-token")
+        makeService(engine, repo, auth).createCalendar("New Cal")
+        coVerify { repo.saveTokens("refreshed-token", any()) }
+        callCount shouldBe 2
+    }
+
+    // ── withToken: retry also returns 401 → session expired ──────────────────
+
+    test("second 401 after successful refresh throws session-expired Exception") {
+        val engine = MockEngine { _ -> respond("Unauthorized", HttpStatusCode.Unauthorized, jsonHeader) }
+        val auth = authService(newToken = "refreshed-token")
+        val ex = shouldThrow<Exception> { makeService(engine, auth = auth).getEvents() }
+        ex.message shouldContain "session expired"
+    }
+
+    // ── getEvents: error propagates from second pagination page ──────────────
+
+    test("getEvents propagates GoogleApiException from second page") {
+        var requestCount = 0
+        val engine = MockEngine { _ ->
+            requestCount++
+            if (requestCount == 1) {
+                respond(
+                    """{"items":[{"id":"e1","summary":"Event1","start":{"date":"2026-09-01"}}],
+                       "nextPageToken":"page2"}""",
+                    HttpStatusCode.OK, jsonHeader
+                )
+            } else {
+                respond("Server Error", HttpStatusCode.InternalServerError, jsonHeader)
+            }
+        }
+        val ex = shouldThrow<GoogleApiException> { makeService(engine).getEvents() }
+        ex.statusCode shouldBe 500
+    }
+
 })

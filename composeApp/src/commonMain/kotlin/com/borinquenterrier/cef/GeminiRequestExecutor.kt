@@ -200,9 +200,20 @@ class GeminiRequestExecutor(
             }
         }
 
-        modelNegotiator.blacklistModel(lastNegotiatedModel)
-        modelNegotiator.evictFromCache(lastNegotiatedModel)
-        logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts. Evicted and blacklisted.")
+        val isNetworkError = lastError?.message?.let { msg ->
+            msg.contains("Socket timeout", ignoreCase = true) ||
+            msg.contains("ConnectException", ignoreCase = true) ||
+            msg.contains("Network is unreachable", ignoreCase = true) ||
+            msg.contains("Failed to connect", ignoreCase = true)
+        } ?: false
+
+        if (isNetworkError) {
+            logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts due to network error. NOT blacklisted.")
+        } else {
+            modelNegotiator.blacklistModel(lastNegotiatedModel)
+            modelNegotiator.evictFromCache(lastNegotiatedModel)
+            logger?.e(tag, "⚠️ Model $lastNegotiatedModel failed all $maxAttempts attempts. Evicted and blacklisted.")
+        }
 
         val errorToThrow = lastError ?: Exception("Failed after $maxAttempts attempts")
         if (errorToThrow.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) {

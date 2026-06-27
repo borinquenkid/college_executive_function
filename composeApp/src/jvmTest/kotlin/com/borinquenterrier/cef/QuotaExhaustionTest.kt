@@ -146,10 +146,10 @@ class QuotaExhaustionTest : FunSpec({
 
     test("daily quota exhaustion on first model falls back to next model and succeeds") {
         val quotaExhaustedBody =
-            """{"error":{"code":429,"message":"Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.0-flash","status":"RESOURCE_EXHAUSTED"}}"""
+            """{"error":{"code":429,"message":"Quota exceeded for metric: generativelanguage.googleapis.com/generate_content_free_tier_requests, limit: 0, model: gemini-2.5-flash-lite","status":"RESOURCE_EXHAUSTED"}}"""
         val twoModelsResponse = """
             {"models":[
-                {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
+                {"name":"models/gemini-2.5-flash-lite","supportedGenerationMethods":["generateContent"]},
                 {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
             ]}
         """.trimIndent()
@@ -164,7 +164,7 @@ class QuotaExhaustionTest : FunSpec({
                 )
             } else {
                 callCount++
-                if (request.url.encodedPath.contains("gemini-2.0-flash")) {
+                if (request.url.encodedPath.contains("gemini-2.5-flash-lite")) {
                     respond(
                         content = quotaExhaustedBody,
                         status = HttpStatusCode.TooManyRequests,
@@ -191,7 +191,7 @@ class QuotaExhaustionTest : FunSpec({
             """{"error":{"code":429,"message":"Quota exceeded. Please retry in 48s.","status":"RESOURCE_EXHAUSTED"}}"""
         val twoModelsResponse = """
             {"models":[
-                {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
+                {"name":"models/gemini-2.5-flash-lite","supportedGenerationMethods":["generateContent"]},
                 {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
             ]}
         """.trimIndent()
@@ -206,7 +206,7 @@ class QuotaExhaustionTest : FunSpec({
                 )
             } else {
                 callCount++
-                if (request.url.encodedPath.contains("gemini-2.0-flash")) {
+                if (request.url.encodedPath.contains("gemini-2.5-flash-lite")) {
                     respond(
                         content = longRetryBody,
                         status = HttpStatusCode.TooManyRequests,
@@ -233,7 +233,7 @@ class QuotaExhaustionTest : FunSpec({
         val longRetryBody = """{"error":{"code":429,"message":"Quota exceeded. Please retry in 15s.","status":"RESOURCE_EXHAUSTED"}}"""
         val twoModelsResponse = """
             {"models":[
-                {"name":"models/gemini-2.0-flash","supportedGenerationMethods":["generateContent"]},
+                {"name":"models/gemini-2.5-flash-lite","supportedGenerationMethods":["generateContent"]},
                 {"name":"models/gemini-2.5-flash","supportedGenerationMethods":["generateContent"]}
             ]}
         """.trimIndent()
@@ -245,7 +245,7 @@ class QuotaExhaustionTest : FunSpec({
                 respond(twoModelsResponse, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
             } else {
                 callCount++
-                if (request.url.encodedPath.contains("gemini-2.0-flash")) {
+                if (request.url.encodedPath.contains("gemini-2.5-flash-lite")) {
                     respond(longRetryBody, HttpStatusCode.TooManyRequests, headersOf(HttpHeaders.ContentType, "application/json"))
                 } else {
                     respond("""{"candidates":[{"content":{"parts":[{"text":"ok"}]}}]}""", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))

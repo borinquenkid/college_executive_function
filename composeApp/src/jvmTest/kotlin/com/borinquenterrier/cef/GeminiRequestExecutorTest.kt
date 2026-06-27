@@ -194,6 +194,33 @@ class GeminiRequestExecutorTest : FunSpec({
         callCount shouldBe 3
     }
 
+    test("socket timeout exhaustion does NOT blacklist the model") {
+        var callCount = 0
+        val modelsUsed = mutableListOf<String>()
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.contains("/models") && !request.url.encodedPath.contains(":generateContent")) {
+                respond(twoModels, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            } else {
+                callCount++
+                modelsUsed.add(request.url.encodedPath)
+                if (callCount <= 3) {
+                    throw Exception("Socket timeout has expired [url=test, socket_timeout=unknown] ms")
+                } else {
+                    respond(okText, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+                }
+            }
+        }
+        val service = makeService(engine)
+        val result1 = service.generateChatResponse("x")
+        result1 shouldContain "Error"
+
+        // gemini-2.5-flash must NOT be blacklisted — so the 4th call re-uses it, not the fallback
+        val result2 = service.generateChatResponse("x")
+        result2 shouldBe "hello"
+        modelsUsed[3] shouldContain "gemini-2.5-flash"
+        modelsUsed[3] shouldNotContain "gemini-2.0-flash"
+    }
+
     // ── GeminiAIService high-level paths ─────────────────────────────────────
 
     test("generateCalendarEvents with >3 text fragments batches and merges results") {

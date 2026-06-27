@@ -22,13 +22,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GeminiRetryService.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GoogleCalendarSyncService.kt | 27 | 100.0% | 27.00 | 🟡 MEDIUM |
+| GeminiRequestExecutor.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 25 | 98.1% | 25.00 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 87.2% | 24.11 | 🟡 MEDIUM |
+| GoogleRemoteCalendarRepository.kt | 22 | 86.1% | 23.30 | 🟡 MEDIUM |
 | CriticJsonCodec.kt | 23 | 93.8% | 23.13 | 🟡 MEDIUM |
-| GeminiRequestExecutor.kt | 23 | 100.0% | 23.00 | 🟡 MEDIUM |
 | AppContent.kt | 12 | 58.6% | 22.22 | 🟡 MEDIUM |
-| GoogleRemoteCalendarRepository.kt | 21 | 86.1% | 22.18 | 🟡 MEDIUM |
 | EventBuilder.kt | 22 | 93.8% | 22.12 | 🟡 MEDIUM |
 | Event.kt | 22 | 96.5% | 22.02 | 🟡 MEDIUM |
 
@@ -138,6 +138,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `deleteEvent` | 1 |
 | `fetchEventsPage` | 1 |
 
+### GeminiRequestExecutor.kt (Score: 26.00 - 🟡 MEDIUM)
+- **Total Complexity**: 26
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearRateLimitResetForTesting` | 1 |
+| `postToModel` | 1 |
+| `<T> executeWithRetry` | 1 |
+| `<T> executeWithRetryInternal` | 1 |
+
 ### SqlDelightLocalCalendarRepository.kt (Score: 26.00 - 🟡 MEDIUM)
 - **Total Complexity**: 26
 - **Real Coverage**: 100.0%
@@ -188,6 +200,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateStudyPlan` | 1 |
 | `<T> runCritiqueLoop` | 1 |
 
+### GoogleRemoteCalendarRepository.kt (Score: 23.30 - 🟡 MEDIUM)
+- **Total Complexity**: 22
+- **Real Coverage**: 86.1%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `clearCalendar` | 5 |
+| `deleteEvent` | 3 |
+| `getAvailableCalendars` | 2 |
+| `getAllEvents` | 2 |
+| `saveEvent` | 2 |
+| `updateEvent` | 2 |
+| `getSettings` | 1 |
+| `hardDeleteEvent` | 1 |
+| `clearLocalCalendar` | 1 |
+| `getEventsInRange` | 1 |
+| *... and 2 more* | |
+
 ### CriticJsonCodec.kt (Score: 23.13 - 🟡 MEDIUM)
 - **Total Complexity**: 23
 - **Real Coverage**: 93.8%
@@ -202,18 +233,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseTasks` | 2 |
 | `parseTaskFromJson` | 2 |
 
-### GeminiRequestExecutor.kt (Score: 23.00 - 🟡 MEDIUM)
-- **Total Complexity**: 23
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearRateLimitResetForTesting` | 1 |
-| `postToModel` | 1 |
-| `<T> executeWithRetry` | 1 |
-| `<T> executeWithRetryInternal` | 1 |
-
 ### AppContent.kt (Score: 22.22 - 🟡 MEDIUM)
 - **Total Complexity**: 12
 - **Real Coverage**: 58.6%
@@ -222,25 +241,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `AppContent` | 12 |
-
-### GoogleRemoteCalendarRepository.kt (Score: 22.18 - 🟡 MEDIUM)
-- **Total Complexity**: 21
-- **Real Coverage**: 86.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `clearCalendar` | 5 |
-| `deleteEvent` | 3 |
-| `getAllEvents` | 2 |
-| `saveEvent` | 2 |
-| `updateEvent` | 2 |
-| `getSettings` | 1 |
-| `getAvailableCalendars` | 1 |
-| `hardDeleteEvent` | 1 |
-| `clearLocalCalendar` | 1 |
-| `getEventsInRange` | 1 |
-| *... and 2 more* | |
 
 ### EventBuilder.kt (Score: 22.12 - 🟡 MEDIUM)
 - **Total Complexity**: 22
@@ -919,6 +919,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `estimatedRemainingSeconds` | 2 |
 | `shared` | 1 |
 
+### GoogleTokenService.kt (Score: 8.00 - 🟢 LOW)
+- **Total Complexity**: 8
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `<T> withToken` | 8 |
+
 ### ConstraintValidator.kt (Score: 8.00 - 🟢 LOW)
 - **Total Complexity**: 8
 - **Real Coverage**: 100.0%
@@ -1080,15 +1089,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `reportError` | 6 |
-
-### GoogleTokenService.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 6
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `<T> withToken` | 6 |
 
 ### SourceInterfaces.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2

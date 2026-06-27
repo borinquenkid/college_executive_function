@@ -23,9 +23,9 @@ import kotlin.coroutines.resumeWithException
 actual class GoogleAuthService actual constructor(private val settings: Settings, private val appEnv: AppEnv) {
 
     private val clientId =
-        "118849293337-tiambsi7u4hqq03rnaj0tohppqqu8fsa.apps.googleusercontent.com"
+        "1014783111965-ttk2sf44ue2k97qjucvemqgmr15cjv3n.apps.googleusercontent.com"
     private val redirectUri =
-        "com.googleusercontent.apps.118849293337-tiambsi7u4hqq03rnaj0tohppqqu8fsa:/"
+        "com.googleusercontent.apps.1014783111965-ttk2sf44ue2k97qjucvemqgmr15cjv3n:/"
     private val scope =
         "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
 
@@ -56,7 +56,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
 
             val session = ASWebAuthenticationSession(
                 uRL = NSURL(string = authUrlString)!!,
-                callbackURLScheme = "com.googleusercontent.apps.118849293337-tiambsi7u4hqq03rnaj0tohppqqu8fsa",
+                callbackURLScheme = "com.googleusercontent.apps.1014783111965-ttk2sf44ue2k97qjucvemqgmr15cjv3n",
                 completionHandler = { callbackUrl: NSURL?, error: NSError? ->
                     activeSession = null // Release reference
 

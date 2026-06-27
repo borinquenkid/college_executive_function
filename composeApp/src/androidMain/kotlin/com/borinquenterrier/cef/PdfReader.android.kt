@@ -5,6 +5,7 @@ import androidx.core.net.toUri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.platform.LocalContext
+import com.tom_roush.pdfbox.android.PDFBoxResourceLoader
 import com.tom_roush.pdfbox.pdmodel.PDDocument
 import com.tom_roush.pdfbox.text.PDFTextStripper
 import kotlinx.coroutines.Dispatchers
@@ -32,6 +33,7 @@ actual class PdfReader(private val context: Context) {
                     throw Exception("Could not access file at $path")
                 }
 
+                PDFBoxResourceLoader.init(context)
                 val document = PDDocument.load(fileToRead)
                 val stripper = PDFTextStripper()
                 val fragments = mutableListOf<SourceFragment>()

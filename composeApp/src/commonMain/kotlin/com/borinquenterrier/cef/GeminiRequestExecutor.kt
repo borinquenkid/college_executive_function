@@ -193,7 +193,8 @@ class GeminiRequestExecutor(
                 if (msg.contains("Unauthorized") || msg.contains("Forbidden") || msg.contains("QuotaExhausted")) throw e
 
                 lastError = e
-                logger?.e(tag, "Attempt ${attempts + 1} failed: ${e.message}")
+                val safeMsg = e.message?.replace(Regex("key=[A-Za-z0-9_-]+"), "key=[REDACTED]") ?: ""
+                logger?.e(tag, "Attempt ${attempts + 1} failed: $safeMsg")
                 attempts++
                 val delayMs = 1000L * (1 shl (attempts - 1))
                 retryService.wait(delayMs)

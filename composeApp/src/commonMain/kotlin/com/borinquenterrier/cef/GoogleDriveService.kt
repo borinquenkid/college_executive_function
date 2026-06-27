@@ -99,7 +99,6 @@ class GoogleDriveService(
             }
         } catch (e: Exception) {
             println("[GoogleDriveService] Validation threw exception: ${e.message}")
-            e.printStackTrace()
             ValidationResult.NetworkError(e.message ?: "Network error")
         }
     }

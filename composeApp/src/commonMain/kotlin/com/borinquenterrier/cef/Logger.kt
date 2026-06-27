@@ -24,7 +24,10 @@ class Logger(private val settings: Settings) {
         val log = "[$tag] ERROR: $message"
         println(log)
         appendToFile(log)
-        throwable?.printStackTrace()
+        throwable?.let { t ->
+            val safeMsg = t.message?.replace(Regex("key=[A-Za-z0-9_-]+"), "key=[REDACTED]") ?: ""
+            println("[${t::class.simpleName}]: $safeMsg")
+        }
     }
 
     fun i(tag: String, message: String) {

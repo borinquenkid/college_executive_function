@@ -19,8 +19,6 @@ class WebSourceReader {
             val rawBody = client.get(url).body<String>()
             cleanHtml(rawBody)
         } catch (e: Exception) {
-            // In a real app, we would want more sophisticated error handling
-            e.printStackTrace()
             "Error loading content from URL: ${e.message}"
         }
     }

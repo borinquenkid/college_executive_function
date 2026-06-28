@@ -176,10 +176,12 @@ class GeminiRequestExecutor(
                         is GeminiRateLimitPolicy.Decision.ShortDelay -> {
                             consecutiveExtremeCount = 0
                             consecutiveRateLimitCount = 0
+                            val waitMs = maxOf(decision.delayMs, queue.intervalMs)
+                            logger?.d(tag, "ShortDelay on $modelName: waiting ${waitMs}ms (server=${decision.delayMs}ms, queue=${queue.intervalMs}ms), attempt=$attempts")
                             attempts++
                             // Wait at least the queue interval so intra-slot retries
                             // can't fire faster than the queue's own throttle rate.
-                            retryService.wait(maxOf(decision.delayMs, queue.intervalMs))
+                            retryService.wait(waitMs)
                         }
                     }
                     continue

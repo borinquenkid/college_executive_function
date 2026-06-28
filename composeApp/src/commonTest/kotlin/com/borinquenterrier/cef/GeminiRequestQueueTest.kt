@@ -109,4 +109,83 @@ class GeminiRequestQueueTest : FunSpec({
         val expected = ((pending.toLong() * (intervalMs + avgMs)) / 1_000L).toInt()
         expected shouldBe 45
     }
+
+    // ── notifyRateLimit: adaptive post-slot delay ───────────────────────────
+
+    test("notifyRateLimit extends post-slot delay beyond intervalMs") {
+        val delays = mutableListOf<Long>()
+        val queue = GeminiRequestQueue(intervalMs = 100L)
+        // Capture actual wall-clock gaps by recording timestamps
+        val timestamps = mutableListOf<Long>()
+
+        queue.enqueue {
+            timestamps.add(System.currentTimeMillis())
+            queue.notifyRateLimit(500L)  // push extended delay
+        }
+        queue.enqueue {
+            timestamps.add(System.currentTimeMillis())
+        }
+
+        delay(900L)  // 500ms extended + 100ms interval + slack
+        timestamps.size shouldBe 2
+        val gap = timestamps[1] - timestamps[0]
+        // Gap must be at least the extended delay (500ms), not just intervalMs (100ms)
+        (gap >= 400L) shouldBe true
+    }
+
+    test("notifyRateLimit uses the largest reported delay when called multiple times") {
+        val queue = GeminiRequestQueue(intervalMs = 50L)
+        val timestamps = mutableListOf<Long>()
+
+        queue.enqueue {
+            timestamps.add(System.currentTimeMillis())
+            queue.notifyRateLimit(200L)
+            queue.notifyRateLimit(600L)  // highest wins
+            queue.notifyRateLimit(300L)
+        }
+        queue.enqueue {
+            timestamps.add(System.currentTimeMillis())
+        }
+
+        delay(1000L)
+        timestamps.size shouldBe 2
+        val gap = timestamps[1] - timestamps[0]
+        (gap >= 500L) shouldBe true
+    }
+
+    test("extended delay resets to intervalMs after the next slot") {
+        val queue = GeminiRequestQueue(intervalMs = 50L)
+        val timestamps = mutableListOf<Long>()
+
+        // Slot 1 triggers extended delay
+        queue.enqueue {
+            timestamps.add(System.currentTimeMillis())
+            queue.notifyRateLimit(400L)
+        }
+        // Slot 2 runs after the extended delay; records time and does NOT notify
+        queue.enqueue {
+            timestamps.add(System.currentTimeMillis())
+        }
+        // Slot 3 should use intervalMs (50ms), not the old 400ms
+        queue.enqueue {
+            timestamps.add(System.currentTimeMillis())
+        }
+
+        delay(1000L)
+        timestamps.size shouldBe 3
+        val gap12 = timestamps[1] - timestamps[0]
+        val gap23 = timestamps[2] - timestamps[1]
+        // First gap ≥ 400ms (extended delay was active)
+        (gap12 >= 300L) shouldBe true
+        // Second gap should be much shorter — back to intervalMs
+        (gap23 < 300L) shouldBe true
+    }
+
+    test("notifyRateLimit is ignored when queue is bypassed") {
+        val queue = GeminiRequestQueue(intervalMs = 6_000L)
+        queue.isBypassed = true
+        // Should not throw; the method is still callable — bypass just skips delay logic
+        queue.notifyRateLimit(60_000L)
+        queue.resetExtendedInterval()
+    }
 })

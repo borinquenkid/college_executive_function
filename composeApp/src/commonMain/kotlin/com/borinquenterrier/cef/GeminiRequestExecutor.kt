@@ -143,6 +143,7 @@ class GeminiRequestExecutor(
                         consecutiveRateLimitCount = consecutiveRateLimitCount,
                         modelName = modelName
                     )
+                    queue.notifyRateLimit(errorType.delayMs)
                     when (decision) {
                         is GeminiRateLimitPolicy.Decision.ExtremeDelay -> {
                             modelNegotiator.blacklistModel(modelName)
@@ -176,7 +177,9 @@ class GeminiRequestExecutor(
                             consecutiveExtremeCount = 0
                             consecutiveRateLimitCount = 0
                             attempts++
-                            retryService.wait(decision.delayMs)
+                            // Wait at least the queue interval so intra-slot retries
+                            // can't fire faster than the queue's own throttle rate.
+                            retryService.wait(maxOf(decision.delayMs, queue.intervalMs))
                         }
                     }
                     continue

@@ -154,6 +154,17 @@ class EventAgent(
     private fun Exception.isQuotaError() =
         message?.startsWith("QuotaExhausted") == true
 
+    private fun friendlyError(e: Exception): String {
+        val msg = e.message.orEmpty()
+        return when {
+            msg.contains("Unauthorized") || msg.contains("API_KEY_INVALID") ->
+                "Gemini API key is invalid or missing. Please update it in Settings."
+            msg.contains("Forbidden") ->
+                "Gemini API access denied. Ensure the Generative Language API is enabled in your Google Cloud project."
+            else -> "AI error. Check logs for details."
+        }
+    }
+
     /**
      * Runs [block] under the standard loading/error-reporting envelope shared by every
      * agent action: toggles [_isLoading], logs and reports any [Exception] via
@@ -174,7 +185,7 @@ class EventAgent(
                 _errorState.value = AgentError.QuotaExhausted
                 _statusMessage.value = "Daily AI quota reached."
             } else {
-                _statusMessage.value = "Error: ${e.message}"
+                _statusMessage.value = friendlyError(e)
             }
         } finally {
             _isLoading.value = false

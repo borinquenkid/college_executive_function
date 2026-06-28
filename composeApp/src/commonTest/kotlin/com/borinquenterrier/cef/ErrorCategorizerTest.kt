@@ -32,6 +32,12 @@ class ErrorCategorizerTest : StringSpec({
         result shouldBe ErrorCategorizer.ErrorType.StructuralError("Response modalities not supported")
     }
 
+    "categorizes 400 with API_KEY_INVALID as Unauthorized" {
+        val body = """{"error":{"code":400,"status":"INVALID_ARGUMENT","reason":"API_KEY_INVALID"}}"""
+        val result = categorizer.categorizeError(HttpStatusCode.BadRequest, body)
+        result shouldBe ErrorCategorizer.ErrorType.Unauthorized
+    }
+
     "categorizes 400 without modalities as OtherError" {
         val body = "Bad request: invalid parameter"
         val result = categorizer.categorizeError(HttpStatusCode.BadRequest, body)

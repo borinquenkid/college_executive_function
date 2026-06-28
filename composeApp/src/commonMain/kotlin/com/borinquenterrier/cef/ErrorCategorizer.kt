@@ -42,6 +42,11 @@ class ErrorCategorizer(
                 ErrorType.StructuralError("Model not found (404)")
             }
 
+            status == HttpStatusCode.BadRequest && body.contains("API_KEY_INVALID") -> {
+                logger?.e(tag, "400 Bad Request: API key not valid. Check the key stored in Settings.")
+                ErrorType.Unauthorized
+            }
+
             status == HttpStatusCode.BadRequest && body.contains("response modalities") -> {
                 logger?.d(
                     tag,

@@ -37,7 +37,7 @@ class SqlDelightLocalCalendarRepository(
         database.appDatabaseQueries.insertEvent(
             id = event.id ?: "${
                 Clock.System.now().toEpochMilliseconds()
-            }-${(1000..9999).random()}",
+            }-${(0..999999999).random()}",
             title = event.title,
             source = event.source.name,
             category = event.category.name,

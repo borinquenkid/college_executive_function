@@ -19,10 +19,10 @@ import kotlin.time.Clock
 class HttpOtelTracer(
     private val endpoint: String,
     private val authHeader: String,
-    private val serviceName: String
+    private val serviceName: String,
+    private val client: HttpClient = HttpClient()
 ) : Tracer {
 
-    private val client = HttpClient()
     private val exportScope = CoroutineScope(Dispatchers.Default + SupervisorJob())
 
     // Carries current trace/span IDs + mutable scope through the coroutine context.

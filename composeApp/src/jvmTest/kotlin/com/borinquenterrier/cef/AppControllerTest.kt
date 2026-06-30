@@ -305,6 +305,8 @@ class AppControllerTest : FunSpec({
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns linkedFlow
         every { container.tokenRepository } returns tokenRepo
+
+        io.mockk.clearMocks(calendarAgent)
         AppController(container)
 
         linkedFlow.value = true
@@ -318,6 +320,8 @@ class AppControllerTest : FunSpec({
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns linkedFlow
         every { container.tokenRepository } returns tokenRepo
+
+        io.mockk.clearMocks(calendarAgent)
         AppController(container)
 
         delay(300)
@@ -330,6 +334,8 @@ class AppControllerTest : FunSpec({
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
         every { tokenRepo.isLinked } returns linkedFlow
         every { container.tokenRepository } returns tokenRepo
+
+        io.mockk.clearMocks(calendarAgent)
         AppController(container)
 
         linkedFlow.value = true

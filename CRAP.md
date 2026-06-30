@@ -16,7 +16,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| HttpOtelTracer.kt | 32 | 0.0% | 1056.00 | 🔴 HIGH |
+| HttpOtelTracer.kt | 32 | 74.3% | 49.47 | 🔴 HIGH |
 | EventAgent.kt | 33 | 96.8% | 33.04 | 🔴 HIGH |
 | GeminiAIService.kt | 29 | 97.9% | 29.01 | 🟡 MEDIUM |
 | EventDeduplicator.kt | 29 | 100.0% | 29.00 | 🟡 MEDIUM |
@@ -36,9 +36,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Detailed File Breakdown
 
-### HttpOtelTracer.kt (Score: 1056.00 - 🔴 HIGH)
+### HttpOtelTracer.kt (Score: 49.47 - 🔴 HIGH)
 - **Total Complexity**: 32
-- **Real Coverage**: 0.0%
+- **Real Coverage**: 74.3%
 
 #### Methods list:
 | Method | Complexity |

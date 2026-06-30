@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **89.90%** (9668/10754 lines)
+- **Overall Line Coverage**: **91.31%** (9818/10752 lines)
 - **Total Source Files**: 174
 
 ## Coverage by File (🔴 and 🟡 only)
@@ -15,7 +15,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | PlatformFileSystem.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | AgentAction.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | IcsExport.kt | 0.0% (0/0) | N/A | 0.0% |
-| 🔴 | HttpOtelTracer.kt | 0.0% (0/204) | 0.0% (0/80) | 0.0% |
 | 🔴 | DocxReader.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | AnalysisCacheRepository.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | UiOnly.kt | 0.0% (0/0) | N/A | 0.0% |
@@ -36,4 +35,5 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | GeminiBodyBuilder.kt | 71.4% (20/28) | 100.0% (4/4) | 83.1% |
 | 🟡 | DriveFileFetcher.kt | 71.4% (10/14) | N/A | 81.6% |
 | 🟡 | UserPreferenceMemoryRepository.kt | 71.4% (10/14) | N/A | 93.1% |
+| 🟡 | HttpOtelTracer.kt | 74.3% (150/202) | 42.5% (34/80) | 74.8% |
 | 🟡 | PreferencesPort.kt | 75.0% (6/8) | N/A | 96.3% |

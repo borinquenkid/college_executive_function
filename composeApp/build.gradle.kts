@@ -434,3 +434,28 @@ tasks.register("exportTokens") {
         println("Next: update the same values in GitHub → Settings → Secrets → Actions.")
     }
 }
+
+/**
+ * Custom task to query logs/traces directly from OpenObserve Cloud using credentials in .env
+ * by running the production CLI query utility.
+ *
+ * Usage:
+ *   ./gradlew :composeApp:queryOpenObserve -Pquery="SELECT * FROM 'cef-ios' LIMIT 5"
+ *   ./gradlew :composeApp:queryOpenObserve -Pquery="SELECT * FROM 'cef-ios' WHERE status_code = 2" -Pdays=30
+ */
+tasks.register<JavaExec>("queryOpenObserve") {
+    group = "telemetry"
+    description = "Queries OpenObserve Cloud using the production CLI utility."
+
+    val jvm = kotlin.targets.getByName("jvm")
+    val main = jvm.compilations.getByName("main")
+    classpath = (main.runtimeDependencyFiles ?: files()) + main.output.allOutputs
+    mainClass.set("com.borinquenterrier.cef.OpenObserveQueryCliKt")
+
+    // Pass properties as command-line arguments
+    val queryStr = project.findProperty("query") as? String ?: ""
+    val days = project.findProperty("days") as? String ?: "7"
+    val type = project.findProperty("type") as? String ?: "logs"
+    args(queryStr, days, type)
+}
+

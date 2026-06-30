@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import kotlinx.coroutines.flow.first
+
 /**
  * Encapsulates the core 3-step source processing pipeline:
  * Context analysis → Deliverable extraction → Study plan generation.
@@ -25,6 +27,12 @@ class SourceProcessingPipeline(
 
             logger.d(tag, "Generating study plan for: ${source.title}")
             eventAgent.generateStudyPlan(source)
+
+            // Pause on doubt: if the study plan flagged any deliverable with an ungrounded date,
+            // suspend here until the user has confirmed or discarded every one (via the
+            // date-picker dialog), then push. The pipeline resumes itself when the doubt clears —
+            // no manual push step.
+            eventAgent.pendingDateResolutions.first { it.isEmpty() }
             eventAgent.pushToCalendar()
         } catch (e: Exception) {
             logger.e(tag, "Error processing source: ${source.title}", e)

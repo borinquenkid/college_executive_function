@@ -10,6 +10,16 @@ class CategorizationBuilderTest : StringSpec({
         val syllabusText = "MWF 9:00-10:00 AM. Assignment due Friday."
         val result = CategorizationBuilder.getSourceCategorizationPrompt(syllabusText)
 
+        result.shouldContain("MEMORANDUM BRIEF: SOURCE DOCUMENT CATEGORIZATION")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+
+        result.shouldContain("<source_document_sample>")
+        result.shouldContain(syllabusText)
+        result.shouldContain("</source_document_sample>")
+
         result.shouldContain("Syllabus")
         result.shouldContain("Calendar")
         result.shouldContain("category")
@@ -36,6 +46,16 @@ class CategorizationBuilderTest : StringSpec({
         val syllabusText = "Grading: Final 30%, Midterm 20%, Quizzes 10%"
         val result = CategorizationBuilder.getDocumentIntelligencePrompt(syllabusText)
 
+        result.shouldContain("MEMORANDUM BRIEF: DOCUMENT METADATA INTELLIGENCE")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+
+        result.shouldContain("<source_syllabus_document>")
+        result.shouldContain(syllabusText)
+        result.shouldContain("</source_syllabus_document>")
+
         result.shouldContain("grading_scale")
         result.shouldContain("Rules of the Game")
         result.shouldNotBeBlank()
@@ -56,6 +76,16 @@ class CategorizationBuilderTest : StringSpec({
     "getSyllabusAuditPrompt should detect external LMS dependencies" {
         val syllabusText = "All assignments are posted on Blackboard. Quizzes are on Canvas."
         val result = CategorizationBuilder.getSyllabusAuditPrompt(syllabusText)
+
+        result.shouldContain("MEMORANDUM BRIEF: SYLLABUS INTEGRITY AUDIT")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+
+        result.shouldContain("<source_syllabus_document>")
+        result.shouldContain(syllabusText)
+        result.shouldContain("</source_syllabus_document>")
 
         result.shouldContain("Blackboard")
         result.shouldContain("Canvas")
@@ -90,3 +120,4 @@ class CategorizationBuilderTest : StringSpec({
         result.shouldContain("findings")
     }
 })
+

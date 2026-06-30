@@ -884,6 +884,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `parse` | 1 |
 
+### CategorizationBuilder.kt (Score: 9.00 - 🟢 LOW)
+- **Total Complexity**: 9
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getSyllabusAuditPrompt` | 4 |
+| `getSourceCategorizationPrompt` | 3 |
+| `getDocumentIntelligencePrompt` | 2 |
+
 ### SchedulingAlgorithm.kt (Score: 9.00 - 🟢 LOW)
 - **Total Complexity**: 9
 - **Real Coverage**: 100.0%
@@ -958,17 +969,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `isValidTimeSlot` | 1 |
 | `isDayAvailable` | 1 |
-
-### CategorizationBuilder.kt (Score: 8.00 - 🟢 LOW)
-- **Total Complexity**: 8
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getSyllabusAuditPrompt` | 4 |
-| `getSourceCategorizationPrompt` | 2 |
-| `getDocumentIntelligencePrompt` | 2 |
 
 ### GoogleAuthService.kt (Score: 8.00 - 🟢 LOW)
 - **Total Complexity**: 8

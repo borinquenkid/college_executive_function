@@ -57,6 +57,7 @@ These phases continue the CRAP remediation strategy across file ingestion and pr
 | 0.22 | Decompose `ContextAgent` (CRAP 31.03) | ✅ **COMPLETED** | dd5782a |
 | 0.23 | Refactor Event & Study Plan prompts to ADR-002 | ✅ **COMPLETED** | 26ee8ee |
 | 0.24 | Refactor ChatBuilder prompts to ADR-002 | ✅ **COMPLETED** | (Phase 0.24) |
+| 0.25 | Add Unit Tests for HttpOtelTracer | ⏳ **NEXT** | — |
 
 ---
 
@@ -571,6 +572,23 @@ None. Pure UI change; no Phase 6 or earlier work required.
 **Verification:**
 - Verified automatically by passing `ChatBuilderTest.kt`.
 - Verified manually by a walkthrough in the app's Chat Panel, verifying that document-grounded chat and critique loop remain 100% functional.
+
+### Phase 0.25 — Add Unit Tests for HttpOtelTracer ⏳ PLANNED
+
+**Motivation:** `HttpOtelTracer` provides KMP-native OTLP/HTTP telemetry but is currently untested. Supporting dependency injection of `HttpClient` will enable unit testing of span exports, headers, parent-child trace mapping, and error resilience.
+
+**Deliverables:**
+1. ⏳ `HttpOtelTracer.kt` — Add constructor parameter `client: HttpClient` with default instantiation to enable mock interceptors.
+2. ⏳ `HttpOtelTracerTest.kt` — Add a full suite of tests covering:
+   - Export serialization structure (spans, resource attributes, events, errors).
+   - Trace context propagation (parent-child nested trace/span relationship).
+   - Silent error handling (swallowing client post exception).
+
+**CRAP Acceptance:**
+- `HttpOtelTracer`: Complexity < 15, coverage > 85%
+
+**Verification:**
+- Verified automatically by passing `HttpOtelTracerTest.kt`.
 
 ---
 

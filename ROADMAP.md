@@ -55,7 +55,8 @@ These phases continue the CRAP remediation strategy across file ingestion and pr
 | 0.20 | Decompose `DriveFileFetcher` (CRAP 72.00) | ✅ **COMPLETED** | 95f8ddf |
 | 0.21 | Decompose `DirectoryPreferencesManager` (CRAP 72.00) | ✅ **COMPLETED** | 4c653d0 |
 | 0.22 | Decompose `ContextAgent` (CRAP 31.03) | ✅ **COMPLETED** | dd5782a |
-| **0.23+** | **Continue CRAP remediation (TBD)** | ⏳ **NEXT** | — |
+| 0.23 | Refactor Event & Study Plan prompts to ADR-002 | ✅ **COMPLETED** | 26ee8ee |
+| 0.24 | Refactor ChatBuilder prompts to ADR-002 | ⏳ **NEXT** | — |
 
 ---
 
@@ -534,6 +535,42 @@ enum class DriveFileType(val label: String) {
 ### Dependencies
 
 None. Pure UI change; no Phase 6 or earlier work required.
+
+---
+
+### Phase 0.23 — Refactor Event & Study Plan prompts to ADR-002 ✅ **COMPLETED**
+
+**Motivation:** AI-generated event extraction and study planning were subject to run-to-run confabulations (hallucinated events or shifted dates). Restructuring the prompts to the 4-part Memorandum Brief standard and fencing all inputs/contexts in explicit XML tag boundaries fixes prompt leakage and anchors the model strictly to the target syllabus text.
+
+**Deliverables:**
+1. ✅ `EventBuilder.kt` prompts restructured to Memorandum Brief standard (Clarification, Material, Task, Constraints) with XML boundaries.
+2. ✅ `StudyPlanBuilder.kt` prompts restructured to Memorandum Brief standard with XML boundaries.
+3. ✅ Tests: Updated assertions in `EventBuilderTest.kt` and `StudyPlanBuilderTest.kt` to verify XML tags and Memorandum headers.
+
+**CRAP Acceptance:**
+- `EventBuilder`: Complexity < 15, coverage > 90%
+- `StudyPlanBuilder`: Complexity < 15, coverage > 90%
+
+**Verification:**
+- Verified by passing `EventBuilderTest` and `StudyPlanBuilderTest` JVM suites.
+- Verified by running the app and executing syllabus ingestion and study plan generation end-to-end.
+
+---
+
+### Phase 0.24 — Refactor ChatBuilder prompts to ADR-002 ⏳ PLANNED
+
+**Motivation:** Chat prompt builders (`ChatBuilder.kt`) use standard unstructured markdown sections which can lead the LLM to blend raw syllabus metadata rules with instructions or hallucinate claims. Standardizing the chat and chat critique prompts to the ADR-002 standard (Memorandum Brief and XML tag boundaries) preserves answer accuracy and grounding.
+
+**Deliverables:**
+1. ⏳ `ChatBuilder.kt` — Restructure `getMultiSourceChatPrompt` and `getChatCritiquePrompt` to Memorandum Brief standard and fence input structures in XML tags (`<course_materials>`, `<conversation_history>`, `<chat_response_to_audit>`, etc.).
+2. ⏳ Tests: Update assertions in `ChatBuilderTest.kt` to check for these XML tag boundaries and Memorandum sections.
+
+**CRAP Acceptance:**
+- `ChatBuilder`: Complexity < 10, method complexity < 5.
+
+**Verification:**
+- Verified automatically by passing `ChatBuilderTest.kt`.
+- Verified manually by a walkthrough in the app's Chat Panel, verifying that document-grounded chat and critique loop remain 100% functional.
 
 ---
 

@@ -2,6 +2,7 @@ package com.borinquenterrier.cef
 
 import com.borinquenterrier.cef.db.AppDatabase
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.client.statement.HttpResponse
 import io.ktor.serialization.kotlinx.json.json
@@ -63,6 +64,14 @@ class GeminiAIService private constructor(
                 ignoreUnknownKeys = true
                 coerceInputValues = true
             })
+        }
+        // Bounded timeouts so a hung request fails fast and is retried *within* its paced queue
+        // slot, instead of dangling to an unbounded socket timeout (the failure seen in traces:
+        // `socket_timeout=unknown`). Generous enough for heavy prompts; not unlimited.
+        install(HttpTimeout) {
+            requestTimeoutMillis = 120_000   // whole request ceiling
+            connectTimeoutMillis = 15_000
+            socketTimeoutMillis = 90_000     // max idle between data chunks
         }
     }
 
@@ -128,9 +137,10 @@ class GeminiAIService private constructor(
     private suspend fun <T> executeWithRetry(
         maxAttempts: Int,
         tier: TaskTier,
+        family: PromptFamily,
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
-    ): T = requestExecutor.executeWithRetry(maxAttempts, tier, body, parseResponse)
+    ): T = requestExecutor.executeWithRetry(maxAttempts, tier, family, body, parseResponse)
 
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
         val isText = fragments.firstOrNull()?.type == SourceType.TEXT
@@ -162,10 +172,19 @@ class GeminiAIService private constructor(
         }
     }
 
-    suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> {
+    suspend fun generateCalendarEventsFromPrompt(prompt: String): List<Event> =
+        generateEventsFromPrompt(prompt, PromptFamily.EVENT_EXTRACTION)
+
+    /**
+     * Shared event-generation path. [family] selects which queue paces the call so that
+     * extraction ([PromptFamily.EVENT_EXTRACTION]) and study-plan generation
+     * ([PromptFamily.STUDY_PLAN]) run on independent queues and can't starve each other.
+     */
+    private suspend fun generateEventsFromPrompt(prompt: String, family: PromptFamily): List<Event> {
         return executeWithRetry(
             maxAttempts = 5,
             tier = TaskTier.HEAVY,
+            family = family,
             body = { _ -> buildGeminiBody(prompt) },
             parseResponse = { responseText ->
                 try {
@@ -183,8 +202,9 @@ class GeminiAIService private constructor(
         existingSchedule: String = "",
         preferences: StudyPreferences = StudyPreferences()
     ): List<Event> {
-        return generateCalendarEventsFromPrompt(
-            AiPrompts.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule, preferences)
+        return generateEventsFromPrompt(
+            AiPrompts.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule, preferences),
+            PromptFamily.STUDY_PLAN
         )
     }
 
@@ -193,6 +213,7 @@ class GeminiAIService private constructor(
         return executeWithRetry(
             maxAttempts = 5,
             tier = TaskTier.LIGHT,
+            family = PromptFamily.STUDY_PLAN,
             body = { _ -> buildGeminiBody(prompt) },
             parseResponse = { responseText -> parseDecomposeTaskJson(responseText) }
         )
@@ -203,6 +224,7 @@ class GeminiAIService private constructor(
             executeWithRetry(
                 maxAttempts = 3,
                 tier = TaskTier.LIGHT,
+                family = PromptFamily.CHAT,
                 body = { _ -> buildGeminiBody(prompt, responseMimeType = null) },
                 parseResponse = { responseText -> responseText }
             )
@@ -217,6 +239,7 @@ class GeminiAIService private constructor(
             executeWithRetry(
                 maxAttempts = 3,
                 tier = TaskTier.HEAVY,
+                family = PromptFamily.CATEGORIZATION,
                 body = { _ ->
                     buildGeminiBody(
                         AiPrompts.getDocumentIntelligencePrompt(text),
@@ -240,6 +263,7 @@ class GeminiAIService private constructor(
             executeWithRetry(
                 maxAttempts = 3,
                 tier = TaskTier.LIGHT,
+                family = PromptFamily.CATEGORIZATION,
                 body = { _ -> buildGeminiBody(prompt) },
                 parseResponse = { responseText -> parseCategorizeSourceJson(responseText) }
             )

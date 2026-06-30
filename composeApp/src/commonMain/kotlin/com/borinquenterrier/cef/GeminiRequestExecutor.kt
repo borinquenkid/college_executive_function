@@ -32,28 +32,42 @@ class GeminiRequestExecutor(
     private val retryService = GeminiRetryService(logger, delayFn)
 
     companion object {
-        private val queue = GeminiRequestQueue.shared()
-
         fun clearRateLimitResetForTesting() {
             GeminiRetryService.clearRateLimitResetForTesting()
             GeminiRetryService.clearGlobalHoldForTesting()
-            queue.isBypassed = true
+            GeminiRequestQueue.bypassAll(true)
         }
     }
 
     suspend fun postToModel(modelName: String, body: JsonObject) =
         requestBuilder.postToModel(modelName, body)
 
+    /**
+     * Enqueues the call on [family]'s dedicated queue and runs it under a reliably-exported
+     * `gemini.request` span (queue wait time is part of that span). Each prompt family has its
+     * own queue, so a slow/timed-out family can't starve the others.
+     */
     suspend fun <T> executeWithRetry(
         maxAttempts: Int,
         tier: GeminiAIService.TaskTier,
+        family: PromptFamily,
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
-    ): T = queue.enqueue { executeWithRetryInternal(maxAttempts, tier, body, parseResponse) }
+    ): T {
+        val queue = GeminiRequestQueue.forFamily(family)
+        return AppTracer.current.span(
+            "gemini.request",
+            mapOf("queue" to family.queueName, "tier" to tier.name)
+        ) {
+            setAttribute("queue.pending_on_enqueue", queue.pendingCount.value.toLong())
+            queue.enqueue { executeWithRetryInternal(maxAttempts, tier, queue, body, parseResponse) }
+        }
+    }
 
     private suspend fun <T> executeWithRetryInternal(
         maxAttempts: Int,
         tier: GeminiAIService.TaskTier,
+        queue: GeminiRequestQueue,
         body: (modelName: String) -> JsonObject,
         parseResponse: (responseText: String) -> T
     ): T {
@@ -76,6 +90,8 @@ class GeminiRequestExecutor(
         while (attempts < maxAttempts) {
             val modelName = modelNegotiator.negotiateBestModel(available, tier)
             lastNegotiatedModel = modelName
+            // Pace this slot to the model actually used (its RPM ceiling → min spacing).
+            queue.noteModel(modelName)
             try {
                 val (httpResponse, responseBody) = AppTracer.current.span(
                     "gemini.http_request",
@@ -176,8 +192,8 @@ class GeminiRequestExecutor(
                         is GeminiRateLimitPolicy.Decision.ShortDelay -> {
                             consecutiveExtremeCount = 0
                             consecutiveRateLimitCount = 0
-                            val waitMs = maxOf(decision.delayMs, queue.intervalMs)
-                            logger?.d(tag, "ShortDelay on $modelName: waiting ${waitMs}ms (server=${decision.delayMs}ms, queue=${queue.intervalMs}ms), attempt=$attempts")
+                            val waitMs = maxOf(decision.delayMs, queue.currentIntervalMs)
+                            logger?.d(tag, "ShortDelay on $modelName: waiting ${waitMs}ms (server=${decision.delayMs}ms, queue=${queue.currentIntervalMs}ms), attempt=$attempts")
                             attempts++
                             // Wait at least the queue interval so intra-slot retries
                             // can't fire faster than the queue's own throttle rate.

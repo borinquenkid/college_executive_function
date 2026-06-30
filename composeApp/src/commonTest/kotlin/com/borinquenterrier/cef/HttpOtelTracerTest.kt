@@ -112,6 +112,45 @@ class HttpOtelTracerTest : StringSpec({
         parentJson.contains("parentSpanId") shouldBe false
     }
 
+    "export standalone event reliably as its own span" {
+        // event() must NOT be silently dropped — telemetry on paths like study-plan grounding
+        // depends on it reaching the collector even when emitted outside a span scope.
+        val requests = mutableListOf<String>()
+        val mutex = Mutex()
+
+        val mockEngine = MockEngine { request ->
+            mutex.withLock {
+                val bodyText = (request.body as? TextContent)?.text.orEmpty()
+                requests.add(bodyText)
+            }
+            respond("OK", HttpStatusCode.OK)
+        }
+        val client = HttpClient(mockEngine)
+        val tracer = HttpOtelTracer(
+            endpoint = "https://otel-collector/v1/traces",
+            authHeader = "Basic dXNlcjpwYXNz",
+            serviceName = "test-service",
+            client = client
+        )
+
+        tracer.event("grounding.filter", mapOf("events.dropped" to "3", "caller" to "generateStudyPlan"))
+
+        var attempts = 0
+        while (attempts < 50) {
+            val size = mutex.withLock { requests.size }
+            if (size >= 1) break
+            delay(10)
+            attempts++
+        }
+
+        requests.size shouldBe 1
+        val body = requests[0]
+        body.shouldContain("grounding.filter")
+        body.shouldContain("events.dropped")
+        body.shouldContain("generateStudyPlan")
+        body.shouldContain("test-service")
+    }
+
     "handle exceptions thrown in span block and rethrow them" {
         val requests = mutableListOf<String>()
         val mutex = Mutex()

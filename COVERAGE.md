@@ -4,8 +4,8 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **91.31%** (9818/10752 lines)
-- **Total Source Files**: 174
+- **Overall Line Coverage**: **91.37%** (9936/10874 lines)
+- **Total Source Files**: 176
 
 ## Coverage by File (🔴 and 🟡 only)
 
@@ -35,5 +35,5 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | GeminiBodyBuilder.kt | 71.4% (20/28) | 100.0% (4/4) | 83.1% |
 | 🟡 | DriveFileFetcher.kt | 71.4% (10/14) | N/A | 81.6% |
 | 🟡 | UserPreferenceMemoryRepository.kt | 71.4% (10/14) | N/A | 93.1% |
-| 🟡 | HttpOtelTracer.kt | 74.3% (150/202) | 42.5% (34/80) | 74.8% |
 | 🟡 | PreferencesPort.kt | 75.0% (6/8) | N/A | 96.3% |
+| 🟡 | HttpOtelTracer.kt | 76.6% (164/214) | 42.5% (34/80) | 76.5% |

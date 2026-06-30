@@ -63,9 +63,18 @@ class HttpOtelTracer(
     }
 
     override fun event(name: String, attributes: Map<String, String>) {
-        // Best-effort: attach to the current span if we're inside one.
-        // event() is non-suspend so we can't use currentCoroutineContext() here;
-        // standalone events (outside a span) are silently dropped.
+        // event() is non-suspend, so it can't read the coroutine context to find a parent span.
+        // Rather than silently drop it (which lost telemetry on paths like study-plan grounding),
+        // export it reliably as its own zero-duration span. It loses parent linkage but is never
+        // dropped — "must trace reliably".
+        val traceId = randomHex(16)
+        val spanId = randomHex(8)
+        val now = nowNanos()
+        val scope = HttpSpanScope()
+        attributes.forEach { (k, v) -> scope.setAttribute(k, v) }
+        exportScope.launch {
+            export(traceId, spanId, null, name, now, now, scope, 0, null)
+        }
     }
 
     override fun shutdown() {

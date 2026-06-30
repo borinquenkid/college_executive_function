@@ -109,15 +109,14 @@ class EventAgent(
      */
     val extractionWarning: StateFlow<String?> = _extractionWarning.asStateFlow()
 
-    /** Number of API requests currently waiting in the shared Gemini queue. */
-    val pendingRequestCount: StateFlow<Int> = GeminiRequestQueue.shared().pendingCount
+    /** Number of API requests currently waiting across all four per-family Gemini queues. */
+    val pendingRequestCount: StateFlow<Int> = GeminiRequestQueue.pendingCountAll
 
     /**
-     * Rough lower-bound estimate of remaining processing time in seconds.
-     * Assumes 3 s average response time per slot plus the 6 s inter-request cooldown.
-     * Returns 0 when the queue is empty.
+     * Rough lower-bound estimate of remaining processing time in seconds, summed across all
+     * four per-family queues. Returns 0 when every queue is empty.
      */
-    fun estimatedRemainingSeconds(): Int = GeminiRequestQueue.shared().estimatedRemainingSeconds()
+    fun estimatedRemainingSeconds(): Int = GeminiRequestQueue.estimatedRemainingSecondsAll()
 
     suspend fun loadPersistedWarnings() {
         try {

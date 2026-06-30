@@ -9,16 +9,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 174
-- **High-Risk Files (CRAP > 30)**: 2
+- **Total Files Analyzed**: 176
+- **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| HttpOtelTracer.kt | 32 | 74.3% | 49.47 | 🔴 HIGH |
+| HttpOtelTracer.kt | 33 | 76.6% | 46.89 | 🔴 HIGH |
 | EventAgent.kt | 33 | 96.8% | 33.04 | 🔴 HIGH |
-| GeminiAIService.kt | 29 | 97.9% | 29.01 | 🟡 MEDIUM |
+| GeminiAIService.kt | 30 | 98.1% | 30.01 | 🔴 HIGH |
 | EventDeduplicator.kt | 29 | 100.0% | 29.00 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GeminiRetryService.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
@@ -29,16 +29,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | CriticActorAIService.kt | 23 | 88.0% | 23.91 | 🟡 MEDIUM |
 | GoogleRemoteCalendarRepository.kt | 22 | 86.5% | 23.19 | 🟡 MEDIUM |
 | CriticJsonCodec.kt | 23 | 93.8% | 23.13 | 🟡 MEDIUM |
+| GeminiRequestQueue.kt | 22 | 91.7% | 22.28 | 🟡 MEDIUM |
 | AppContent.kt | 12 | 58.6% | 22.22 | 🟡 MEDIUM |
-| Event.kt | 22 | 96.5% | 22.02 | 🟡 MEDIUM |
 
 ---
 
 ## Detailed File Breakdown
 
-### HttpOtelTracer.kt (Score: 49.47 - 🔴 HIGH)
-- **Total Complexity**: 32
-- **Real Coverage**: 74.3%
+### HttpOtelTracer.kt (Score: 46.89 - 🔴 HIGH)
+- **Total Complexity**: 33
+- **Real Coverage**: 76.6%
 
 #### Methods list:
 | Method | Complexity |
@@ -46,8 +46,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `base64` | 6 |
 | `create` | 4 |
 | `recordException` | 3 |
+| `event` | 2 |
 | `<T> span` | 1 |
-| `event` | 1 |
 | `shutdown` | 1 |
 | `export` | 1 |
 | `buildJson` | 1 |
@@ -74,9 +74,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `updateStatus` | 1 |
 | *... and 13 more* | |
 
-### GeminiAIService.kt (Score: 29.01 - 🟡 MEDIUM)
-- **Total Complexity**: 29
-- **Real Coverage**: 97.9%
+### GeminiAIService.kt (Score: 30.01 - 🔴 HIGH)
+- **Total Complexity**: 30
+- **Real Coverage**: 98.1%
 
 #### Methods list:
 | Method | Complexity |
@@ -84,14 +84,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateCalendarEvents` | 5 |
 | `categorizeSource` | 4 |
 | `analyzeDocument` | 3 |
-| `generateCalendarEventsFromPrompt` | 2 |
+| `generateEventsFromPrompt` | 2 |
 | `generateChatResponse` | 2 |
 | `extractSourceYears` | 1 |
 | `filterToSourceYears` | 1 |
 | `parseEventsJson` | 1 |
 | `parseDecomposeTaskJson` | 1 |
 | `parseCategorizeSourceJson` | 1 |
-| *... and 6 more* | |
+| *... and 7 more* | |
 
 ### EventDeduplicator.kt (Score: 29.00 - 🟡 MEDIUM)
 - **Total Complexity**: 29
@@ -251,6 +251,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `serializeTasks` | 2 |
 | `parseTasks` | 2 |
 | `parseTaskFromJson` | 2 |
+
+### GeminiRequestQueue.kt (Score: 22.28 - 🟡 MEDIUM)
+- **Total Complexity**: 22
+- **Real Coverage**: 91.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `<T> enqueue` | 3 |
+| `bypassAll` | 2 |
+| `noteModel` | 2 |
+| `notifyRateLimit` | 2 |
+| `estimatedRemainingSeconds` | 2 |
+| `forFamily` | 1 |
+| `all` | 1 |
+| `estimatedRemainingSecondsAll` | 1 |
+| `shared` | 1 |
+| `computeEffectiveDelayMs` | 1 |
+| *... and 2 more* | |
 
 ### AppContent.kt (Score: 22.22 - 🟡 MEDIUM)
 - **Total Complexity**: 12
@@ -668,19 +687,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `querySource` | 3 |
 | `getSourceMetadata` | 1 |
 | `queryAllSources` | 1 |
-
-### GeminiRequestQueue.kt (Score: 11.00 - 🟢 LOW)
-- **Total Complexity**: 11
-- **Real Coverage**: 96.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `<T> enqueue` | 3 |
-| `notifyRateLimit` | 2 |
-| `estimatedRemainingSeconds` | 2 |
-| `shared` | 1 |
-| `resetExtendedInterval` | 1 |
 
 ### TelemetryManager.kt (Score: 11.00 - 🟢 LOW)
 - **Total Complexity**: 11
@@ -1285,6 +1291,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `fetchFromDirectories` | 5 |
+
+### ModelRpm.kt (Score: 5.00 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `rpmFor` | 4 |
+| `intervalMsFor` | 1 |
 
 ### SourceProcessingPipeline.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5
@@ -1904,6 +1920,11 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 
 ### CachedAnalysis.kt (Score: 1.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 100.0%
+
+
+### PromptFamily.kt (Score: 1.00 - 🟢 LOW)
 - **Total Complexity**: 1
 - **Real Coverage**: 100.0%
 

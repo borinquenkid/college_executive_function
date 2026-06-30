@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 176
+- **Total Files Analyzed**: 177
 - **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
@@ -607,6 +607,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findCollidingEvent` | 1 |
 | `hasShifted` | 1 |
 
+### GroundingGuardAIService.kt (Score: 12.06 - 🟢 LOW)
+- **Total Complexity**: 12
+- **Real Coverage**: 92.6%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `generateCalendarEvents` | 1 |
+| `generateStudyPlan` | 1 |
+| `generateChatResponse` | 1 |
+| `groundToSource` | 1 |
+
 ### CalendarPushResolver.kt (Score: 12.01 - 🟢 LOW)
 - **Total Complexity**: 12
 - **Real Coverage**: 95.5%
@@ -823,18 +835,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findUngrounded` | 2 |
 | `extractClaims` | 1 |
 | `normalizeOrdinals` | 1 |
-
-### GroundingGuardAIService.kt (Score: 10.00 - 🟢 LOW)
-- **Total Complexity**: 10
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `generateCalendarEvents` | 1 |
-| `generateStudyPlan` | 1 |
-| `generateChatResponse` | 1 |
-| `groundToSource` | 1 |
 
 ### CalendarSyncManager.kt (Score: 10.00 - 🟢 LOW)
 - **Total Complexity**: 10
@@ -1174,6 +1174,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `performTokenExchange` | 2 |
 | `exchangeCodeForTokens` | 1 |
 | `refreshAccessToken` | 1 |
+
+### StudyPlanGrounder.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 6
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `ground` | 6 |
 
 ### TaskDecompositionService.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 6

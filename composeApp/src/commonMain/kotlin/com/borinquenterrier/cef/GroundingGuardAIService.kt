@@ -44,7 +44,33 @@ class GroundingGuardAIService(
         existingSchedule: String,
         preferences: StudyPreferences
     ): List<Event> {
-        return groundToSource("generateStudyPlan", syllabusText, delegate.generateStudyPlan(syllabusText, existingSchedule, preferences))
+        return AppTracer.current.span("grounding.study_plan") {
+            val raw = delegate.generateStudyPlan(syllabusText, existingSchedule, preferences)
+            // 1) Year-level grounding (drops events outside the source's years).
+            val yearGrounded = groundToSource("generateStudyPlan", syllabusText, raw, spanScope = this)
+            // 2) Content grounding: a STUDY_BLOCK must prepare for a real deliverable in the plan.
+            //    Orphan study blocks (prep for nothing) are confabulations and are dropped.
+            val anchored = StudyPlanGrounder.ground(yearGrounded)
+
+            setAttribute("events.before", raw.size.toLong())
+            setAttribute("events.after", anchored.grounded.size.toLong())
+            setAttribute(
+                "study_blocks.before",
+                yearGrounded.count { it.category == AcademicCategory.STUDY_BLOCK }.toLong()
+            )
+            setAttribute(
+                "study_blocks.after",
+                anchored.grounded.count { it.category == AcademicCategory.STUDY_BLOCK }.toLong()
+            )
+            setAttribute("orphans.dropped", anchored.droppedOrphanStudyBlocks.toLong())
+            if (anchored.droppedOrphanStudyBlocks > 0) {
+                logger?.d(
+                    "GroundingGuard",
+                    "study plan: dropped ${anchored.droppedOrphanStudyBlocks} ungrounded STUDY_BLOCK(s) with no deliverable to prep for"
+                )
+            }
+            anchored.grounded
+        }
     }
 
     // The prompt already contains the injected source fragments (via ContextAgent), so the

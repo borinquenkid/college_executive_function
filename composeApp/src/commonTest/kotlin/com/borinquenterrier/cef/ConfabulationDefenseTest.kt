@@ -98,17 +98,26 @@ private val SCENARIOS = listOf(
 )
 
 class ConfabulationDefenseTest : FunSpec({
+
+    // Mirrors EventGenerationService.generateStudyPlan: GroundingGuard year-grounds the scripted
+    // LLM output, then StudyPlanResolver applies date + anchor grounding and the resolution split.
+    suspend fun runPlan(plan: () -> List<Event>): StudyPlanResult {
+        val yearGrounded = GroundingGuardAIService(ScriptedAIService(onStudyPlan = plan))
+            .generateStudyPlan(SOURCE, "", StudyPreferences())
+        return StudyPlanResolver.resolve(yearGrounded, SOURCE)
+    }
+
     SCENARIOS.forEach { scenario ->
         test(scenario.name) {
-            val guard = GroundingGuardAIService(ScriptedAIService(onStudyPlan = scenario.plan))
             if (scenario.expectThrows) {
-                shouldThrow<Throwable> {
-                    guard.generateStudyPlan(SOURCE, "", StudyPreferences())
-                }
+                shouldThrow<Throwable> { runPlan(scenario.plan) }
             } else {
-                val result = guard.generateStudyPlan(SOURCE, "", StudyPreferences())
-                withClue("survivors: ${result.map { it.title }}") {
-                    result.map { it.title }.toSet() shouldBe scenario.expectedTitles
+                val result = runPlan(scenario.plan)
+                withClue(
+                    "grounded=${result.grounded.map { it.title }} " +
+                        "needsResolution=${result.needsResolution.map { it.event.title }}"
+                ) {
+                    result.grounded.map { it.title }.toSet() shouldBe scenario.expectedTitles
                 }
             }
         }

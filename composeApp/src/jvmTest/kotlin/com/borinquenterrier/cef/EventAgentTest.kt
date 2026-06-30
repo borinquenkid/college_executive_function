@@ -88,8 +88,14 @@ class HeadlessLogicTest : FunSpec({
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(existingClass)
 
-        // 2. Mock AI response
+        // 2. Mock AI response — a source-dated deliverable so the study block grounds + anchors.
         val mockAiResponse = listOf(
+            DayEvent(
+                title = "Midterm Exam",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = LocalDate(2026, 10, 15) // "Oct 15" appears in the source fragment
+            ),
             TimeEvent(
                 title = "Study for Midterm",
                 source = EventSource.AI_GENERATED,
@@ -124,9 +130,8 @@ class HeadlessLogicTest : FunSpec({
         capturedSchedule.contains("2026-10-14") shouldBe true
         capturedSchedule.contains("09:30") shouldBe true
 
-        // Verify the resulting generated events are available in state
-        eventAgent.lastGeneratedEvents.value.size shouldBe 1
-        eventAgent.lastGeneratedEvents.value[0].title shouldBe "Study for Midterm"
+        // Verify the resulting grounded study plan is available in state
+        eventAgent.lastGeneratedEvents.value.any { it.title == "Study for Midterm" } shouldBe true
     }
 
     test("EventAgent.decomposeTask should store decomposed tasks and target event") {

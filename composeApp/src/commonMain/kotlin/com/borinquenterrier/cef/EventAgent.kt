@@ -78,6 +78,10 @@ class EventAgent(
     private val _lastGeneratedEvents = MutableStateFlow<List<Event>>(emptyList())
     val lastGeneratedEvents: StateFlow<List<Event>> = _lastGeneratedEvents.asStateFlow()
 
+    /** Deliverables whose date could not be grounded in the source — surfaced to the date-picker dialog. */
+    private val _pendingDateResolutions = MutableStateFlow<List<DateResolutionItem>>(emptyList())
+    val pendingDateResolutions: StateFlow<List<DateResolutionItem>> = _pendingDateResolutions.asStateFlow()
+
     private val _decomposedTasks = MutableStateFlow<List<DecomposedTask>>(emptyList())
     val decomposedTasks: StateFlow<List<DecomposedTask>> = _decomposedTasks.asStateFlow()
 
@@ -251,9 +255,13 @@ class EventAgent(
         runAgentAction("Error generating study plan", handleQuotaErrors = true) {
             _statusMessage.value = "Planning study time from full context..."
             val existingEvents = repository.getEvents("default")
-            val processed = generationService.generateStudyPlan(source, existingEvents)
-            _lastGeneratedEvents.value = processed
-            _statusMessage.value = "${processed.size} events planned for study time."
+            val result = generationService.generateStudyPlan(source, existingEvents)
+            _lastGeneratedEvents.value = result.grounded
+            _pendingDateResolutions.value = result.needsResolution
+            val resolutionNote = if (result.needsResolution.isNotEmpty()) {
+                " (${result.needsResolution.size} need a date confirmed)"
+            } else ""
+            _statusMessage.value = "${result.grounded.size} events planned for study time.$resolutionNote"
         }
     }
 

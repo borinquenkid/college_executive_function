@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 178
+- **Total Files Analyzed**: 180
 - **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
@@ -17,7 +17,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
 | HttpOtelTracer.kt | 33 | 76.6% | 46.89 | 🔴 HIGH |
-| EventAgent.kt | 33 | 96.8% | 33.04 | 🔴 HIGH |
+| EventAgent.kt | 34 | 96.3% | 34.06 | 🔴 HIGH |
 | GeminiAIService.kt | 30 | 98.1% | 30.01 | 🔴 HIGH |
 | EventDeduplicator.kt | 29 | 100.0% | 29.00 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
@@ -55,16 +55,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `setAttribute` | 1 |
 | *... and 4 more* | |
 
-### EventAgent.kt (Score: 33.04 - 🔴 HIGH)
-- **Total Complexity**: 33
-- **Real Coverage**: 96.8%
+### EventAgent.kt (Score: 34.06 - 🔴 HIGH)
+- **Total Complexity**: 34
+- **Real Coverage**: 96.3%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
 | `friendlyError` | 4 |
+| `generateStudyPlan` | 3 |
 | `loadPersistedWarnings` | 2 |
-| `generateStudyPlan` | 2 |
 | `loadIncompleteEvents` | 2 |
 | `estimatedRemainingSeconds` | 1 |
 | `clearError` | 1 |
@@ -397,9 +397,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceById` | 1 |
 | `deleteSource` | 1 |
 
-### EventGenerationService.kt (Score: 19.37 - 🟡 MEDIUM)
+### EventGenerationService.kt (Score: 19.36 - 🟡 MEDIUM)
 - **Total Complexity**: 19
-- **Real Coverage**: 89.9%
+- **Real Coverage**: 90.0%
 
 #### Methods list:
 | Method | Complexity |
@@ -607,18 +607,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findCollidingEvent` | 1 |
 | `hasShifted` | 1 |
 
-### GroundingGuardAIService.kt (Score: 12.05 - 🟢 LOW)
-- **Total Complexity**: 12
-- **Real Coverage**: 92.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `generateCalendarEvents` | 1 |
-| `generateStudyPlan` | 1 |
-| `generateChatResponse` | 1 |
-| `groundToSource` | 1 |
-
 ### CalendarPushResolver.kt (Score: 12.01 - 🟢 LOW)
 - **Total Complexity**: 12
 - **Real Coverage**: 95.5%
@@ -794,6 +782,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getDecompositionCritiquePrompt` | 1 |
 | `getSyllabusAuditPrompt` | 1 |
 
+### GroundingGuardAIService.kt (Score: 10.01 - 🟢 LOW)
+- **Total Complexity**: 10
+- **Real Coverage**: 94.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `generateCalendarEvents` | 1 |
+| `generateStudyPlan` | 1 |
+| `generateChatResponse` | 1 |
+| `groundToSource` | 1 |
+
 ### SqlDelightSourceRepository.kt (Score: 10.00 - 🟢 LOW)
 - **Total Complexity**: 10
 - **Real Coverage**: 96.6%
@@ -869,6 +869,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `downloadModel` | 7 |
 | `isModelDownloaded` | 2 |
 | `getModelFile` | 1 |
+
+### SourceSnippetExtractor.kt (Score: 10.00 - 🟢 LOW)
+- **Total Complexity**: 10
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `snippet` | 7 |
+| `significantWords` | 3 |
 
 ### NormalizationService.kt (Score: 9.00 - 🟢 LOW)
 - **Total Complexity**: 9
@@ -1827,6 +1837,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `secondsRemaining` | 2 |
+
+### StudyPlanResolver.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `resolve` | 2 |
 
 ### WarningAggregator.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 2

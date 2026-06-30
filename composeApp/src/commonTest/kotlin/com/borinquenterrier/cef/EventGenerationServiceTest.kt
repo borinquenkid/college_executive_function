@@ -126,21 +126,25 @@ class EventGenerationServiceTest : FunSpec({
 
     // ── generateStudyPlan ───────────────────────────────────────────────────
 
-    test("generateStudyPlan returns normalized study blocks from AI") {
+    test("generateStudyPlan grounds study blocks against a source-dated deliverable") {
         val aiService = mockk<AIService>(relaxed = true)
         val auditor = mockk<SyllabusAuditor>(relaxed = true)
+        val midterm = DayEvent(
+            title = "Midterm", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, date = LocalDate(2025, 10, 12)
+        )
         val studyBlock = TimeEvent(
             title = "Study: Midterm", source = EventSource.AI_GENERATED,
-            date = LocalDate(2025, 10, 12), startTime = LocalTime(14, 0), endTime = LocalTime(16, 0),
+            date = LocalDate(2025, 10, 10), startTime = LocalTime(14, 0), endTime = LocalTime(16, 0),
             category = AcademicCategory.STUDY_BLOCK
         )
-        coEvery { aiService.generateStudyPlan(any(), any(), any()) } returns listOf(studyBlock)
+        coEvery { aiService.generateStudyPlan(any(), any(), any()) } returns listOf(midterm, studyBlock)
         val service = EventGenerationService(aiService, NormalizationService(), auditor)
 
-        val existing = listOf(dayEvent("Midterm"))
-        val result = service.generateStudyPlan(syllabusSource(), existing)
-        result shouldHaveSize 1
-        result[0].title shouldBe "Study: Midterm"
+        // Source references the deliverable's date so it grounds; the block then anchors to it.
+        val result = service.generateStudyPlan(syllabusSource("PSYCH 101. Midterm October 12, 2025."), emptyList())
+        (result.grounded.any { it.title == "Study: Midterm" }) shouldBe true
+        result.needsResolution.shouldBeEmpty()
     }
 
     test("generateStudyPlan passes existing events as schedule context to AI") {
@@ -164,7 +168,7 @@ class EventGenerationServiceTest : FunSpec({
         coEvery { aiService.generateStudyPlan(any(), any(), any()) } returns emptyList()
         val service = EventGenerationService(aiService, NormalizationService(), auditor)
 
-        service.generateStudyPlan(syllabusSource(), emptyList()).shouldBeEmpty()
+        service.generateStudyPlan(syllabusSource(), emptyList()).grounded.shouldBeEmpty()
     }
 
     // ── batch loop ──────────────────────────────────────────────────────────

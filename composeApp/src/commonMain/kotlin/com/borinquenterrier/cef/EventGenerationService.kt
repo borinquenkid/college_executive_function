@@ -83,7 +83,7 @@ class EventGenerationService(
      * Generates a study plan for [source], scheduling around [existingEvents] and any
      * user preference constraints so the AI avoids proposing colliding study blocks.
      */
-    suspend fun generateStudyPlan(source: SourceItem, existingEvents: List<Event>): List<Event> =
+    suspend fun generateStudyPlan(source: SourceItem, existingEvents: List<Event>): StudyPlanResult =
         AppTracer.current.span(
             "events.generate_study_plan",
             mapOf("source.title" to source.title, "calendar.existing_count" to existingEvents.size.toString())
@@ -94,9 +94,12 @@ class EventGenerationService(
             val preferences = preferencesRepository.getPreferences()
             val planEvents = aiService.generateStudyPlan(syllabusText, existingScheduleText, preferences)
 
-            val normalized = normalize(planEvents)
-            setAttribute("events.planned_count", normalized.size.toLong())
-            normalized
+            // Catch confabulation inside the pipeline: split into push-ready events and a
+            // needs-date-resolution channel (the latter is surfaced to the date-picker dialog).
+            val result = StudyPlanResolver.resolve(normalize(planEvents), syllabusText)
+            setAttribute("events.planned_count", result.grounded.size.toLong())
+            setAttribute("events.needs_resolution_count", result.needsResolution.size.toLong())
+            result
         }
 
     private suspend fun buildScheduleContext(existingEvents: List<Event>): String {

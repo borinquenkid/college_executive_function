@@ -125,10 +125,17 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             startTime = LocalTime(14, 0),
             endTime = LocalTime(16, 0)
         )
+        // A source-dated deliverable ("Oct 14" is in the syllabus) so the study block grounds + anchors.
+        val midtermDeliverable = DayEvent(
+            title = "Midterm Exam",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2026, 10, 14)
+        )
         // Verify that existing schedule (holiday + midterm) is passed to the AI
         val capturedSchedule = slot<String>()
         coEvery { mockAi.generateStudyPlan(any(), capture(capturedSchedule)) } returns listOf(
-            studyBlock
+            midtermDeliverable, studyBlock
         )
 
         events.generateStudyPlan(syllabusItem)
@@ -137,7 +144,7 @@ class EndToEndAcademicWorkflowTest : FunSpec({
 
         capturedSchedule.captured.contains("Labor Day") shouldBe true
         capturedSchedule.captured.contains("Midterm Exam") shouldBe true
-        events.lastGeneratedEvents.value.size shouldBe 1
+        events.lastGeneratedEvents.value.any { it.title == "Study for Midterm" } shouldBe true
 
         // --- 7. STEP 6: VERIFY CHAT Q&A ---
         coEvery { mockAi.generateChatResponse(any()) } returns "The late penalty is 10%."

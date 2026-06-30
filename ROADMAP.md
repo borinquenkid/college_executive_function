@@ -56,7 +56,7 @@ These phases continue the CRAP remediation strategy across file ingestion and pr
 | 0.21 | Decompose `DirectoryPreferencesManager` (CRAP 72.00) | ✅ **COMPLETED** | 4c653d0 |
 | 0.22 | Decompose `ContextAgent` (CRAP 31.03) | ✅ **COMPLETED** | dd5782a |
 | 0.23 | Refactor Event & Study Plan prompts to ADR-002 | ✅ **COMPLETED** | 26ee8ee |
-| 0.24 | Refactor ChatBuilder prompts to ADR-002 | ⏳ **NEXT** | — |
+| 0.24 | Refactor ChatBuilder prompts to ADR-002 | ✅ **COMPLETED** | (Phase 0.24) |
 
 ---
 
@@ -557,13 +557,13 @@ None. Pure UI change; no Phase 6 or earlier work required.
 
 ---
 
-### Phase 0.24 — Refactor ChatBuilder prompts to ADR-002 ⏳ PLANNED
+### Phase 0.24 — Refactor ChatBuilder prompts to ADR-002 ✅ **COMPLETED**
 
 **Motivation:** Chat prompt builders (`ChatBuilder.kt`) use standard unstructured markdown sections which can lead the LLM to blend raw syllabus metadata rules with instructions or hallucinate claims. Standardizing the chat and chat critique prompts to the ADR-002 standard (Memorandum Brief and XML tag boundaries) preserves answer accuracy and grounding.
 
 **Deliverables:**
-1. ⏳ `ChatBuilder.kt` — Restructure `getMultiSourceChatPrompt` and `getChatCritiquePrompt` to Memorandum Brief standard and fence input structures in XML tags (`<course_materials>`, `<conversation_history>`, `<chat_response_to_audit>`, etc.).
-2. ⏳ Tests: Update assertions in `ChatBuilderTest.kt` to check for these XML tag boundaries and Memorandum sections.
+1. ✅ `ChatBuilder.kt` — Restructure `getMultiSourceChatPrompt` and `getChatCritiquePrompt` to Memorandum Brief standard and fence input structures in XML tags (`<course_materials>`, `<conversation_history>`, `<chat_response_to_audit>`, etc.).
+2. ✅ Tests: Update assertions in `ChatBuilderTest.kt` to check for these XML tag boundaries and Memorandum sections.
 
 **CRAP Acceptance:**
 - `ChatBuilder`: Complexity < 10, method complexity < 5.

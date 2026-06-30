@@ -123,13 +123,14 @@ class CriticActorAIServiceTest : FunSpec({
         val revisedResponse = "Exams are 60%, Homework is 40%."
 
         coEvery { delegate.generateChatResponse(originalPrompt) } returns firstPassResponse
-        coEvery { delegate.generateChatResponse(match { it.contains("You are a factual critique") }) } returns revisedResponse
+        coEvery { delegate.generateChatResponse(match { it.contains("factual critique") }) } returns revisedResponse
 
         val result = criticActorService.generateChatResponse(originalPrompt)
 
         result shouldBe revisedResponse
         coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
+
 
     test("passes through when delegate returns empty task decomposition list") {
         coEvery { delegate.decomposeTask(any(), any()) } returns emptyList()

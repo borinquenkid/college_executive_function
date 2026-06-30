@@ -46,54 +46,69 @@ object ChatBuilder {
 
         val warningsSection = if (warnings.isEmpty()) "" else buildString {
             appendLine()
-            appendLine("# Source Processing Notes")
             appendLine("The following issues were flagged during ingestion and may require follow-up:")
             warnings.forEach { appendLine("- $it") }
         }
 
         return """
-            You are an Academic Success Assistant with full access to a student's course materials.
-            Answer questions by reasoning across ALL provided sources and synthesizing information.
+            # MEMORANDUM BRIEF: MULTI-SOURCE CHAT CONTEXT
 
-            # Course Materials (${sourceBlocks.size} source(s))
+            ## 1. TOPIC CLARIFICATION
+            You are acting as an Academic Success Assistant. This brief instructs you to answer student academic questions based strictly on their loaded course materials and prior conversation history.
 
+            ## 2. STRUCTURED REFERENCE MATERIAL
+            <course_materials>
             $sourcesSection
-            $warningsSection
-            # Prior Conversation
+            </course_materials>
+            ${if (warningsSection.isNotBlank()) "\n<source_warnings>\n$warningsSection\n</source_warnings>\n" else ""}
+            <conversation_history>
             $historySection
+            </conversation_history>
 
-            # Student's Question
+            ## 3. TASK PROMPT
+            Analyze the materials inside <course_materials> and the dialog history inside <conversation_history>. 
+            Then, formulate a clear, helpful response to the student's question below:
+            
+            Student's Question:
             $question
 
-            # Instructions
-            - Base your answer ONLY on the provided materials. Do not use outside knowledge.
-            - If relevant information spans multiple sources, synthesize it and cite the source title.
-            - If the answer is not found in any provided source, say so clearly rather than guessing.
-            - Keep answers concise and actionable for a student managing their academics.
+            ## 4. CONSTRAINTS & GUARDRAILS
+            - Base your answer ONLY on the provided materials in <course_materials>. Do not use outside knowledge or make ungrounded assumptions.
+            - If the answer is not found in the provided sources, say so clearly rather than guessing.
+            - If relevant information spans multiple sources, synthesize it and explicitly cite the source titles.
+            - Keep answers concise, direct, and actionable for a student.
         """.trimIndent()
     }
 
     fun getChatCritiquePrompt(originalPrompt: String, response: String): String {
         return """
-            You are a factual critique and quality control agent.
-            
-            Below is the original user prompt / chat history and the generated response.
-            
-            # Original Prompt / Context:
+            # MEMORANDUM BRIEF: CHAT RESPONSE QUALITY AUDIT
+
+            ## 1. TOPIC CLARIFICATION
+            This brief instructs you to act as a factual critique and quality control agent to review and correct a generated response against its original prompt context.
+
+            ## 2. STRUCTURED REFERENCE MATERIAL
+            <original_prompt_context>
             $originalPrompt
-            
-            # Generated Response:
+            </original_prompt_context>
+
+            <generated_chat_response>
             $response
+            </generated_chat_response>
+
+            ## 3. TASK PROMPT
+            Audit the response inside <generated_chat_response> against the source context and instructions in <original_prompt_context>.
             
-            # Task:
-            Critique the generated response. Check if:
-            1. The response contains any assertions or facts that are NOT supported by the source materials in the original prompt context.
-            2. The response contains hallucinations, fabrications, or outside assumptions.
-            
-            If the response is fully factual and supported by the sources, return the original response completely unchanged.
-            If the response contains unsupported information or makes assumptions, revise it to ONLY use facts explicitly stated in the source materials. If a fact cannot be verified, clearly state "I do not have enough information to answer that based on the provided materials."
-            
-            Return ONLY the final revised response text. Do not add any intros, explanations, or meta-commentary.
+            Identify and correct any:
+            1. Assertions or facts that are NOT supported by the source materials in the original context.
+            2. Hallucinations, fabrications, or outside assumptions.
+
+            ## 4. CONSTRAINTS & GUARDRAILS
+            - Return ONLY the final revised response text.
+            - Do NOT include any intros, explanations, markdown code blocks (do not wrap in ```json or ```), or meta-commentary.
+            - If the response is fully factual and supported by the sources, return the original response completely unchanged.
+            - If a fact cannot be verified, clearly state "I do not have enough information to answer that based on the provided materials."
         """.trimIndent()
     }
 }
+

@@ -717,8 +717,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `getChatCritiquePrompt` | 2 |
 | `getMultiSourceChatPrompt` | 1 |
+| `getChatCritiquePrompt` | 1 |
 
 ### AgentHarness.kt (Score: 10.46 - 🟢 LOW)
 - **Total Complexity**: 10

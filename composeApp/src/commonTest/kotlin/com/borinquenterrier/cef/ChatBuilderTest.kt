@@ -47,7 +47,7 @@ class ChatBuilderTest : StringSpec({
         )
         val result = ChatBuilder.getMultiSourceChatPrompt(sources, history, "When is the final?")
 
-        result.shouldContain("Prior Conversation")
+        result.shouldContain("conversation_history")
         result.shouldContain("Student: When is the midterm?")
         result.shouldContain("Assistant: March 15, 2024")
     }
@@ -89,15 +89,49 @@ class ChatBuilderTest : StringSpec({
         result.shouldContain("Do not use outside knowledge")
     }
 
-    "getChatCritiquePrompt should validate response against original prompt" {
-        val prompt = "Course uses Canvas. Final is 30% of grade."
-        val response = "The course uses Blackboard and the final is optional."
+    "getMultiSourceChatPrompt should use the MEMORANDUM BRIEF format and XML tags" {
+        val sources = listOf(
+            SourceContextBlock("Syllabus", "SYLLABUS", "Policies", "Content")
+        )
+        val history = listOf("User" to "Hi", "Assistant" to "Hello")
+        val result = ChatBuilder.getMultiSourceChatPrompt(sources, history, "Question?")
+
+        result.shouldContain("MEMORANDUM BRIEF: MULTI-SOURCE CHAT CONTEXT")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+
+        result.shouldContain("<course_materials>")
+        result.shouldContain("Syllabus")
+        result.shouldContain("Policies & Rules")
+        result.shouldContain("Content")
+        result.shouldContain("</course_materials>")
+
+        result.shouldContain("<conversation_history>")
+        result.shouldContain("Student: Hi")
+        result.shouldContain("Assistant: Hello")
+        result.shouldContain("</conversation_history>")
+    }
+
+    "getChatCritiquePrompt should use the MEMORANDUM BRIEF format and XML tags" {
+        val prompt = "Course uses Canvas. Final is 30%."
+        val response = "The course uses Canvas and the final is 30%."
         val result = ChatBuilder.getChatCritiquePrompt(prompt, response)
 
-        result.shouldContain("factual critique")
-        result.shouldContain("quality control")
+        result.shouldContain("MEMORANDUM BRIEF: CHAT RESPONSE QUALITY AUDIT")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+
+        result.shouldContain("<original_prompt_context>")
         result.shouldContain(prompt)
+        result.shouldContain("</original_prompt_context>")
+
+        result.shouldContain("<generated_chat_response>")
         result.shouldContain(response)
+        result.shouldContain("</generated_chat_response>")
     }
 
     "getChatCritiquePrompt should check for hallucinations" {
@@ -105,7 +139,7 @@ class ChatBuilderTest : StringSpec({
         val response = "The professor always gives pop quizzes on Mondays."
         val result = ChatBuilder.getChatCritiquePrompt(prompt, response)
 
-        result.shouldContain("hallucinations")
+        result.shouldContain("Hallucinations")
         result.shouldContain("fabrications")
         result.shouldContain("outside assumptions")
     }
@@ -125,7 +159,7 @@ class ChatBuilderTest : StringSpec({
         val result = ChatBuilder.getChatCritiquePrompt(prompt, response)
 
         result.shouldContain("source materials")
-        result.shouldContain("explicitly stated")
+        result.shouldContain("supported by the source")
     }
 
     "getChatCritiquePrompt should request revision if unsupported" {
@@ -142,8 +176,10 @@ class ChatBuilderTest : StringSpec({
         val response = "Brief answer"
         val result = ChatBuilder.getChatCritiquePrompt(prompt, response)
 
-        result.shouldContain("Do not add any intros")
+        result.shouldContain("Do NOT include")
         result.shouldContain("explanations")
         result.shouldContain("meta-commentary")
     }
 })
+
+

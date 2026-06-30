@@ -36,9 +36,14 @@ class SourceManager(
 
     fun loadSources() {
         scope.launch {
-            val items = loader.loadSources()
-            _sourceItemsWrapper.setValue(items)
-            selector.autoSelectFirstFrom(items)
+            val loaded = loader.loadSources()
+            // Merge rather than replace: startup reload runs asynchronously, so a source the user
+            // added in the meantime must not be clobbered. Keep what's in-memory, append persisted
+            // sources not already present (by title).
+            val current = _sourceItemsWrapper.value
+            val merged = current + loaded.filter { l -> current.none { it.title == l.title } }
+            _sourceItemsWrapper.setValue(merged)
+            selector.autoSelectFirstFrom(merged)
         }
     }
 

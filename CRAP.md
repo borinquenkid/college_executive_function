@@ -688,6 +688,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceMetadata` | 1 |
 | `queryAllSources` | 1 |
 
+### SourceManager.kt (Score: 11.00 - 🟢 LOW)
+- **Total Complexity**: 11
+- **Real Coverage**: 96.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `addSource` | 3 |
+| `loadSources` | 2 |
+| `deleteSource` | 2 |
+| `collect` | 1 |
+| `asStateFlow` | 1 |
+| `reanalyzeSource` | 1 |
+| `selectSource` | 1 |
+
 ### SourceDateGrounder.kt (Score: 11.00 - 🟢 LOW)
 - **Total Complexity**: 11
 - **Real Coverage**: 100.0%
@@ -808,21 +823,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getSourceById` | 1 |
 | `getFragmentsForSource` | 1 |
 | `deleteSource` | 1 |
-
-### SourceManager.kt (Score: 10.00 - 🟢 LOW)
-- **Total Complexity**: 10
-- **Real Coverage**: 96.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `addSource` | 3 |
-| `deleteSource` | 2 |
-| `collect` | 1 |
-| `asStateFlow` | 1 |
-| `loadSources` | 1 |
-| `reanalyzeSource` | 1 |
-| `selectSource` | 1 |
 
 ### ActiveSemesterDetector.kt (Score: 10.00 - 🟢 LOW)
 - **Total Complexity**: 10

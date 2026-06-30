@@ -208,6 +208,17 @@ class AppControllerTest : FunSpec({
         controller.sourceItems.value.any { it.title == "lecture.pdf" } shouldBe true
     }
 
+    test("persisted sources are restored on init (survive restart) without an explicit load call") {
+        val source = SourceItem("persisted.pdf", emptyList(), SourceCategory.SYLLABUS)
+        coEvery { mockSourceLoader.loadSources() } returns listOf(source)
+
+        // Construct a fresh controller — init alone should repopulate the in-memory list.
+        val freshController = AppController(container)
+        delay(300)
+
+        freshController.sourceItems.value.any { it.title == "persisted.pdf" } shouldBe true
+    }
+
     // ── resetForDemo ──────────────────────────────────────────────────────────
 
     test("resetForDemo resets the calendar and clears the event agent") {

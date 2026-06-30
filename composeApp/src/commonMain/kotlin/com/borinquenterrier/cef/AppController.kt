@@ -75,6 +75,11 @@ class AppController(val container: DependencyContainer) {
                 container.calendarAgent.retryLocalOnly()
             }
         }
+        // Restore persisted sources into the in-memory list at startup. Sources are saved to the
+        // DB on add but were never reloaded, so the sources panel and chat (which rank in-memory
+        // fragments) came up empty after every restart. Loading is a pure DB read — it does NOT
+        // re-trigger processing, which stays once-per-source via the analysis cache.
+        loadSources()
     }
 
     fun loadSources() {

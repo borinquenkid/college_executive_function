@@ -161,9 +161,10 @@ class EventAgent(
                 "Gemini API key is invalid or missing. Please update it in Settings."
             msg.contains("Forbidden") ->
                 "Gemini API access denied. Ensure the Generative Language API is enabled in your Google Cloud project."
-            else -> "AI error. Check logs for details."
+            else -> "Error: ${e.message?.takeIf { it.isNotBlank() } ?: "AI error. Check logs for details."}"
         }
     }
+
 
     /**
      * Runs [block] under the standard loading/error-reporting envelope shared by every

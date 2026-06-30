@@ -37,3 +37,12 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID || '' }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET || '' }}
         run: ./gradlew :composeApp:jvmTest
+
+      - name: Verify Google OAuth Credentials (Integration Test)
+        if: ${{ secrets.GOOGLE_REFRESH_TOKEN != '' }}
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
+        run: ./gradlew :composeApp:jvmTest -PrunAITests=true --tests "com.borinquenterrier.cef.GoogleOAuthIntegrationTest"
+

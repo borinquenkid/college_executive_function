@@ -14,7 +14,7 @@ import kotlin.time.Duration.Companion.milliseconds
  * Required secrets (OS env var or .env):
  *   GOOGLE_REFRESH_TOKEN — paired with the GOOGLE_CLIENT_ID/SECRET that ship in the app
  */
-class ModelNegotiationIntegrationTest : FunSpec({
+class GoogleOAuthIntegrationTest : FunSpec({
 
     test("Google OAuth: app client credentials are accepted by Google token endpoint").config(
         timeout = AI_INTEGRATION_TIMEOUT_MS.milliseconds

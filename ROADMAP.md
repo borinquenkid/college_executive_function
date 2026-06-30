@@ -31,7 +31,8 @@
 
 | Issue | Notes |
 |---|---|
-| `ModelNegotiationIntegrationTest` disabled | Fails with "Unauthorized" against the live Gemini API — `.env` lacks a valid `CEF_GEMINI_API_KEY`/`GOOGLE_ACCESS_TOKEN`. Disabled via `.config(enabled = false)` (2026-06-07) to unblock executable publishing. Re-enable in `composeApp/src/jvmTest/kotlin/com/borinquenterrier/cef/ModelNegotiationIntegrationTest.kt:13` once credentials are restored. |
+| `GoogleOAuthIntegrationTest` enabled in CI | Renamed from `ModelNegotiationIntegrationTest` to correctly reflect that it verifies Google sign-in credentials. Configured to run in CI (`pr-check.yml` & `release-desktop.yml`) only when secrets are available, ensuring we validate client secrets before merging/building. |
+
 
 ---
 

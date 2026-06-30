@@ -45,6 +45,24 @@ class SourceIngestionHandler(
         }
     }
 
+    fun ingestUrls(
+        urls: List<String>,
+        onStart: () -> Unit,
+        onEachSuccess: (SourceItem) -> Unit,
+        onFinish: () -> Unit
+    ) {
+        onStart()
+        scope.launch {
+            for (url in urls) {
+                try {
+                    val source = ingestionAgent.addUrl(url)
+                    onEachSuccess(source)
+                } catch (_: Exception) { }
+            }
+            onFinish()
+        }
+    }
+
     fun ingestUrl(
         url: String,
         onStart: () -> Unit,
@@ -66,6 +84,24 @@ class SourceIngestionHandler(
             } finally {
                 onFinish()
             }
+        }
+    }
+
+    fun ingestDriveFiles(
+        files: List<DriveFile>,
+        onStart: () -> Unit,
+        onEachSuccess: (SourceItem) -> Unit,
+        onFinish: () -> Unit
+    ) {
+        onStart()
+        scope.launch {
+            for (file in files) {
+                try {
+                    val source = ingestionAgent.addDriveFile(file)
+                    onEachSuccess(source)
+                } catch (_: Exception) { }
+            }
+            onFinish()
         }
     }
 

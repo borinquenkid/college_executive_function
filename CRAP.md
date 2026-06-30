@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 181
+- **Total Files Analyzed**: 182
 - **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
@@ -362,6 +362,20 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `pruneOldLogs` | 1 |
 | `clearAllLogs` | 1 |
 
+### CommonSourceProviders.kt (Score: 20.43 - 🟡 MEDIUM)
+- **Total Complexity**: 20
+- **Real Coverage**: 89.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `SelectorUI` | 7 |
+| `SelectorUI` | 5 |
+| `SelectorUI` | 5 |
+| `isAuthorized` | 1 |
+| `isAuthorized` | 1 |
+| `isAuthorized` | 1 |
+
 ### GeminiModelNegotiator.kt (Score: 20.31 - 🟡 MEDIUM)
 - **Total Complexity**: 20
 - **Real Coverage**: 90.8%
@@ -374,6 +388,21 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `clearBlacklistForTesting` | 1 |
 | `blacklistModel` | 1 |
 | `negotiateBestModel` | 1 |
+
+### SourceIngestionHandler.kt (Score: 20.17 - 🟡 MEDIUM)
+- **Total Complexity**: 17
+- **Real Coverage**: 77.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `ingestLocalFile` | 1 |
+| `ingestLocalFiles` | 1 |
+| `ingestUrls` | 1 |
+| `ingestUrl` | 1 |
+| `ingestDriveFiles` | 1 |
+| `ingestDriveFile` | 1 |
+| `buildIngestibleFilesQuery` | 1 |
 
 ### EventBuilder.kt (Score: 20.10 - 🟡 MEDIUM)
 - **Total Complexity**: 20
@@ -452,20 +481,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `resetForDemo` | 1 |
 | `addSource` | 1 |
 | *... and 7 more* | |
-
-### CommonSourceProviders.kt (Score: 17.65 - 🟡 MEDIUM)
-- **Total Complexity**: 17
-- **Real Coverage**: 86.9%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `SelectorUI` | 7 |
-| `SelectorUI` | 4 |
-| `SelectorUI` | 3 |
-| `isAuthorized` | 1 |
-| `isAuthorized` | 1 |
-| `isAuthorized` | 1 |
 
 ### IngestionAgent.kt (Score: 16.00 - 🟡 MEDIUM)
 - **Total Complexity**: 16
@@ -662,19 +677,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `i` | 1 |
 | `writeLogToFile` | 1 |
 | `rememberLogger` | 1 |
-
-### SourceIngestionHandler.kt (Score: 11.11 - 🟢 LOW)
-- **Total Complexity**: 11
-- **Real Coverage**: 90.3%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `ingestLocalFile` | 1 |
-| `ingestLocalFiles` | 1 |
-| `ingestUrl` | 1 |
-| `ingestDriveFile` | 1 |
-| `buildIngestibleFilesQuery` | 1 |
 
 ### ContextAgent.kt (Score: 11.01 - 🟢 LOW)
 - **Total Complexity**: 11
@@ -1679,6 +1681,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getEventsInRange` | 1 |
 | `getEventsBySyncStatus` | 1 |
 | `getIncompleteEventsBefore` | 1 |
+
+### UrlListParser.kt (Score: 3.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `parse` | 3 |
 
 ### LocalFileProcessor.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3

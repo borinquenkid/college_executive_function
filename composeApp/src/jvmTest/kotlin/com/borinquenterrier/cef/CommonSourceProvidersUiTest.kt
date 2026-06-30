@@ -178,7 +178,12 @@ class CommonSourceProvidersUiTest {
             }
         }
 
+        // Multi-select: clicking a row toggles selection; "Add (N)" confirms the batch.
         onNodeWithText("SyllabusDrive.pdf").performClick()
+        waitUntil(timeoutMillis = 5000L) {
+            try { onNodeWithText("Add (1)").assertExists(); true } catch (e: AssertionError) { false }
+        }
+        onNodeWithText("Add (1)").performClick()
 
         waitUntil(timeoutMillis = 5000L) {
             addedSource != null

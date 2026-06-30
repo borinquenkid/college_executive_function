@@ -15,6 +15,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CalendarMonth
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.Clear
 import androidx.compose.material.icons.filled.Description
 import androidx.compose.material.icons.filled.Search
@@ -42,13 +43,14 @@ import androidx.compose.ui.unit.dp
 fun DrivePickerDialog(
     driveService: GoogleDriveService,
     onDismiss: () -> Unit,
-    onFileSelected: (DriveFile) -> Unit
+    onFilesSelected: (List<DriveFile>) -> Unit
 ) {
     var allFiles by remember { mutableStateOf<List<DriveFile>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var query by remember { mutableStateOf("") }
     var selectedType by remember { mutableStateOf<DriveFileType?>(null) }
+    var selectedIds by remember { mutableStateOf(setOf<String>()) }
 
     val fileFilter = remember { DriveFileFilter() }
     val displayedFiles = remember(allFiles, query, selectedType) {
@@ -80,12 +82,23 @@ fun DrivePickerDialog(
                         onTypeSelected = { selectedType = it },
                         displayedFiles = displayedFiles,
                         hasAnyFiles = allFiles.isNotEmpty(),
-                        onFileSelected = onFileSelected
+                        selectedIds = selectedIds,
+                        onToggle = { file ->
+                            selectedIds = if (file.id in selectedIds) selectedIds - file.id
+                            else selectedIds + file.id
+                        }
                     )
                 }
             }
         },
-        confirmButton = {},
+        confirmButton = {
+            TextButton(
+                onClick = { onFilesSelected(allFiles.filter { it.id in selectedIds }) },
+                enabled = selectedIds.isNotEmpty()
+            ) {
+                Text(if (selectedIds.isEmpty()) "Add" else "Add (${selectedIds.size})")
+            }
+        },
         dismissButton = { TextButton(onClick = onDismiss) { Text("Cancel") } }
     )
 }
@@ -105,7 +118,8 @@ private fun DrivePickerContent(
     onTypeSelected: (DriveFileType?) -> Unit,
     displayedFiles: List<DriveFile>,
     hasAnyFiles: Boolean,
-    onFileSelected: (DriveFile) -> Unit
+    selectedIds: Set<String>,
+    onToggle: (DriveFile) -> Unit
 ) {
     OutlinedTextField(
         value = query,
@@ -135,11 +149,15 @@ private fun DrivePickerContent(
     } else {
         LazyColumn {
             items(displayedFiles) { file ->
+                val checked = file.id in selectedIds
                 ListItem(
                     headlineContent = { Text(file.name) },
                     supportingContent = { Text(DriveFileType.from(file)?.label ?: "File") },
                     leadingContent = { Icon(driveFileIcon(file), contentDescription = null) },
-                    modifier = Modifier.clickable { onFileSelected(file) }
+                    trailingContent = {
+                        if (checked) Icon(Icons.Default.Check, contentDescription = "Selected")
+                    },
+                    modifier = Modifier.clickable { onToggle(file) }
                 )
             }
         }

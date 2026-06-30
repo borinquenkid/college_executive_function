@@ -98,41 +98,37 @@ class UrlSourceProvider(
         var isIngesting by remember { mutableStateOf(false) }
 
         val submitUrl = {
-            if (url.isNotBlank()) {
-                handler.ingestUrl(
-                    url = url,
+            val urls = UrlListParser.parse(url)
+            if (urls.isNotEmpty()) {
+                val collected = mutableListOf<SourceItem>()
+                handler.ingestUrls(
+                    urls = urls,
                     onStart = { isIngesting = true },
-                    onSuccess = onSourceAdded,
-                    onFailure = onDismiss,
-                    onFinish = { isIngesting = false }
+                    onEachSuccess = { collected.add(it) },
+                    onFinish = {
+                        isIngesting = false
+                        if (collected.isEmpty()) onDismiss() else collected.forEach(onSourceAdded)
+                    }
                 )
             }
         }
 
         if (isIngesting) {
             IngestingProgressDialog(
-                title = "Reading URL",
+                title = "Reading URLs",
                 message = "Fetching content and analyzing structure..."
             )
         } else {
             AlertDialog(
                 onDismissRequest = onDismiss,
-                title = { Text("Add Source from URL") },
+                title = { Text("Add Sources from URLs") },
                 text = {
                     TextField(
                         value = url,
                         onValueChange = { url = it },
-                        label = { Text("https://...") },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .onKeyEvent { keyEvent ->
-                                if (keyEvent.key == Key.Enter && keyEvent.type == KeyEventType.KeyDown) {
-                                    submitUrl()
-                                    true
-                                } else {
-                                    false
-                                }
-                            }
+                        label = { Text("https://...  (one per line; commas ok)") },
+                        // Multi-line so Enter starts the next URL; the Add button submits the batch.
+                        modifier = Modifier.fillMaxWidth()
                     )
                 },
                 confirmButton = {
@@ -189,13 +185,16 @@ class GoogleDriveSourceProvider(
             DrivePickerDialog(
                 driveService = driveService,
                 onDismiss = onDismiss,
-                onFileSelected = { file ->
-                    handler.ingestDriveFile(
-                        file = file,
+                onFilesSelected = { files ->
+                    val collected = mutableListOf<SourceItem>()
+                    handler.ingestDriveFiles(
+                        files = files,
                         onStart = { isIngesting = true },
-                        onSuccess = onSourceAdded,
-                        onFailure = onDismiss,
-                        onFinish = { isIngesting = false }
+                        onEachSuccess = { collected.add(it) },
+                        onFinish = {
+                            isIngesting = false
+                            if (collected.isEmpty()) onDismiss() else collected.forEach(onSourceAdded)
+                        }
                     )
                 }
             )

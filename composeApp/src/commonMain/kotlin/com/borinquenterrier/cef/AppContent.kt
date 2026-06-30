@@ -76,6 +76,16 @@ fun AppContent(container: DependencyContainer) {
         )
     }
 
+    // Deliverables the pipeline caught with an ungrounded date — confirm a real date or discard.
+    val pendingDateResolutions by container.eventAgent.pendingDateResolutions.collectAsState()
+    if (pendingDateResolutions.isNotEmpty()) {
+        DateResolutionDialog(
+            items = pendingDateResolutions,
+            onConfirm = { item, date -> container.eventAgent.confirmPendingDate(item, date) },
+            onDiscard = { item -> container.eventAgent.discardPendingDate(item) },
+        )
+    }
+
     val globalHoldState by GeminiRetryService.globalHoldState.collectAsState()
 
     globalHoldState?.let { untilEpochMs ->

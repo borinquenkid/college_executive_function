@@ -42,6 +42,7 @@ class AppContentTest {
         every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
         every { mockEventAgent.errorState } returns errorState
         every { mockEventAgent.incompleteEvents } returns incompleteEvents
+        every { mockEventAgent.pendingDateResolutions } returns MutableStateFlow(emptyList())
 
         coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
 

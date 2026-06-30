@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 180
+- **Total Files Analyzed**: 181
 - **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
@@ -17,7 +17,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
 | HttpOtelTracer.kt | 33 | 76.6% | 46.89 | 🔴 HIGH |
-| EventAgent.kt | 34 | 96.3% | 34.06 | 🔴 HIGH |
+| EventAgent.kt | 36 | 93.5% | 36.36 | 🔴 HIGH |
 | GeminiAIService.kt | 30 | 98.1% | 30.01 | 🔴 HIGH |
 | EventDeduplicator.kt | 29 | 100.0% | 29.00 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
@@ -25,12 +25,12 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GoogleCalendarSyncService.kt | 27 | 100.0% | 27.00 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 27 | 100.0% | 27.00 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
+| AppContent.kt | 13 | 57.8% | 25.72 | 🟡 MEDIUM |
 | GeminiResponseParser.kt | 25 | 98.1% | 25.00 | 🟡 MEDIUM |
 | CriticActorAIService.kt | 23 | 88.0% | 23.91 | 🟡 MEDIUM |
 | GoogleRemoteCalendarRepository.kt | 22 | 86.5% | 23.19 | 🟡 MEDIUM |
 | CriticJsonCodec.kt | 23 | 93.8% | 23.13 | 🟡 MEDIUM |
 | GeminiRequestQueue.kt | 22 | 91.7% | 22.28 | 🟡 MEDIUM |
-| AppContent.kt | 12 | 58.6% | 22.22 | 🟡 MEDIUM |
 
 ---
 
@@ -55,9 +55,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `setAttribute` | 1 |
 | *... and 4 more* | |
 
-### EventAgent.kt (Score: 34.06 - 🔴 HIGH)
-- **Total Complexity**: 34
-- **Real Coverage**: 96.3%
+### EventAgent.kt (Score: 36.36 - 🔴 HIGH)
+- **Total Complexity**: 36
+- **Real Coverage**: 93.5%
 
 #### Methods list:
 | Method | Complexity |
@@ -66,13 +66,13 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateStudyPlan` | 3 |
 | `loadPersistedWarnings` | 2 |
 | `loadIncompleteEvents` | 2 |
+| `confirmPendingDate` | 1 |
+| `discardPendingDate` | 1 |
 | `estimatedRemainingSeconds` | 1 |
 | `clearError` | 1 |
 | `reportError` | 1 |
 | `setGeneratedEvents` | 1 |
-| `clearUnresolvedConflicts` | 1 |
-| `updateStatus` | 1 |
-| *... and 13 more* | |
+| *... and 15 more* | |
 
 ### GeminiAIService.kt (Score: 30.01 - 🔴 HIGH)
 - **Total Complexity**: 30
@@ -188,6 +188,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getEventsBySyncStatus` | 1 |
 | *... and 1 more* | |
 
+### AppContent.kt (Score: 25.72 - 🟡 MEDIUM)
+- **Total Complexity**: 13
+- **Real Coverage**: 57.8%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `AppContent` | 13 |
+
 ### GeminiResponseParser.kt (Score: 25.00 - 🟡 MEDIUM)
 - **Total Complexity**: 25
 - **Real Coverage**: 98.1%
@@ -270,15 +279,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `shared` | 1 |
 | `computeEffectiveDelayMs` | 1 |
 | *... and 2 more* | |
-
-### AppContent.kt (Score: 22.22 - 🟡 MEDIUM)
-- **Total Complexity**: 12
-- **Real Coverage**: 58.6%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `AppContent` | 12 |
 
 ### Event.kt (Score: 22.02 - 🟡 MEDIUM)
 - **Total Complexity**: 22
@@ -879,6 +879,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `snippet` | 7 |
 | `significantWords` | 3 |
+
+### DateResolutionPresenter.kt (Score: 9.16 - 🟢 LOW)
+- **Total Complexity**: 9
+- **Real Coverage**: 87.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `evidenceText` | 2 |
+| `withDate` | 2 |
+| `initialDate` | 1 |
+| `confirm` | 1 |
+| `discard` | 1 |
 
 ### NormalizationService.kt (Score: 9.00 - 🟢 LOW)
 - **Total Complexity**: 9

@@ -82,6 +82,20 @@ class EventAgent(
     private val _pendingDateResolutions = MutableStateFlow<List<DateResolutionItem>>(emptyList())
     val pendingDateResolutions: StateFlow<List<DateResolutionItem>> = _pendingDateResolutions.asStateFlow()
 
+    /** User confirmed a real [date] for an ungrounded deliverable: re-admit it to the push list. */
+    fun confirmPendingDate(item: DateResolutionItem, date: kotlinx.datetime.LocalDate) {
+        val (pending, push) = DateResolutionPresenter.confirm(
+            _pendingDateResolutions.value, _lastGeneratedEvents.value, item, date
+        )
+        _pendingDateResolutions.value = pending
+        _lastGeneratedEvents.value = push
+    }
+
+    /** User discarded a confabulated deliverable. */
+    fun discardPendingDate(item: DateResolutionItem) {
+        _pendingDateResolutions.value = DateResolutionPresenter.discard(_pendingDateResolutions.value, item)
+    }
+
     private val _decomposedTasks = MutableStateFlow<List<DecomposedTask>>(emptyList())
     val decomposedTasks: StateFlow<List<DecomposedTask>> = _decomposedTasks.asStateFlow()
 

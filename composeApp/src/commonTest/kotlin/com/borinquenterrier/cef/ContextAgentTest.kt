@@ -31,6 +31,31 @@ class ContextAgentTest : FunSpec({
         coVerify { sourceRepo.updateSourceMetadata("Bio 101", any()) }
     }
 
+    test("analyzeSource skips the LLM call when the source already has metadata (no double charge)") {
+        val aiService = mockk<AIService>(relaxed = true)
+        val sourceRepo = mockk<SourceRepository>(relaxed = true)
+        coEvery { sourceRepo.getSourceMetadata("Bio 101") } returns """{"already":"analyzed"}"""
+
+        val agent = ContextAgent(aiService, sourceRepo, mockk(relaxed = true), mockk(relaxed = true))
+        agent.analyzeSource(source("Bio 101", fragment("Syllabus text")))
+
+        coVerify(exactly = 0) { aiService.analyzeDocument(any()) }
+        coVerify(exactly = 0) { sourceRepo.updateSourceMetadata(any(), any()) }
+    }
+
+    test("analyzeSource with force = true re-analyzes even when metadata exists") {
+        val aiService = mockk<AIService>(relaxed = true)
+        val sourceRepo = mockk<SourceRepository>(relaxed = true)
+        coEvery { sourceRepo.getSourceMetadata("Bio 101") } returns """{"already":"analyzed"}"""
+        coEvery { aiService.analyzeDocument(any()) } returns """{"fresh":"result"}"""
+
+        val agent = ContextAgent(aiService, sourceRepo, mockk(relaxed = true), mockk(relaxed = true))
+        agent.analyzeSource(source("Bio 101", fragment("Syllabus text")), force = true)
+
+        coVerify { aiService.analyzeDocument(any()) }
+        coVerify { sourceRepo.updateSourceMetadata("Bio 101", any()) }
+    }
+
     test("analyzeSource does nothing when AI returns null") {
         val aiService = mockk<AIService>(relaxed = true)
         val sourceRepo = mockk<SourceRepository>(relaxed = true)

@@ -54,7 +54,7 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.getCached(any()) } returns null
         coEvery { cacheRepository.putCache(any()) } returns Unit
         coEvery { eventGenerationService.extractDeliverables(source) } returns events
-        coEvery { contextAgent.analyzeSource(source) } returns Unit
+        coEvery { contextAgent.analyzeSource(source, any()) } returns Unit
         coEvery { sourceRepository.getSourceMetadata(any()) } returns null
 
         val adder = makeAdder(aiService, eventGenerationService, contextAgent, logger,
@@ -84,14 +84,14 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.getCached(any()) } returns null
         coEvery { cacheRepository.putCache(any()) } returns Unit
         coEvery { eventGenerationService.extractDeliverables(source) } returns emptyList()
-        coEvery { contextAgent.analyzeSource(source) } returns Unit
+        coEvery { contextAgent.analyzeSource(source, any()) } returns Unit
         coEvery { sourceRepository.getSourceMetadata(any()) } returns null
 
         makeAdder(aiService, eventGenerationService, contextAgent, logger,
             cacheRepository, sourceRepository).addSource(source)
 
         kotlinx.coroutines.delay(50)
-        coVerify(exactly = 1) { contextAgent.analyzeSource(source) }
+        coVerify(exactly = 1) { contextAgent.analyzeSource(source, any()) }
     }
 
     "addSource does nothing when AI not configured" {
@@ -190,7 +190,7 @@ class SourceAdderTest : StringSpec({
         coEvery { aiService.isConfigured() } returns true
         coEvery { cacheRepository.getCached(any()) } returns null
         coEvery { cacheRepository.putCache(any()) } returns Unit
-        coEvery { contextAgent.analyzeSource(any()) } returns Unit
+        coEvery { contextAgent.analyzeSource(any(), any()) } returns Unit
         coEvery { sourceRepository.getSourceMetadata(any()) } returns null
 
         coEvery { eventGenerationService.extractDeliverables(source1) } coAnswers {
@@ -273,7 +273,7 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.putCache(any()) } returns Unit
         coEvery { eventGenerationService.extractDeliverables(source) } returns events
         coEvery { sourceRepository.getSourceMetadata(sourceTitle) } returns "new-metadata"
-        coEvery { contextAgent.analyzeSource(source) } returns Unit
+        coEvery { contextAgent.analyzeSource(source, any()) } returns Unit
 
         var eventsAdded: List<Event>? = null
         makeAdder(aiService, eventGenerationService, contextAgent, logger,
@@ -308,7 +308,7 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.getCached(any()) } returns mockk()
         coEvery { cacheRepository.putCache(any()) } returns Unit
         coEvery { eventGenerationService.extractDeliverables(source) } returns emptyList()
-        coEvery { contextAgent.analyzeSource(source) } returns Unit
+        coEvery { contextAgent.analyzeSource(source, any()) } returns Unit
         coEvery { sourceRepository.getSourceMetadata(any()) } returns null
 
         makeAdder(aiService, eventGenerationService, contextAgent, logger,
@@ -339,7 +339,7 @@ class SourceAdderTest : StringSpec({
         coEvery { cacheRepository.putCache(any()) } returns Unit
         coEvery { eventGenerationService.extractDeliverables(source) } returns freshEvents
         coEvery { sourceRepository.getSourceMetadata(any()) } returns null
-        coEvery { contextAgent.analyzeSource(source) } returns Unit
+        coEvery { contextAgent.analyzeSource(source, any()) } returns Unit
 
         var eventsAdded: List<Event>? = null
         makeAdder(aiService, eventGenerationService, contextAgent, logger,

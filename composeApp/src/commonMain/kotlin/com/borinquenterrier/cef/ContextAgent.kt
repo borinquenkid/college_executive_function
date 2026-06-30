@@ -20,7 +20,14 @@ class ContextAgent(
     private val _isAnalyzing = MutableStateFlow(false)
     val isAnalyzing: StateFlow<Boolean> = _isAnalyzing.asStateFlow()
 
-    suspend fun analyzeSource(source: SourceItem) {
+    suspend fun analyzeSource(source: SourceItem, force: Boolean = false) {
+        // analyzeDocument is an LLM call — expensive. Skip it when this source already has
+        // metadata so the interactive-add path and the harness pipeline don't both pay for it
+        // (idempotent across paths). Explicit re-analysis passes force = true.
+        if (!force && !sourceRepository.getSourceMetadata(source.title).isNullOrBlank()) {
+            logger?.d(tag, "Skipping re-analysis of ${source.title}; metadata already present")
+            return
+        }
         _isAnalyzing.value = true
         try {
             AppTracer.current.span("context.analyze_source", mapOf("source.title" to source.title)) {

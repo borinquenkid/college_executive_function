@@ -97,7 +97,9 @@ class SourceAdder(
             val filteredEvents = applyFilter(allEvents, filter)
             setAttribute("extracted.events", filteredEvents.size.toLong())
             onEventsAdded(filteredEvents)
-            contextAgent.analyzeSource(source)
+            // force = forceRefresh so an explicit re-analyze re-runs the LLM; a normal add is
+            // idempotent (skipped if this source was already analyzed by the harness path).
+            contextAgent.analyzeSource(source, force = forceRefresh)
 
             val metadataJson = sourceRepository.getSourceMetadata(source.title)
             val eventsJson = Json.encodeToString<List<Event>>(allEvents)

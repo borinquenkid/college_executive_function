@@ -622,6 +622,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findCollidingEvent` | 1 |
 | `hasShifted` | 1 |
 
+### ContextAgent.kt (Score: 12.01 - 🟢 LOW)
+- **Total Complexity**: 12
+- **Real Coverage**: 95.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `analyzeSource` | 5 |
+| `querySource` | 3 |
+| `getSourceMetadata` | 1 |
+| `queryAllSources` | 1 |
+
 ### CalendarPushResolver.kt (Score: 12.01 - 🟢 LOW)
 - **Total Complexity**: 12
 - **Real Coverage**: 95.5%
@@ -677,18 +689,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `i` | 1 |
 | `writeLogToFile` | 1 |
 | `rememberLogger` | 1 |
-
-### ContextAgent.kt (Score: 11.01 - 🟢 LOW)
-- **Total Complexity**: 11
-- **Real Coverage**: 95.1%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `analyzeSource` | 4 |
-| `querySource` | 3 |
-| `getSourceMetadata` | 1 |
-| `queryAllSources` | 1 |
 
 ### SourceManager.kt (Score: 11.00 - 🟢 LOW)
 - **Total Complexity**: 11

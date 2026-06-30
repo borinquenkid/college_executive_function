@@ -25,8 +25,9 @@ class GroundingGuardStudyPlanTest : FunSpec({
         coEvery { delegate.generateStudyPlan(any(), any(), any()) } returns listOf(deadline, anchored, orphan)
 
         val guard = GroundingGuardAIService(delegate)
-        // Source mentions 2026 so the year filter keeps all three; the orphan must still be dropped.
-        val result = guard.generateStudyPlan("Course schedule for fall 2026.", "", StudyPreferences())
+        // Source references the deadline's date (so date-grounding keeps it); the orphan study
+        // block must still be dropped by anchor grounding.
+        val result = guard.generateStudyPlan("Fall 2026 schedule. Essay due July 15, 2026.", "", StudyPreferences())
 
         result.shouldContainExactlyInAnyOrder(deadline, anchored)
         result.shouldNotContain(orphan)

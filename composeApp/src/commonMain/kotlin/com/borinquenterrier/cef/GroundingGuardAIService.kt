@@ -48,12 +48,18 @@ class GroundingGuardAIService(
             val raw = delegate.generateStudyPlan(syllabusText, existingSchedule, preferences)
             // 1) Year-level grounding (drops events outside the source's years).
             val yearGrounded = groundToSource("generateStudyPlan", syllabusText, raw, spanScope = this)
-            // 2) Content grounding: a STUDY_BLOCK must prepare for a real deliverable in the plan.
-            //    Orphan study blocks (prep for nothing) are confabulations and are dropped.
-            val anchored = StudyPlanGrounder.ground(yearGrounded)
+            // 2) Date-in-source grounding: a DEADLINE/FINALS whose date is nowhere in the syllabus
+            //    is confabulated. Dropped here; the ungrounded set is recorded so a future
+            //    date-picker dialog can resurface it instead of losing it.
+            val dateClass = SourceDateGrounder.classifyDeliverables(yearGrounded, syllabusText)
+            // 3) Anchor grounding: a STUDY_BLOCK must prepare for a *surviving* deliverable.
+            //    Removing fabricated-date deliverables above orphans any block that only prepped
+            //    for them, so those blocks fall away here too.
+            val anchored = StudyPlanGrounder.ground(dateClass.grounded)
 
             setAttribute("events.before", raw.size.toLong())
             setAttribute("events.after", anchored.grounded.size.toLong())
+            setAttribute("deliverables.ungrounded_dropped", dateClass.ungrounded.size.toLong())
             setAttribute(
                 "study_blocks.before",
                 yearGrounded.count { it.category == AcademicCategory.STUDY_BLOCK }.toLong()

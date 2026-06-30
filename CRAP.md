@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 177
+- **Total Files Analyzed**: 178
 - **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
@@ -607,9 +607,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findCollidingEvent` | 1 |
 | `hasShifted` | 1 |
 
-### GroundingGuardAIService.kt (Score: 12.06 - 🟢 LOW)
+### GroundingGuardAIService.kt (Score: 12.05 - 🟢 LOW)
 - **Total Complexity**: 12
-- **Real Coverage**: 92.6%
+- **Real Coverage**: 92.9%
 
 #### Methods list:
 | Method | Complexity |
@@ -699,6 +699,18 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `querySource` | 3 |
 | `getSourceMetadata` | 1 |
 | `queryAllSources` | 1 |
+
+### SourceDateGrounder.kt (Score: 11.00 - 🟢 LOW)
+- **Total Complexity**: 11
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `patternsFor` | 5 |
+| `classifyDeliverables` | 3 |
+| `isDateReferenced` | 2 |
+| `normalize` | 1 |
 
 ### TelemetryManager.kt (Score: 11.00 - 🟢 LOW)
 - **Total Complexity**: 11

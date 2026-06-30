@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import io.kotest.assertions.nondeterministic.continually
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -12,6 +14,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.coroutines.GlobalScope
+import kotlin.time.Duration.Companion.milliseconds
+import kotlin.time.Duration.Companion.seconds
 
 class AppControllerTest : FunSpec({
 
@@ -349,12 +353,17 @@ class AppControllerTest : FunSpec({
         io.mockk.clearMocks(calendarAgent)
         AppController(container)
 
+        // Multiple true emissions; take(1) in init must collapse them to a single retry.
         linkedFlow.value = true
-        delay(100)
         linkedFlow.value = false
         linkedFlow.value = true
-        delay(300)
 
-        coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+        // Wait for the async collector to fire — no fixed-delay race on whether it finished in time.
+        eventually(2.seconds) { coVerify(exactly = 1) { calendarAgent.retryLocalOnly() } }
+
+        // Further emissions must NOT trigger it again (take(1) already completed).
+        linkedFlow.value = false
+        linkedFlow.value = true
+        continually(300.milliseconds) { coVerify(exactly = 1) { calendarAgent.retryLocalOnly() } }
     }
 })

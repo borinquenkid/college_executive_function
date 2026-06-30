@@ -30,90 +30,111 @@ object StudyPlanBuilder {
         preferences: StudyPreferences = StudyPreferences()
     ): String {
         return """
-            You are an Academic Success Assistant. Analyze the provided syllabus and:
+            # MEMORANDUM BRIEF: STUDY PLAN AND DELIVERABLE EXTRACTION
+
+            ## 1. TOPIC CLARIFICATION
+            This brief instructs you to extract academic deliverables from a syllabus and proactively suggest study blocks (STUDY_BLOCK events) leading up to major deliverables.
+
+            ## 2. STRUCTURED REFERENCE MATERIAL
+            <study_preferences>
+            - Working Hours: Do not schedule ANY work or study before ${formatHour(preferences.studyStartHour)} or after ${formatHour(preferences.studyEndHour)}.
+            - Daily Breaks: Leave a continuous block open for lunch every day from ${formatHour(preferences.lunchStartHour)} to ${formatHour(preferences.lunchEndHour)}, and a separate block for exercise and dinner from ${formatHour(preferences.dinnerStartHour)} to ${formatHour(preferences.dinnerEndHour)}.
+            - Maximum Duration: The maximum duration of a single STUDY_BLOCK should be ${preferences.maxStudyBlockHours} hours, with a preferred break of at least ${preferences.preferredBreakMinutes} minutes between study blocks.
+            </study_preferences>
+
+            <existing_schedule>
+            ${if (existingSchedule.isBlank()) "None" else existingSchedule}
+            </existing_schedule>
+
+            <source_syllabus_document>
+            $syllabusText
+            </source_syllabus_document>
+
+            ## 3. TASK PROMPT
+            Analyze the content inside <source_syllabus_document> and construct a study plan:
             1. Extract all deliverables (Assignments, Quizzes, Exams, Projects).
-            2. For each major deliverable (Exams, Projects, or Assignments worth >10%),
-               proactively suggest 2-3 "STUDY_BLOCK" events in the days leading up to it.
+            2. For each major deliverable (Exams, Projects, or Assignments worth >10%), proactively suggest 2-3 "STUDY_BLOCK" events in the days leading up to it.
 
-            IMPORTANT: Do NOT generate CLASS events. Scheduled class sessions are already on the student's calendar. Only generate study tasks, deadlines, and preparation blocks.
+            Category rules to apply:
+            - STUDY_BLOCK: ALL proactively suggested study or work periods MUST use "STUDY_BLOCK".
+            - REGULAR: Use for one-time academic tasks (e.g. Writing Center visits, peer review sessions).
+            - DEADLINE: Use for the actual due date of a graded submission.
+            - FINALS: Use for a final exam event.
+            - CLASS: Do NOT generate CLASS events. Scheduled class sessions are already on the student's calendar.
 
-            Return the data EXCLUSIVELY as a JSON array of objects. Do not include any conversational filler.
-
-            Structure:
-            {
-              "title": "Clear, actionable title (e.g. 'Submit Essay' or 'Study for Midterm')",
-              "type": "TIME" or "DAY",
-              "category": "DEADLINE", "FINALS", "REGULAR", or "STUDY_BLOCK",
-              "date": "YYYY-MM-DD",
-              "startTime": "HH:mm" (optional),
-              "endTime": "HH:mm" (optional),
-              "gradeWeight": 0.15 (Optional. Float value representing the grade percentage, e.g., 0.15 for 15%. Determine from the syllabus context if available.)
-            }
-
-            Strict Scheduling Constraints:
-            - CATEGORY RULES: ALL proactively suggested study or work periods MUST use "STUDY_BLOCK". Use "REGULAR" for one-time academic tasks (e.g. Writing Center visits, peer review sessions). Only use "FINALS" or "DEADLINE" for the actual due date/exam itself. NEVER use "CLASS".
-            - PRIORITIES: Existing class times (shown in the schedule below) have strict priority — do not schedule anything during those times.
-            - EXAMS: Exam Times do NOT coincide with Class Times (extended time accommodations take students out of standard class periods).
+            Scheduling constraint rules:
+            - PRIORITIES: Existing class times (shown in <existing_schedule>) have strict priority — do not schedule anything during those times.
             - COLLISIONS: Study/Work Times cannot collide with Exam Times, Class Times, or ANY existing events on the schedule. If a study/work task collides, move it to the latest available time BEFORE the deadline.
             - HOLIDAYS: Classes do not meet on holidays; these periods are completely available for study, work, and breaks.
-            - WORKING HOURS: Do not schedule ANY work or study before ${formatHour(preferences.studyStartHour)} or after ${
-            formatHour(
-                preferences.studyEndHour
-            )
-        }.
-            - DAILY BREAKS: You must leave a continuous block open for lunch every day from ${
-            formatHour(
-                preferences.lunchStartHour
-            )
-        } to ${formatHour(preferences.lunchEndHour)}, and a separate continuous block open in the late afternoon/evening for exercise and dinner from ${
-            formatHour(
-                preferences.dinnerStartHour
-            )
-        } to ${formatHour(preferences.dinnerEndHour)}. Do not schedule study during these times.
-            - STUDY BLOCKS: The maximum duration of a single STUDY_BLOCK should be ${preferences.maxStudyBlockHours} hours, with a preferred break of at least ${preferences.preferredBreakMinutes} minutes between study blocks.
             - PROACTIVE STUDY TIME ALLOCATION: Allocate STUDY_BLOCKs based on the deliverable's weight (extracted in "gradeWeight"). Allocate more preparation hours for higher-weighted deliverables (e.g., suggest 3-4 study blocks for a 30% final exam, but only 1 block or none for a 2% quiz).
-            
-            General Guidelines:
-            - Focus on creating a balanced schedule that avoids "crunching" before deadlines.
-            - Space out the STUDY_BLOCKs reasonably.
+
+            Output Schema:
+            [
+              {
+                "title": "Clear, actionable title (e.g. 'Submit Essay' or 'Study for Midterm')",
+                "type": "TIME" or "DAY",
+                "category": "DEADLINE", "FINALS", "REGULAR", or "STUDY_BLOCK",
+                "date": "YYYY-MM-DD",
+                "startTime": "HH:mm" (optional),
+                "endTime": "HH:mm" (optional),
+                "gradeWeight": 0.15 (Optional. Float value representing the grade percentage, e.g., 0.15 for 15%. Determine from the syllabus context if available.)
+              }
+            ]
+
+            ## 4. CONSTRAINTS & GUARDRAILS
+            - Return ONLY a raw JSON array of objects following the output schema. No filler.
+            - Do NOT include any markdown code blocks (e.g. do not wrap in ```json), explanation, or trailing content.
+            - Do NOT generate CLASS events.
             - Use the year $currentYear unless specified.
-            
-            Existing Schedule (DO NOT OVERLAP WITH THESE):
-            ${if (existingSchedule.isBlank()) "None" else existingSchedule}
-            
-            Syllabus Text:
-            $syllabusText
+            - Focus on creating a balanced schedule that avoids "crunching" before deadlines. Space out the STUDY_BLOCKs reasonably.
         """.trimIndent()
     }
 
     fun getStudyPlanCritiquePrompt(syllabusText: String, eventsJson: String): String = """
-        You are a study plan quality auditor. A study plan was generated from a syllabus.
-        Your job is to improve it — NOT to re-extract class sessions from the syllabus.
+        # MEMORANDUM BRIEF: STUDY PLAN QUALITY AUDIT
 
-        CRITICAL: The student's calendar already contains all CLASS sessions extracted from the syllabus.
-        DO NOT add, keep, or re-introduce any events with category "CLASS".
-        If any event in the list has category "CLASS", remove it or change it to "STUDY_BLOCK" or "REGULAR".
+        ## 1. TOPIC CLARIFICATION
+        This brief instructs you to audit a generated study plan to improve preparation distribution and ensure that no class sessions are re-extracted.
 
-        Allowed categories: STUDY_BLOCK, REGULAR, DEADLINE, FINALS only.
+        ## 2. STRUCTURED REFERENCE MATERIAL
+        <source_syllabus_document>
+        $syllabusText
+        </source_syllabus_document>
+
+        <study_plan_json>
+        $eventsJson
+        </study_plan_json>
+
+        ## 3. TASK PROMPT
+        Review the study plan in <study_plan_json> against <source_syllabus_document>:
+        1. Remove hallucinated events not grounded in the syllabus.
+        2. Remove CLASS events or re-categorize them as REGULAR or STUDY_BLOCK. The student's calendar already contains class sessions; do NOT add, keep, or re-introduce any events with category "CLASS".
+        3. Fix incorrect dates, titles, or categories.
+        4. Remove duplicates.
+
+        Category rules to apply:
         - STUDY_BLOCK: any study or work preparation period
         - REGULAR: one-time academic tasks not covered above (Writing Center visits, peer review, etc.)
         - DEADLINE: the actual due date for a submission
         - FINALS: a final exam event
 
-        Review the study plan and:
-        1. Remove hallucinated events not grounded in the syllabus.
-        2. Remove CLASS events or re-categorize them as REGULAR or STUDY_BLOCK.
-        3. Fix incorrect dates, titles, or categories.
-        4. Remove duplicates.
+        Output Schema:
+        [
+          {
+            "title": "Title",
+            "type": "TIME" or "DAY",
+            "category": "STUDY_BLOCK", "REGULAR", "DEADLINE", or "FINALS",
+            "date": "YYYY-MM-DD",
+            "startTime": "HH:mm" (optional),
+            "endTime": "HH:mm" (optional)
+          }
+        ]
 
-        Return ONLY a corrected JSON array — same schema, no markdown:
-        [{"title":"...","type":"TIME"|"DAY","category":"...","date":"YYYY-MM-DD","startTime":"HH:mm","endTime":"HH:mm"}]
-
-        # Syllabus (for grounding only):
-        $syllabusText
-
-        # Study Plan to audit (JSON):
-        $eventsJson
+        ## 4. CONSTRAINTS & GUARDRAILS
+        - Return ONLY the refined JSON array matching the output schema. No filler.
+        - Do NOT include any markdown code blocks (e.g. do not wrap in ```json), conversational text, or explanations.
+        - DO NOT add, keep, or re-introduce any events with category "CLASS". If any event in the list has category "CLASS", remove it or change it to "STUDY_BLOCK" or "REGULAR".
+        - Allowed categories are STUDY_BLOCK, REGULAR, DEADLINE, FINALS only.
     """.trimIndent()
 
     fun getTaskDecompositionPrompt(
@@ -159,24 +180,43 @@ object StudyPlanBuilder {
         }
 
         return """
-            You are an Executive Function Coach helping a student plan their work on:
-            "$taskTitle" — due $dueDate
+            # MEMORANDUM BRIEF: TASK DECOMPOSITION
 
-            Today: $today
-            Days available: $daysAvailable
+            ## 1. TOPIC CLARIFICATION
+            You are acting as an Executive Function Coach. This brief instructs you to break down a larger academic assignment into structured, bite-sized chronological sub-tasks.
 
+            ## 2. STRUCTURED REFERENCE MATERIAL
+            <target_task>
+            Title: $taskTitle
+            Due Date: $dueDate
+            Today's Date: $today
+            Days Available: $daysAvailable
+            </target_task>
+            ${if (context.isNotBlank()) "\n<extra_context>\n$context\n</extra_context>" else ""}
+
+            ## 3. TASK PROMPT
+            Analyze <target_task> and break it down into chronological sub-tasks based on the following timeline guidance:
             $urgencyBlock
 
-            HARD CONSTRAINTS (violating any of these is an error):
-            - Total steps: $stepCount (do not produce more)
-            - Every daysBeforeDue MUST be an integer in [0, $daysAvailable]
-            - daysBeforeDue = $daysAvailable means "start today"
-            - daysBeforeDue = 0 means "final submission step"
-            - Each step should take 1–2 hours maximum
+            Each sub-task must represent a concrete step that takes 1–2 hours maximum to complete.
 
-            Return ONLY a raw JSON array — no markdown, no explanation:
-            [{"title": "...", "daysBeforeDue": N, "description": "..."}]
-            ${if (context.isNotBlank()) "\nContext: $context" else ""}
+            Output Schema:
+            [
+              {
+                "title": "Short title of the step",
+                "daysBeforeDue": 3,
+                "description": "Detailed explanation of what to do"
+              }
+            ]
+
+            ## 4. CONSTRAINTS & GUARDRAILS
+            - Return ONLY a raw JSON array following the output schema. No filler.
+            - Do NOT include any markdown code blocks (e.g. do not wrap in ```json), explanation, or conversational text.
+            - Total steps: $stepCount (do not produce more or fewer).
+            - Every daysBeforeDue MUST be an integer in [0, $daysAvailable].
+            - daysBeforeDue = $daysAvailable means "start today".
+            - daysBeforeDue = 0 means "final submission step".
+            - Each step should take 1–2 hours maximum.
         """.trimIndent()
     }
 
@@ -190,22 +230,45 @@ object StudyPlanBuilder {
         val daysAvailable = due?.let { today.daysUntil(it).coerceAtLeast(0) } ?: 30
 
         return """
-            You are an executive function coach and quality auditor.
+            # MEMORANDUM BRIEF: TASK DECOMPOSITION QUALITY AUDIT
 
-            A student has "$taskTitle" due on $dueDate (today is $today; $daysAvailable days available).
+            ## 1. TOPIC CLARIFICATION
+            This brief instructs you to act as an executive function coach and quality auditor to review and refine a proposed decomposition of sub-tasks.
 
-            # Sub-tasks (JSON):
+            ## 2. STRUCTURED REFERENCE MATERIAL
+            <target_task>
+            Title: $taskTitle
+            Due Date: $dueDate
+            Today's Date: $today
+            Days Available: $daysAvailable
+            </target_task>
+
+            <sub_tasks_json>
             $tasksJson
+            </sub_tasks_json>
 
-            # Review checklist:
-            1. Each step is concrete and actionable (1–2 hours max).
+            ## 3. TASK PROMPT
+            Audit the sub-tasks in <sub_tasks_json> against the target task in <target_task>. 
+            Refine the tasks using the following checklist:
+            1. Each step must be concrete and actionable (1–2 hours max).
             2. No step has daysBeforeDue > $daysAvailable — remove or cap any that do.
-            3. No redundant or duplicate steps.
-            4. Steps flow logically toward submission.
+            3. Remove redundant or duplicate steps.
+            4. Ensure steps flow logically toward the final submission.
             5. Total step count does not exceed ${if (daysAvailable <= 2) 5 else if (daysAvailable <= 7) 7 else 9}.
 
-            Return ONLY the refined JSON array — same schema, no markdown:
-            [{"title": "...", "daysBeforeDue": N, "description": "..."}]
+            Output Schema:
+            [
+              {
+                "title": "Title of the step",
+                "daysBeforeDue": N,
+                "description": "Description of the step"
+              }
+            ]
+
+            ## 4. CONSTRAINTS & GUARDRAILS
+            - Return ONLY the refined JSON array following the output schema. No filler.
+            - Do NOT include any markdown code blocks (e.g. do not wrap in ```json), explanation, or conversational text.
+            - If no changes are needed, return the original JSON array unchanged.
         """.trimIndent()
     }
 }

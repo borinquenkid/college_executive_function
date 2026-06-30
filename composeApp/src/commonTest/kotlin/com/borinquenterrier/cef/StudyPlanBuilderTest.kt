@@ -11,6 +11,27 @@ import kotlinx.datetime.todayIn
 
 class StudyPlanBuilderTest : StringSpec({
 
+    "getSyllabusStudyPlanPrompt should use the MEMORANDUM BRIEF format and XML tags" {
+        val preferences = StudyPreferences(studyStartHour = 8, studyEndHour = 22)
+        val syllabusText = "Exam on Dec 15"
+        val existingSchedule = "Class: MWF 9-10 AM"
+        val result = StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule, preferences)
+
+        result.shouldContain("MEMORANDUM BRIEF: STUDY PLAN AND DELIVERABLE EXTRACTION")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+
+        result.shouldContain("<source_syllabus_document>")
+        result.shouldContain(syllabusText)
+        result.shouldContain("</source_syllabus_document>")
+
+        result.shouldContain("<existing_schedule>")
+        result.shouldContain(existingSchedule)
+        result.shouldContain("</existing_schedule>")
+    }
+
     "getSyllabusStudyPlanPrompt should include study preferences constraints" {
         val preferences = StudyPreferences(studyStartHour = 8, studyEndHour = 22)
         val syllabusText = "Exam on Dec 15"
@@ -30,23 +51,24 @@ class StudyPlanBuilderTest : StringSpec({
         result.shouldNotBeBlank()
     }
 
-    "getSyllabusStudyPlanPrompt should include existing schedule when provided" {
-        val syllabusText = "Final exam on May 10"
-        val existingSchedule = "Class: MWF 9-10 AM"
-        val result = StudyPlanBuilder.getSyllabusStudyPlanPrompt(
-            syllabusText,
-            existingSchedule = existingSchedule
-        )
-
-        result.shouldContain(existingSchedule)
-    }
-
     "getSyllabusStudyPlanPrompt should say 'None' when no existing schedule provided" {
         val syllabusText = "Quiz on next Friday"
         val result =
             StudyPlanBuilder.getSyllabusStudyPlanPrompt(syllabusText, existingSchedule = "")
 
         result.shouldContain("None")
+    }
+
+    "getTaskDecompositionPrompt should use the MEMORANDUM BRIEF format" {
+        val taskTitle = "Research Paper"
+        val dueDate = "2024-04-15"
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt(taskTitle, dueDate)
+
+        result.shouldContain("MEMORANDUM BRIEF: TASK DECOMPOSITION")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
     }
 
     "getTaskDecompositionPrompt should format task title and due date" {
@@ -69,6 +91,24 @@ class StudyPlanBuilderTest : StringSpec({
         result.shouldContain(context)
     }
 
+    "getDecompositionCritiquePrompt should use the MEMORANDUM BRIEF format and XML tags" {
+        val taskTitle = "Final Project"
+        val dueDate = "2024-05-20"
+        val tasksJson =
+            """[{"title":"Research","daysBeforeDue":10,"description":"Gather sources"}]"""
+        val result = StudyPlanBuilder.getDecompositionCritiquePrompt(taskTitle, dueDate, tasksJson)
+
+        result.shouldContain("MEMORANDUM BRIEF: TASK DECOMPOSITION QUALITY AUDIT")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+
+        result.shouldContain("<sub_tasks_json>")
+        result.shouldContain(tasksJson)
+        result.shouldContain("</sub_tasks_json>")
+    }
+
     "getDecompositionCritiquePrompt should validate sub-tasks" {
         val taskTitle = "Final Project"
         val dueDate = "2024-05-20"
@@ -83,6 +123,22 @@ class StudyPlanBuilderTest : StringSpec({
     }
 
     // ── getStudyPlanCritiquePrompt ────────────────────────────────────────────
+
+    "getStudyPlanCritiquePrompt uses MEMORANDUM BRIEF format and XML tags" {
+        val result = StudyPlanBuilder.getStudyPlanCritiquePrompt(
+            syllabusText = "BIOL 101 meets MWF 9-10",
+            eventsJson = """[{"title":"Class","category":"CLASS","date":"2026-08-25"}]"""
+        )
+        result.shouldContain("MEMORANDUM BRIEF: STUDY PLAN QUALITY AUDIT")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+
+        result.shouldContain("<source_syllabus_document>")
+        result.shouldContain("<study_plan_json>")
+        result.shouldContain("</study_plan_json>")
+    }
 
     "getStudyPlanCritiquePrompt forbids CLASS category" {
         val result = StudyPlanBuilder.getStudyPlanCritiquePrompt(

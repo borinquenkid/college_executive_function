@@ -21,14 +21,19 @@ class CalendarIdResolver(
 
     private suspend fun getCEFCalendarId(): String {
         val prefs = preferencesRepository.getPreferences()
-        val savedId = prefs.googleCalendarId
-        if (savedId != "default" && savedId.isNotEmpty()) {
-            return savedId
-        }
         val targetName = prefs.googleCalendarName.ifEmpty { "CEF Academic" }
         val calendars = syncService.listCalendars()
-        val cefCal = calendars.find { it.name == targetName }
-        val resolvedId = cefCal?.id ?: syncService.createCalendar(targetName)
+
+        // Honor the saved id only if that calendar still exists on Google. Otherwise it was
+        // deleted/recreated (a new id), and short-circuiting on the stale id would keep throwing
+        // CalendarNotFoundException even though the calendar is right there — so re-resolve by name.
+        val savedId = prefs.googleCalendarId
+        if (savedId != "default" && savedId.isNotEmpty() && calendars.any { it.id == savedId }) {
+            return savedId
+        }
+
+        val resolvedId = calendars.find { it.name == targetName }?.id
+            ?: syncService.createCalendar(targetName)
         preferencesRepository.savePreferences(prefs.copy(googleCalendarId = resolvedId))
         return resolvedId
     }

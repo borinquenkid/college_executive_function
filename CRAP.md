@@ -1181,6 +1181,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `rankFragments` | 1 |
 
+### CalendarIdResolver.kt (Score: 6.00 - 🟢 LOW)
+- **Total Complexity**: 6
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getCEFCalendarId` | 4 |
+| `resolveCalendarId` | 2 |
+
 ### DocxReader.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 2
 - **Real Coverage**: 0.0%
@@ -1356,16 +1366,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `processSource` | 5 |
-
-### CalendarIdResolver.kt (Score: 5.00 - 🟢 LOW)
-- **Total Complexity**: 5
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getCEFCalendarId` | 3 |
-| `resolveCalendarId` | 2 |
 
 ### SourceProcessor.kt (Score: 5.00 - 🟢 LOW)
 - **Total Complexity**: 5

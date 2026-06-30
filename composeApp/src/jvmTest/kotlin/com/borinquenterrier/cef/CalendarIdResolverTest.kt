@@ -21,19 +21,51 @@ class CalendarIdResolverTest : FunSpec({
         result shouldBe "user-calendar-id"
     }
 
-    test("resolveCalendarId resolves 'default' to saved calendar ID without calling network") {
+    test("resolveCalendarId honors the saved calendar ID when it still exists on Google") {
         val prefs = StudyPreferences(googleCalendarId = "saved-calendar-id", googleCalendarName = "My Calendar")
         coEvery { preferencesRepository.getPreferences() } returns prefs
+        coEvery { syncService.listCalendars() } returns listOf(
+            RemoteCalendarMetadata(id = "saved-calendar-id", name = "My Calendar")
+        )
 
         runBlocking {
-            val result = resolver.resolveCalendarId("default")
-
-            result shouldBe "saved-calendar-id"
+            resolver.resolveCalendarId("default") shouldBe "saved-calendar-id"
         }
 
-        coVerify(exactly = 0) { syncService.listCalendars() }
         coVerify(exactly = 0) { syncService.createCalendar(any()) }
         coVerify(exactly = 0) { preferencesRepository.savePreferences(any()) }
+    }
+
+    test("resolveCalendarId re-resolves by name when the saved ID no longer exists (deleted/recreated)") {
+        // The stored id points at a deleted calendar; a CEF Academic calendar exists under a new id.
+        val prefs = StudyPreferences(googleCalendarId = "stale-deleted-id", googleCalendarName = "CEF Academic")
+        coEvery { preferencesRepository.getPreferences() } returns prefs
+        coEvery { syncService.listCalendars() } returns listOf(
+            RemoteCalendarMetadata(id = "new-cef-id", name = "CEF Academic")
+        )
+        coEvery { preferencesRepository.savePreferences(any()) } returns Unit
+
+        runBlocking {
+            resolver.resolveCalendarId("default") shouldBe "new-cef-id"
+        }
+
+        // Reattaches to the existing calendar and persists the corrected id — no duplicate created.
+        coVerify(exactly = 1) {
+            preferencesRepository.savePreferences(match { it.googleCalendarId == "new-cef-id" })
+        }
+        coVerify(exactly = 0) { syncService.createCalendar(any()) }
+    }
+
+    test("resolveCalendarId creates the calendar when the saved ID is stale and no calendar matches the name") {
+        val prefs = StudyPreferences(googleCalendarId = "stale-deleted-id", googleCalendarName = "CEF Academic")
+        coEvery { preferencesRepository.getPreferences() } returns prefs
+        coEvery { syncService.listCalendars() } returns emptyList()
+        coEvery { syncService.createCalendar("CEF Academic") } returns "fresh-id"
+        coEvery { preferencesRepository.savePreferences(any()) } returns Unit
+
+        runBlocking {
+            resolver.resolveCalendarId("default") shouldBe "fresh-id"
+        }
     }
 
     test("resolveCalendarId finds existing CEF calendar by name and returns its ID") {

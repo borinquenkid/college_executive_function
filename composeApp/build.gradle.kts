@@ -30,6 +30,9 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
     inputs.property("GOOGLE_CLIENT_ID", System.getenv("GOOGLE_CLIENT_ID") ?: "")
     inputs.property("GOOGLE_CLIENT_SECRET", System.getenv("GOOGLE_CLIENT_SECRET") ?: "")
     inputs.property("WEB3FORMS_ACCESS_KEY", System.getenv("WEB3FORMS_ACCESS_KEY") ?: "")
+    inputs.property("CEF_OTLP_ENDPOINT", System.getenv("CEF_OTLP_ENDPOINT") ?: "")
+    inputs.property("CEF_OTLP_USER", System.getenv("CEF_OTLP_USER") ?: "")
+    inputs.property("CEF_OTLP_PASSWORD", System.getenv("CEF_OTLP_PASSWORD") ?: "")
     
     doLast {
         // Read local.properties
@@ -65,7 +68,16 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
             ?: localProps.getProperty("WEB3FORMS_ACCESS_KEY")
             ?: envProps.getProperty("WEB3FORMS_ACCESS_KEY")
             ?: "cef-academic-anonymous-bugs-key-placeholder"
-            
+
+        fun resolve(key: String) = System.getenv(key)
+            ?: localProps.getProperty(key)
+            ?: envProps.getProperty(key)
+            ?: ""
+
+        val otlpEndpoint = resolve("CEF_OTLP_ENDPOINT")
+        val otlpUser     = resolve("CEF_OTLP_USER")
+        val otlpPassword = resolve("CEF_OTLP_PASSWORD")
+
         // XOR obfuscation: secrets are stored as IntArrays in the bytecode, never as string literals.
         // The key is an Int constant — strings/javap will not reveal the credential value.
         val obfKey = 0x4A3F
@@ -85,9 +97,15 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
                 private val _cid = ${if (clientId.isBlank()) "intArrayOf()" else obfuscate(clientId)}
                 private val _cs = ${if (clientSecret.isBlank()) "intArrayOf()" else obfuscate(clientSecret)}
                 private val _w3f = ${obfuscate(web3FormsAccessKey)}
+                private val _oep = ${if (otlpEndpoint.isBlank()) "intArrayOf()" else obfuscate(otlpEndpoint)}
+                private val _ou  = ${if (otlpUser.isBlank()) "intArrayOf()" else obfuscate(otlpUser)}
+                private val _opw = ${if (otlpPassword.isBlank()) "intArrayOf()" else obfuscate(otlpPassword)}
                 val GOOGLE_CLIENT_ID: String? = if (_cid.isEmpty()) null else _cid.map { (it xor K).toChar() }.joinToString("")
                 val GOOGLE_CLIENT_SECRET: String? = if (_cs.isEmpty()) null else _cs.map { (it xor K).toChar() }.joinToString("")
                 val WEB3FORMS_ACCESS_KEY: String = _w3f.map { (it xor K).toChar() }.joinToString("")
+                val OTLP_ENDPOINT: String? = if (_oep.isEmpty()) null else _oep.map { (it xor K).toChar() }.joinToString("")
+                val OTLP_USER: String?     = if (_ou.isEmpty())  null else _ou.map  { (it xor K).toChar() }.joinToString("")
+                val OTLP_PASSWORD: String? = if (_opw.isEmpty()) null else _opw.map { (it xor K).toChar() }.joinToString("")
             }
         """.trimIndent() + "\n")
     }

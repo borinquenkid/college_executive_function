@@ -42,25 +42,53 @@ class EventBuilderTest : StringSpec({
         val result = EventBuilder.getSourceEventExtractionPrompt(fragmentJson)
 
         result.shouldContain("Do NOT invent")
-        result.shouldContain("Only extract what is stated")
+        result.shouldContain("Only extract what is explicitly stated")
     }
 
-    "getSourceEventExtractionPrompt should include the fragment JSON" {
+    "getSourceEventExtractionPrompt should include the fragment JSON wrapped in XML tags" {
         val fragmentJson = """{"text":"Final exam","type":"TEXT","sectionTitle":"Assessment"}"""
         val result = EventBuilder.getSourceEventExtractionPrompt(fragmentJson)
 
+        result.shouldContain("<source_fragment>")
         result.shouldContain(fragmentJson)
+        result.shouldContain("</source_fragment>")
     }
 
-    "getEventCritiquePrompt should compare events against source text" {
+    "getSourceEventExtractionPrompt should use the MEMORANDUM BRIEF format" {
+        val fragmentJson = """{"text":"Midterm","type":"TEXT"}"""
+        val result = EventBuilder.getSourceEventExtractionPrompt(fragmentJson)
+
+        result.shouldContain("MEMORANDUM BRIEF: EVENT EXTRACTION")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
+    }
+
+    "getEventCritiquePrompt should compare events against source text wrapped in XML tags" {
         val sourceText = "Midterm exam on October 15, 10:00 AM"
         val eventsJson =
             """[{"title":"Midterm","date":"2024-10-15","startTime":"10:00","category":"FINALS"}]"""
         val result = EventBuilder.getEventCritiquePrompt(sourceText, eventsJson)
 
-        result.shouldContain("Source Document")
+        result.shouldContain("<source_syllabus_document>")
         result.shouldContain(sourceText)
-        result.shouldContain("Extracted Events")
+        result.shouldContain("</source_syllabus_document>")
+        result.shouldContain("<extracted_events_json>")
+        result.shouldContain(eventsJson)
+        result.shouldContain("</extracted_events_json>")
+    }
+
+    "getEventCritiquePrompt should use the MEMORANDUM BRIEF format" {
+        val sourceText = "Assignment due Friday"
+        val eventsJson = """[{"title":"Assignment","date":"2024-03-01"}]"""
+        val result = EventBuilder.getEventCritiquePrompt(sourceText, eventsJson)
+
+        result.shouldContain("MEMORANDUM BRIEF: EVENT EXTRACTION QUALITY AUDIT")
+        result.shouldContain("## 1. TOPIC CLARIFICATION")
+        result.shouldContain("## 2. STRUCTURED REFERENCE MATERIAL")
+        result.shouldContain("## 3. TASK PROMPT")
+        result.shouldContain("## 4. CONSTRAINTS & GUARDRAILS")
     }
 
     "getEventCritiquePrompt should check for hallucinations" {
@@ -86,7 +114,7 @@ class EventBuilderTest : StringSpec({
         val eventsJson = """[{"title":"Homework","date":"2024-03-10","category":"DEADLINE"}]"""
         val result = EventBuilder.getEventCritiquePrompt(sourceText, eventsJson)
 
-        result.shouldContain("corrected JSON array")
+        result.shouldContain("refined JSON array")
         result.shouldContain("EXACT same schema")
     }
 
@@ -95,7 +123,9 @@ class EventBuilderTest : StringSpec({
         val eventsJson = """[{"title":"Test","date":"2024-04-20"}]"""
         val result = EventBuilder.getEventCritiquePrompt(sourceText, eventsJson)
 
-        result.shouldContain("Do not include any explanation")
-        result.shouldContain("markdown formatting")
+        result.shouldContain("Do NOT include")
+        result.shouldContain("explanation")
     }
 })
+
+

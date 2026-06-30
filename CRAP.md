@@ -28,9 +28,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiResponseParser.kt | 25 | 0.0% | 650.00 | 🔴 HIGH |
 | CriticJsonCodec.kt | 23 | 0.0% | 552.00 | 🔴 HIGH |
 | CriticActorAIService.kt | 23 | 0.0% | 552.00 | 🔴 HIGH |
-| EventBuilder.kt | 22 | 0.0% | 506.00 | 🔴 HIGH |
 | GoogleRemoteCalendarRepository.kt | 22 | 0.0% | 506.00 | 🔴 HIGH |
 | ConflictResolver.kt | 22 | 0.0% | 506.00 | 🔴 HIGH |
+| SyncNegotiator.kt | 22 | 0.0% | 506.00 | 🔴 HIGH |
 
 ---
 
@@ -233,16 +233,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generateStudyPlan` | 1 |
 | `<T> runCritiqueLoop` | 1 |
 
-### EventBuilder.kt (Score: 506.00 - 🔴 HIGH)
-- **Total Complexity**: 22
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `getSourceEventExtractionPrompt` | 14 |
-| `getEventCritiquePrompt` | 4 |
-
 ### GoogleRemoteCalendarRepository.kt (Score: 506.00 - 🔴 HIGH)
 - **Total Complexity**: 22
 - **Real Coverage**: 0.0%
@@ -331,6 +321,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `getDeadlineStatus` | 2 |
 | `getEventTimeText` | 2 |
 | `showDeadlineInfo` | 1 |
+
+### EventBuilder.kt (Score: 420.00 - 🔴 HIGH)
+- **Total Complexity**: 20
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `getSourceEventExtractionPrompt` | 12 |
+| `getEventCritiquePrompt` | 4 |
 
 ### SqlDelightUserPreferenceMemoryRepository.kt (Score: 420.00 - 🔴 HIGH)
 - **Total Complexity**: 20

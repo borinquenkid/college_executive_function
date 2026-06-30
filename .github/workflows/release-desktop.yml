@@ -65,6 +65,9 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           WEB3FORMS_ACCESS_KEY: ${{ secrets.WEB3FORMS_ACCESS_KEY }}
+          CEF_OTLP_ENDPOINT: ${{ secrets.CEF_OTLP_ENDPOINT }}
+          CEF_OTLP_USER: ${{ secrets.CEF_OTLP_USER }}
+          CEF_OTLP_PASSWORD: ${{ secrets.CEF_OTLP_PASSWORD }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           ./gradlew :composeApp:${{ matrix.task }} -Pcef.versionName="$VERSION"

@@ -3,6 +3,7 @@ package com.borinquenterrier.cef
 import com.russhwolf.settings.MapSettings
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
+import io.kotest.matchers.string.shouldContain
 import io.ktor.client.HttpClient
 import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
@@ -208,6 +209,27 @@ class EventExtractionPipelineTest : FunSpec({
     val allCases: List<PipelineCase> = duplicateSuppression + distinctTitle + distinctDate
 
     // ── Register one test per case ────────────────────────────────────────────
+
+    test("extractTextFromDocument posts an inline PDF and returns the transcription") {
+        var body = ""
+        val engine = MockEngine { req ->
+            if (req.url.encodedPath.contains("/models") && !req.url.encodedPath.contains(":generateContent")) {
+                respond(singleModel, HttpStatusCode.OK, jsonHeader)
+            } else {
+                body = (req.body as io.ktor.http.content.TextContent).text
+                respond(geminiBody("Issue Brief #1 due July 1, 2026."), HttpStatusCode.OK, jsonHeader)
+            }
+        }
+        val gemini = GeminiAIService(
+            apiKey = "test-key",
+            customClient = HttpClient(engine) { install(ContentNegotiation) { json() } },
+            delayFn = {}
+        )
+        val text = runBlocking { gemini.extractTextFromDocument("%PDF-scan".encodeToByteArray()) }
+        text shouldContain "Issue Brief #1 due"
+        body shouldContain "\"inlineData\""
+        body shouldContain "\"mimeType\":\"application/pdf\""
+    }
 
     allCases.forEach { case ->
         test(case.name) {

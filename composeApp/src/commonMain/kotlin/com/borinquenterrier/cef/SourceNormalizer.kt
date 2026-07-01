@@ -26,12 +26,23 @@ class SourceNormalizer(
     private val pdfReader: PdfReader,
     private val docxReader: DocxReader,
     private val webReader: WebSourceReader,
+    // Optional: when provided, an image-only PDF (no extractable text) is OCR'd via the model's
+    // document vision instead of yielding empty fragments. Null keeps the pure text-only behavior.
+    private val aiService: AIService? = null,
 ) {
     suspend fun normalize(bytes: ByteArray, format: SourceFormat): List<SourceFragment> = when (format) {
-        SourceFormat.PDF -> pdfReader.readSource(bytes)
+        SourceFormat.PDF -> normalizePdf(bytes)
         SourceFormat.DOCX -> docxReader.readSource(bytes)
         SourceFormat.ICS -> IcsCalendarSource(bytes.decodeToString()).readSource()
         SourceFormat.HTML -> SourceProcessor.split(webReader.cleanHtml(bytes.decodeToString()))
         SourceFormat.TEXT -> SourceProcessor.split(bytes.decodeToString())
+    }
+
+    private suspend fun normalizePdf(bytes: ByteArray): List<SourceFragment> {
+        val extracted = pdfReader.readSource(bytes)
+        if (aiService == null || !PdfTextQuality.isImageOnly(extracted)) return extracted
+        // Scanned/image-only PDF: recover the text with document vision.
+        val visionText = aiService.extractTextFromDocument(bytes, "application/pdf")
+        return if (!visionText.isNullOrBlank()) SourceProcessor.split(visionText) else extracted
     }
 }

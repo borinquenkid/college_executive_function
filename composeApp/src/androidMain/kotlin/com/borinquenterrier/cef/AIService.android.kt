@@ -51,6 +51,10 @@ actual class RealAIService actual constructor(
         return getGeminiService().analyzeDocument(text)
     }
 
+    override suspend fun extractTextFromDocument(bytes: ByteArray, mimeType: String): String? {
+        return getGeminiService().extractTextFromDocument(bytes, mimeType)
+    }
+
     actual override suspend fun decomposeTask(
         taskTitle: String,
         dueDate: String

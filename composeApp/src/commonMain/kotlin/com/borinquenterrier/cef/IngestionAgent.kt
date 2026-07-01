@@ -26,8 +26,9 @@ class IngestionAgent(
     private val _sources = MutableStateFlow<List<SourceItem>>(emptyList())
     val sources: StateFlow<List<SourceItem>> = _sources.asStateFlow()
 
-    // Single format→fragments dispatch shared by the ingestion paths.
-    private val normalizer = SourceNormalizer(pdfReader, docxReader, webReader)
+    // Single format→fragments dispatch shared by the ingestion paths. aiService enables the
+    // image-only-PDF vision fallback.
+    private val normalizer = SourceNormalizer(pdfReader, docxReader, webReader, aiService)
 
     suspend fun addLocalFile(path: String): SourceItem {
         _isBusy.value = true

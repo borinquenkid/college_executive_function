@@ -46,6 +46,15 @@ object CategorizationBuilder {
         """.trimIndent()
     }
 
+    fun getPdfVisionExtractionPrompt(): String {
+        return """
+            Transcribe ALL text from the attached document verbatim, in natural reading order.
+            Include every heading, date, table row, list item, and footnote. Preserve line breaks
+            between logical blocks. Do NOT summarize, interpret, translate, or add commentary —
+            output only the transcribed text. If a page is blank, skip it.
+        """.trimIndent()
+    }
+
     fun getDocumentIntelligencePrompt(text: String): String {
         return """
             # MEMORANDUM BRIEF: DOCUMENT METADATA INTELLIGENCE

@@ -26,6 +26,9 @@ object AiPrompts {
     fun getDocumentIntelligencePrompt(text: String): String =
         CategorizationBuilder.getDocumentIntelligencePrompt(text)
 
+    fun getPdfVisionExtractionPrompt(): String =
+        CategorizationBuilder.getPdfVisionExtractionPrompt()
+
     fun getSourceCategorizationPrompt(text: String): String =
         CategorizationBuilder.getSourceCategorizationPrompt(text)
 

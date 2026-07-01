@@ -10,6 +10,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 import kotlinx.serialization.json.buildJsonArray
+import okio.ByteString.Companion.toByteString
 
 /**
  * Common implementation for interacting with the Google Gemini API.
@@ -251,6 +252,34 @@ class GeminiAIService private constructor(
         } catch (e: Exception) {
             if (e.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) throw e
             logger?.e(tag, "Failed to analyze document: ${e.message}")
+            null
+        }
+    }
+
+    /**
+     * OCR/transcribe a binary document (e.g. an image-only PDF) via Gemini's native document
+     * vision. The raw bytes are sent as an inline base64 part. Returns null on failure so callers
+     * fall back to whatever text they already extracted.
+     */
+    suspend fun extractTextFromDocument(bytes: ByteArray, mimeType: String = "application/pdf"): String? {
+        return try {
+            val base64 = bytes.toByteString().base64()
+            executeWithRetry(
+                maxAttempts = 3,
+                tier = TaskTier.HEAVY,
+                family = PromptFamily.CATEGORIZATION,
+                body = { _ ->
+                    GeminiBodyBuilder.buildDocumentRequestBody(
+                        prompt = AiPrompts.getPdfVisionExtractionPrompt(),
+                        base64Data = base64,
+                        mimeType = mimeType
+                    )
+                },
+                parseResponse = { responseText -> responseText }
+            ).takeIf { it.isNotBlank() }
+        } catch (e: Exception) {
+            if (e.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) throw e
+            logger?.e(tag, "Vision text extraction failed: ${e.message}")
             null
         }
     }

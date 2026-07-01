@@ -17,6 +17,13 @@ interface AIService {
     suspend fun analyzeDocument(text: String): String?
     suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask>
     suspend fun categorizeSource(text: String): SourceCategory
+
+    /**
+     * Extracts text from a binary document (e.g. an image-only/scanned PDF) using the model's
+     * native document vision. Returns null when unsupported or extraction fails, so callers keep
+     * whatever text they already had. Default: unsupported.
+     */
+    suspend fun extractTextFromDocument(bytes: ByteArray, mimeType: String = "application/pdf"): String? = null
 }
 
 expect class RealAIService(

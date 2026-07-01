@@ -69,7 +69,7 @@ fun StudioPanel(
 
     var eventsList by remember { mutableStateOf(emptyList<Event>()) }
     LaunchedEffect(selectedSource, lastGeneratedEvents) {
-        eventsList = calendarAgent.getEvents("default")
+        eventsList = calendarAgent.getSemesterEvents("default")
     }
 
     val today = remember { Clock.System.todayIn(TimeZone.currentSystemDefault()) }

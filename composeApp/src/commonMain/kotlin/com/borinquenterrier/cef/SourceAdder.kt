@@ -43,16 +43,13 @@ class SourceAdder(
         }
     }
 
-    private fun semesterFilter(prefs: StudyPreferences): Pair<LocalDate, LocalDate>? {
-        val start = prefs.semesterStart?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-        val end = prefs.semesterEnd?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-        return if (start != null && end != null) start to end else null
-    }
+    // Semester windowing is shared with the calendar view via SemesterFilter so ingestion and
+    // display agree on "in the active semester".
+    private fun semesterFilter(prefs: StudyPreferences): Pair<LocalDate, LocalDate>? =
+        SemesterFilter.window(prefs)
 
-    private fun applyFilter(events: List<Event>, filter: Pair<LocalDate, LocalDate>?): List<Event> {
-        if (filter == null) return events
-        return events.filter { EventDeduplicator.dateOf(it) in filter.first..filter.second }
-    }
+    private fun applyFilter(events: List<Event>, filter: Pair<LocalDate, LocalDate>?): List<Event> =
+        SemesterFilter.apply(events, filter)
 
     private suspend fun processSourceWithCache(source: SourceItem, hash: String, forceRefresh: Boolean) {
         val filter = semesterFilter(preferencesRepository.getPreferences())

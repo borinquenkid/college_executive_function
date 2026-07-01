@@ -27,6 +27,15 @@ class CalendarAgent(
     suspend fun getEvents(calendarId: String = "default"): List<Event> =
         localRepo.getAllEvents(calendarId)
 
+    /**
+     * Events restricted to the active semester window (from preferences) for display.
+     * Remote-synced STUDENT events bypass ingestion's semester filter, so the calendar view
+     * applies it here; reconcile/sync/delete paths deliberately keep using [getEvents] (the
+     * full set) so out-of-window events are never silently dropped or re-pushed.
+     */
+    suspend fun getSemesterEvents(calendarId: String = "default"): List<Event> =
+        SemesterFilter.apply(getEvents(calendarId), preferencesRepository.getPreferences())
+
     suspend fun saveEvent(event: Event, calendarId: String = "default") {
         val repaired = EventTimeRepairer.repair(event).also { it.validate() }
         persistence.save(repaired, calendarId)

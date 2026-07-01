@@ -58,7 +58,7 @@ fun AcademicCalendar(
     }
 
     LaunchedEffect(isGoogleLinked, resetVersion) {
-        displayedEvents = calendarAgent.getEvents("default")
+        displayedEvents = calendarAgent.getSemesterEvents("default")
         if (isGoogleLinked) {
             scope.launch {
                 isSyncing = true

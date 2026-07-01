@@ -163,6 +163,10 @@ class EventExtractionPipelineTest : FunSpec({
         "Homework #1 Due",
         // Internal whitespace
         "Homework  1  Due",
+        // LLM-leaked category labels (must be stripped, then canonical-equal)
+        "DEADLINE: Homework 1 Due",
+        "STUDY_BLOCK: Homework 1 Due",
+        "REGULAR: Homework 1 Due",
     )
 
     // All ordered pairs of (firstPassTitle, secondPassTitle) — full Cartesian product.

@@ -126,7 +126,16 @@ class EventGenerationService(
     }
 
     private fun normalize(events: List<Event>): List<Event> {
-        val extracted = normalizationService.extract(events)
+        // Strip any LLM-leaked category label ("DEADLINE: …", "STUDY_BLOCK: …") from the display
+        // title before dedup + id generation, so it never persists and dedup compares clean titles.
+        val cleaned = events.map { event ->
+            val clean = EventDeduplicator.stripLeakedCategoryPrefix(event.title)
+            if (clean == event.title) event else when (event) {
+                is TimeEvent -> event.copy(title = clean)
+                is DayEvent -> event.copy(title = clean)
+            }
+        }
+        val extracted = normalizationService.extract(cleaned)
         val deduped = EventDeduplicator.dedup(extracted)
         return deduped.map { event ->
             if (event.id == null) {

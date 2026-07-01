@@ -23,6 +23,7 @@ import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.CircularProgressIndicator
+import androidx.compose.material3.LinearProgressIndicator
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
@@ -263,14 +264,23 @@ fun StudioPanel(
             contentAlignment = Alignment.Center
         ) {
             if (isLoading) {
+                val progressFraction = ProgressFraction.parse(displayStatus)
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp).testTag("studio_loading_indicator"),
-                        strokeWidth = 2.dp
-                    )
+                    if (progressFraction != null) {
+                        // A countable step ("… (i/N)") → show a real, filling progress bar.
+                        LinearProgressIndicator(
+                            progress = { progressFraction },
+                            modifier = Modifier.width(60.dp).testTag("studio_loading_indicator")
+                        )
+                    } else {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(20.dp).testTag("studio_loading_indicator"),
+                            strokeWidth = 2.dp
+                        )
+                    }
                     Text(
                         displayStatus,
                         style = MaterialTheme.typography.bodySmall,

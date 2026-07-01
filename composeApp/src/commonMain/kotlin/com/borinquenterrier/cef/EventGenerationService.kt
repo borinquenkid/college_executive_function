@@ -1,5 +1,8 @@
 package com.borinquenterrier.cef
 
+import kotlin.time.Clock
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import okio.ByteString.Companion.encodeUtf8
 
 /**
@@ -13,8 +16,18 @@ class EventGenerationService(
     private val normalizationService: NormalizationService,
     private val syllabusAuditor: SyllabusAuditor,
     private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
-    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
+    // Optional analysis cache: skips the (expensive) LLM extraction + audit for a source whose
+    // content we have already analyzed. Shared by every extractDeliverables caller. Null disables it.
+    private val cacheRepository: AnalysisCacheRepository? = null,
+    private val clock: Clock = Clock.System
 ) {
+    private companion object {
+        // Bump when the post-LLM pipeline (normalize/dedup/prefix-strip) changes, so old cache
+        // entries — cached in the previous format — are ignored instead of served stale.
+        const val GENERATION_CACHE_VERSION = 1
+        const val CACHE_TTL_MS = 7L * 24 * 60 * 60 * 1000
+    }
     /**
      * Extracts deliverables from [source]'s full text, auditing syllabi for ambiguities
      * first and appending any findings as warnings on the generated events.
@@ -29,6 +42,18 @@ class EventGenerationService(
         "events.extract_deliverables",
         mapOf("source.title" to source.title, "source.category" to source.category.name)
     ) {
+        val prefs = preferencesRepository.getPreferences()
+
+        // Cache hit: reuse the previously analyzed events (skips the LLM extraction + audit), but
+        // re-apply the semester window since that config can change between runs.
+        val cacheKey = generationCacheKey(source.fragments)
+        readCachedEvents(cacheKey)?.let { cachedEvents ->
+            setAttribute("events.cache_hit", "true")
+            onProgress?.invoke("Using cached analysis.")
+            return@span SemesterFilter.apply(cachedEvents, prefs)
+        }
+        setAttribute("events.cache_hit", "false")
+
         val syllabusText = source.fragments.joinToString("\n\n") { it.text }
         val auditWarnings = if (source.category == SourceCategory.SYLLABUS) {
             onProgress?.invoke("Auditing source for ambiguities...")
@@ -77,12 +102,38 @@ class EventGenerationService(
             normalized
         }
 
+        // Cache the content-deterministic result (post-normalize, incl. audit warnings) BEFORE the
+        // semester filter, so a config change is reflected on the next call without a re-run.
+        writeCachedEvents(cacheKey, withWarnings)
+
         // Constrain to the active semester window at the generation choke point so EVERY caller
         // (studio staging AND the auto-push pipeline) drops out-of-term events before they can be
         // pushed to the calendar — not just hidden in the view.
-        val inSemester = SemesterFilter.apply(withWarnings, preferencesRepository.getPreferences())
+        val inSemester = SemesterFilter.apply(withWarnings, prefs)
         setAttribute("events.extracted_count", inSemester.size.toLong())
         inSemester
+    }
+
+    private fun generationCacheKey(fragments: List<SourceFragment>): String =
+        "${ContentHasher.hash(fragments)}-v$GENERATION_CACHE_VERSION"
+
+    private suspend fun readCachedEvents(key: String): List<Event>? {
+        val cached = cacheRepository?.getCached(key) ?: return null
+        if (clock.now().toEpochMilliseconds() - cached.createdAt > CACHE_TTL_MS) return null
+        if (cached.cachedEventsJson.isBlank()) return null
+        return runCatching { Json.decodeFromString<List<Event>>(cached.cachedEventsJson) }.getOrNull()
+    }
+
+    private suspend fun writeCachedEvents(key: String, events: List<Event>) {
+        val repo = cacheRepository ?: return
+        repo.putCache(
+            CachedAnalysis(
+                sourceHash = key,
+                cachedEventsJson = Json.encodeToString(events),
+                cachedMetadataJson = null,
+                createdAt = clock.now().toEpochMilliseconds()
+            )
+        )
     }
 
     /**

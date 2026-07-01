@@ -169,7 +169,8 @@ class DependencyContainer(
             preferencesRepository,
             logger,
             userPreferenceMemoryRepository,
-            clock
+            clock,
+            analysisCacheRepository
         )
     }
 

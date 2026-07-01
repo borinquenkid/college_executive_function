@@ -23,6 +23,9 @@ class WebSourceReader {
         }
     }
 
+    /** Raw response bytes — lets a URL that points at a PDF/ICS go through the normalizer's extractors. */
+    suspend fun readBytesFromUrl(url: String): ByteArray = client.get(url).body<ByteArray>()
+
     fun cleanHtml(html: String): String {
         var text = html
 

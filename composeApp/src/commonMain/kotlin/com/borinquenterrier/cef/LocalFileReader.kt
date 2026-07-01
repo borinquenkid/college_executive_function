@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 
 expect class LocalFileReader {
     suspend fun readText(path: String): String
+    suspend fun readBytes(path: String): ByteArray
     suspend fun listFiles(dirPath: String): List<String>
 }
 

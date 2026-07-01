@@ -564,19 +564,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `inject` | 4 |
 | `collectAnchors` | 4 |
 
-### IngestionAgent.kt (Score: 14.00 - 🟢 LOW)
-- **Total Complexity**: 14
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `addLocalFile` | 4 |
-| `addUrl` | 4 |
-| `addDriveFile` | 2 |
-| `resolveCategory` | 1 |
-| `persistSource` | 1 |
-
 ### CalendarPusher.kt (Score: 13.00 - 🟢 LOW)
 - **Total Complexity**: 13
 - **Real Coverage**: 98.0%
@@ -675,6 +662,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `checkSyncProposals` | 1 |
 | `applySyncNegotiation` | 1 |
 | *... and 2 more* | |
+
+### LocalFileReader.kt (Score: 12.00 - 🟢 LOW)
+- **Total Complexity**: 3
+- **Real Coverage**: 0.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `readText` | 1 |
+| `listFiles` | 1 |
+| `rememberLocalFileReader` | 1 |
 
 ### Logger.kt (Score: 11.27 - 🟢 LOW)
 - **Total Complexity**: 11
@@ -882,6 +880,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `snippet` | 7 |
 | `significantWords` | 3 |
+
+### IngestionAgent.kt (Score: 10.00 - 🟢 LOW)
+- **Total Complexity**: 10
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `addLocalFile` | 2 |
+| `addUrl` | 2 |
+| `addDriveFile` | 2 |
+| `resolveCategory` | 1 |
+| `persistSource` | 1 |
 
 ### DateResolutionPresenter.kt (Score: 9.16 - 🟢 LOW)
 - **Total Complexity**: 9
@@ -1297,16 +1308,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `readSource` | 1 |
 | `rememberPdfReader` | 1 |
 
-### LocalFileReader.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 2
-- **Real Coverage**: 0.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `readText` | 1 |
-| `rememberLocalFileReader` | 1 |
-
 ### UserPreferenceMemoryRepository.kt (Score: 5.58 - 🟢 LOW)
 - **Total Complexity**: 5
 - **Real Coverage**: 71.4%
@@ -1328,6 +1329,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `GoogleCalendarSelector` | 1 |
+
+### WebSourceReader.kt (Score: 5.12 - 🟢 LOW)
+- **Total Complexity**: 5
+- **Real Coverage**: 83.3%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `readTextFromUrl` | 2 |
+| `cleanHtml` | 2 |
+| `readBytesFromUrl` | 1 |
 
 ### GeminiRequestBuilder.kt (Score: 5.01 - 🟢 LOW)
 - **Total Complexity**: 5
@@ -1450,16 +1462,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `filterNewFiles` | 2 |
 | `isSupportedFile` | 2 |
-
-### WebSourceReader.kt (Score: 4.04 - 🟢 LOW)
-- **Total Complexity**: 4
-- **Real Coverage**: 87.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `readTextFromUrl` | 2 |
-| `cleanHtml` | 2 |
 
 ### ErrorCategorizer.kt (Score: 4.02 - 🟢 LOW)
 - **Total Complexity**: 4

@@ -20,6 +20,14 @@ actual class LocalFileReader(private val context: Context) {
         }
     }
 
+    actual suspend fun readBytes(path: String): ByteArray = withContext(Dispatchers.IO) {
+        if (path.startsWith("content://")) {
+            context.contentResolver.openInputStream(path.toUri())?.use { it.readBytes() } ?: ByteArray(0)
+        } else {
+            File(path).readBytes()
+        }
+    }
+
     actual suspend fun listFiles(dirPath: String): List<String> = withContext(Dispatchers.IO) {
         val dir = File(dirPath)
         if (dir.exists() && dir.isDirectory) {

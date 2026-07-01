@@ -34,24 +34,14 @@ class IngestionAgent(
         return try {
             AppTracer.current.span("ingestion.add_file") {
                 val fileName = path.substringAfterLast("/").substringAfterLast("\\")
-                val isIcs = fileName.lowercase().endsWith(".ics")
+                val format = SourceFormatDetector.detect(fileName)
                 setAttribute("source.name", fileName)
-                setAttribute("source.type", when {
-                    fileName.lowercase().endsWith(".pdf") -> "pdf"
-                    fileName.lowercase().endsWith(".docx") -> "docx"
-                    isIcs -> "ics"
-                    else -> "text"
-                })
-                val rawFragments = when {
-                    fileName.lowercase().endsWith(".docx") -> docxReader.readSource(path)
-                    fileName.lowercase().endsWith(".pdf") -> pdfReader.readSource(path)
-                    isIcs -> IcsCalendarSource(fileReader.readText(path)).readSource()
-                    else -> SourceProcessor.split(fileReader.readText(path))
-                }
-                val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
+                setAttribute("source.type", format.name)
+                val rawFragments = normalizer.normalize(fileReader.readBytes(path), format)
+                val fragments = if (format == SourceFormat.ICS) rawFragments else WeekAnchorExtractor.inject(rawFragments)
                 setAttribute("fragment.count", fragments.size.toLong())
                 ContributionValidator.validate(fragments)
-                val category = resolveCategory(isIcs, fragments)
+                val category = resolveCategory(format == SourceFormat.ICS, fragments)
                 setAttribute("source.category", category.name)
                 val sourceItem = SourceItem(fileName, fragments, category)
                 persistSource(sourceItem, path)
@@ -66,14 +56,13 @@ class IngestionAgent(
         _isBusy.value = true
         return try {
             AppTracer.current.span("ingestion.add_url", mapOf("source.url" to url)) {
-                val rawContent = webReader.readTextFromUrl(url)
-                val isIcs = url.lowercase().endsWith(".ics")
-                setAttribute("source.type", if (isIcs) "ics" else "web")
-                val rawFragments = if (isIcs) IcsCalendarSource(rawContent).readSource()
-                else SourceProcessor.split(rawContent)
-                val fragments = if (isIcs) rawFragments else WeekAnchorExtractor.inject(rawFragments)
+                // Web pages default to HTML; a URL ending .pdf/.ics routes to that extractor.
+                val format = SourceFormatDetector.detect(url, default = SourceFormat.HTML)
+                setAttribute("source.type", format.name)
+                val rawFragments = normalizer.normalize(webReader.readBytesFromUrl(url), format)
+                val fragments = if (format == SourceFormat.ICS) rawFragments else WeekAnchorExtractor.inject(rawFragments)
                 setAttribute("fragment.count", fragments.size.toLong())
-                val category = resolveCategory(isIcs, fragments)
+                val category = resolveCategory(format == SourceFormat.ICS, fragments)
                 setAttribute("source.category", category.name)
                 val sourceItem = SourceItem(url, fragments, category)
                 persistSource(sourceItem, url)

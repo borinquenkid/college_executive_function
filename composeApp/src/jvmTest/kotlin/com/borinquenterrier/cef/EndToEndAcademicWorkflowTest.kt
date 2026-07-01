@@ -74,7 +74,7 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             END:VCALENDAR
         """.trimIndent()
 
-        coEvery { container.fileReader.readText("academic_cal.ics") } returns icsContent
+        coEvery { container.fileReader.readBytes("academic_cal.ics") } returns icsContent.encodeToByteArray()
         val holidayEvent = DayEvent(
             title = "Labor Day Holiday",
             source = EventSource.AI_GENERATED,

@@ -7,6 +7,7 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.coVerify
 import io.mockk.mockk
 
@@ -52,7 +53,7 @@ class IngestionAgentTest : FunSpec({
     test("addLocalFile categorizes syllabus text and persists to DB") {
         val path = "cs101_syllabus.txt"
         val fileContent = "Course: CS101. Grading policy: Exams 50%, Homework 50%."
-        coEvery { fileReader.readText(path) } returns fileContent
+        coEvery { fileReader.readBytes(path) } returns fileContent.encodeToByteArray()
         coEvery { aiService.categorizeSource(any()) } returns SourceCategory.SYLLABUS
 
         val result = ingestionAgent.addLocalFile(path)
@@ -76,7 +77,7 @@ class IngestionAgentTest : FunSpec({
             END:VEVENT
             END:VCALENDAR
         """.trimIndent()
-        coEvery { fileReader.readText(path) } returns icsContent
+        coEvery { fileReader.readBytes(path) } returns icsContent.encodeToByteArray()
 
         val result = ingestionAgent.addLocalFile(path)
 
@@ -90,7 +91,7 @@ class IngestionAgentTest : FunSpec({
     }
     test("addLocalFile throws SourceValidationException for an ICS with no events") {
         val path = "empty.ics"
-        coEvery { fileReader.readText(path) } returns "BEGIN:VCALENDAR\nEND:VCALENDAR"
+        coEvery { fileReader.readBytes(path) } returns "BEGIN:VCALENDAR\nEND:VCALENDAR".encodeToByteArray()
 
         try {
             ingestionAgent.addLocalFile(path)
@@ -103,7 +104,8 @@ class IngestionAgentTest : FunSpec({
 
     test("addUrl categorizes non-ICS URLs using AI service") {
         val url = "https://example.com/class/syllabus"
-        coEvery { webReader.readTextFromUrl(url) } returns "Week 1: Introduction to algorithms."
+        coEvery { webReader.readBytesFromUrl(url) } returns "<html>Week 1</html>".encodeToByteArray()
+        every { webReader.cleanHtml(any()) } returns "Week 1: Introduction to algorithms."
         coEvery { aiService.categorizeSource(any()) } returns SourceCategory.SYLLABUS
 
         val result = ingestionAgent.addUrl(url)
@@ -122,7 +124,7 @@ class IngestionAgentTest : FunSpec({
             END:VEVENT
             END:VCALENDAR
         """.trimIndent()
-        coEvery { webReader.readTextFromUrl(url) } returns icsContent
+        coEvery { webReader.readBytesFromUrl(url) } returns icsContent.encodeToByteArray()
 
         val result = ingestionAgent.addUrl(url)
 
@@ -132,7 +134,7 @@ class IngestionAgentTest : FunSpec({
 
     test("addUrl throws SourceValidationException for empty ICS") {
         val url = "https://cal.example.com/empty.ics"
-        coEvery { webReader.readTextFromUrl(url) } returns "BEGIN:VCALENDAR\nEND:VCALENDAR"
+        coEvery { webReader.readBytesFromUrl(url) } returns "BEGIN:VCALENDAR\nEND:VCALENDAR".encodeToByteArray()
 
         try {
             ingestionAgent.addUrl(url)

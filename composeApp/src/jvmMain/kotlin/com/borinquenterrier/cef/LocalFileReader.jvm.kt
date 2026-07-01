@@ -11,6 +11,10 @@ actual class LocalFileReader {
         File(path).readText()
     }
 
+    actual suspend fun readBytes(path: String): ByteArray = withContext(Dispatchers.IO) {
+        File(path).readBytes()
+    }
+
     actual suspend fun listFiles(dirPath: String): List<String> = withContext(Dispatchers.IO) {
         val dir = File(dirPath)
         if (dir.exists() && dir.isDirectory) {

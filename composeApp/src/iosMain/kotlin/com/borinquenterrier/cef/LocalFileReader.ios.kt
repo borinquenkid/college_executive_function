@@ -3,6 +3,8 @@ package com.borinquenterrier.cef
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import kotlinx.cinterop.ExperimentalForeignApi
+import kotlinx.cinterop.addressOf
+import kotlinx.cinterop.usePinned
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import platform.Foundation.NSData
@@ -12,6 +14,7 @@ import platform.Foundation.NSURL
 import platform.Foundation.NSUTF8StringEncoding
 import platform.Foundation.create
 import platform.Foundation.dataWithContentsOfURL
+import platform.posix.memcpy
 
 actual class LocalFileReader {
     actual suspend fun readText(path: String): String = withContext(Dispatchers.Default) {
@@ -34,6 +37,17 @@ actual class LocalFileReader {
     }
 
     @OptIn(ExperimentalForeignApi::class)
+    actual suspend fun readBytes(path: String): ByteArray = withContext(Dispatchers.Default) {
+        val url = NSURL(string = path) ?: return@withContext ByteArray(0)
+        val success = url.startAccessingSecurityScopedResource()
+        try {
+            (NSData.dataWithContentsOfURL(url) ?: return@withContext ByteArray(0)).toByteArray()
+        } finally {
+            if (success) url.stopAccessingSecurityScopedResource()
+        }
+    }
+
+    @OptIn(ExperimentalForeignApi::class)
     actual suspend fun listFiles(dirPath: String): List<String> = withContext(Dispatchers.Default) {
         try {
             val fileManager = NSFileManager.defaultManager
@@ -42,6 +56,16 @@ actual class LocalFileReader {
         } catch (e: Exception) {
             emptyList()
         }
+    }
+}
+
+@OptIn(ExperimentalForeignApi::class)
+private fun NSData.toByteArray(): ByteArray {
+    val len = length.toInt()
+    if (len == 0) return ByteArray(0)
+    val src = this
+    return ByteArray(len).apply {
+        usePinned { pinned -> memcpy(pinned.addressOf(0), src.bytes, src.length) }
     }
 }
 

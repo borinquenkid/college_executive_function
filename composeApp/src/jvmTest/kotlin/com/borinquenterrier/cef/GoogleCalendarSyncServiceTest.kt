@@ -10,7 +10,9 @@ import io.ktor.client.engine.mock.MockEngine
 import io.ktor.client.engine.mock.respond
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.http.ContentType
+import io.ktor.http.HttpMethod
 import io.ktor.http.HttpStatusCode
+import io.ktor.http.content.TextContent
 import io.ktor.http.headersOf
 import io.ktor.serialization.kotlinx.json.json
 import io.mockk.coEvery
@@ -703,6 +705,64 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
         }
         val ex = shouldThrow<GoogleApiException> { makeService(engine).getEvents() }
         ex.statusCode shouldBe 500
+    }
+
+    // ── syncEvent idempotency (remote duplicate prevention) ────────────────────
+
+    // A valid Google event id (base32hex 0-9a-v). The app's real ids are SHA-256 hex.
+    val stableId = "abc12def34567"
+    fun eventWithId(id: String?) = DayEvent(
+        id = id,
+        title = "Issue Brief #2 due",
+        source = EventSource.AI_GENERATED,
+        category = AcademicCategory.DEADLINE,
+        date = LocalDate(2026, 7, 15)
+    )
+
+    test("syncEvent with a stable id PUT-updates (no duplicate insert)") {
+        val methods = mutableListOf<HttpMethod>()
+        val paths = mutableListOf<String>()
+        val engine = MockEngine { req ->
+            methods.add(req.method)
+            paths.add(req.url.encodedPath)
+            respond("""{"id":"$stableId"}""", HttpStatusCode.OK, jsonHeader)
+        }
+        makeService(engine).syncEvent(eventWithId(stableId), "cal1")
+
+        methods shouldBe listOf(HttpMethod.Put)               // exactly one request, an update
+        paths.single().endsWith("/events/$stableId") shouldBe true
+    }
+
+    test("syncEvent inserts under the stable id when PUT returns 404") {
+        val methods = mutableListOf<HttpMethod>()
+        var postBody = ""
+        val engine = MockEngine { req ->
+            methods.add(req.method)
+            if (req.method == HttpMethod.Put) {
+                respond("Not Found", HttpStatusCode.NotFound, jsonHeader)
+            } else {
+                postBody = (req.body as TextContent).text
+                respond("""{"id":"$stableId"}""", HttpStatusCode.OK, jsonHeader)
+            }
+        }
+        makeService(engine).syncEvent(eventWithId(stableId), "cal1")
+
+        methods shouldBe listOf(HttpMethod.Put, HttpMethod.Post)  // update miss → insert
+        postBody shouldContain "\"id\":\"$stableId\""              // insert carries the stable id
+    }
+
+    test("syncEvent falls back to a plain POST when the id is not Google-usable") {
+        val methods = mutableListOf<HttpMethod>()
+        var postBody = ""
+        val engine = MockEngine { req ->
+            methods.add(req.method)
+            postBody = (req.body as TextContent).text
+            respond("""{"id":"generated"}""", HttpStatusCode.OK, jsonHeader)
+        }
+        makeService(engine).syncEvent(eventWithId(null), "cal1")
+
+        methods shouldBe listOf(HttpMethod.Post)     // no PUT attempted
+        postBody.contains("\"id\":") shouldBe false  // null id is omitted from the body
     }
 
 })

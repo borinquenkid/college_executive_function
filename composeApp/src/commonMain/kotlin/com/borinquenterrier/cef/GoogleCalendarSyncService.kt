@@ -7,6 +7,7 @@ import io.ktor.client.request.get
 import io.ktor.client.request.header
 import io.ktor.client.request.parameter
 import io.ktor.client.request.post
+import io.ktor.client.request.put
 import io.ktor.client.request.setBody
 import io.ktor.client.statement.HttpResponse
 import io.ktor.client.statement.bodyAsText
@@ -31,7 +32,8 @@ import kotlinx.serialization.Serializable
 data class GoogleEvent(
     val summary: String,
     val start: GoogleEventDateTime,
-    val end: GoogleEventDateTime
+    val end: GoogleEventDateTime,
+    val id: String? = null // omitted when null (encodeDefaults is off); set only for insert-with-id
 )
 
 @Serializable
@@ -136,6 +138,31 @@ class GoogleCalendarSyncService(
                 }
             }
 
+            // Idempotent upsert: reuse the app's stable event id as the Google event id so a
+            // re-push (LocalOnlyRetrier, re-extraction, re-sync) UPDATES the same event instead
+            // of inserting a duplicate — the root cause of remote duplicate accumulation. PUT
+            // updates; a 404/410 means it does not exist yet, so insert it under that id. Events
+            // without a Google-usable id fall back to a plain insert (legacy behavior).
+            val stableId = usableGoogleEventId(event.id)
+            if (stableId != null) {
+                val updated = httpClient.put("$baseUrl/calendars/$calendarId/events/$stableId") {
+                    header("Authorization", "Bearer $token")
+                    contentType(ContentType.Application.Json)
+                    setBody(googleEvent)
+                }
+                if (updated.status.isSuccess()) return@withToken updated.bodyAsText()
+                if (updated.status.value != 404 && updated.status.value != 410) {
+                    throw GoogleApiException(updated.status.value, updated.bodyAsText())
+                }
+                val inserted = httpClient.post("$baseUrl/calendars/$calendarId/events") {
+                    header("Authorization", "Bearer $token")
+                    contentType(ContentType.Application.Json)
+                    setBody(googleEvent.copy(id = stableId))
+                }
+                ensureSuccess(inserted)
+                return@withToken inserted.bodyAsText()
+            }
+
             val response = httpClient.post("$baseUrl/calendars/$calendarId/events") {
                 header("Authorization", "Bearer $token")
                 contentType(ContentType.Application.Json)
@@ -144,6 +171,16 @@ class GoogleCalendarSyncService(
             ensureSuccess(response)
             response.bodyAsText()
         }
+
+    /**
+     * Google event ids must be base32hex (chars 0-9 and a-v), 5–1024 characters, lowercase.
+     * The app's deterministic SHA-256 ids (0-9a-f, 24 chars) and ids read back from Google both
+     * qualify; anything else returns null so we never send Google an id it will reject with 400.
+     */
+    private fun usableGoogleEventId(id: String?): String? {
+        if (id == null || id.length !in 5..1024) return null
+        return if (id.all { it in '0'..'9' || it in 'a'..'v' }) id else null
+    }
 
     /**
      * Deletes an event from a specific Google Calendar.

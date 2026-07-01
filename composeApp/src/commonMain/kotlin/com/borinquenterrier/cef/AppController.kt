@@ -9,6 +9,8 @@ import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.flow.filter
 import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 
 /**
  * Lightweight facade coordinating navigation, AI events, sources, and chat state.
@@ -16,6 +18,7 @@ import kotlinx.coroutines.launch
  */
 class AppController(val container: DependencyContainer) {
     private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+    private val sourceProcessingMutex = Mutex()
 
     private val navigationService = AppNavigationService()
     private val eventsService = AiEventsService()
@@ -109,11 +112,31 @@ class AppController(val container: DependencyContainer) {
     }
 
     fun addSource(source: SourceItem, forceRefresh: Boolean = false) {
-        sourceManager.addSource(source, forceRefresh)
+        sourceManager.registerSource(source)
+        processSourceAutoPush(source)
     }
 
     fun reanalyzeSource(source: SourceItem) {
-        sourceManager.reanalyzeSource(source)
+        sourceManager.registerSource(source)
+        processSourceAutoPush(source)
+    }
+
+    /**
+     * Runs the full auto-push pipeline for [source] (context → extract → push → decompose →
+     * study plan → pause-on-doubt → push) instead of only staging events for a manual push.
+     * Serialized so concurrent adds (multi-file picker) don't interleave push/dedup on the
+     * shared generated-event state.
+     */
+    private fun processSourceAutoPush(source: SourceItem) {
+        launchInScope {
+            sourceProcessingMutex.withLock {
+                try {
+                    container.harnessSourceProcessor.processSource(source)
+                } catch (e: Exception) {
+                    container.logger.e("AppController", "Auto-push processing failed: ${source.title}", e)
+                }
+            }
+        }
     }
 
     fun launchInScope(block: suspend CoroutineScope.() -> Unit) {

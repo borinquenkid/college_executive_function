@@ -48,13 +48,22 @@ class SourceManager(
     }
 
     fun addSource(source: SourceItem, forceRefresh: Boolean = false) {
+        registerSource(source)
+        adder.addSource(source, forceRefresh)
+    }
+
+    /**
+     * Registers [source] in the in-memory list (and selects it) for display, WITHOUT triggering
+     * event generation. Used by callers that process the source through a different pipeline
+     * (e.g. the auto-push flow) but still want it to appear in the Studio source list.
+     */
+    fun registerSource(source: SourceItem) {
         val current = _sourceItemsWrapper.value
         if (!current.any { it.title == source.title }) {
             val updatedItems = current + source
             _sourceItemsWrapper.setValue(updatedItems)
             selector.autoSelectFirstFrom(updatedItems)
         }
-        adder.addSource(source, forceRefresh)
     }
 
     fun reanalyzeSource(source: SourceItem) {

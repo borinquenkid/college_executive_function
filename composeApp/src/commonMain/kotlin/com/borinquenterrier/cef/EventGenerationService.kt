@@ -59,9 +59,8 @@ class EventGenerationService(
         }
 
         val normalized = normalize(allEvents)
-        setAttribute("events.extracted_count", normalized.size.toLong())
 
-        if (auditWarnings.isNotEmpty()) {
+        val withWarnings = if (auditWarnings.isNotEmpty()) {
             val combinedWarning = auditWarnings.joinToString("; ")
             normalized.map { event ->
                 val newWarning = if (event.warning != null) {
@@ -77,6 +76,13 @@ class EventGenerationService(
         } else {
             normalized
         }
+
+        // Constrain to the active semester window at the generation choke point so EVERY caller
+        // (studio staging AND the auto-push pipeline) drops out-of-term events before they can be
+        // pushed to the calendar — not just hidden in the view.
+        val inSemester = SemesterFilter.apply(withWarnings, preferencesRepository.getPreferences())
+        setAttribute("events.extracted_count", inSemester.size.toLong())
+        inSemester
     }
 
     /**

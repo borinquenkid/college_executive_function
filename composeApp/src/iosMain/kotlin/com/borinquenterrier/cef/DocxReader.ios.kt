@@ -8,6 +8,10 @@ actual class DocxReader {
         // iOS implementation would use a native ZIP library or SSZipArchive
         return listOf(SourceFragment("DOCX extraction not yet implemented on iOS"))
     }
+
+    actual suspend fun readSource(bytes: ByteArray): List<SourceFragment> {
+        return listOf(SourceFragment("DOCX extraction not yet implemented on iOS"))
+    }
 }
 
 @Composable

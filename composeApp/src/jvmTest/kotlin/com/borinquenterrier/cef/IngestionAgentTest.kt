@@ -148,18 +148,16 @@ class IngestionAgentTest : FunSpec({
             "lecture_notes.docx",
             "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
         )
-        coEvery {
-            driveService.getFileContent(
-                driveFile.id,
-                driveFile.mimeType
-            )
-        } returns "Lecture notes content."
+        coEvery { driveService.getFileContentBytes(driveFile.id, driveFile.mimeType) } returns "docx-bytes".encodeToByteArray()
+        // .docx → normalizer routes to the DOCX reader's bytes overload (no longer raw split)
+        coEvery { docxReader.readSource(any<ByteArray>()) } returns listOf(SourceFragment("Lecture notes content."))
         coEvery { aiService.categorizeSource(any()) } returns SourceCategory.READING_MATERIAL
 
         val result = ingestionAgent.addDriveFile(driveFile)
 
         result.category shouldBe SourceCategory.READING_MATERIAL
         result.title shouldBe "lecture_notes.docx"
+        coVerify(exactly = 1) { docxReader.readSource(any<ByteArray>()) }
         coVerify(exactly = 1) { aiService.categorizeSource(any()) }
     }
 
@@ -173,7 +171,7 @@ class IngestionAgentTest : FunSpec({
             END:VEVENT
             END:VCALENDAR
         """.trimIndent()
-        coEvery { driveService.getFileContent(driveFile.id, driveFile.mimeType) } returns icsContent
+        coEvery { driveService.getFileContentBytes(driveFile.id, driveFile.mimeType) } returns icsContent.encodeToByteArray()
 
         val result = ingestionAgent.addDriveFile(driveFile)
 

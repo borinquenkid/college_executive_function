@@ -160,4 +160,27 @@ class GoogleDriveService(
 
         response.body<String>()
     }
+
+    /**
+     * Downloads a Drive file as raw bytes (Google Docs are still exported as plain-text bytes).
+     * Binary formats (PDF/DOCX) MUST use this, not [getFileContent] — decoding binary as a String
+     * corrupts it (the app fed raw %PDF bytes to the LLM as "text").
+     */
+    suspend fun getFileContentBytes(fileId: String, mimeType: String): ByteArray = withToken { token ->
+        val response = if (mimeType == "application/vnd.google-apps.document") {
+            httpClient.get("$baseUrl/files/$fileId/export") {
+                header("Authorization", "Bearer $token")
+                parameter("mimeType", "text/plain")
+            }
+        } else {
+            httpClient.get("$baseUrl/files/$fileId") {
+                header("Authorization", "Bearer $token")
+                parameter("alt", "media")
+            }
+        }
+        if (!response.status.isSuccess()) {
+            throw Exception("Google Drive API Error (${response.status}): ${response.bodyAsText()}")
+        }
+        response.body<ByteArray>()
+    }
 }

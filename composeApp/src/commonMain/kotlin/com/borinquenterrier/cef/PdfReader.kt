@@ -4,6 +4,7 @@ import androidx.compose.runtime.Composable
 
 expect class PdfReader {
     suspend fun readSource(path: String): List<SourceFragment>
+    suspend fun readSource(bytes: ByteArray): List<SourceFragment>
 }
 
 @Composable

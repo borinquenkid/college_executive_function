@@ -159,9 +159,6 @@ class EventAgent(
         _statusMessage.value = "${events.size} events ready to sync."
     }
 
-    fun clearUnresolvedConflicts() {
-        _unresolvedConflicts.value = emptyList()
-    }
 
     fun updateStatus(message: String) {
         _statusMessage.value = message

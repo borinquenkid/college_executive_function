@@ -51,7 +51,6 @@ fun AcademicCalendar(
     var isSyncing by remember { mutableStateOf(value = false) }
     var selectedEventForDecomposition by remember { mutableStateOf<Event?>(null) }
     var activeSyncNegotiation by remember { mutableStateOf<SyncNegotiation?>(null) }
-    val unresolvedConflicts by eventAgent.unresolvedConflicts.collectAsState()
     val resetVersion by calendarAgent.resetVersion.collectAsState()
 
     LaunchedEffect(routineRepository) {
@@ -134,12 +133,6 @@ fun AcademicCalendar(
         }
     }
 
-    if (unresolvedConflicts.isNotEmpty()) {
-        ConflictResolutionDialog(
-            conflicts = unresolvedConflicts,
-            onDismiss = { eventAgent.clearUnresolvedConflicts() },
-        )
-    }
 
     Column(modifier = modifier) {
         LazyColumn(modifier = Modifier.fillMaxSize()) {

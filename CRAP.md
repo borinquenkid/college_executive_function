@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 182
+- **Total Files Analyzed**: 181
 - **High-Risk Files (CRAP > 30)**: 3
 
 ### Top 15 High-Risk Files
@@ -17,7 +17,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
 | HttpOtelTracer.kt | 33 | 76.6% | 46.89 | 🔴 HIGH |
-| EventAgent.kt | 36 | 93.5% | 36.36 | 🔴 HIGH |
+| EventAgent.kt | 35 | 93.5% | 35.34 | 🔴 HIGH |
 | GeminiAIService.kt | 30 | 98.1% | 30.01 | 🔴 HIGH |
 | EventDeduplicator.kt | 29 | 100.0% | 29.00 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
@@ -55,8 +55,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `setAttribute` | 1 |
 | *... and 4 more* | |
 
-### EventAgent.kt (Score: 36.36 - 🔴 HIGH)
-- **Total Complexity**: 36
+### EventAgent.kt (Score: 35.34 - 🔴 HIGH)
+- **Total Complexity**: 35
 - **Real Coverage**: 93.5%
 
 #### Methods list:
@@ -72,7 +72,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `clearError` | 1 |
 | `reportError` | 1 |
 | `setGeneratedEvents` | 1 |
-| *... and 15 more* | |
+| *... and 14 more* | |
 
 ### GeminiAIService.kt (Score: 30.01 - 🔴 HIGH)
 - **Total Complexity**: 30
@@ -1699,17 +1699,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `processLocalFiles` | 3 |
-
-### ConflictResolutionPresenter.kt (Score: 3.00 - 🟢 LOW)
-- **Total Complexity**: 3
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `bodyText` | 1 |
-| `instructionsText` | 1 |
-| `hasReason` | 1 |
 
 ### DecompositionAcceptor.kt (Score: 3.00 - 🟢 LOW)
 - **Total Complexity**: 3

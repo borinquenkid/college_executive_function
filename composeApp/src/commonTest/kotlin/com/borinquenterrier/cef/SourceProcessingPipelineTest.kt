@@ -36,7 +36,7 @@ class SourceProcessingPipelineTest : FunSpec({
         bugReporter = bugReporter
     )
 
-    test("processSource calls steps in correct order including autoDecomposeDeliverables") {
+    test("processSource calls steps in correct order (no auto-decomposition)") {
         val eventAgent = mockEventAgent()
         val contextAgent = mockk<ContextAgent>(relaxed = true)
 
@@ -46,18 +46,17 @@ class SourceProcessingPipelineTest : FunSpec({
             contextAgent.analyzeSource(source)
             eventAgent.extractDeliverables(source)
             eventAgent.pushToCalendar()
-            eventAgent.autoDecomposeDeliverables()
             eventAgent.generateStudyPlan(source)
             eventAgent.pushToCalendar()
         }
     }
 
-    test("autoDecomposeDeliverables is called exactly once between the two push calls") {
+    test("processSource does NOT auto-decompose deliverables (kept on-demand to avoid an LLM-call storm)") {
         val eventAgent = mockEventAgent()
 
         pipeline(eventAgent).processSource(source)
 
-        coVerify(exactly = 1) { eventAgent.autoDecomposeDeliverables() }
+        coVerify(exactly = 0) { eventAgent.autoDecomposeDeliverables() }
         coVerify(exactly = 2) { eventAgent.pushToCalendar() }
     }
 

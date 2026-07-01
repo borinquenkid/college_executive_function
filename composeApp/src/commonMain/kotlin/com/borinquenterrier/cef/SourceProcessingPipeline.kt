@@ -23,7 +23,10 @@ class SourceProcessingPipeline(
             logger.d(tag, "Extracting deliverables for: ${source.title}")
             eventAgent.extractDeliverables(source)
             eventAgent.pushToCalendar()
-            eventAgent.autoDecomposeDeliverables()
+            // NOTE: auto-decomposition is intentionally NOT run here. Decomposing every deliverable
+            // ran a 3-iteration CriticActor critique loop each (~deliverables × 4 sequential LLM
+            // calls), which blew past Gemini rate limits and stalled ingestion for minutes.
+            // Decomposition stays on-demand (per-deliverable action in the UI).
 
             logger.d(tag, "Generating study plan for: ${source.title}")
             eventAgent.generateStudyPlan(source)

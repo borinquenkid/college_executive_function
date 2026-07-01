@@ -6,8 +6,15 @@ expect class DriverFactory {
     fun createDriver(): SqlDriver
 }
 
-fun createDatabase(driverFactory: DriverFactory): AppDatabase {
-    val driver = driverFactory.createDriver()
+fun createDatabase(driverFactory: DriverFactory): AppDatabase =
+    buildDatabase(driverFactory.createDriver())
+
+/**
+ * Applies the incremental schema migrations (idempotently) on an already-created [driver] and
+ * returns the [AppDatabase]. Shared by production (via [createDatabase]) and by tests that build
+ * an in-memory driver, so both get an identical, fully-migrated schema.
+ */
+fun buildDatabase(driver: SqlDriver): AppDatabase {
     try {
         driver.execute(
             null,

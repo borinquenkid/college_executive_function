@@ -39,7 +39,8 @@ class EndToEndAcademicWorkflowTest : FunSpec({
             modelBasePath = "/tmp/cef_models",
             fileReader = mockk(relaxed = true),
             docxReader = mockk(relaxed = true),
-            pdfReader = mockk(relaxed = true)
+            pdfReader = mockk(relaxed = true),
+            injectedDatabase = createTestDatabase() // isolate from the real cef.db on disk
         )
 
         val sourceRepository = SqlDelightSourceRepository(container.database)

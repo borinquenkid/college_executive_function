@@ -276,5 +276,7 @@ fun createTestDatabase(): com.borinquenterrier.cef.db.AppDatabase {
     val driver =
         app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver(app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver.IN_MEMORY)
     com.borinquenterrier.cef.db.AppDatabase.Schema.create(driver)
-    return com.borinquenterrier.cef.db.AppDatabase(driver)
+    // Apply the same incremental migrations production uses, so the in-memory schema has the
+    // category / studyPlanStart / AnalysisCacheEntity etc. columns.
+    return com.borinquenterrier.cef.db.buildDatabase(driver)
 }

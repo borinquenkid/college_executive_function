@@ -27,7 +27,7 @@ class GoogleDriveHeadlessTest : FunSpec({
 
         val settings = MapSettings()
         val logger = Logger(settings)
-        val driverFactory = DriverFactory() // In-memory
+        val driverFactory = DriverFactory()
 
         val container = DependencyContainer(
             settings = settings,
@@ -36,7 +36,8 @@ class GoogleDriveHeadlessTest : FunSpec({
             modelBasePath = "/tmp/models",
             fileReader = mockk(relaxed = true),
             docxReader = mockk(relaxed = true),
-            pdfReader = mockk(relaxed = true)
+            pdfReader = mockk(relaxed = true),
+            injectedDatabase = createTestDatabase() // isolate from the real cef.db on disk
         )
 
         // Mock the auth service inside the container's GDrive service if possible, 

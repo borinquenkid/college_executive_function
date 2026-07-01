@@ -29,7 +29,10 @@ class DependencyContainer(
     val fileReader: LocalFileReader,
     val docxReader: DocxReader,
     val pdfReader: PdfReader,
-    val clock: Clock = Clock.System
+    val clock: Clock = Clock.System,
+    // Tests inject an in-memory AppDatabase here so they never touch the real cef.db on disk.
+    // Null (production) → the database is opened from the app's data directory via driverFactory.
+    private val injectedDatabase: AppDatabase? = null
 ) {
     private val globalScope by lazy { CoroutineScope(SupervisorJob() + Dispatchers.Default) }
     val httpClient by lazy {
@@ -44,7 +47,7 @@ class DependencyContainer(
     }
 
     val appEnv: AppEnv = AppEnv()
-    val database: AppDatabase by lazy { createDatabase(driverFactory) }
+    val database: AppDatabase by lazy { injectedDatabase ?: createDatabase(driverFactory) }
     val tokenRepository by lazy { GoogleTokenRepository(settings) }
     val authService by lazy { GoogleAuthService(settings, appEnv) }
     val tokenService by lazy {

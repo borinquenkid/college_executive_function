@@ -36,7 +36,7 @@ class HeadlessLogicTest : FunSpec({
         // 1. Setup Headless Dependencies
         val settings = MapSettings()
         val logger = Logger(settings)
-        val driverFactory = DriverFactory() // Use real factory in test
+        val driverFactory = DriverFactory()
 
         // 2. Initialize Container
         val container = DependencyContainer(
@@ -46,7 +46,8 @@ class HeadlessLogicTest : FunSpec({
             modelBasePath = "/tmp/models",
             fileReader = mockk(relaxed = true),
             docxReader = mockk(relaxed = true),
-            pdfReader = mockk(relaxed = true)
+            pdfReader = mockk(relaxed = true),
+            injectedDatabase = createTestDatabase() // isolate from the real cef.db on disk
         )
 
         // 3. Verify member access

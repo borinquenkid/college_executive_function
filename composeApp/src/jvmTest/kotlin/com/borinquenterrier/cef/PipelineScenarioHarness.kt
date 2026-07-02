@@ -21,7 +21,10 @@ import kotlinx.datetime.atStartOfDayIn
 class PipelineScenarioHarness(
     semesterStart: String? = "2026-06-01",
     semesterEnd: String? = "2026-08-01",
-    today: LocalDate = LocalDate(2026, 6, 15)
+    today: LocalDate = LocalDate(2026, 6, 15),
+    // When true, the scripted LLM is wrapped in the real GroundingGuard decorator so scenarios
+    // exercise confabulation defense (year-grounding) exactly as production does.
+    grounded: Boolean = false
 ) {
     private val settings = MapSettings().apply { putString("GOOGLE_ACCESS_TOKEN", "fake-token") }
     private val db = createTestDatabase()
@@ -48,6 +51,8 @@ class PipelineScenarioHarness(
         onStudyPlan = { nextStudyPlan },
         onCalendarEvents = { extractThrows?.let { throw it }; nextEvents }
     )
+    // The AI the pipeline actually calls: optionally wrapped in the production grounding decorator.
+    private val pipelineAi: AIService = if (grounded) GroundingGuardAIService(ai) else ai
 
     val calendarAgent = CalendarAgent(
         localRepo, remote, preferencesRepository = prefsPort,
@@ -55,13 +60,13 @@ class PipelineScenarioHarness(
         remoteClearDelayFn = {} // no real backoff wait in scenario tests
     )
     private val eventAgent = EventAgent(
-        aiService = ai,
+        aiService = pipelineAi,
         repository = calendarAgent,
         database = db,
         preferencesRepository = prefsPort,
         clock = clock
     )
-    private val contextAgent = ContextAgent(ai, mockk(relaxed = true), FragmentRanker(), SourceContextBuilder())
+    private val contextAgent = ContextAgent(pipelineAi, mockk(relaxed = true), FragmentRanker(), SourceContextBuilder())
     private val pipeline = SourceProcessingPipeline(
         ingestionAgent = mockk(relaxed = true), // processSource takes a ready SourceItem; ingestion is unused
         eventAgent = eventAgent,
@@ -79,12 +84,15 @@ class PipelineScenarioHarness(
     fun deleteSourceRecord(title: String) = runBlocking { sourceRepo.deleteSource(title) }
 
     // ── pipeline steps ────────────────────────────────────────────────────────
-    /** Run the auto-push pipeline for a source whose extraction yields [generates]. */
-    fun ingest(title: String, generates: List<Event>) = runBlocking {
+    /** Run the auto-push pipeline for a source whose extraction yields [generates]. [sourceText]
+     * is the fragment content grounding checks against (years mentioned there are the ground truth). */
+    fun ingest(title: String, generates: List<Event>, sourceText: String = "text") = runBlocking {
         // Register the source like production ingestion does, so its events aren't seen as orphans.
         sourceRepo.saveSource(SourceItem(title, emptyList(), SourceCategory.OTHER), null)
         nextEvents = generates
-        pipeline.processSource(SourceItem(title, listOf(SourceFragment("text", type = SourceType.TEXT)), SourceCategory.OTHER))
+        pipeline.processSource(
+            SourceItem(title, listOf(SourceFragment(sourceText, type = SourceType.TEXT)), SourceCategory.OTHER)
+        )
     }
 
     /** Run the pipeline where extraction throws [error] (simulates an LLM failure). */

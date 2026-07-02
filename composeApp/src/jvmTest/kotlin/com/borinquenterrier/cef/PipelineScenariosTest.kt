@@ -296,6 +296,28 @@ class PipelineScenariosTest : FunSpec({
         report.duplicatesToDelete.size shouldBe 1 // detected (self-heal will fix), but not applied here
     }
 
+    // ── Confabulation defense (grounding decorator) ───────────────────────────
+
+    test("grounded: an event dated in a year absent from the source is dropped as confabulation") {
+        val h = PipelineScenarioHarness(grounded = true, semesterStart = null, semesterEnd = null)
+        h.ingest(
+            "syllabus",
+            generates = listOf(day("Real deadline", "2026-07-01"), day("Confabulated", "2099-07-01")),
+            sourceText = "Summer 2026 course syllabus. Issue Brief due in July."
+        )
+        titles(h.localEvents()) shouldContainExactlyInAnyOrder listOf("Real deadline") // 2099 not in source
+    }
+
+    test("ungrounded control: same confabulation survives without the grounding decorator") {
+        val h = PipelineScenarioHarness(grounded = false, semesterStart = null, semesterEnd = null)
+        h.ingest(
+            "syllabus",
+            generates = listOf(day("Real deadline", "2026-07-01"), day("Confabulated", "2099-07-01")),
+            sourceText = "Summer 2026 course syllabus. Issue Brief due in July."
+        )
+        titles(h.localEvents()) shouldContainExactlyInAnyOrder listOf("Real deadline", "Confabulated")
+    }
+
     // ── Orphan detection (source deleted) ─────────────────────────────────────
 
     test("orphan detection: an event whose source no longer exists is flagged and repairable") {

@@ -23,21 +23,25 @@ class ResilientCalendarCleaner(
         val allCleared: Boolean get() = failed == 0
     }
 
-    suspend fun clear(calendarId: String): Result {
-        val events = try {
-            remoteRepo.getAllEvents(calendarId)
-        } catch (e: Exception) {
-            logger?.e(tag, "Could not list events to clear: ${e.message}", e)
-            return Result(deleted = 0, failed = 0)
+    suspend fun clear(calendarId: String): Result =
+        AppTracer.current.span("calendar.resilient_clear", mapOf("calendar.id" to calendarId)) {
+            val events = try {
+                remoteRepo.getAllEvents(calendarId)
+            } catch (e: Exception) {
+                logger?.e(tag, "Could not list events to clear: ${e.message}", e)
+                setAttribute("clear.list_failed", "true")
+                return@span Result(deleted = 0, failed = 0)
+            }
+            var deleted = 0
+            var failed = 0
+            for (event in events) {
+                val id = event.id ?: continue
+                if (deleteWithRetry(id, calendarId)) deleted++ else failed++
+            }
+            setAttribute("clear.deleted", deleted.toLong())
+            setAttribute("clear.failed", failed.toLong())
+            Result(deleted, failed)
         }
-        var deleted = 0
-        var failed = 0
-        for (event in events) {
-            val id = event.id ?: continue
-            if (deleteWithRetry(id, calendarId)) deleted++ else failed++
-        }
-        return Result(deleted, failed)
-    }
 
     private suspend fun deleteWithRetry(eventId: String, calendarId: String): Boolean {
         var attempt = 0

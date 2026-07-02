@@ -97,16 +97,22 @@ class CalendarAgent(
      * and records the deletions that are a judgement call (out-of-term, orphaned) in [pendingReview]
      * for the user to confirm — never deleting a real event silently. Returns the full report.
      */
-    suspend fun selfHeal(calendarId: String = "default"): ReconciliationReport {
-        val report = reconcile(calendarId)
-        // Apply only duplicates + timestamp stamps; leave out-of-term + orphans for review.
-        applyReconciliation(
-            report.copy(outOfSemesterToDelete = emptyList(), orphansToDelete = emptyList()),
-            calendarId
-        )
-        _pendingReview.value = report.outOfSemesterToDelete + report.orphansToDelete
-        return report
-    }
+    suspend fun selfHeal(calendarId: String = "default"): ReconciliationReport =
+        AppTracer.current.span("calendar.self_heal", mapOf("calendar.id" to calendarId)) {
+            val report = reconcile(calendarId)
+            setAttribute("drift.duplicates", report.duplicatesToDelete.size.toLong())
+            setAttribute("drift.out_of_term", report.outOfSemesterToDelete.size.toLong())
+            setAttribute("drift.orphans", report.orphansToDelete.size.toLong())
+            setAttribute("drift.stale_timestamps", report.timestampsToStamp.size.toLong())
+            // Apply only duplicates + timestamp stamps; leave out-of-term + orphans for review.
+            applyReconciliation(
+                report.copy(outOfSemesterToDelete = emptyList(), orphansToDelete = emptyList()),
+                calendarId
+            )
+            _pendingReview.value = report.outOfSemesterToDelete + report.orphansToDelete
+            setAttribute("review.pending_count", _pendingReview.value.size.toLong())
+            report
+        }
 
     /**
      * Read-only integrity check (e.g. at startup): records review-needed drift in [pendingReview]
@@ -140,13 +146,16 @@ class CalendarAgent(
      * local and remote, and stamps a real timestamp on updatedAt=0 events so sync stops overwriting.
      */
     suspend fun applyReconciliation(report: ReconciliationReport, calendarId: String = "default") {
-        (report.duplicatesToDelete + report.outOfSemesterToDelete + report.orphansToDelete).forEach { event ->
-            event.id?.let { persistence.delete(it, calendarId) }
+        AppTracer.current.span("calendar.reconcile_apply") {
+            val toDelete = report.duplicatesToDelete + report.outOfSemesterToDelete + report.orphansToDelete
+            toDelete.forEach { event -> event.id?.let { persistence.delete(it, calendarId) } }
+            val now = Clock.System.now().toEpochMilliseconds()
+            report.timestampsToStamp.forEach { event ->
+                persistence.update(event.withUpdatedAt(now), calendarId)
+            }
+            setAttribute("reconcile.deleted", toDelete.size.toLong())
+            setAttribute("reconcile.stamped", report.timestampsToStamp.size.toLong())
+            _resetVersion.value++
         }
-        val now = Clock.System.now().toEpochMilliseconds()
-        report.timestampsToStamp.forEach { event ->
-            persistence.update(event.withUpdatedAt(now), calendarId)
-        }
-        _resetVersion.value++
     }
 }

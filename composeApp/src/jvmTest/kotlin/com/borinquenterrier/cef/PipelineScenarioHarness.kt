@@ -88,6 +88,8 @@ class PipelineScenarioHarness(
     fun sync() = runBlocking { calendarAgent.synchronize() }
     fun reconcile(): ReconciliationReport = runBlocking { calendarAgent.reconcile() }
     fun repair(report: ReconciliationReport) = runBlocking { calendarAgent.applyReconciliation(report) }
+    fun retryLocalOnly() = runBlocking { calendarAgent.retryLocalOnly() }
+    fun reset(): Unit = runBlocking { calendarAgent.resetCalendar() }
 
     // ── assertions ────────────────────────────────────────────────────────────
     /** Active local events (excludes soft-deleted DELETED_LOCALLY tombstones) — what the UI shows. */

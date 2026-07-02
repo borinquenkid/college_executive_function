@@ -141,4 +141,90 @@ class PipelineScenariosTest : FunSpec({
             titles(h.localEvents()) shouldContainExactlyInAnyOrder case.expectedTitles
         }
     }
+
+    // ── Fault tolerance ───────────────────────────────────────────────────────
+
+    test("remote save failure keeps the event locally as LOCAL_ONLY (not lost)") {
+        val h = PipelineScenarioHarness()
+        h.remote.beforeSave = { throw GoogleApiException(500, "remote down") }
+        h.ingest("syllabus", listOf(day("Issue Brief #1 due", "2026-07-01")))
+
+        val local = h.localEvents()
+        titles(local) shouldContainExactlyInAnyOrder listOf("Issue Brief #1 due")
+        local.single().syncStatus shouldBe SyncStatus.LOCAL_ONLY
+        h.remoteEvents() shouldBe emptyList()
+    }
+
+    test("LOCAL_ONLY events are retried to remote and become synced when it recovers") {
+        val h = PipelineScenarioHarness()
+        h.remote.beforeSave = { throw GoogleApiException(500, "remote down") }
+        h.ingest("syllabus", listOf(day("Issue Brief #1 due", "2026-07-01")))
+        h.localEvents().single().syncStatus shouldBe SyncStatus.LOCAL_ONLY
+
+        h.remote.beforeSave = {}   // remote recovers
+        h.retryLocalOnly()
+
+        h.localEvents().single().syncStatus shouldBe SyncStatus.SYNCED
+        titles(h.remoteEvents()) shouldContainExactlyInAnyOrder listOf("Issue Brief #1 due")
+    }
+
+    test("multi-source: three sources merge; a shared deliverable is not duplicated") {
+        val h = PipelineScenarioHarness()
+        h.ingest("cal.ics", listOf(day("Independence Day Holiday", "2026-07-03")))
+        h.ingest("syllabus-A", listOf(day("Issue Brief #1 due", "2026-07-01"), day("Independence Day Holiday", "2026-07-03")))
+        h.ingest("syllabus-B", listOf(day("Final Paper", "2026-07-31")))
+
+        titles(h.localEvents()) shouldContainExactlyInAnyOrder
+            listOf("Independence Day Holiday", "Issue Brief #1 due", "Final Paper") // holiday once
+    }
+
+    test("reset clears local and remote") {
+        val h = PipelineScenarioHarness()
+        h.ingest("syllabus", listOf(day("A", "2026-07-01"), day("B", "2026-07-02")))
+        h.reset()
+
+        h.localEvents() shouldBe emptyList()
+        h.remoteEvents() shouldBe emptyList()
+    }
+
+    // ── Reconcile permutations: which drift each state produces ────────────────
+
+    data class ReconcileCase(
+        val name: String,
+        val seed: List<Event>,
+        val dups: Int, val outOfTerm: Int, val stale: Int
+    )
+
+    val reconcileCases = listOf(
+        ReconcileCase("clean calendar",
+            seed = listOf(day("A", "2026-07-01", id = "a"), day("B", "2026-07-02", id = "b")),
+            dups = 0, outOfTerm = 0, stale = 0),
+        ReconcileCase("one exact duplicate",
+            seed = listOf(day("A", "2026-07-01", id = "a1"), day("A", "2026-07-01", id = "a2")),
+            dups = 1, outOfTerm = 0, stale = 0),
+        ReconcileCase("one out-of-term",
+            seed = listOf(day("A", "2026-07-01", id = "a"), day("Fall", "2026-10-01", id = "f")),
+            dups = 0, outOfTerm = 1, stale = 0),
+        ReconcileCase("one stale timestamp",
+            seed = listOf(day("A", "2026-07-01", id = "a", updatedAt = 0L)),
+            dups = 0, outOfTerm = 0, stale = 1),
+        ReconcileCase("all three at once",
+            seed = listOf(
+                day("A", "2026-07-01", id = "a1"), day("A", "2026-07-01", id = "a2"), // dup
+                day("Fall", "2026-10-01", id = "f"),                                   // out-of-term
+                day("B", "2026-07-02", id = "b", updatedAt = 0L)                       // stale
+            ),
+            dups = 1, outOfTerm = 1, stale = 1)
+    )
+
+    reconcileCases.forEach { case ->
+        test("reconcile permutation: ${case.name}") {
+            val h = PipelineScenarioHarness()
+            h.seedLocal(case.seed)
+            val r = h.reconcile()
+            r.duplicatesToDelete.size shouldBe case.dups
+            r.outOfSemesterToDelete.size shouldBe case.outOfTerm
+            r.timestampsToStamp.size shouldBe case.stale
+        }
+    }
 })

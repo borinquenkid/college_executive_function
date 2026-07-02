@@ -70,4 +70,32 @@ object GeminiBodyBuilder {
             put("temperature", temperature)
         }
     }
+
+    /**
+     * Build a request body that references a previously-uploaded Files API document ([fileUri]) plus
+     * a text instruction — used to OCR a PDF too large for an inline part.
+     */
+    fun buildFileRefRequestBody(
+        prompt: String,
+        fileUri: String,
+        mimeType: String,
+        temperature: Double = 0.0
+    ): JsonObject = buildJsonObject {
+        putJsonArray("contents") {
+            addJsonObject {
+                putJsonArray("parts") {
+                    addJsonObject {
+                        putJsonObject("fileData") {
+                            put("mimeType", mimeType)
+                            put("fileUri", fileUri)
+                        }
+                    }
+                    addJsonObject { put("text", prompt) }
+                }
+            }
+        }
+        putJsonObject("generationConfig") {
+            put("temperature", temperature)
+        }
+    }
 }

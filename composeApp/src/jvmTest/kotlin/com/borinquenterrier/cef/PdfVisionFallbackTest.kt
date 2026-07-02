@@ -41,6 +41,18 @@ class PdfVisionFallbackTest : FunSpec({
             body shouldContain "\"data\":\"QUJD\""
             body shouldContain "Transcribe this"
         }
+
+        test("buildFileRefRequestBody references an uploaded file uri (large-doc path)") {
+            val body = GeminiBodyBuilder.buildFileRefRequestBody(
+                prompt = "Transcribe this",
+                fileUri = "https://.../files/abc",
+                mimeType = "application/pdf"
+            ).toString()
+            body shouldContain "\"fileData\""
+            body shouldContain "\"fileUri\":\"https://.../files/abc\""
+            body shouldContain "\"mimeType\":\"application/pdf\""
+            body shouldContain "Transcribe this"
+        }
     }
 
     context("SourceNormalizer image-only PDF fallback") {

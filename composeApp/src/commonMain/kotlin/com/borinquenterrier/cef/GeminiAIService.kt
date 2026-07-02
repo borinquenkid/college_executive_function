@@ -97,6 +97,8 @@ class GeminiAIService private constructor(
     enum class TaskTier { HEAVY, LIGHT }
 
     companion object {
+        // Below the Gemini ~20 MB inline-request cap, with headroom for base64 (~33%) + JSON overhead.
+        private const val INLINE_DOCUMENT_LIMIT_BYTES = 14 * 1024 * 1024
         private val json = Json {
             ignoreUnknownKeys = true
             isLenient = true
@@ -263,18 +265,30 @@ class GeminiAIService private constructor(
      */
     suspend fun extractTextFromDocument(bytes: ByteArray, mimeType: String = "application/pdf"): String? {
         return try {
-            val base64 = bytes.toByteString().base64()
+            val prompt = AiPrompts.getPdfVisionExtractionPrompt()
+            // Inline base64 has a ~20 MB request cap; larger docs (big scans) go via the Files API.
+            val body: (String) -> JsonObject = when {
+                bytes.size > INLINE_DOCUMENT_LIMIT_BYTES -> {
+                    val fileUri = GeminiFileUploader(client, apiKey, logger).uploadAndAwait(bytes, mimeType)
+                        ?: return null // upload/processing failed → caller keeps its (empty) extraction
+                    val b: (String) -> JsonObject = {
+                        GeminiBodyBuilder.buildFileRefRequestBody(prompt, fileUri, mimeType)
+                    }
+                    b
+                }
+                else -> {
+                    val base64 = bytes.toByteString().base64()
+                    val b: (String) -> JsonObject = {
+                        GeminiBodyBuilder.buildDocumentRequestBody(prompt, base64, mimeType)
+                    }
+                    b
+                }
+            }
             executeWithRetry(
                 maxAttempts = 3,
                 tier = TaskTier.HEAVY,
                 family = PromptFamily.CATEGORIZATION,
-                body = { _ ->
-                    GeminiBodyBuilder.buildDocumentRequestBody(
-                        prompt = AiPrompts.getPdfVisionExtractionPrompt(),
-                        base64Data = base64,
-                        mimeType = mimeType
-                    )
-                },
+                body = body,
                 parseResponse = { responseText -> responseText }
             ).takeIf { it.isNotBlank() }
         } catch (e: Exception) {

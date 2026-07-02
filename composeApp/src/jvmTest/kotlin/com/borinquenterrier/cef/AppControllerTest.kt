@@ -252,6 +252,23 @@ class AppControllerTest : FunSpec({
         controller.sourceItems.value.any { it.title == "notes.txt" } shouldBe true
     }
 
+    test("rebuildFromSources re-processes every registered source") {
+        val loader = mockk<SourceLoader>(relaxed = true)
+        coEvery { loader.loadSources() } returns listOf(
+            SourceItem("a.pdf", emptyList(), SourceCategory.SYLLABUS),
+            SourceItem("b.pdf", emptyList(), SourceCategory.SYLLABUS)
+        )
+        every { container.sourceLoader } returns loader
+        val processor = mockk<HarnessSourceProcessor>(relaxed = true)
+        every { container.harnessSourceProcessor } returns processor
+
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        AppController(container, scope).rebuildFromSources() // Unconfined → runs synchronously
+
+        coVerify(exactly = 2) { processor.processSource(any()) }
+        scope.cancel()
+    }
+
     // ── selectSource ──────────────────────────────────────────────────────────
 
     test("selectSource null clears selectedSource") {

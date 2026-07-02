@@ -139,6 +139,28 @@ class AppController(
     }
 
     /**
+     * Re-extracts every registered source to rebuild the calendar — e.g. after a reset, which
+     * clears events but keeps sources. Extraction is served from the analysis cache (unchanged
+     * content), so this is fast and cheap. Restores deliverables/class sessions; the study plan
+     * stays on-demand.
+     */
+    fun rebuildFromSources() {
+        launchInScope {
+            val sources = container.sourceLoader.loadSources()
+            for (source in sources) {
+                sourceManager.registerSource(source)
+                sourceProcessingMutex.withLock {
+                    try {
+                        container.harnessSourceProcessor.processSource(source)
+                    } catch (e: Exception) {
+                        container.logger.e("AppController", "Rebuild failed for ${source.title}: ${e.message}", e)
+                    }
+                }
+            }
+        }
+    }
+
+    /**
      * Runs the full auto-push pipeline for [source] (context → extract → push → decompose →
      * study plan → pause-on-doubt → push) instead of only staging events for a manual push.
      * Serialized so concurrent adds (multi-file picker) don't interleave push/dedup on the

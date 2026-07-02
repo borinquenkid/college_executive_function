@@ -267,6 +267,13 @@ fun SettingsScreen(
             }
 
             Button(
+                onClick = { appController.rebuildFromSources() },
+                modifier = Modifier.testTag("rebuild_sources_button")
+            ) {
+                Text("Rebuild Calendar from Sources")
+            }
+
+            Button(
                 onClick = { showResetConfirm = true },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,

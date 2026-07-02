@@ -4,8 +4,8 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **90.99%** (10624/11676 lines)
-- **Total Source Files**: 187
+- **Overall Line Coverage**: **90.96%** (10792/11864 lines)
+- **Total Source Files**: 188
 
 ## Coverage by File (🔴 and 🟡 only)
 
@@ -24,7 +24,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | LocalFileReader.kt | 0.0% (0/0) | N/A | 0.0% |
 | 🔴 | SourceLoader.kt | 19.0% (8/42) | 0.0% (0/4) | 9.7% |
 | 🔴 | GoogleAuthManager.kt | 40.0% (12/30) | N/A | 20.7% |
-| 🔴 | DependencyContainer.kt | 48.6% (208/428) | 50.0% (2/4) | 77.1% |
+| 🔴 | DependencyContainer.kt | 48.8% (210/430) | 50.0% (2/4) | 77.2% |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% |
 | 🟡 | AppContent.kt | 57.8% (156/270) | 45.0% (36/80) | 59.0% |
 | 🟡 | GoogleCalendarSelector.kt | 58.2% (92/158) | 70.8% (34/48) | 60.7% |
@@ -37,6 +37,6 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🟡 | UserPreferenceMemoryRepository.kt | 71.4% (10/14) | N/A | 93.1% |
 | 🟡 | PreferencesPort.kt | 75.0% (6/8) | N/A | 96.3% |
 | 🟡 | HttpOtelTracer.kt | 76.6% (164/214) | 42.5% (34/80) | 76.5% |
-| 🟡 | CalendarReconciler.kt | 76.7% (46/60) | 50.0% (32/64) | 74.1% |
 | 🟡 | GoogleDriveService.kt | 77.4% (144/186) | 59.3% (64/108) | 76.9% |
 | 🟡 | SourceIngestionHandler.kt | 77.8% (70/90) | 100.0% (16/16) | 81.9% |
+| 🟡 | CalendarReconciler.kt | 78.4% (58/74) | 54.8% (46/84) | 74.8% |

@@ -48,13 +48,13 @@ Memory saved: [tests wrote to the real cef.db](.claude memory `bug_tests_wrote_r
 
 ### P1 — deepen detection & recovery
 - **R2 — Startup integrity check + badge. ✅ DONE.** `CalendarAgent.checkHealth()` is a read-only reconcile that records out-of-term drift in `pendingOutOfSemester`; `AppController.init` runs it at startup (non-fatal). The Settings "Check & Repair Calendar" button observes it — turns attention-colored and shows "(N to review)" when there's out-of-term drift. Covered by a harness scenario (checkHealth flags without changing anything).
-- **R3 — Source→event link for orphan detection.** `EventEntity` has no `sourceId` FK (deletion is a fragile id-prefix match). Add a nullable `sourceId` column + migration, set it at generation, then extend `CalendarReconciler` to flag events whose source no longer exists. Deferred deliberately until the FK exists — do not ship heuristic orphan deletion.
-- **R4 — More fault permutations in the harness.** Use `FakeRemoteCalendar` hooks: partial-sync failure, conflicting remote edit vs local, list-fails-then-recovers, save succeeds but status-update fails. Each becomes a `PipelineScenariosTest` case.
+- **R3 — Source→event link for orphan detection. ✅ DONE.** Added a `sourceId` column (migration + mapping) tagged at generation; `SourceDeleter` deletes by `sourceId` (legacy heuristic fallback) so deleting a source reliably removes its events; `CalendarReconciler` flags orphans (source gone) via `knownSourceIds`, surfaced in the review bucket (`pendingReview`), never auto-deleted by self-heal.
+- **R4 — More fault permutations in the harness. ✅ DONE.** `FakeRemoteCalendar.beforeList` hook + scenarios: partial push (one save fails → LOCAL_ONLY, rest sync), reset survives a remote listing failure, sync survives a remote listing failure.
 
 ### P2 — remaining functional gaps
-- **F1 — Large / multi-page image PDFs.** Inline `inlineData` caps ~20 MB; add the Gemini Files API path for bigger scans (out of scope of the current fallback).
-- **F2 — Grounding in the harness.** The harness scripts the LLM directly, so `GroundingGuard`/`CriticActor` decorators aren't exercised end-to-end. Add a harness mode that wraps `ScriptedAIService` in the real decorator chain to cover confabulation defense in scenarios.
-- **F3 — Push/retry telemetry.** Emit OTEL spans/counters for pushes, retries, reconcile actions so drift is observable in OpenObserve, not just logs.
+- **F1 — Large / multi-page image PDFs. ✅ DONE.** `GeminiFileUploader` (raw upload → poll ACTIVE → uri); `extractTextFromDocument` routes docs > ~14 MB through the Files API (`fileData` part), with graceful null fallback.
+- **F2 — Grounding in the harness. ✅ DONE.** `PipelineScenarioHarness(grounded = true)` wraps the scripted LLM in `GroundingGuardAIService`; scenarios prove a wrong-year event is dropped as confabulation (and survives in the ungrounded control).
+- **F3 — Push/retry telemetry. ✅ DONE.** OTEL spans `calendar.self_heal` / `calendar.reconcile_apply` / `calendar.resilient_clear` with drift + action counts.
 
 ---
 

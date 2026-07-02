@@ -17,10 +17,12 @@ import kotlinx.datetime.LocalDate
  */
 class PipelineScenariosTest : FunSpec({
 
-    fun day(title: String, date: String, id: String? = null, updatedAt: Long = 1L) = DayEvent(
-        id = id, title = title, source = EventSource.AI_GENERATED,
-        category = AcademicCategory.DEADLINE, updatedAt = updatedAt, date = LocalDate.parse(date)
-    )
+    fun day(title: String, date: String, id: String? = null, updatedAt: Long = 1L, sourceId: String? = null) =
+        DayEvent(
+            id = id, title = title, source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, updatedAt = updatedAt, sourceId = sourceId,
+            date = LocalDate.parse(date)
+        )
     fun titles(events: List<Event>) = events.map { it.title }
 
     // ── Core mechanics ────────────────────────────────────────────────────────
@@ -226,7 +228,7 @@ class PipelineScenariosTest : FunSpec({
         local.count { it.title == "Issue Brief #1 due" } shouldBe 1                 // duplicate auto-removed
         local.first { it.title == "Issue Brief #2 due" }.updatedAt shouldBeGreaterThan 0L // stamped
         local.any { it.title == "Labor Day Holiday" } shouldBe true                 // NOT auto-deleted
-        h.pendingOutOfSemester().map { it.title } shouldContainExactlyInAnyOrder listOf("Labor Day Holiday")
+        h.pendingReview().map { it.title } shouldContainExactlyInAnyOrder listOf("Labor Day Holiday")
     }
 
     test("sync triggers self-heal: a duplicate pulled from remote collapses automatically") {
@@ -256,8 +258,44 @@ class PipelineScenariosTest : FunSpec({
         val report = h.checkHealth()
 
         h.localEvents().size shouldBe 4 // read-only: nothing deleted, nothing stamped
-        h.pendingOutOfSemester().map { it.title } shouldContainExactlyInAnyOrder listOf("Labor Day")
+        h.pendingReview().map { it.title } shouldContainExactlyInAnyOrder listOf("Labor Day")
         report.duplicatesToDelete.size shouldBe 1 // detected (self-heal will fix), but not applied here
+    }
+
+    // ── Orphan detection (source deleted) ─────────────────────────────────────
+
+    test("orphan detection: an event whose source no longer exists is flagged and repairable") {
+        val h = PipelineScenarioHarness()
+        h.seedSources(listOf("real.pdf"))
+        h.seedLocal(
+            listOf(
+                day("Kept", "2026-07-01", id = "k", sourceId = "real.pdf"),      // source exists
+                day("Orphan", "2026-07-02", id = "o", sourceId = "ghost.pdf"),   // source gone
+                day("Manual", "2026-07-03", id = "m", sourceId = null)           // untagged → never orphan
+            )
+        )
+
+        val report = h.reconcile()
+        report.orphansToDelete.map { it.title } shouldContainExactlyInAnyOrder listOf("Orphan")
+
+        h.repair(report)
+        titles(h.localEvents()) shouldContainExactlyInAnyOrder listOf("Kept", "Manual")
+    }
+
+    test("self-heal does NOT auto-delete orphans; it surfaces them for review") {
+        val h = PipelineScenarioHarness()
+        h.seedLocal(listOf(day("Orphan", "2026-07-02", id = "o", sourceId = "ghost.pdf")))
+
+        h.selfHeal()
+
+        h.localEvents().any { it.title == "Orphan" } shouldBe true          // not auto-deleted
+        h.pendingReview().map { it.title } shouldContainExactlyInAnyOrder listOf("Orphan")
+    }
+
+    test("ingested events are never orphans (their source is registered)") {
+        val h = PipelineScenarioHarness()
+        h.ingest("syllabus", listOf(day("HW1 due", "2026-07-01")))
+        h.reconcile().orphansToDelete shouldBe emptyList()
     }
 
     // ── Reconcile permutations: which drift each state produces ────────────────

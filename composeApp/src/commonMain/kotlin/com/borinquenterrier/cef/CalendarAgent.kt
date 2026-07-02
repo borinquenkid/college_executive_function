@@ -12,6 +12,8 @@ class CalendarAgent(
     private val logger: Logger? = null,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
     private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
+    // Source list for orphan detection during reconcile; null disables it.
+    private val sourceRepository: SourceRepository? = null,
     // Backoff between rate-limited remote deletes during a reset; tests inject a no-op for speed.
     private val remoteClearDelayFn: suspend (Long) -> Unit = { kotlinx.coroutines.delay(it) }
 ) {
@@ -85,31 +87,34 @@ class CalendarAgent(
         }
     }
 
-    private val _pendingOutOfSemester = MutableStateFlow<List<Event>>(emptyList())
+    private val _pendingReview = MutableStateFlow<List<Event>>(emptyList())
 
-    /** Out-of-term events found by the last self-heal — surfaced for user review (never auto-deleted). */
-    val pendingOutOfSemester: StateFlow<List<Event>> = _pendingOutOfSemester.asStateFlow()
+    /** Deletions that need user review (out-of-term + orphaned) — surfaced, never auto-deleted. */
+    val pendingReview: StateFlow<List<Event>> = _pendingReview.asStateFlow()
 
     /**
      * Auto-corrects the drift that is SAFE to fix without asking (exact duplicates, updatedAt=0),
-     * and records out-of-term events in [pendingOutOfSemester] for the user to confirm — deleting a
-     * real out-of-term event is a judgement call, not a silent action. Returns the full report.
+     * and records the deletions that are a judgement call (out-of-term, orphaned) in [pendingReview]
+     * for the user to confirm — never deleting a real event silently. Returns the full report.
      */
     suspend fun selfHeal(calendarId: String = "default"): ReconciliationReport {
         val report = reconcile(calendarId)
-        // Apply only duplicates + timestamp stamps; leave out-of-term for review.
-        applyReconciliation(report.copy(outOfSemesterToDelete = emptyList()), calendarId)
-        _pendingOutOfSemester.value = report.outOfSemesterToDelete
+        // Apply only duplicates + timestamp stamps; leave out-of-term + orphans for review.
+        applyReconciliation(
+            report.copy(outOfSemesterToDelete = emptyList(), orphansToDelete = emptyList()),
+            calendarId
+        )
+        _pendingReview.value = report.outOfSemesterToDelete + report.orphansToDelete
         return report
     }
 
     /**
-     * Read-only integrity check (e.g. at startup): records out-of-term drift in
-     * [pendingOutOfSemester] so the UI can badge the Repair action, WITHOUT changing anything.
+     * Read-only integrity check (e.g. at startup): records review-needed drift in [pendingReview]
+     * so the UI can badge the Repair action, WITHOUT changing anything.
      */
     suspend fun checkHealth(calendarId: String = "default"): ReconciliationReport {
         val report = reconcile(calendarId)
-        _pendingOutOfSemester.value = report.outOfSemesterToDelete
+        _pendingReview.value = report.outOfSemesterToDelete + report.orphansToDelete
         return report
     }
 
@@ -126,15 +131,16 @@ class CalendarAgent(
     suspend fun reconcile(calendarId: String = "default"): ReconciliationReport =
         CalendarReconciler.analyze(
             localRepo.getAllEvents(calendarId).filter { it.syncStatus != SyncStatus.DELETED_LOCALLY },
-            preferencesRepository.getPreferences()
+            preferencesRepository.getPreferences(),
+            knownSourceIds = sourceRepository?.getAllSources()?.mapTo(HashSet()) { it.id }
         )
 
     /**
-     * Applies the fixes in [report]: deletes duplicate + out-of-term copies from BOTH local and
-     * remote, and stamps a real timestamp on updatedAt=0 events so sync stops overwriting them.
+     * Applies the fixes in [report]: deletes duplicate + out-of-term + orphaned copies from BOTH
+     * local and remote, and stamps a real timestamp on updatedAt=0 events so sync stops overwriting.
      */
     suspend fun applyReconciliation(report: ReconciliationReport, calendarId: String = "default") {
-        (report.duplicatesToDelete + report.outOfSemesterToDelete).forEach { event ->
+        (report.duplicatesToDelete + report.outOfSemesterToDelete + report.orphansToDelete).forEach { event ->
             event.id?.let { persistence.delete(it, calendarId) }
         }
         val now = Clock.System.now().toEpochMilliseconds()

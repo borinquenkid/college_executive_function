@@ -21,8 +21,13 @@ class SourceDeleter(
 
                 val existingEvents = calendarAgent.getEvents("default")
                 existingEvents.forEach { event ->
-                    val id = event.id
-                    if (id != null && (id.startsWith(source.title) || event.warning?.contains(source.title) == true)) {
+                    val id = event.id ?: return@forEach
+                    // Prefer the reliable sourceId link; fall back to the legacy id-prefix/warning
+                    // heuristic for events generated before tagging existed.
+                    val bySourceId = event.sourceId == source.title
+                    val byLegacyHeuristic =
+                        id.startsWith(source.title) || event.warning?.contains(source.title) == true
+                    if (bySourceId || byLegacyHeuristic) {
                         calendarAgent.deleteEvent(id, "default")
                     }
                 }

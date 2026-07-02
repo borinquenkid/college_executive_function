@@ -27,6 +27,7 @@ class PipelineScenarioHarness(
     private val db = createTestDatabase()
     val localRepo = SqlDelightLocalCalendarRepository(db, settings)
     val remote = FakeRemoteCalendar()
+    private val sourceRepo = SqlDelightSourceRepository(db)
 
     private val prefs = StudyPreferences(semesterStart = semesterStart, semesterEnd = semesterEnd)
     private val prefsPort = object : PreferencesPort {
@@ -50,6 +51,7 @@ class PipelineScenarioHarness(
 
     val calendarAgent = CalendarAgent(
         localRepo, remote, preferencesRepository = prefsPort,
+        sourceRepository = sourceRepo,
         remoteClearDelayFn = {} // no real backoff wait in scenario tests
     )
     private val eventAgent = EventAgent(
@@ -70,10 +72,17 @@ class PipelineScenarioHarness(
     // ── seed an intermediate state ────────────────────────────────────────────
     fun seedRemote(events: List<Event>) = remote.seed(events)
     fun seedLocal(events: List<Event>) = runBlocking { events.forEach { localRepo.saveEvent(it) } }
+    /** Register source records (so events tagged with them are not treated as orphans). */
+    fun seedSources(titles: List<String>) = runBlocking {
+        titles.forEach { sourceRepo.saveSource(SourceItem(it, emptyList(), SourceCategory.OTHER), null) }
+    }
+    fun deleteSourceRecord(title: String) = runBlocking { sourceRepo.deleteSource(title) }
 
     // ── pipeline steps ────────────────────────────────────────────────────────
     /** Run the auto-push pipeline for a source whose extraction yields [generates]. */
     fun ingest(title: String, generates: List<Event>) = runBlocking {
+        // Register the source like production ingestion does, so its events aren't seen as orphans.
+        sourceRepo.saveSource(SourceItem(title, emptyList(), SourceCategory.OTHER), null)
         nextEvents = generates
         pipeline.processSource(SourceItem(title, listOf(SourceFragment("text", type = SourceType.TEXT)), SourceCategory.OTHER))
     }
@@ -95,7 +104,7 @@ class PipelineScenarioHarness(
     fun reset(): Unit = runBlocking { calendarAgent.resetCalendar() }
     fun selfHeal(): ReconciliationReport = runBlocking { calendarAgent.selfHeal() }
     fun checkHealth(): ReconciliationReport = runBlocking { calendarAgent.checkHealth() }
-    fun pendingOutOfSemester(): List<Event> = calendarAgent.pendingOutOfSemester.value
+    fun pendingReview(): List<Event> = calendarAgent.pendingReview.value
 
     // ── assertions ────────────────────────────────────────────────────────────
     /** Active local events (excludes soft-deleted DELETED_LOCALLY tombstones) — what the UI shows. */

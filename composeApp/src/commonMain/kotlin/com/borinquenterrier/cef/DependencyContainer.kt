@@ -75,7 +75,8 @@ class DependencyContainer(
             remoteRepository,
             logger,
             userPreferenceMemoryRepository,
-            preferencesRepository
+            preferencesRepository,
+            sourceRepository
         )
     }
 

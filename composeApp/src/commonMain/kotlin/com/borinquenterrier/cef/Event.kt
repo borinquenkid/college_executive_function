@@ -64,6 +64,9 @@ sealed interface Event {
     val gradeWeight: Float?
     val completionStatus: CompletionStatus
 
+    /** Title of the source (SourceEntity id) this event was generated from; null for synced/manual events. */
+    val sourceId: String?
+
     val priority: Int
         get() = category.priority
 
@@ -86,6 +89,7 @@ data class TimeEvent(
     override val studyPlanStart: String? = null,
     override val gradeWeight: Float? = null,
     override val completionStatus: CompletionStatus = CompletionStatus.INCOMPLETE,
+    override val sourceId: String? = null,
     @Serializable(with = LocalTimeSerializer::class)
     val startTime: LocalTime,
     @Serializable(with = LocalTimeSerializer::class)
@@ -117,6 +121,7 @@ data class DayEvent(
     override val studyPlanStart: String? = null,
     override val gradeWeight: Float? = null,
     override val completionStatus: CompletionStatus = CompletionStatus.INCOMPLETE,
+    override val sourceId: String? = null,
     @Serializable(with = LocalDateSerializer::class)
     override val date: LocalDate,
     val recurrence: Recurrence? = null
@@ -139,6 +144,11 @@ fun Event.withCompletionStatus(status: CompletionStatus): Event = when (this) {
 fun Event.withUpdatedAt(timestamp: Long): Event = when (this) {
     is TimeEvent -> copy(updatedAt = timestamp)
     is DayEvent -> copy(updatedAt = timestamp)
+}
+
+fun Event.withSourceId(sourceId: String): Event = when (this) {
+    is TimeEvent -> copy(sourceId = sourceId)
+    is DayEvent -> copy(sourceId = sourceId)
 }
 
 fun Event.validate() {

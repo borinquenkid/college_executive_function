@@ -10,13 +10,16 @@ data class ReconciliationReport(
     /** Events whose date falls outside the configured semester window. */
     val outOfSemesterToDelete: List<Event> = emptyList(),
     /** In-good-standing events carrying updatedAt=0, which makes sync perpetually overwrite them. */
-    val timestampsToStamp: List<Event> = emptyList()
+    val timestampsToStamp: List<Event> = emptyList(),
+    /** Events tagged with a source that no longer exists (SourceDeleter missed them). */
+    val orphansToDelete: List<Event> = emptyList()
 ) {
     val isClean: Boolean
-        get() = duplicatesToDelete.isEmpty() && outOfSemesterToDelete.isEmpty() && timestampsToStamp.isEmpty()
+        get() = duplicatesToDelete.isEmpty() && outOfSemesterToDelete.isEmpty() &&
+            timestampsToStamp.isEmpty() && orphansToDelete.isEmpty()
 
     val totalIssues: Int
-        get() = duplicatesToDelete.size + outOfSemesterToDelete.size + timestampsToStamp.size
+        get() = duplicatesToDelete.size + outOfSemesterToDelete.size + timestampsToStamp.size + orphansToDelete.size
 
     fun summary(): String = if (isClean) {
         "Calendar is healthy — no issues found."
@@ -24,6 +27,7 @@ data class ReconciliationReport(
         buildList {
             if (duplicatesToDelete.isNotEmpty()) add("${duplicatesToDelete.size} duplicate(s)")
             if (outOfSemesterToDelete.isNotEmpty()) add("${outOfSemesterToDelete.size} out-of-term")
+            if (orphansToDelete.isNotEmpty()) add("${orphansToDelete.size} orphaned")
             if (timestampsToStamp.isNotEmpty()) add("${timestampsToStamp.size} stale timestamp(s)")
         }.joinToString(", ")
     }
@@ -40,14 +44,23 @@ data class ReconciliationReport(
  */
 object CalendarReconciler {
 
-    fun analyze(events: List<Event>, preferences: StudyPreferences): ReconciliationReport {
+    /**
+     * @param knownSourceIds ids of sources that still exist; an event tagged with a source NOT in
+     * this set is an orphan. Pass null to skip orphan detection (e.g. when the source list is
+     * unavailable) so nothing is wrongly flagged.
+     */
+    fun analyze(
+        events: List<Event>,
+        preferences: StudyPreferences,
+        knownSourceIds: Set<String>? = null
+    ): ReconciliationReport {
         val window = SemesterFilter.window(preferences)
 
         val outOfSemester = if (window == null) emptyList() else
             events.filter { it.date < window.first || it.date > window.second }
         val outIds = outOfSemester.mapTo(HashSet()) { it }
 
-        // Only consider in-term events for duplicate/timestamp checks — out-of-term ones are
+        // Only consider in-term events for duplicate/orphan/timestamp checks — out-of-term ones are
         // already slated for deletion.
         val inTerm = events.filter { it !in outIds }
 
@@ -58,9 +71,15 @@ object CalendarReconciler {
             .flatMap { group -> group.sortedWith(keepPreference).drop(1) } // keep the best, delete rest
 
         val survivors = inTerm.filter { it !in duplicatesToDelete.toHashSet() }
-        val timestampsToStamp = survivors.filter { it.updatedAt == 0L }
 
-        return ReconciliationReport(duplicatesToDelete, outOfSemester, timestampsToStamp)
+        val orphansToDelete = if (knownSourceIds == null) emptyList() else
+            survivors.filter { it.sourceId != null && it.sourceId !in knownSourceIds }
+        val orphanSet = orphansToDelete.toHashSet()
+
+        // Don't stamp an event we're about to delete as an orphan.
+        val timestampsToStamp = survivors.filter { it !in orphanSet && it.updatedAt == 0L }
+
+        return ReconciliationReport(duplicatesToDelete, outOfSemester, timestampsToStamp, orphansToDelete)
     }
 
     // Which copy of a duplicate to KEEP (sorts best-first): a synced copy over local-only, a timed

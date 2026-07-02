@@ -13,7 +13,8 @@ class CalendarReconcilerTest : FunSpec({
         date: String,
         id: String? = title,
         sync: SyncStatus = SyncStatus.SYNCED,
-        updatedAt: Long = 1L
+        updatedAt: Long = 1L,
+        sourceId: String? = null
     ) = DayEvent(
         id = id,
         title = title,
@@ -21,6 +22,7 @@ class CalendarReconcilerTest : FunSpec({
         category = AcademicCategory.DEADLINE,
         syncStatus = sync,
         updatedAt = updatedAt,
+        sourceId = sourceId,
         date = LocalDate.parse(date)
     )
 
@@ -71,5 +73,20 @@ class CalendarReconcilerTest : FunSpec({
     test("no semester configured → nothing flagged as out-of-term") {
         val events = listOf(day("Whenever", "2030-01-01"))
         CalendarReconciler.analyze(events, StudyPreferences()).outOfSemesterToDelete shouldBe emptyList()
+    }
+
+    test("flags orphans (source gone) but not tagged-to-existing or untagged events") {
+        val events = listOf(
+            day("Kept", "2026-07-01", id = "k", sourceId = "real.pdf"),
+            day("Orphan", "2026-07-02", id = "o", sourceId = "ghost.pdf"),
+            day("Manual", "2026-07-03", id = "m", sourceId = null)
+        )
+        val report = CalendarReconciler.analyze(events, summer, knownSourceIds = setOf("real.pdf"))
+        report.orphansToDelete.map { it.id } shouldContainExactlyInAnyOrder listOf("o")
+    }
+
+    test("null knownSourceIds skips orphan detection entirely") {
+        val events = listOf(day("Tagged", "2026-07-01", id = "t", sourceId = "whatever.pdf"))
+        CalendarReconciler.analyze(events, summer, knownSourceIds = null).orphansToDelete shouldBe emptyList()
     }
 })

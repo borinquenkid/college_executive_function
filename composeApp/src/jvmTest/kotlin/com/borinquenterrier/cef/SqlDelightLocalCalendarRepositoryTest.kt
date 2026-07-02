@@ -181,7 +181,7 @@ class SqlDelightLocalCalendarRepositoryTest : FunSpec({
             startTime = null, endTime = null, recurrence = null,
             syncStatus = SyncStatus.LOCAL_ONLY.name, updatedAt = 0L,
             studyPlanStart = null, gradeWeight = null,
-            completionStatus = "INVALID_STATUS", warning = null
+            completionStatus = "INVALID_STATUS", warning = null, sourceId = null
         )
         val events = repo.getAllEvents()
         events shouldHaveSize 1
@@ -246,7 +246,7 @@ class SqlDelightLocalCalendarRepositoryTest : FunSpec({
             startTime = "09:00", endTime = null, recurrence = null,
             syncStatus = SyncStatus.LOCAL_ONLY.name, updatedAt = 0L,
             studyPlanStart = null, gradeWeight = null,
-            completionStatus = CompletionStatus.INCOMPLETE.name, warning = null
+            completionStatus = CompletionStatus.INCOMPLETE.name, warning = null, sourceId = null
         )
         val events = repo.getAllEvents()
         events shouldHaveSize 1

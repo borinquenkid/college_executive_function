@@ -111,7 +111,9 @@ class EventGenerationService(
         // pushed to the calendar — not just hidden in the view.
         val inSemester = SemesterFilter.apply(withWarnings, prefs)
         setAttribute("events.extracted_count", inSemester.size.toLong())
-        inSemester
+        // Tag with the originating source so deleting that source removes its events and the
+        // reconciler can spot orphans (events whose source no longer exists).
+        inSemester.map { it.withSourceId(source.title) }
     }
 
     private fun generationCacheKey(fragments: List<SourceFragment>): String =
@@ -156,7 +158,7 @@ class EventGenerationService(
             val result = StudyPlanResolver.resolve(normalize(planEvents), syllabusText)
             setAttribute("events.planned_count", result.grounded.size.toLong())
             setAttribute("events.needs_resolution_count", result.needsResolution.size.toLong())
-            result
+            result.copy(grounded = result.grounded.map { it.withSourceId(source.title) })
         }
 
     private suspend fun buildScheduleContext(existingEvents: List<Event>): String {

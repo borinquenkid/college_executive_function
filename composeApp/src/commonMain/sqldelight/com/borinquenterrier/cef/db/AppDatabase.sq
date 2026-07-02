@@ -12,12 +12,13 @@ CREATE TABLE IF NOT EXISTS EventEntity (
     studyPlanStart TEXT,
     gradeWeight REAL,
     completionStatus TEXT NOT NULL DEFAULT 'INCOMPLETE',
-    warning TEXT
+    warning TEXT,
+    sourceId TEXT
 );
 
 insertEvent:
-INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence, syncStatus, updatedAt, studyPlanStart, gradeWeight, completionStatus, warning)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO EventEntity(id, title, source, category, date, startTime, endTime, recurrence, syncStatus, updatedAt, studyPlanStart, gradeWeight, completionStatus, warning, sourceId)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
 
 selectAllEvents:
 SELECT * FROM EventEntity;

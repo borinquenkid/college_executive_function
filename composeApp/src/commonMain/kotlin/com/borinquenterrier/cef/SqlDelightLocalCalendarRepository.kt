@@ -53,7 +53,8 @@ class SqlDelightLocalCalendarRepository(
             studyPlanStart = event.studyPlanStart,
             gradeWeight = event.gradeWeight?.toDouble(),
             completionStatus = event.completionStatus.name,
-            warning = event.warning
+            warning = event.warning,
+            sourceId = event.sourceId
         )
     }
 
@@ -127,7 +128,8 @@ class SqlDelightLocalCalendarRepository(
                 startTime = LocalTime.parse(entity.startTime),
                 endTime = LocalTime.parse(entity.endTime),
                 recurrence = recurrence,
-                warning = entity.warning
+                warning = entity.warning,
+                sourceId = entity.sourceId
             )
         } else {
             DayEvent(
@@ -142,7 +144,8 @@ class SqlDelightLocalCalendarRepository(
                 completionStatus = completionStatus,
                 date = date,
                 recurrence = recurrence,
-                warning = entity.warning
+                warning = entity.warning,
+                sourceId = entity.sourceId
             )
         }
     }

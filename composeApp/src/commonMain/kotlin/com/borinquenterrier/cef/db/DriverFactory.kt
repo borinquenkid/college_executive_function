@@ -49,6 +49,11 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
         // Column may already exist, or table might not have been created yet, ignore.
     }
     try {
+        driver.execute(null, "ALTER TABLE EventEntity ADD COLUMN sourceId TEXT", 0)
+    } catch (_: Exception) {
+        // Column may already exist, or table might not have been created yet, ignore.
+    }
+    try {
         driver.execute(
             null,
             """

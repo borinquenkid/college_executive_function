@@ -194,8 +194,9 @@ class EventGenerationService(
         }
         val extracted = normalizationService.extract(cleaned)
         val deduped = EventDeduplicator.dedup(extracted)
+        val now = clock.now().toEpochMilliseconds()
         return deduped.map { event ->
-            if (event.id == null) {
+            val ided = if (event.id == null) {
                 val idContent =
                     "${event.title}|${EventDeduplicator.dateOf(event)}|${if (event is TimeEvent) event.startTime else ""}|${event.category}"
                 val deterministicId = generateDeterministicId(idContent)
@@ -206,6 +207,9 @@ class EventGenerationService(
             } else {
                 event
             }
+            // Stamp a creation timestamp so sync doesn't perpetually treat freshly-generated events
+            // (updatedAt=0) as older than their remote copies and overwrite them forever.
+            if (ided.updatedAt == 0L) ided.withUpdatedAt(now) else ided
         }
     }
 

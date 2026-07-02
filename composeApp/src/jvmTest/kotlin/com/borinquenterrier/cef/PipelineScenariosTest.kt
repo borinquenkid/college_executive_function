@@ -142,6 +142,12 @@ class PipelineScenariosTest : FunSpec({
         }
     }
 
+    test("generated events carry a real updatedAt (kills the sync-override churn)") {
+        val h = PipelineScenarioHarness()
+        h.ingest("syllabus", listOf(day("Issue Brief #1 due", "2026-07-01")))
+        h.localEvents().forEach { it.updatedAt shouldBeGreaterThan 0L }
+    }
+
     // ── Fault tolerance ───────────────────────────────────────────────────────
 
     test("remote save failure keeps the event locally as LOCAL_ONLY (not lost)") {

@@ -280,7 +280,7 @@ fun SettingsScreen(
                     contentColor = MaterialTheme.colorScheme.onErrorContainer
                 )
             ) {
-                Text("Reset Calendar for Demo")
+                Text("Reset Calendar")
             }
         }
 
@@ -320,7 +320,7 @@ fun SettingsScreen(
                 confirmButton = {
                     TextButton(onClick = {
                         showResetConfirm = false
-                        appController.resetForDemo()
+                        appController.resetCalendar()
                     }) { Text("Reset", color = MaterialTheme.colorScheme.error) }
                 },
                 dismissButton = {

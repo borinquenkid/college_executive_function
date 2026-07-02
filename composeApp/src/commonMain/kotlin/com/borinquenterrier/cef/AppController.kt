@@ -112,7 +112,8 @@ class AppController(
         eventsService.clearEvents()
     }
 
-    fun resetForDemo() {
+    /** Clears the calendar locally AND on Google Calendar (via the resilient cleaner), plus UI state. */
+    fun resetCalendar() {
         launchInScope {
             container.calendarAgent.resetCalendar()
             container.eventAgent.clear()

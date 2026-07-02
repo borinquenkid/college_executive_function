@@ -223,21 +223,21 @@ class AppControllerTest : FunSpec({
         freshController.sourceItems.value.any { it.title == "persisted.pdf" } shouldBe true
     }
 
-    // ── resetForDemo ──────────────────────────────────────────────────────────
+    // ── resetCalendar ──────────────────────────────────────────────────────────
 
-    test("resetForDemo resets the calendar and clears the event agent") {
-        controller.resetForDemo()
+    test("resetCalendar resets the calendar and clears the event agent") {
+        controller.resetCalendar()
         delay(300)
 
         coVerify { calendarAgent.resetCalendar() }
         coVerify { eventAgent.clear() }
     }
 
-    test("resetForDemo clears AI-generated events shown in the UI") {
+    test("resetCalendar clears AI-generated events shown in the UI") {
         controller.addEvents(listOf(makeEvent("Exam")))
         controller.aiGeneratedEvents.value.size shouldBe 1
 
-        controller.resetForDemo()
+        controller.resetCalendar()
         delay(300)
 
         controller.aiGeneratedEvents.value shouldBe emptyList()

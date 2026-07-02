@@ -16,8 +16,12 @@ import kotlinx.coroutines.sync.withLock
  * Lightweight facade coordinating navigation, AI events, sources, and chat state.
  * Delegates to specialized services for each responsibility.
  */
-class AppController(val container: DependencyContainer) {
-    private val scope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+class AppController(
+    val container: DependencyContainer,
+    // Injectable so tests can supply a deterministic dispatcher instead of Dispatchers.Main
+    // (whose scheduling made the init retry-collector tests flaky).
+    private val scope: CoroutineScope = CoroutineScope(SupervisorJob() + Dispatchers.Main)
+) {
     private val sourceProcessingMutex = Mutex()
 
     private val navigationService = AppNavigationService()

@@ -1,7 +1,9 @@
 package com.borinquenterrier.cef
 
-import io.kotest.assertions.nondeterministic.continually
-import io.kotest.assertions.nondeterministic.eventually
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
@@ -14,8 +16,6 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.coroutines.GlobalScope
-import kotlin.time.Duration.Companion.milliseconds
-import kotlin.time.Duration.Companion.seconds
 
 class AppControllerTest : FunSpec({
 
@@ -315,6 +315,8 @@ class AppControllerTest : FunSpec({
 
     // ── init: retryLocalOnly ──────────────────────────────────────────────────
 
+    // These use an Unconfined scope so the init collector runs synchronously on the setter thread —
+    // no Dispatchers.Main scheduling race, no fixed-delay waits. The scope is cancelled after each.
     test("init triggers retryLocalOnly once when isLinked transitions to true") {
         val linkedFlow = MutableStateFlow(false)
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
@@ -322,12 +324,13 @@ class AppControllerTest : FunSpec({
         every { container.tokenRepository } returns tokenRepo
 
         io.mockk.clearMocks(calendarAgent)
-        AppController(container)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        AppController(container, scope)
 
-        linkedFlow.value = true
-        delay(300)
+        linkedFlow.value = true // collector resumes synchronously
 
         coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+        scope.cancel()
     }
 
     test("init triggers retryLocalOnly immediately when isLinked is already true") {
@@ -337,11 +340,11 @@ class AppControllerTest : FunSpec({
         every { container.tokenRepository } returns tokenRepo
 
         io.mockk.clearMocks(calendarAgent)
-        AppController(container)
-
-        delay(300)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        AppController(container, scope) // fires during construction
 
         coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+        scope.cancel()
     }
 
     test("init triggers retryLocalOnly exactly once even if isLinked emits true multiple times") {
@@ -351,19 +354,18 @@ class AppControllerTest : FunSpec({
         every { container.tokenRepository } returns tokenRepo
 
         io.mockk.clearMocks(calendarAgent)
-        AppController(container)
+        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
+        AppController(container, scope)
 
         // Multiple true emissions; take(1) in init must collapse them to a single retry.
         linkedFlow.value = true
         linkedFlow.value = false
         linkedFlow.value = true
-
-        // Wait for the async collector to fire — no fixed-delay race on whether it finished in time.
-        eventually(2.seconds) { coVerify(exactly = 1) { calendarAgent.retryLocalOnly() } }
-
         // Further emissions must NOT trigger it again (take(1) already completed).
         linkedFlow.value = false
         linkedFlow.value = true
-        continually(300.milliseconds) { coVerify(exactly = 1) { calendarAgent.retryLocalOnly() } }
+
+        coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+        scope.cancel()
     }
 })

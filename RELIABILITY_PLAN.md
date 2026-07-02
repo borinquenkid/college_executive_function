@@ -44,7 +44,7 @@ Memory saved: [tests wrote to the real cef.db](.claude memory `bug_tests_wrote_r
 
 ### P0 — finish hardening what shipped
 - **R1 — Wire the reconciler into periodic sync (self-heal). ✅ DONE.** `CalendarAgent.synchronize` now runs `selfHeal` after reconciling local↔remote: auto-applies the *safe* fixes (exact duplicates, `updatedAt=0` stamps) and records out-of-term drift in `pendingOutOfSemester` for user review (never silently deleted). Heal failures are caught so they can't break sync. Covered by `PipelineScenariosTest` (direct + sync-triggered).
-- **T1 — Fix the flaky `AppControllerTest` retryLocalOnly timing test.** It depends on coroutine timing on `init`; make it await a condition (`eventually`) instead of a fixed delay, or inject a deterministic dispatcher. Blocks a clean CI signal.
+- **T1 — Fix the flaky `AppControllerTest` retryLocalOnly timing test. ✅ DONE.** Root cause: the init retry-collector ran on `AppController`'s own `Dispatchers.Main` scope, and the tests raced on `delay(300)`. `AppController` now takes an injectable `scope`; the three retry tests supply `Dispatchers.Unconfined` (collector runs synchronously on the setter thread) and cancel it after — no delays, deterministic (verified green across repeated `--rerun-tasks`).
 
 ### P1 — deepen detection & recovery
 - **R2 — Startup integrity check.** On launch, run `CalendarReconciler.analyze` and, if `!isClean`, log + optionally badge the Repair button. Cheap early warning. Test: seed drift → construct app services → assert a health flag.

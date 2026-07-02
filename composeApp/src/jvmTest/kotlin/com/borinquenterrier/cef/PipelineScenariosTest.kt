@@ -176,6 +176,40 @@ class PipelineScenariosTest : FunSpec({
         titles(h.remoteEvents()) shouldContainExactlyInAnyOrder listOf("Issue Brief #1 due")
     }
 
+    test("partial push: one event's remote save fails → it stays LOCAL_ONLY, the rest sync") {
+        val h = PipelineScenarioHarness()
+        h.remote.beforeSave = { event ->
+            if (event.title == "Flaky one") throw GoogleApiException(500, "remote down")
+        }
+        h.ingest("syllabus", listOf(day("Good one", "2026-07-01"), day("Flaky one", "2026-07-02")))
+
+        val local = h.localEvents().associateBy { it.title }
+        local["Good one"]!!.syncStatus shouldBe SyncStatus.SYNCED
+        local["Flaky one"]!!.syncStatus shouldBe SyncStatus.LOCAL_ONLY
+        titles(h.remoteEvents()) shouldContainExactlyInAnyOrder listOf("Good one") // only the good one reached remote
+    }
+
+    test("reset survives a remote LISTING failure (local still cleared, no crash)") {
+        val h = PipelineScenarioHarness()
+        h.seedRemote(listOf(day("R", "2026-07-01", id = "r")))
+        h.ingest("syllabus", listOf(day("L", "2026-07-02")))
+        h.remote.beforeList = { throw GoogleApiException(403, "Rate Limit Exceeded") }
+
+        h.reset() // must not throw
+
+        h.localEvents() shouldBe emptyList() // local always cleared even if remote listing fails
+    }
+
+    test("sync survives a remote LISTING failure (no crash, local intact)") {
+        val h = PipelineScenarioHarness()
+        h.ingest("syllabus", listOf(day("Keep me", "2026-07-01")))
+        h.remote.beforeList = { throw GoogleApiException(500, "remote down") }
+
+        h.sync() // must not throw
+
+        titles(h.localEvents()) shouldContainExactlyInAnyOrder listOf("Keep me")
+    }
+
     test("multi-source: three sources merge; a shared deliverable is not duplicated") {
         val h = PipelineScenarioHarness()
         h.ingest("cal.ics", listOf(day("Independence Day Holiday", "2026-07-03")))

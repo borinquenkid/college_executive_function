@@ -19,6 +19,9 @@ class FakeRemoteCalendar : RemoteCalendarRepository {
     /** Hook invoked before each save; throw from it to simulate a remote failure. */
     var beforeSave: (event: Event) -> Unit = {}
 
+    /** Hook invoked before each list (getAllEvents); throw from it to simulate a remote failure. */
+    var beforeList: () -> Unit = {}
+
     // ── seeding / inspection (test-only) ──────────────────────────────────────
     fun seed(events: List<Event>) = events.forEach { put(it) }
     fun events(): List<Event> = store.values.toList()
@@ -37,7 +40,10 @@ class FakeRemoteCalendar : RemoteCalendarRepository {
     // ── RemoteCalendarRepository ──────────────────────────────────────────────
     override fun getSettings(): com.russhwolf.settings.Settings? = null
 
-    override suspend fun getAllEvents(calendarId: String): List<Event> = store.values.toList()
+    override suspend fun getAllEvents(calendarId: String): List<Event> {
+        beforeList()
+        return store.values.toList()
+    }
 
     override suspend fun saveEvent(event: Event, calendarId: String) {
         beforeSave(event)

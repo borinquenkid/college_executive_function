@@ -16,7 +16,9 @@ class CriticActorAIServiceTest : FunSpec({
     beforeEach {
         delegate = mockk(relaxed = true)
         logger = mockk(relaxed = true)
-        criticActorService = CriticActorAIService(delegate, logger)
+        // Exercise the full critique loop (convergence / cycle detection) with multiple passes.
+        // Production defaults to a single pass — see the "single critique pass" test below.
+        criticActorService = CriticActorAIService(delegate, logger, maxCritiqueIterations = 3)
     }
 
     test("passes through when delegate returns empty event list") {
@@ -274,5 +276,21 @@ class CriticActorAIServiceTest : FunSpec({
         coVerify(exactly = 1) { delegate.isConfigured() }
         coVerify(exactly = 1) { delegate.analyzeDocument(any()) }
         coVerify(exactly = 1) { delegate.categorizeSource(any()) }
+    }
+
+    test("production default runs a single critique pass (one LLM critique call)") {
+        val defaultService = CriticActorAIService(delegate, logger) // default maxCritiqueIterations = 1
+        coEvery { delegate.generateCalendarEvents(any()) } returns listOf(
+            DayEvent(title = "Assignment", source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 6, 3))
+        )
+        coEvery { delegate.generateChatResponse(any()) } returns """
+            [{"title":"Assignment","type":"DAY","category":"DEADLINE","date":"2026-06-02"}]
+        """.trimIndent()
+
+        val result = defaultService.generateCalendarEvents(listOf(SourceFragment("dummy")))
+
+        result[0].date shouldBe LocalDate(2026, 6, 2)                 // the single pass still refines
+        coVerify(exactly = 1) { delegate.generateChatResponse(any()) } // exactly one critique call
     }
 })

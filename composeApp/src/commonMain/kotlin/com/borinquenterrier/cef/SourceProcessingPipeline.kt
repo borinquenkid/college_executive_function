@@ -1,10 +1,12 @@
 package com.borinquenterrier.cef
 
-import kotlinx.coroutines.flow.first
-
 /**
- * Encapsulates the core 3-step source processing pipeline:
- * Context analysis → Deliverable extraction → Study plan generation.
+ * Encapsulates the auto-run ingestion pipeline: context analysis → deliverable extraction → push.
+ *
+ * Study-plan generation and task decomposition are deliberately NOT auto-run here — each is a burst
+ * of LLM calls (a study plan generates dozens of study blocks; decomposition runs a critique loop
+ * per deliverable) that blew past Gemini rate limits and stalled ingestion for minutes. Both stay
+ * on-demand as Studio actions the student triggers per source.
  */
 class SourceProcessingPipeline(
     private val ingestionAgent: IngestionAgent,
@@ -17,25 +19,14 @@ class SourceProcessingPipeline(
 
     suspend fun processSource(source: SourceItem) {
         try {
-            logger.d(tag, "Extracting context analysis for: ${source.title}")
+            // Keep the status honest through the context phase (an LLM call): without this the
+            // Studio status would show a stale message from the previous step while it ran.
+            eventAgent.updateStatus("Reading ${source.title}…")
+            logger.d(tag, "Analyzing context for: ${source.title}")
             contextAgent.analyzeSource(source)
 
             logger.d(tag, "Extracting deliverables for: ${source.title}")
             eventAgent.extractDeliverables(source)
-            eventAgent.pushToCalendar()
-            // NOTE: auto-decomposition is intentionally NOT run here. Decomposing every deliverable
-            // ran a 3-iteration CriticActor critique loop each (~deliverables × 4 sequential LLM
-            // calls), which blew past Gemini rate limits and stalled ingestion for minutes.
-            // Decomposition stays on-demand (per-deliverable action in the UI).
-
-            logger.d(tag, "Generating study plan for: ${source.title}")
-            eventAgent.generateStudyPlan(source)
-
-            // Pause on doubt: if the study plan flagged any deliverable with an ungrounded date,
-            // suspend here until the user has confirmed or discarded every one (via the
-            // date-picker dialog), then push. The pipeline resumes itself when the doubt clears —
-            // no manual push step.
-            eventAgent.pendingDateResolutions.first { it.isEmpty() }
             eventAgent.pushToCalendar()
         } catch (e: Exception) {
             logger.e(tag, "Error processing source: ${source.title}", e)

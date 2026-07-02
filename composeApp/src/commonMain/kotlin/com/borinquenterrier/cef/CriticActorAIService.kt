@@ -3,7 +3,11 @@ package com.borinquenterrier.cef
 class CriticActorAIService(
     private val delegate: AIService,
     private val logger: Logger? = null,
-    private val telemetryManager: TelemetryManager? = null
+    private val telemetryManager: TelemetryManager? = null,
+    // Number of critique passes. Each pass is a full LLM call, so production defaults to 1 to keep
+    // ingestion within Gemini rate limits; the convergence/cycle-detection logic (exercised in
+    // tests with a higher value) still applies when more passes are configured.
+    private val maxCritiqueIterations: Int = 1
 ) : AIService by delegate {
 
     override suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
@@ -93,7 +97,7 @@ class CriticActorAIService(
         visitedStates.add(serialize(firstPass))
 
         var iteration = 1
-        val maxIterations = 3
+        val maxIterations = maxCritiqueIterations
 
         while (iteration <= maxIterations) {
             try {

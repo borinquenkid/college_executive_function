@@ -66,6 +66,14 @@ class StudioPanelTest {
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
 
+        // A deliverable on the calendar so the study-plan button is enabled (has coursework).
+        coEvery { mockCalendarAgent.getSemesterEvents("default") } returns listOf(
+            DayEvent(
+                id = "d1", title = "Homework 1 due", source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 7, 15)
+            )
+        )
+
         every { mockContainer.eventAgent } returns mockEventAgent
 
         val mockAppController = mockk<AppController>(relaxed = true)
@@ -346,6 +354,14 @@ class StudioPanelTest {
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
 
+        // A deliverable on the calendar → there is coursework for the study plan to schedule around.
+        coEvery { mockCalendarAgent.getSemesterEvents("default") } returns listOf(
+            DayEvent(
+                id = "d1", title = "Homework 1 due", source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE, date = LocalDate(2026, 7, 15)
+            )
+        )
+
         every { mockContainer.eventAgent } returns mockEventAgent
 
         val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
@@ -378,5 +394,38 @@ class StudioPanelTest {
         // When no events are pending, the button should be enabled (opposite of the disabled case)
         // assertIsEnabled() — confirms button is interactive
         onNodeWithTag("process_syllabus_button").assertIsEnabled()
+    }
+
+    @Test
+    fun testProcessButtonDisabledWithHintWhenNoCoursework() = runComposeUiTest {
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockEventAgent = mockk<EventAgent>(relaxed = true)
+
+        // Empty calendar (no deliverables/classes) → nothing for a study plan to schedule around.
+        coEvery { mockCalendarAgent.getSemesterEvents("default") } returns emptyList()
+
+        every { mockContainer.eventAgent } returns mockEventAgent
+        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+        every { tokenRepo.isLinked } returns MutableStateFlow(false)
+        every { mockContainer.tokenRepository } returns tokenRepo
+        every { mockEventAgent.isLoading } returns MutableStateFlow(false)
+        every { mockEventAgent.statusMessage } returns MutableStateFlow("Ready")
+        every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.persistedWarnings } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.errorState } returns MutableStateFlow(null)
+        every { mockEventAgent.extractionWarning } returns MutableStateFlow(null)
+        every { mockEventAgent.pendingRequestCount } returns MutableStateFlow(0)
+
+        setContent {
+            StudioPanel(
+                selectedSource = SourceItem("Test Syllabus", listOf(SourceFragment("c")), SourceCategory.SYLLABUS),
+                calendarAgent = mockCalendarAgent,
+                container = mockContainer
+            )
+        }
+
+        onNodeWithTag("process_syllabus_button").assertIsNotEnabled()
+        onNodeWithTag("study_plan_hint").assertExists()
     }
 }

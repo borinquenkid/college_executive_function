@@ -146,6 +146,10 @@ fun StudioPanel(
                 verticalArrangement = Arrangement.spacedBy(4.dp),
                 contentPadding = PaddingValues(4.dp)
             ) {
+                // A study plan schedules time AROUND existing coursework, so it needs deliverables
+                // or class sessions to plan against — otherwise it just emits bare anchors (the
+                // "reset then generate a study plan" footgun). Require some non-study-block event.
+                val hasCoursework = eventsList.any { it.category != AcademicCategory.STUDY_BLOCK }
                 item {
                     Button(
                         onClick = {
@@ -157,7 +161,7 @@ fun StudioPanel(
                             .testTag("process_syllabus_button"),
                         colors = ButtonDefaults.buttonColors(containerColor = MaterialTheme.colorScheme.primary),
                         contentPadding = PaddingValues(0.dp),
-                        enabled = !isLoading && lastGeneratedEvents.isEmpty()
+                        enabled = !isLoading && lastGeneratedEvents.isEmpty() && hasCoursework
                     ) {
                         Row(verticalAlignment = Alignment.CenterVertically) {
                             Icon(
@@ -171,6 +175,15 @@ fun StudioPanel(
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }
+                    }
+                    if (!hasCoursework && lastGeneratedEvents.isEmpty()) {
+                        Text(
+                            "Load a syllabus first — the study plan schedules time around your deadlines and classes.",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant,
+                            modifier = Modifier.padding(horizontal = 4.dp, vertical = 2.dp)
+                                .testTag("study_plan_hint")
+                        )
                     }
                 }
 

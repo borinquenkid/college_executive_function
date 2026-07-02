@@ -4,9 +4,12 @@ import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 
 class ProgressFractionTest : FunSpec({
-    test("parses an (i/N) counter into a fraction") {
+    test("parses a multi-step (i/N) counter into a fraction") {
         ProgressFraction.parse("Extracting events from pages 3–4 (2/5)…") shouldBe 0.4f
-        ProgressFraction.parse("section 1 (1/1)...") shouldBe 1.0f
+        ProgressFraction.parse("section 3 (3/4)...") shouldBe 0.75f
+    }
+    test("returns null for a single-step (1/1) — not meaningful progress") {
+        ProgressFraction.parse("section 1 (1/1)...") shouldBe null
     }
     test("returns null when there is no counter") {
         ProgressFraction.parse("Auditing source for ambiguities...") shouldBe null

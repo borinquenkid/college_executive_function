@@ -46,6 +46,12 @@ class SyncNegotiationApplier(
     ) {
         remoteEvents.forEach { remote ->
             val local = localEvents.find { it.id == remote.id }
+            // Skip an already-synced local event whose content is identical to remote: overwriting
+            // it just to adopt a newer server timestamp is pure churn (the remote clock always
+            // advances past our generation stamp on each push), and it re-fired every sync forever.
+            if (local != null && local.syncStatus == SyncStatus.SYNCED && contentEquals(local, remote)) {
+                return@forEach
+            }
             if (local != null && local.syncStatus == SyncStatus.SYNCED && local.updatedAt != remote.updatedAt) {
                 if (local.category == AcademicCategory.STUDY_BLOCK && (local.date != remote.date || (local is TimeEvent && remote is TimeEvent && (local.startTime != remote.startTime || local.endTime != remote.endTime)))) {
                     userPreferenceMemoryRepository.logOverride(OverrideAction.MOVE, local)
@@ -58,6 +64,12 @@ class SyncNegotiationApplier(
             localRepo.updateEvent(remote.withSyncStatus(SyncStatus.SYNCED), calendarId)
         }
     }
+
+    /** True when two events represent the same content (ignoring timestamps/sync metadata). */
+    private fun contentEquals(a: Event, b: Event): Boolean =
+        a.title == b.title && a.date == b.date && a.category == b.category &&
+            a.completionStatus == b.completionStatus &&
+            (a !is TimeEvent || b !is TimeEvent || (a.startTime == b.startTime && a.endTime == b.endTime))
 
     private suspend fun applyShiftedStudyBlocks(
         proposals: List<SyncProposal>,

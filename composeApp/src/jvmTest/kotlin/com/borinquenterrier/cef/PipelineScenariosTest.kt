@@ -94,6 +94,28 @@ class PipelineScenariosTest : FunSpec({
         local.first { it.title == "Issue Brief #2 due" }.updatedAt shouldBeGreaterThan 0L // stamped
     }
 
+    test("no sync churn: an identical remote event with a newer timestamp does NOT override local") {
+        val h = PipelineScenarioHarness()
+        h.seedLocal(listOf(day("Issue Brief #1 due", "2026-07-01", id = "x", updatedAt = 100L)))
+        // Same id + identical content, but a much newer server timestamp (as happens after a push).
+        h.seedRemote(listOf(day("Issue Brief #1 due", "2026-07-01", id = "x", updatedAt = 999_999L)))
+
+        h.sync()
+
+        // Local is left alone — not rewritten to adopt the newer timestamp → no churn.
+        h.localEvents().single { it.id == "x" }.updatedAt shouldBe 100L
+    }
+
+    test("genuine remote edit IS applied (content differs)") {
+        val h = PipelineScenarioHarness()
+        h.seedLocal(listOf(day("Old title", "2026-07-01", id = "x", updatedAt = 100L)))
+        h.seedRemote(listOf(day("New title", "2026-07-01", id = "x", updatedAt = 999_999L)))
+
+        h.sync()
+
+        h.localEvents().single { it.id == "x" }.title shouldBe "New title"
+    }
+
     test("sync: seeded remote-only events flow down into local") {
         val h = PipelineScenarioHarness()
         h.seedRemote(listOf(day("Remote deadline", "2026-07-10", id = "r1", updatedAt = 9)))

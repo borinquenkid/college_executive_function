@@ -84,10 +84,14 @@ class SyncNegotiator(
             if (local == null) {
                 remoteUpdates.add(remote)
             } else if (local.syncStatus == SyncStatus.SYNCED && local.updatedAt != remote.updatedAt) {
-                remoteUpdates.add(remote)
+                // Only sync remote→local when the CONTENT actually differs. A timestamp-only
+                // difference (identical fields) is the same event with a newer server clock — the
+                // remote clock always advances past our generation stamp on each push, so overriding
+                // on it alone caused an endless "remote overrides local" churn every sync.
                 val hasFieldDiff = local.title != remote.title || local.date != remote.date ||
                         (local is TimeEvent && remote is TimeEvent && (local.startTime != remote.startTime || local.endTime != remote.endTime))
                 if (hasFieldDiff) {
+                    remoteUpdates.add(remote)
                     directConflicts.add(SyncProposal.DirectConflict(local, remote))
                 }
             }

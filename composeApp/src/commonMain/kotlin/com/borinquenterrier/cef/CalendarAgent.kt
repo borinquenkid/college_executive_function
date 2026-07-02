@@ -11,14 +11,16 @@ class CalendarAgent(
     private val remoteRepo: RemoteCalendarRepository,
     private val logger: Logger? = null,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
-    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
+    // Backoff between rate-limited remote deletes during a reset; tests inject a no-op for speed.
+    private val remoteClearDelayFn: suspend (Long) -> Unit = { kotlinx.coroutines.delay(it) }
 ) {
     private val _resetVersion = MutableStateFlow(0)
     val resetVersion: StateFlow<Int> = _resetVersion.asStateFlow()
 
     private val syncGate = SyncGate(localRepo)
     private val persistence = RemoteFirstEventPersistence(
-        localRepo, remoteRepo, syncGate, logger, userPreferenceMemoryRepository
+        localRepo, remoteRepo, syncGate, logger, userPreferenceMemoryRepository, remoteClearDelayFn
     )
     private val negotiator =
         SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository)

@@ -210,27 +210,29 @@ class RemoteFirstEventPersistenceTest : FunSpec({
 
     // ── reset ────────────────────────────────────────────────────────────────
 
-    test("reset clears local and remote when live") {
+    test("reset clears local and deletes every remote event when live") {
         every { syncGate.isLive() } returns true
+        coEvery { remoteRepo.getAllEvents("default") } returns listOf(event, studyBlock)
 
         persistence.reset("default")
 
         coVerify(exactly = 1) { localRepo.clearLocalCalendar("default") }
-        coVerify(exactly = 1) { remoteRepo.clearCalendar("default") }
+        coVerify(exactly = 1) { remoteRepo.deleteEvent("e1", "default") }
+        coVerify(exactly = 1) { remoteRepo.deleteEvent("sb1", "default") }
     }
 
-    test("reset clears only local when not live") {
+    test("reset clears only local when not live (never touches remote)") {
         every { syncGate.isLive() } returns false
 
         persistence.reset("default")
 
         coVerify(exactly = 1) { localRepo.clearLocalCalendar("default") }
-        coVerify(exactly = 0) { remoteRepo.clearCalendar(any()) }
+        coVerify(exactly = 0) { remoteRepo.getAllEvents(any()) }
     }
 
-    test("reset succeeds even when remote clear fails") {
+    test("reset succeeds even when the remote listing fails") {
         every { syncGate.isLive() } returns true
-        coEvery { remoteRepo.clearCalendar(any()) } throws RuntimeException("offline")
+        coEvery { remoteRepo.getAllEvents(any()) } throws RuntimeException("offline")
 
         persistence.reset("default")
 

@@ -48,7 +48,10 @@ class PipelineScenarioHarness(
         onCalendarEvents = { extractThrows?.let { throw it }; nextEvents }
     )
 
-    val calendarAgent = CalendarAgent(localRepo, remote, preferencesRepository = prefsPort)
+    val calendarAgent = CalendarAgent(
+        localRepo, remote, preferencesRepository = prefsPort,
+        remoteClearDelayFn = {} // no real backoff wait in scenario tests
+    )
     private val eventAgent = EventAgent(
         aiService = ai,
         repository = calendarAgent,

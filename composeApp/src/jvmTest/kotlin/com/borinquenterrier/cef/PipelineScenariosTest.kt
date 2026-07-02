@@ -193,6 +193,20 @@ class PipelineScenariosTest : FunSpec({
         h.remoteEvents() shouldBe emptyList()
     }
 
+    test("reset survives a rate-limited remote and still clears everything (resilient clear)") {
+        val h = PipelineScenarioHarness()
+        h.seedRemote((1..5).map { day("Event $it", "2026-07-0$it", id = "e$it") })
+        val failedOnce = mutableSetOf<String>()
+        h.remote.beforeDelete = { id ->
+            if (id == "e3" && failedOnce.add(id))
+                throw GoogleApiException(403, """{"error":{"message":"Rate Limit Exceeded"}}""")
+        }
+
+        h.reset()
+
+        h.remoteEvents() shouldBe emptyList() // rate-limited delete retried; nothing left behind
+    }
+
     // ── Reconcile permutations: which drift each state produces ────────────────
 
     data class ReconcileCase(

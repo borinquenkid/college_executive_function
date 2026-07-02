@@ -5,13 +5,15 @@ class RemoteFirstEventPersistence(
     private val remoteRepo: RemoteCalendarRepository,
     private val syncGate: SyncGate,
     private val logger: Logger?,
-    userPreferenceMemoryRepository: UserPreferenceMemoryRepository
+    userPreferenceMemoryRepository: UserPreferenceMemoryRepository,
+    clearDelayFn: suspend (Long) -> Unit = { kotlinx.coroutines.delay(it) }
 ) {
     private val tag = "RemoteFirstEventPersistence"
     private val overrideLogger = StudyBlockOverrideLogger(localRepo, userPreferenceMemoryRepository)
     private val writer = RemoteFirstWriter(localRepo, remoteRepo, syncGate, logger)
     private val deleter = EventDeleter(localRepo, remoteRepo, syncGate, overrideLogger, logger)
     private val retrier = LocalOnlyRetrier(localRepo, remoteRepo, syncGate, logger)
+    private val cleaner = ResilientCalendarCleaner(remoteRepo, logger, delayFn = clearDelayFn)
 
     suspend fun save(event: Event, calendarId: String) = writer.save(event, calendarId)
 
@@ -27,10 +29,14 @@ class RemoteFirstEventPersistence(
     suspend fun reset(calendarId: String) {
         localRepo.clearLocalCalendar(calendarId)
         if (syncGate.isLive()) {
-            try {
-                remoteRepo.clearCalendar(calendarId)
-            } catch (e: Exception) {
-                logger?.e(tag, "Remote calendar clear failed, local reset still complete", e)
+            // Resilient clear: retries rate-limited deletes and continues past failures instead of
+            // aborting the whole reset on the first 403 (which left the calendar half-cleared).
+            val result = cleaner.clear(calendarId)
+            if (!result.allCleared) {
+                logger?.e(
+                    tag,
+                    "Remote clear incomplete: ${result.deleted} deleted, ${result.failed} could not be removed (re-run Reset to retry)."
+                )
             }
         }
     }

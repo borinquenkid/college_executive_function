@@ -205,6 +205,12 @@ The application supports two distinct run profiles to manage different execution
 
 ---
 
+## Release
+
+`./release.sh` updates the version tag locally and pushes it to the branch running the release (which triggers the release CI workflow). Run it from the branch you intend to release.
+
+---
+
 ## Core Architecture
 
 The application follows a strict data flow to consolidate academic data into a single, synchronized "Source of Truth."

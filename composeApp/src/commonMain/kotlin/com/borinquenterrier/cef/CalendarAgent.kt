@@ -87,7 +87,10 @@ class CalendarAgent(
      * changed — the caller shows the [ReconciliationReport] and calls [applyReconciliation] to fix.
      */
     suspend fun reconcile(calendarId: String = "default"): ReconciliationReport =
-        CalendarReconciler.analyze(localRepo.getAllEvents(calendarId), preferencesRepository.getPreferences())
+        CalendarReconciler.analyze(
+            localRepo.getAllEvents(calendarId).filter { it.syncStatus != SyncStatus.DELETED_LOCALLY },
+            preferencesRepository.getPreferences()
+        )
 
     /**
      * Applies the fixes in [report]: deletes duplicate + out-of-term copies from BOTH local and

@@ -20,6 +20,12 @@ class CalendarAgent(
     private val _resetVersion = MutableStateFlow(0)
     val resetVersion: StateFlow<Int> = _resetVersion.asStateFlow()
 
+    // True while a reset is clearing local+remote. Sync is suppressed during this window so a
+    // concurrent background sync (harness poll, push, source-delete) can't re-pull the SHRINKING
+    // remote back into the just-emptied local — which made reset appear to fail / show events
+    // disappearing one by one.
+    private val isResetting = MutableStateFlow(false)
+
     private val syncGate = SyncGate(localRepo)
     private val persistence = RemoteFirstEventPersistence(
         localRepo, remoteRepo, syncGate, logger, userPreferenceMemoryRepository, remoteClearDelayFn
@@ -66,17 +72,28 @@ class CalendarAgent(
         persistence.delete(eventId, calendarId)
 
     suspend fun resetCalendar(calendarId: String = "default") {
-        persistence.reset(calendarId)
-        _resetVersion.value++
+        // Clear local AND remote fully before signalling the UI, and suppress sync meanwhile
+        // (see isResetting) so nothing re-pulls the not-yet-cleared remote back into local — the
+        // reset must actually stick, not reappear.
+        isResetting.value = true
+        try {
+            persistence.reset(calendarId)
+        } finally {
+            isResetting.value = false
+            _resetVersion.value++
+        }
     }
 
-    suspend fun checkSyncProposals(calendarId: String = "default"): SyncNegotiation =
-        negotiator.buildNegotiation(calendarId)
+    suspend fun checkSyncProposals(calendarId: String = "default"): SyncNegotiation {
+        if (isResetting.value) return SyncNegotiation(emptyList(), emptyList(), emptyList())
+        return negotiator.buildNegotiation(calendarId)
+    }
 
     suspend fun applySyncNegotiation(negotiation: SyncNegotiation, calendarId: String = "default") =
         negotiationApplier.apply(negotiation, calendarId)
 
     suspend fun synchronize(calendarId: String = "default") {
+        if (isResetting.value) return
         applySyncNegotiation(checkSyncProposals(calendarId), calendarId)
         // Self-heal: after reconciling local↔remote, auto-correct the SAFE drift and surface the
         // rest. Wrapped so a heal failure never breaks the sync itself.
@@ -155,7 +172,11 @@ class CalendarAgent(
             }
             setAttribute("reconcile.deleted", toDelete.size.toLong())
             setAttribute("reconcile.stamped", report.timestampsToStamp.size.toLong())
-            _resetVersion.value++
+            // Only refresh the UI when something actually changed, so a no-op self-heal on every
+            // periodic sync doesn't keep re-rendering the calendar mid-ingest.
+            if (toDelete.isNotEmpty() || report.timestampsToStamp.isNotEmpty()) {
+                _resetVersion.value++
+            }
         }
     }
 }

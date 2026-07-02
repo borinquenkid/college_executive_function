@@ -1,9 +1,11 @@
 package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.collections.shouldBeEmpty
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
 import io.kotest.matchers.ints.shouldBeGreaterThan
 import io.mockk.coEvery
+import io.mockk.every
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
 import kotlinx.datetime.LocalDate
@@ -37,6 +39,41 @@ class CalendarAgentReconcileTest : FunSpec({
         report.duplicatesToDelete.map { it.id } shouldContainExactlyInAnyOrder listOf("dup")
         report.outOfSemesterToDelete.map { it.id } shouldContainExactlyInAnyOrder listOf("fall")
         report.timestampsToStamp.map { it.id } shouldContainExactlyInAnyOrder listOf("stale")
+    }
+
+    test("reset suppresses sync mid-clear so it can't re-pull the remote, and fully clears") {
+        val remote = FakeRemoteCalendar()
+        remote.seed(
+            listOf(
+                day("A due", "2026-07-01", id = "a"),
+                day("B due", "2026-07-02", id = "b"),
+                day("C due", "2026-07-03", id = "c")
+            )
+        )
+        // isLive() needs a run profile + a Google token; local reports itself already cleared.
+        val settings = mockk<com.russhwolf.settings.Settings>(relaxed = true)
+        every { settings.getString("run_profile", "local") } returns "local"
+        every { settings.getString("GOOGLE_ACCESS_TOKEN", "") } returns "token"
+        val local = mockk<StudentCalendarRepository>(relaxed = true)
+        every { local.getSettings() } returns settings
+        coEvery { local.getAllEvents(any()) } returns emptyList()
+
+        val agent = CalendarAgent(local, remote, remoteClearDelayFn = {})
+
+        // Control: outside a reset, a sync WOULD pull all three remote events down into local.
+        runBlocking { agent.checkSyncProposals().remoteEventsToSync.map { it.id } }
+            .shouldContainExactlyInAnyOrder(listOf("a", "b", "c"))
+
+        // Capture what a sync sees at the exact moment the reset is deleting (isResetting == true).
+        var midReset: SyncNegotiation? = null
+        remote.beforeDelete = { if (midReset == null) midReset = runBlocking { agent.checkSyncProposals() } }
+
+        runBlocking { agent.resetCalendar() }
+
+        // The guard made the mid-reset sync a no-op → nothing to re-pull back into local.
+        midReset!!.remoteEventsToSync.shouldBeEmpty()
+        // And the reset actually cleared the remote.
+        runBlocking { remote.getAllEvents("default") }.shouldBeEmpty()
     }
 
     test("applyReconciliation completes and bumps resetVersion so the UI refreshes") {

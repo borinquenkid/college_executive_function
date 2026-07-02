@@ -27,10 +27,20 @@ class RemoteFirstEventPersistence(
     suspend fun retryLocalOnly(calendarId: String) = retrier.retry(calendarId)
 
     suspend fun reset(calendarId: String) {
-        localRepo.clearLocalCalendar(calendarId)
+        clearLocal(calendarId)
+        clearRemote(calendarId)
+    }
+
+    /** Clears the local calendar (atomic) — the UI can refresh off this immediately. */
+    suspend fun clearLocal(calendarId: String) = localRepo.clearLocalCalendar(calendarId)
+
+    /**
+     * Clears the remote calendar resiliently (retries rate-limited deletes, continues past failures
+     * instead of aborting on the first 403). Deletes one at a time, so callers should refresh the UI
+     * off the local clear first and run this in the background.
+     */
+    suspend fun clearRemote(calendarId: String) {
         if (syncGate.isLive()) {
-            // Resilient clear: retries rate-limited deletes and continues past failures instead of
-            // aborting the whole reset on the first 403 (which left the calendar half-cleared).
             val result = cleaner.clear(calendarId)
             if (!result.allCleared) {
                 logger?.e(

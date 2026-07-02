@@ -167,7 +167,7 @@ fun StudioPanel(
                             )
                             Spacer(Modifier.width(8.dp))
                             Text(
-                                "Process Syllabus & Plan Study",
+                                "Generate Study Plan",
                                 style = MaterialTheme.typography.labelLarge
                             )
                         }

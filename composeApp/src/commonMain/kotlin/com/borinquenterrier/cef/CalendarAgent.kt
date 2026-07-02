@@ -76,6 +76,31 @@ class CalendarAgent(
 
     suspend fun synchronize(calendarId: String = "default") {
         applySyncNegotiation(checkSyncProposals(calendarId), calendarId)
+        // Self-heal: after reconciling local↔remote, auto-correct the SAFE drift and surface the
+        // rest. Wrapped so a heal failure never breaks the sync itself.
+        try {
+            selfHeal(calendarId)
+        } catch (e: Exception) {
+            logger?.e("CalendarAgent", "Self-heal after sync failed (non-fatal): ${e.message}", e)
+        }
+    }
+
+    private val _pendingOutOfSemester = MutableStateFlow<List<Event>>(emptyList())
+
+    /** Out-of-term events found by the last self-heal — surfaced for user review (never auto-deleted). */
+    val pendingOutOfSemester: StateFlow<List<Event>> = _pendingOutOfSemester.asStateFlow()
+
+    /**
+     * Auto-corrects the drift that is SAFE to fix without asking (exact duplicates, updatedAt=0),
+     * and records out-of-term events in [pendingOutOfSemester] for the user to confirm — deleting a
+     * real out-of-term event is a judgement call, not a silent action. Returns the full report.
+     */
+    suspend fun selfHeal(calendarId: String = "default"): ReconciliationReport {
+        val report = reconcile(calendarId)
+        // Apply only duplicates + timestamp stamps; leave out-of-term for review.
+        applyReconciliation(report.copy(outOfSemesterToDelete = emptyList()), calendarId)
+        _pendingOutOfSemester.value = report.outOfSemesterToDelete
+        return report
     }
 
     suspend fun getIncompleteEventsBefore(

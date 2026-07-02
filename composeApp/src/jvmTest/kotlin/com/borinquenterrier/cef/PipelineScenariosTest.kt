@@ -207,6 +207,42 @@ class PipelineScenariosTest : FunSpec({
         h.remoteEvents() shouldBe emptyList() // rate-limited delete retried; nothing left behind
     }
 
+    // ── Self-healing ──────────────────────────────────────────────────────────
+
+    test("selfHeal auto-fixes safe drift (dups + stale) but leaves out-of-term for review") {
+        val h = PipelineScenarioHarness()
+        h.seedLocal(
+            listOf(
+                day("Issue Brief #1 due", "2026-07-01", id = "keep", updatedAt = 5),
+                day("Issue Brief #1 due", "2026-07-01", id = "dup", updatedAt = 5),   // exact duplicate
+                day("Labor Day Holiday", "2026-09-07", id = "fall", updatedAt = 5),   // out-of-term
+                day("Issue Brief #2 due", "2026-07-15", id = "stale", updatedAt = 0)  // stale timestamp
+            )
+        )
+
+        h.selfHeal()
+
+        val local = h.localEvents()
+        local.count { it.title == "Issue Brief #1 due" } shouldBe 1                 // duplicate auto-removed
+        local.first { it.title == "Issue Brief #2 due" }.updatedAt shouldBeGreaterThan 0L // stamped
+        local.any { it.title == "Labor Day Holiday" } shouldBe true                 // NOT auto-deleted
+        h.pendingOutOfSemester().map { it.title } shouldContainExactlyInAnyOrder listOf("Labor Day Holiday")
+    }
+
+    test("sync triggers self-heal: a duplicate pulled from remote collapses automatically") {
+        val h = PipelineScenarioHarness()
+        // Two remote copies of the same deliverable (distinct ids) → an exact duplicate once pulled.
+        h.seedRemote(
+            listOf(
+                day("Issue Brief #1 due", "2026-07-01", id = "r1", updatedAt = 9),
+                day("Issue Brief #1 due", "2026-07-01", id = "r2", updatedAt = 9)
+            )
+        )
+        h.sync()
+
+        h.localEvents().count { it.title == "Issue Brief #1 due" } shouldBe 1 // self-healed after sync
+    }
+
     // ── Reconcile permutations: which drift each state produces ────────────────
 
     data class ReconcileCase(

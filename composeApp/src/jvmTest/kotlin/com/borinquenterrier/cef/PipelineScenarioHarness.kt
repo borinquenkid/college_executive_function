@@ -93,6 +93,8 @@ class PipelineScenarioHarness(
     fun repair(report: ReconciliationReport) = runBlocking { calendarAgent.applyReconciliation(report) }
     fun retryLocalOnly() = runBlocking { calendarAgent.retryLocalOnly() }
     fun reset(): Unit = runBlocking { calendarAgent.resetCalendar() }
+    fun selfHeal(): ReconciliationReport = runBlocking { calendarAgent.selfHeal() }
+    fun pendingOutOfSemester(): List<Event> = calendarAgent.pendingOutOfSemester.value
 
     // ── assertions ────────────────────────────────────────────────────────────
     /** Active local events (excludes soft-deleted DELETED_LOCALLY tombstones) — what the UI shows. */

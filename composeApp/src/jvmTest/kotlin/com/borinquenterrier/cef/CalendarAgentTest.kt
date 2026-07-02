@@ -366,7 +366,8 @@ class CalendarAgentTest : FunSpec({
         calendarAgent.synchronize("default")
 
         coVerify(exactly = 1) { remoteRepo.getAllEvents("default") }
-        coVerify(exactly = 2) { localRepo.getAllEvents("default") }
+        // 2 from the sync negotiation + 1 from the post-sync self-heal reconcile.
+        coVerify(exactly = 3) { localRepo.getAllEvents("default") }
     }
 
     test("synchronize should throw exception if checkSyncProposals fails") {

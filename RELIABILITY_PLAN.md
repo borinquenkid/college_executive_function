@@ -43,7 +43,7 @@ Memory saved: [tests wrote to the real cef.db](.claude memory `bug_tests_wrote_r
 ## 3. Next work (prioritized)
 
 ### P0 — finish hardening what shipped
-- **R1 — Wire the reconciler into periodic sync (self-heal).** Today "Check & Repair" is a manual button; run a lightweight reconcile after each sync so drift is corrected without user action. Guard: only auto-apply the *safe* fixes (stamp timestamps, exact duplicates); surface out-of-term as a proposal (don't auto-delete a real event). Test via harness: seed drift → `sync()` → assert self-corrected.
+- **R1 — Wire the reconciler into periodic sync (self-heal). ✅ DONE.** `CalendarAgent.synchronize` now runs `selfHeal` after reconciling local↔remote: auto-applies the *safe* fixes (exact duplicates, `updatedAt=0` stamps) and records out-of-term drift in `pendingOutOfSemester` for user review (never silently deleted). Heal failures are caught so they can't break sync. Covered by `PipelineScenariosTest` (direct + sync-triggered).
 - **T1 — Fix the flaky `AppControllerTest` retryLocalOnly timing test.** It depends on coroutine timing on `init`; make it await a condition (`eventually`) instead of a fixed delay, or inject a deterministic dispatcher. Blocks a clean CI signal.
 
 ### P1 — deepen detection & recovery

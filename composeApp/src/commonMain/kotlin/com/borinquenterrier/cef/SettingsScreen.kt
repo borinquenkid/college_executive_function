@@ -29,6 +29,7 @@ import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 
@@ -52,6 +53,8 @@ fun SettingsScreen(
     }
     var showAdvanced by remember { mutableStateOf(false) }
     var showResetConfirm by remember { mutableStateOf(false) }
+    var repairReport by remember { mutableStateOf<ReconciliationReport?>(null) }
+    var checkingCalendar by remember { mutableStateOf(false) }
     val appController = remember { container.appController }
 
     val preferencesRepository = remember { container.preferencesRepository }
@@ -239,6 +242,20 @@ fun SettingsScreen(
             )
 
             Button(
+                onClick = {
+                    scope.launch {
+                        checkingCalendar = true
+                        repairReport = appController.checkCalendar()
+                        checkingCalendar = false
+                    }
+                },
+                enabled = !checkingCalendar,
+                modifier = Modifier.testTag("check_repair_button")
+            ) {
+                Text(if (checkingCalendar) "Checking…" else "Check & Repair Calendar")
+            }
+
+            Button(
                 onClick = { showResetConfirm = true },
                 colors = ButtonDefaults.buttonColors(
                     containerColor = MaterialTheme.colorScheme.errorContainer,
@@ -247,6 +264,34 @@ fun SettingsScreen(
             ) {
                 Text("Reset Calendar for Demo")
             }
+        }
+
+        repairReport?.let { report ->
+            AlertDialog(
+                onDismissRequest = { repairReport = null },
+                title = { Text("Calendar Health") },
+                text = {
+                    Text(
+                        if (report.isClean) report.summary()
+                        else "Found ${report.summary()}.\n\nDelete the drift and fix timestamps? This updates local and Google Calendar."
+                    )
+                },
+                confirmButton = {
+                    if (report.isClean) {
+                        TextButton(onClick = { repairReport = null }) { Text("OK") }
+                    } else {
+                        TextButton(onClick = {
+                            appController.repairCalendar(report)
+                            repairReport = null
+                        }) { Text("Repair") }
+                    }
+                },
+                dismissButton = {
+                    if (!report.isClean) {
+                        TextButton(onClick = { repairReport = null }) { Text("Cancel") }
+                    }
+                }
+            )
         }
 
         if (showResetConfirm) {

@@ -136,6 +136,11 @@ fun Event.withCompletionStatus(status: CompletionStatus): Event = when (this) {
     is DayEvent -> copy(completionStatus = status)
 }
 
+fun Event.withUpdatedAt(timestamp: Long): Event = when (this) {
+    is TimeEvent -> copy(updatedAt = timestamp)
+    is DayEvent -> copy(updatedAt = timestamp)
+}
+
 fun Event.validate() {
     require(title.isNotBlank()) { "Title cannot be blank" }
     if (this is TimeEvent) {

@@ -111,6 +111,14 @@ class AppController(val container: DependencyContainer) {
         }
     }
 
+    /** Read-only calendar health check (duplicates, out-of-term, stale timestamps). */
+    suspend fun checkCalendar(): ReconciliationReport = container.calendarAgent.reconcile()
+
+    /** Applies the fixes in [report] (deletes drift, stamps stale timestamps) local + remote. */
+    fun repairCalendar(report: ReconciliationReport) {
+        launchInScope { container.calendarAgent.applyReconciliation(report) }
+    }
+
     fun addSource(source: SourceItem, forceRefresh: Boolean = false) {
         sourceManager.registerSource(source)
         processSourceAutoPush(source)

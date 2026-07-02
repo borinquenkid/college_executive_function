@@ -1,5 +1,6 @@
 package com.borinquenterrier.cef
 
+import kotlin.time.Clock
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -79,4 +80,27 @@ class CalendarAgent(
         date: LocalDate,
         calendarId: String = "default"
     ): List<Event> = localRepo.getIncompleteEventsBefore(date, calendarId)
+
+    /**
+     * Read-only health check: detects calendar drift the happy path can't (exact duplicates,
+     * out-of-term events, and the updatedAt=0 events that cause endless sync churn). Nothing is
+     * changed — the caller shows the [ReconciliationReport] and calls [applyReconciliation] to fix.
+     */
+    suspend fun reconcile(calendarId: String = "default"): ReconciliationReport =
+        CalendarReconciler.analyze(localRepo.getAllEvents(calendarId), preferencesRepository.getPreferences())
+
+    /**
+     * Applies the fixes in [report]: deletes duplicate + out-of-term copies from BOTH local and
+     * remote, and stamps a real timestamp on updatedAt=0 events so sync stops overwriting them.
+     */
+    suspend fun applyReconciliation(report: ReconciliationReport, calendarId: String = "default") {
+        (report.duplicatesToDelete + report.outOfSemesterToDelete).forEach { event ->
+            event.id?.let { persistence.delete(it, calendarId) }
+        }
+        val now = Clock.System.now().toEpochMilliseconds()
+        report.timestampsToStamp.forEach { event ->
+            persistence.update(event.withUpdatedAt(now), calendarId)
+        }
+        _resetVersion.value++
+    }
 }

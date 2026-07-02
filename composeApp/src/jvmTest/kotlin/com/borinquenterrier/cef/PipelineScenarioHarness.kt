@@ -94,6 +94,7 @@ class PipelineScenarioHarness(
     fun retryLocalOnly() = runBlocking { calendarAgent.retryLocalOnly() }
     fun reset(): Unit = runBlocking { calendarAgent.resetCalendar() }
     fun selfHeal(): ReconciliationReport = runBlocking { calendarAgent.selfHeal() }
+    fun checkHealth(): ReconciliationReport = runBlocking { calendarAgent.checkHealth() }
     fun pendingOutOfSemester(): List<Event> = calendarAgent.pendingOutOfSemester.value
 
     // ── assertions ────────────────────────────────────────────────────────────

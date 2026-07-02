@@ -87,6 +87,11 @@ class AppController(
         // fragments) came up empty after every restart. Loading is a pure DB read — it does NOT
         // re-trigger processing, which stays once-per-source via the analysis cache.
         loadSources()
+        // Startup integrity check: surface any out-of-term drift for review (read-only; the safe
+        // drift is auto-corrected by self-heal on the next sync). Never fatal.
+        scope.launch {
+            runCatching { container.calendarAgent.checkHealth() }
+        }
     }
 
     fun loadSources() {

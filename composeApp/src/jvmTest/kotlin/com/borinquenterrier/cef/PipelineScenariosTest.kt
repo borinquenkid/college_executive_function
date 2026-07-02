@@ -243,6 +243,23 @@ class PipelineScenariosTest : FunSpec({
         h.localEvents().count { it.title == "Issue Brief #1 due" } shouldBe 1 // self-healed after sync
     }
 
+    test("checkHealth flags out-of-term drift for the badge WITHOUT changing anything") {
+        val h = PipelineScenarioHarness()
+        h.seedLocal(
+            listOf(
+                day("In term", "2026-07-01", id = "a"),
+                day("Labor Day", "2026-09-07", id = "fall"),          // out-of-term
+                day("Dup", "2026-07-02", id = "d1"), day("Dup", "2026-07-02", id = "d2") // duplicate
+            )
+        )
+
+        val report = h.checkHealth()
+
+        h.localEvents().size shouldBe 4 // read-only: nothing deleted, nothing stamped
+        h.pendingOutOfSemester().map { it.title } shouldContainExactlyInAnyOrder listOf("Labor Day")
+        report.duplicatesToDelete.size shouldBe 1 // detected (self-heal will fix), but not applied here
+    }
+
     // ── Reconcile permutations: which drift each state produces ────────────────
 
     data class ReconcileCase(

@@ -241,6 +241,7 @@ fun SettingsScreen(
                 }
             )
 
+            val outOfTermDrift by container.calendarAgent.pendingOutOfSemester.collectAsState()
             Button(
                 onClick = {
                     scope.launch {
@@ -250,9 +251,19 @@ fun SettingsScreen(
                     }
                 },
                 enabled = !checkingCalendar,
+                colors = if (outOfTermDrift.isNotEmpty()) ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.tertiaryContainer,
+                    contentColor = MaterialTheme.colorScheme.onTertiaryContainer
+                ) else ButtonDefaults.buttonColors(),
                 modifier = Modifier.testTag("check_repair_button")
             ) {
-                Text(if (checkingCalendar) "Checking…" else "Check & Repair Calendar")
+                Text(
+                    when {
+                        checkingCalendar -> "Checking…"
+                        outOfTermDrift.isNotEmpty() -> "Check & Repair Calendar (${outOfTermDrift.size} to review)"
+                        else -> "Check & Repair Calendar"
+                    }
+                )
             }
 
             Button(

@@ -103,6 +103,16 @@ class CalendarAgent(
         return report
     }
 
+    /**
+     * Read-only integrity check (e.g. at startup): records out-of-term drift in
+     * [pendingOutOfSemester] so the UI can badge the Repair action, WITHOUT changing anything.
+     */
+    suspend fun checkHealth(calendarId: String = "default"): ReconciliationReport {
+        val report = reconcile(calendarId)
+        _pendingOutOfSemester.value = report.outOfSemesterToDelete
+        return report
+    }
+
     suspend fun getIncompleteEventsBefore(
         date: LocalDate,
         calendarId: String = "default"

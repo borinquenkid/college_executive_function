@@ -18,16 +18,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: | :---: | :---: | :---: |
 | HttpOtelTracer.kt | 33 | 76.6% | 46.89 | 🔴 HIGH |
 | EventDeduplicator.kt | 43 | 100.0% | 43.00 | 🔴 HIGH |
-| GoogleCalendarSyncService.kt | 36 | 99.4% | 36.00 | 🔴 HIGH |
+| GoogleCalendarSyncService.kt | 39 | 99.4% | 39.00 | 🔴 HIGH |
 | EventAgent.kt | 35 | 94.1% | 35.25 | 🔴 HIGH |
 | GeminiAIService.kt | 35 | 94.4% | 35.21 | 🔴 HIGH |
 | EventGenerationService.kt | 33 | 92.8% | 33.41 | 🔴 HIGH |
+| Event.kt | 28 | 96.9% | 28.02 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GeminiRetryService.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | GoogleDriveService.kt | 22 | 77.4% | 27.57 | 🟡 MEDIUM |
 | AppController.kt | 27 | 93.9% | 27.17 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 27 | 100.0% | 27.00 | 🟡 MEDIUM |
-| Event.kt | 26 | 96.8% | 26.02 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
 | AppContent.kt | 13 | 57.8% | 25.72 | 🟡 MEDIUM |
 | CalendarAgent.kt | 25 | 97.7% | 25.01 | 🟡 MEDIUM |
@@ -73,23 +73,24 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `canonicalTitle` | 1 |
 | `submissionCanonical` | 1 |
 
-### GoogleCalendarSyncService.kt (Score: 36.00 - 🔴 HIGH)
-- **Total Complexity**: 36
+### GoogleCalendarSyncService.kt (Score: 39.00 - 🔴 HIGH)
+- **Total Complexity**: 39
 - **Real Coverage**: 99.4%
 
 #### Methods list:
 | Method | Complexity |
 | :--- | :---: |
-| `getEvents` | 11 |
+| `getEvents` | 13 |
 | `syncEvent` | 5 |
 | `usableGoogleEventId` | 4 |
 | `listCalendars` | 3 |
 | `toCalendarException` | 2 |
 | `ensureSuccess` | 2 |
+| `decodeHtmlEntities` | 1 |
 | `<T> withToken` | 1 |
 | `createCalendar` | 1 |
 | `deleteEvent` | 1 |
-| `fetchEventsPage` | 1 |
+| *... and 1 more* | |
 
 ### EventAgent.kt (Score: 35.25 - 🔴 HIGH)
 - **Total Complexity**: 35
@@ -144,6 +145,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `generationCacheKey` | 1 |
 | `generateStudyPlan` | 1 |
 | `generateDeterministicId` | 1 |
+
+### Event.kt (Score: 28.02 - 🟡 MEDIUM)
+- **Total Complexity**: 28
+- **Real Coverage**: 96.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `overlaps` | 3 |
+| `Event.withSyncStatus` | 2 |
+| `Event.withCompletionStatus` | 2 |
+| `Event.withCategory` | 2 |
+| `Event.withUpdatedAt` | 2 |
+| `Event.withSourceId` | 2 |
+| `Event.validate` | 2 |
+| `overlaps` | 1 |
+| `overlaps` | 1 |
+| `Event.timeUntilDue` | 1 |
+| *... and 1 more* | |
 
 ### StudyPlanBuilder.kt (Score: 28.00 - 🟡 MEDIUM)
 - **Total Complexity**: 28
@@ -221,24 +241,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `postToModel` | 1 |
 | `<T> executeWithRetry` | 1 |
 | `<T> executeWithRetryInternal` | 1 |
-
-### Event.kt (Score: 26.02 - 🟡 MEDIUM)
-- **Total Complexity**: 26
-- **Real Coverage**: 96.8%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `overlaps` | 3 |
-| `Event.withSyncStatus` | 2 |
-| `Event.withCompletionStatus` | 2 |
-| `Event.withUpdatedAt` | 2 |
-| `Event.withSourceId` | 2 |
-| `Event.validate` | 2 |
-| `overlaps` | 1 |
-| `overlaps` | 1 |
-| `Event.timeUntilDue` | 1 |
-| `Event.studyProgress` | 1 |
 
 ### SqlDelightLocalCalendarRepository.kt (Score: 26.00 - 🟡 MEDIUM)
 - **Total Complexity**: 26
@@ -507,8 +509,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `findNextTimeSlot` | 1 |
 | `findTimeSlotOnDay` | 1 |
 
-### SyncNegotiationApplier.kt (Score: 18.00 - 🟡 MEDIUM)
-- **Total Complexity**: 18
+### SyncNegotiationApplier.kt (Score: 19.00 - 🟡 MEDIUM)
+- **Total Complexity**: 19
 - **Real Coverage**: 100.0%
 
 #### Methods list:

@@ -62,6 +62,37 @@ class SyncNegotiationApplierTest : FunSpec({
         coVerify(exactly = 1) { localRepo.hardDeleteEvent("exam-1", "default") }
     }
 
+    // ── churn / local-authoritative fields ────────────────────────────────────
+
+    test("no churn: a remote copy differing only in category/completion/timestamp is NOT re-applied") {
+        // Google never stores category/completion, so the pulled copy carries the REGULAR default
+        // and a newer server timestamp — but the content is the same, so nothing should be written.
+        val local = makeTimeEvent("e1", title = "Issue Brief #2 due", category = AcademicCategory.DEADLINE, updatedAt = 1L)
+        val remote = makeTimeEvent("e1", title = "Issue Brief #2 due", category = AcademicCategory.REGULAR, updatedAt = 999L)
+        coEvery { localRepo.getAllEvents(any()) } returns listOf(local)
+
+        val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger, prefMemoryRepo)
+        applier.apply(SyncNegotiation(emptyList(), listOf(remote), emptyList()), "default")
+
+        coVerify(exactly = 0) { localRepo.updateEvent(any(), any()) }
+    }
+
+    test("override preserves the local category (Google can't store it) instead of wiping it to REGULAR") {
+        val local = makeTimeEvent("e1", title = "Old title", category = AcademicCategory.DEADLINE, updatedAt = 1L)
+        val remote = makeTimeEvent("e1", title = "New title", category = AcademicCategory.REGULAR, updatedAt = 999L)
+        coEvery { localRepo.getAllEvents(any()) } returns listOf(local)
+
+        val applier = SyncNegotiationApplier(localRepo, remoteRepo, logger, prefMemoryRepo)
+        applier.apply(SyncNegotiation(emptyList(), listOf(remote), emptyList()), "default")
+
+        coVerify(exactly = 1) {
+            localRepo.updateEvent(
+                match { it.id == "e1" && it.title == "New title" && it.category == AcademicCategory.DEADLINE },
+                "default"
+            )
+        }
+    }
+
     test("apply logs DELETE override when deleted event is a STUDY_BLOCK") {
         val studyBlock = makeTimeEvent("sb-1", category = AcademicCategory.STUDY_BLOCK)
         coEvery { localRepo.getAllEvents(any()) } returns listOf(studyBlock)

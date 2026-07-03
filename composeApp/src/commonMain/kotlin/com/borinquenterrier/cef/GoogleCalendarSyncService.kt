@@ -26,6 +26,20 @@ import kotlinx.datetime.toLocalDateTime
 import kotlinx.serialization.Serializable
 
 /**
+ * Google's Calendar API returns `summary` with HTML entities encoded (e.g. `&amp;`, `&quot;`), but
+ * we store/push the decoded form. Decoding on pull keeps titles byte-identical to local so sync's
+ * content comparison matches and doesn't churn. `&amp;` is decoded last to avoid double-decoding
+ * sequences like `&amp;lt;`.
+ */
+internal fun decodeHtmlEntities(s: String): String = s
+    .replace("&lt;", "<")
+    .replace("&gt;", ">")
+    .replace("&quot;", "\"")
+    .replace("&#39;", "'")
+    .replace("&apos;", "'")
+    .replace("&amp;", "&")
+
+/**
  * Google Calendar API Event model for serialization.
  */
 @Serializable
@@ -247,7 +261,7 @@ class GoogleCalendarSyncService(
 
                     TimeEvent(
                         id = item.id,
-                        title = item.summary ?: "Untitled Event",
+                        title = item.summary?.let(::decodeHtmlEntities) ?: "Untitled Event",
                         source = EventSource.STUDENT,
                         date = startDt.date,
                         startTime = startDt.time,
@@ -260,7 +274,7 @@ class GoogleCalendarSyncService(
                         ?: return@mapNotNull null
                     DayEvent(
                         id = item.id,
-                        title = item.summary ?: "Untitled Event",
+                        title = item.summary?.let(::decodeHtmlEntities) ?: "Untitled Event",
                         source = EventSource.STUDENT,
                         date = LocalDate.parse(dateStr),
                         updatedAt = updatedAt

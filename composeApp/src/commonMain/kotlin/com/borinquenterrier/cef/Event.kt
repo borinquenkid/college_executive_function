@@ -141,6 +141,11 @@ fun Event.withCompletionStatus(status: CompletionStatus): Event = when (this) {
     is DayEvent -> copy(completionStatus = status)
 }
 
+fun Event.withCategory(category: AcademicCategory): Event = when (this) {
+    is TimeEvent -> copy(category = category)
+    is DayEvent -> copy(category = category)
+}
+
 fun Event.withUpdatedAt(timestamp: Long): Event = when (this) {
     is TimeEvent -> copy(updatedAt = timestamp)
     is DayEvent -> copy(updatedAt = timestamp)

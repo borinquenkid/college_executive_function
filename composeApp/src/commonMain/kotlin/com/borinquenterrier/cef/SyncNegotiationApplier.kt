@@ -61,14 +61,26 @@ class SyncNegotiationApplier(
                     "WARNING: Event '${remote.title}' (ID: ${remote.id}) has conflicting updates. Remote (updatedAt: ${remote.updatedAt}) overrides Local (updatedAt: ${local.updatedAt})."
                 )
             }
-            localRepo.updateEvent(remote.withSyncStatus(SyncStatus.SYNCED), calendarId)
+            // Google can't store category/completionStatus, so a pulled remote copy always carries
+            // meaningless defaults — preserve the local values when overriding so a deadline doesn't
+            // silently become REGULAR (and to avoid re-triggering the override next sync).
+            val merged = if (local != null) {
+                remote.withCategory(local.category).withCompletionStatus(local.completionStatus)
+            } else {
+                remote
+            }
+            localRepo.updateEvent(merged.withSyncStatus(SyncStatus.SYNCED), calendarId)
         }
     }
 
-    /** True when two events represent the same content (ignoring timestamps/sync metadata). */
+    /**
+     * True when two events represent the same content. Deliberately ignores category and
+     * completionStatus: Google never stores them, so a pulled remote event always reports the
+     * constructor defaults (REGULAR/INCOMPLETE) — comparing them made every non-REGULAR event look
+     * "changed" and churn forever. Those fields are local-authoritative and preserved on override.
+     */
     private fun contentEquals(a: Event, b: Event): Boolean =
-        a.title == b.title && a.date == b.date && a.category == b.category &&
-            a.completionStatus == b.completionStatus &&
+        a.title == b.title && a.date == b.date &&
             (a !is TimeEvent || b !is TimeEvent || (a.startTime == b.startTime && a.endTime == b.endTime))
 
     private suspend fun applyShiftedStudyBlocks(

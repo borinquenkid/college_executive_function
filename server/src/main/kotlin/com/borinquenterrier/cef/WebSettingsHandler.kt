@@ -9,14 +9,18 @@ import kotlinx.serialization.Serializable
 @Serializable
 data class WebSettings(
     val apiKey: String? = null,
+    val hasApiKey: Boolean = false,
     val studyPreferences: StudyPreferences? = null
 )
 
 object WebSettingsHandler {
     suspend fun handleGetSettings(call: ApplicationCall, container: DependencyContainer) {
-        val apiKey = container.settings.getString("CEF_GEMINI_API_KEY", "")
+        // apiKey is write-only from the client's perspective — the stored secret never
+        // round-trips back into the browser/JS layer. hasApiKey just tells the UI whether
+        // a key is already configured so it can render a masked placeholder.
+        val hasApiKey = container.settings.getString("CEF_GEMINI_API_KEY", "").isNotBlank()
         val prefs = container.preferencesRepository.getPreferences()
-        call.respond(WebSettings(apiKey = apiKey, studyPreferences = prefs))
+        call.respond(WebSettings(apiKey = null, hasApiKey = hasApiKey, studyPreferences = prefs))
     }
 
     suspend fun handleSaveSettings(call: ApplicationCall, container: DependencyContainer) {

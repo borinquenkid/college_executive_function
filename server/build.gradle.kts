@@ -24,10 +24,21 @@ dependencies {
     testImplementation(libs.mockk)
     testImplementation(libs.kotest.runner.junit5)
     testImplementation(libs.kotest.assertions.core)
+    testImplementation(libs.dotenv.kotlin)
 }
 
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
+    // Tests hitting the real Gemini API are excluded by default (real quota cost, need a
+    // configured key). Pass -PrunAITests=true to include them, matching the same flag
+    // composeApp uses for its own AI integration tests. Note: server's existing
+    // *IntegrationTest classes (e.g. WebIngestionIntegrationTest) are fully mocked and
+    // always run — only the *LiveIntegrationTest suffix opts into this exclusion.
+    if (!project.hasProperty("runAITests")) {
+        filter {
+            excludeTestsMatching("*LiveIntegrationTest*")
+        }
+    }
 }
 
 tasks.withType<AbstractCopyTask>().configureEach {

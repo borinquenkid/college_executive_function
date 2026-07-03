@@ -162,7 +162,8 @@ class WebIngestionIntegrationTest {
         val response = client.get("/api/settings")
         assertEquals(HttpStatusCode.OK, response.status)
         val body = response.bodyAsText()
-        assertTrue(body.contains("mocked-gemini-key"))
+        assertFalse(body.contains("mocked-gemini-key"), "the stored API key must never be sent to the client")
+        assertTrue(body.contains("\"hasApiKey\":true"))
         assertTrue(body.contains("studyStartHour"))
     }
 

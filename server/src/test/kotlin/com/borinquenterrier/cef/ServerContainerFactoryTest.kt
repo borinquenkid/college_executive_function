@@ -128,7 +128,9 @@ class StudentIdRoutingTest {
 
         val response = client.get("/api/settings")
         assertEquals(HttpStatusCode.OK, response.status)
-        assertTrue(response.bodyAsText().contains("default-key"))
+        val body = response.bodyAsText()
+        assertFalse(body.contains("default-key"), "the stored API key must never be sent to the client")
+        assertTrue(body.contains("\"hasApiKey\":true"))
     }
 }
 

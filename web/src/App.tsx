@@ -53,7 +53,11 @@ export default function App() {
   ]);
   
   // Settings State
+  // apiKey only ever holds text the user just typed in this session — the server
+  // never sends the stored key back to the client. hasApiKey reflects whether one
+  // is already configured server-side, so the UI can show that without the secret.
   const [apiKey, setApiKey] = useState('');
+  const [hasApiKey, setHasApiKey] = useState(false);
   const [preferences, setPreferences] = useState<StudyPreferences>({
     studyStartHour: 9,
     studyEndHour: 21,
@@ -65,7 +69,9 @@ export default function App() {
     preferredBreakMinutes: 30,
     shareAnonymousBugReports: false,
     googleCalendarId: 'default',
-    googleCalendarName: 'CEF Academic'
+    googleCalendarName: 'CEF Academic',
+    semesterStart: null,
+    semesterEnd: null
   });
 
   // Action/Loading States
@@ -159,7 +165,7 @@ export default function App() {
     try {
       const res = await fetch('/api/settings');
       const data = await res.json();
-      if (data.apiKey !== undefined) setApiKey(data.apiKey);
+      setHasApiKey(!!data.hasApiKey);
       if (data.studyPreferences) setPreferences(data.studyPreferences);
     } catch (e) {
       console.error('Failed to fetch settings:', e);
@@ -226,12 +232,20 @@ export default function App() {
 
   const saveSettings = async (newApiKey: string, newPrefs: StudyPreferences) => {
     try {
+      // Omit apiKey entirely when the field was left blank, so an empty input never
+      // overwrites a key already configured on the server.
+      const body: { apiKey?: string; studyPreferences: StudyPreferences } = { studyPreferences: newPrefs };
+      if (newApiKey.trim()) body.apiKey = newApiKey;
+
       await fetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ apiKey: newApiKey, studyPreferences: newPrefs })
+        body: JSON.stringify(body)
       });
-      setApiKey(newApiKey);
+      if (body.apiKey) {
+        setHasApiKey(true);
+        setApiKey('');
+      }
       setPreferences(newPrefs);
       alert('Settings updated successfully!');
     } catch (e) {
@@ -658,10 +672,10 @@ export default function App() {
             <div className="card" style={{ maxWidth: '600px' }}>
               <div className="form-group">
                 <label>Gemini API Key</label>
-                <input 
-                  type="password" 
-                  className="form-control" 
-                  placeholder="AI Studio API Key"
+                <input
+                  type="password"
+                  className="form-control"
+                  placeholder={hasApiKey ? '•••••••• (key configured — enter a new one to replace it)' : 'AI Studio API Key'}
                   value={apiKey}
                   onChange={e => setApiKey(e.target.value)}
                 />

@@ -14,6 +14,8 @@ export interface StudyPreferences {
   shareAnonymousBugReports: boolean;
   googleCalendarId: string;
   googleCalendarName: string;
+  semesterStart: string | null;
+  semesterEnd: string | null;
 }
 
 export interface RemoteCalendarMetadata {
@@ -23,6 +25,7 @@ export interface RemoteCalendarMetadata {
 
 export interface WebSettings {
   apiKey: string | null;
+  hasApiKey: boolean;
   studyPreferences: StudyPreferences | null;
 }
 

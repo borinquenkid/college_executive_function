@@ -7,6 +7,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Share
 import androidx.compose.material.icons.filled.Sync
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -25,7 +26,8 @@ fun AcademicCalendarHeader(
     isSyncing: Boolean,
     onNavigateRoutine: () -> Unit,
     onNavigateHome: () -> Unit,
-    onSync: () -> Unit
+    onSync: () -> Unit,
+    onExport: () -> Unit
 ) {
     Row(
         modifier = Modifier.fillMaxWidth().padding(horizontal = 16.dp, vertical = 8.dp),
@@ -55,6 +57,10 @@ fun AcademicCalendarHeader(
                 if (isSyncing) CircularProgressIndicator(modifier = Modifier.size(24.dp))
                 else Icon(Icons.Default.Sync, contentDescription = "Sync Now")
             }
+        }
+
+        IconButton(onClick = onExport) {
+            Icon(Icons.Default.Share, contentDescription = "Export Calendar to .ics")
         }
     }
 }

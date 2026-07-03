@@ -46,22 +46,34 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
 
     actual suspend fun login(): Pair<String, String?> =
         suspendCancellableCoroutine { continuation ->
+            val codeVerifier = Pkce.generateCodeVerifier()
+            val codeChallenge = Pkce.codeChallengeS256(codeVerifier)
+
             val authUrlString = "https://accounts.google.com/o/oauth2/v2/auth?" +
                     "client_id=$clientId&" +
                     "redirect_uri=$redirectUri&" +
                     "response_type=code&" +
                     "scope=${scope.replace(" ", "%20")}&" +
                     "access_type=offline&" +
-                    "prompt=consent"
+                    "prompt=consent&" +
+                    "code_challenge=$codeChallenge&" +
+                    "code_challenge_method=S256"
+
+            val authUrl = NSURL(string = authUrlString)
+            if (authUrl == null) {
+                continuation.resumeWithException(Exception("Failed to build Google auth URL"))
+                return@suspendCancellableCoroutine
+            }
 
             val session = ASWebAuthenticationSession(
-                uRL = NSURL(string = authUrlString)!!,
+                uRL = authUrl,
                 callbackURLScheme = "com.googleusercontent.apps.1014783111965-ttk2sf44ue2k97qjucvemqgmr15cjv3n",
                 completionHandler = { callbackUrl: NSURL?, error: NSError? ->
                     activeSession = null // Release reference
 
-                    if (callbackUrl != null) {
-                        val code = extractCode(callbackUrl.absoluteString()!!)
+                    val callbackString = callbackUrl?.absoluteString()
+                    if (callbackString != null) {
+                        val code = extractCode(callbackString)
                         if (code != null) {
                             GlobalScope.launch {
                                 try {
@@ -69,37 +81,52 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                                         code = code,
                                         clientId = clientId,
                                         clientSecret = null,
-                                        redirectUri = redirectUri
+                                        redirectUri = redirectUri,
+                                        codeVerifier = codeVerifier
                                     )
                                     tokenRepository.saveTokens(
                                         tokenResponse.access_token,
                                         tokenResponse.refresh_token
                                     )
-                                    continuation.resume(
-                                        Pair(
-                                            tokenResponse.access_token,
-                                            tokenResponse.refresh_token
+                                    if (continuation.isActive) {
+                                        continuation.resume(
+                                            Pair(
+                                                tokenResponse.access_token,
+                                                tokenResponse.refresh_token
+                                            )
                                         )
-                                    )
+                                    }
                                 } catch (e: Exception) {
-                                    continuation.resumeWithException(e)
+                                    if (continuation.isActive) continuation.resumeWithException(e)
                                 }
                             }
                         } else {
-                            continuation.resumeWithException(Exception("No code found in callback URL"))
+                            if (continuation.isActive) {
+                                continuation.resumeWithException(Exception("No code found in callback URL"))
+                            }
                         }
                     } else {
-                        continuation.resumeWithException(
-                            Exception(
-                                error?.localizedDescription ?: "User cancelled"
+                        if (continuation.isActive) {
+                            continuation.resumeWithException(
+                                Exception(
+                                    error?.localizedDescription ?: "User cancelled"
+                                )
                             )
-                        )
+                        }
                     }
                 }
             )
 
             session.presentationContextProvider = presentationProvider
             activeSession = session
+            // Ties the native session's lifetime to the coroutine: if login() is cancelled
+            // (e.g. the caller's scope is torn down while the auth sheet is still up), the
+            // session is dismissed instead of completing later and trying to resume an
+            // already-cancelled continuation (which would throw IllegalStateException).
+            continuation.invokeOnCancellation {
+                session.cancel()
+                activeSession = null
+            }
             session.start()
         }
 

@@ -3,8 +3,11 @@ package com.borinquenterrier.cef
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import com.borinquenterrier.cef.db.DriverFactory
+import okio.Path.Companion.toPath
+import platform.Foundation.NSDate
 import platform.Foundation.NSDocumentDirectory
 import platform.Foundation.NSFileManager
+import platform.Foundation.NSURL
 import platform.Foundation.NSUserDomainMask
 import kotlin.experimental.ExperimentalNativeApi
 
@@ -15,13 +18,15 @@ actual val isDebug: Boolean = Platform.isDebugBinary
 
 actual val platformName: String = "iOS"
 
+private fun documentsDirectoryUrl(): NSURL? =
+    NSFileManager.defaultManager
+        .URLsForDirectory(NSDocumentDirectory, NSUserDomainMask)
+        .firstOrNull() as? NSURL
+
 @Composable
 actual fun rememberModelDirectoryPath(): String {
     return remember {
-        val paths =
-            NSFileManager.defaultManager.URLsForDirectory(NSDocumentDirectory, NSUserDomainMask)
-        val documentsDirectory = paths.first() as platform.Foundation.NSURL
-        documentsDirectory.path ?: ""
+        documentsDirectoryUrl()?.path ?: ""
     }
 }
 
@@ -30,9 +35,37 @@ actual fun rememberDriverFactory(): DriverFactory {
     return remember { DriverFactory() }
 }
 
+// Caps the debug log file so it can't grow unbounded across a long-running session.
+private const val MAX_LOG_FILE_BYTES = 500_000
+private const val LOG_FILE_NAME = "cef_debug_log.txt"
+
+/**
+ * Persists debug log lines to a file under the app's Documents directory, retrievable via
+ * Xcode's Devices-and-Simulators container browser without needing a live debugger session —
+ * useful for diagnosing anything found on a shipped/TestFlight build. Previously this was a
+ * println-only stub despite the name (same gap exists on Android; out of scope here since
+ * this pass is iOS-exclusive).
+ *
+ * Uses Okio's FileSystem (the same one PlatformFileSystem.ios.kt and IcsExport.ios.kt already
+ * write through) rather than raw NSFileHandle/NSData, so there's one proven file-I/O path for
+ * this whole module instead of a second, less-exercised one. Rewrites the whole file per call
+ * rather than appending in place — simpler, and debug logging isn't a hot path.
+ */
 actual fun writeLogToFile(message: String) {
     if (!isDebug) return
-    // On iOS, we normally use NSLog or specialized file writers.
-    // For now, simple print is usually sufficient for debugging.
     println("iOS DEBUG FILE LOG: $message")
+
+    try {
+        val documentsPath = documentsDirectoryUrl()?.path ?: return
+        val path = "$documentsPath/$LOG_FILE_NAME".toPath()
+        val fileSystem = getFileSystem()
+
+        val existing = if (fileSystem.exists(path)) fileSystem.read(path) { readUtf8() } else ""
+        val updated = existing + "[${NSDate()}] $message\n"
+        val trimmed = if (updated.length > MAX_LOG_FILE_BYTES) updated.takeLast(MAX_LOG_FILE_BYTES) else updated
+
+        fileSystem.write(path, mustCreate = false) { writeUtf8(trimmed) }
+    } catch (e: Exception) {
+        println("[writeLogToFile] Failed to persist log line: ${e.message}")
+    }
 }

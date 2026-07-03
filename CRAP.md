@@ -9,14 +9,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 188
-- **High-Risk Files (CRAP > 30)**: 6
+- **Total Files Analyzed**: 192
+- **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
 | HttpOtelTracer.kt | 33 | 76.6% | 46.89 | 🔴 HIGH |
+| Inflate.kt | 44 | 97.7% | 44.02 | 🔴 HIGH |
 | EventDeduplicator.kt | 43 | 100.0% | 43.00 | 🔴 HIGH |
 | GoogleCalendarSyncService.kt | 39 | 99.4% | 39.00 | 🔴 HIGH |
 | EventAgent.kt | 35 | 94.1% | 35.25 | 🔴 HIGH |
@@ -30,7 +31,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRequestExecutor.kt | 27 | 100.0% | 27.00 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
 | AppContent.kt | 13 | 57.8% | 25.72 | 🟡 MEDIUM |
-| CalendarAgent.kt | 25 | 97.7% | 25.01 | 🟡 MEDIUM |
 
 ---
 
@@ -54,6 +54,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `setAttribute` | 1 |
 | `setAttribute` | 1 |
 | *... and 4 more* | |
+
+### Inflate.kt (Score: 44.02 - 🔴 HIGH)
+- **Total Complexity**: 44
+- **Real Coverage**: 97.7%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `readDynamicTables` | 5 |
+| `inflate` | 4 |
+| `decode` | 3 |
+| `readBitLsbFirst` | 3 |
+| `ensureCapacity` | 3 |
+| `inflateStored` | 2 |
+| `readBits` | 2 |
+| `alignToByte` | 2 |
+| `readAlignedByte` | 2 |
+| `copyFromDistance` | 2 |
+| *... and 5 more* | |
 
 ### EventDeduplicator.kt (Score: 43.00 - 🔴 HIGH)
 - **Total Complexity**: 43
@@ -561,6 +580,19 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `semesterFilter` | 1 |
 | `applyFilter` | 1 |
 | `isCacheStale` | 1 |
+
+### ZipReader.kt (Score: 14.06 - 🟢 LOW)
+- **Total Complexity**: 14
+- **Real Coverage**: 93.2%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `readEntry` | 4 |
+| `findEndOfCentralDirectory` | 4 |
+| `readUInt32` | 2 |
+| `extractLocalEntry` | 1 |
+| `readUInt16` | 1 |
 
 ### CalendarInterfaces.kt (Score: 14.00 - 🟢 LOW)
 - **Total Complexity**: 14
@@ -1175,6 +1207,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `filterBySyncStatus` | 2 |
 | `filterIncompleteBeforeDate` | 2 |
 
+### OAuthExchange.kt (Score: 7.00 - 🟢 LOW)
+- **Total Complexity**: 7
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `performTokenExchange` | 2 |
+| `exchangeCodeForTokens` | 1 |
+| `refreshAccessToken` | 1 |
+
 ### ResolvedEventWriter.kt (Score: 7.00 - 🟢 LOW)
 - **Total Complexity**: 7
 - **Real Coverage**: 100.0%
@@ -1295,17 +1338,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `getCached` | 1 |
 | `evict` | 1 |
-
-### OAuthExchange.kt (Score: 6.00 - 🟢 LOW)
-- **Total Complexity**: 6
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `performTokenExchange` | 2 |
-| `exchangeCodeForTokens` | 1 |
-| `refreshAccessToken` | 1 |
 
 ### StudyPlanGrounder.kt (Score: 6.00 - 🟢 LOW)
 - **Total Complexity**: 6
@@ -1990,6 +2022,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `resolve` | 2 |
 
+### Pkce.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `generateCodeVerifier` | 1 |
+| `codeChallengeS256` | 1 |
+
 ### PlatformUtils.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1
 - **Real Coverage**: 0.0%
@@ -1998,6 +2040,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `openBrowser` | 1 |
+
+### DocxContentExtractor.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `extractPlainText` | 2 |
 
 ### DependencyContainer.kt (Score: 1.13 - 🟢 LOW)
 - **Total Complexity**: 1

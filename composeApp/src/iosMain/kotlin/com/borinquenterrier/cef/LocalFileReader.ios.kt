@@ -38,12 +38,18 @@ actual class LocalFileReader {
 
     @OptIn(ExperimentalForeignApi::class)
     actual suspend fun readBytes(path: String): ByteArray = withContext(Dispatchers.Default) {
-        val url = NSURL(string = path) ?: return@withContext ByteArray(0)
-        val success = url.startAccessingSecurityScopedResource()
         try {
-            (NSData.dataWithContentsOfURL(url) ?: return@withContext ByteArray(0)).toByteArray()
-        } finally {
-            if (success) url.stopAccessingSecurityScopedResource()
+            val url = NSURL(string = path) ?: return@withContext ByteArray(0)
+            val success = url.startAccessingSecurityScopedResource()
+            try {
+                (NSData.dataWithContentsOfURL(url) ?: return@withContext ByteArray(0)).toByteArray()
+            } finally {
+                if (success) url.stopAccessingSecurityScopedResource()
+            }
+        } catch (e: Exception) {
+            // Matches readText()'s failure contract: never throw, fail to an empty/safe result
+            // instead of crashing the caller (e.g. IngestionAgent.readBytes -> normalizer.normalize).
+            ByteArray(0)
         }
     }
 

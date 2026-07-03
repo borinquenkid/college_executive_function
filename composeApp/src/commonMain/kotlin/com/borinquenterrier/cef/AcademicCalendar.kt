@@ -152,25 +152,33 @@ fun AcademicCalendar(
                     isSyncing = isSyncing,
                     onNavigateRoutine = { onNavigate(AppScreen.Routine) },
                     onNavigateHome = { onNavigate(AppScreen.Home) },
-                ) {
-                    scope.launch {
-                        isSyncing = true
-                        try {
-                            performCalendarSync(
-                                initiateSync = { syncManager.initiateSyncIfNeeded(it) },
-                                refreshEvents = { syncManager.refreshEvents() },
-                                forceSync = true,
-                                onNegotiation = { activeSyncNegotiation = it },
-                            ) {
-                                displayedEvents = it
+                    onSync = {
+                        scope.launch {
+                            isSyncing = true
+                            try {
+                                performCalendarSync(
+                                    initiateSync = { syncManager.initiateSyncIfNeeded(it) },
+                                    refreshEvents = { syncManager.refreshEvents() },
+                                    forceSync = true,
+                                    onNegotiation = { activeSyncNegotiation = it },
+                                ) {
+                                    displayedEvents = it
+                                }
+                            } catch (_: Exception) {
+                                // Auth errors already handled by GoogleTokenService.onAuthExpired.
+                            } finally {
+                                if (isSyncing) isSyncing = false
                             }
-                        } catch (_: Exception) {
-                            // Auth errors already handled by GoogleTokenService.onAuthExpired.
-                        } finally {
-                            if (isSyncing) isSyncing = false
+                        }
+                    },
+                    onExport = {
+                        scope.launch {
+                            val icsContent = generateIcsString(displayedEvents)
+                            val filePath = writeIcsFile(icsContent)
+                            eventAgent.updateStatus("Exported calendar: $filePath")
                         }
                     }
-                }
+                )
             }
 
             item {

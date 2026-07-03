@@ -24,7 +24,8 @@ class OAuthExchange(private val httpClient: HttpClient) {
         code: String,
         clientId: String,
         clientSecret: String?,
-        redirectUri: String
+        redirectUri: String,
+        codeVerifier: String? = null
     ): TokenResponse {
         return performTokenExchange(
             parameters {
@@ -34,6 +35,9 @@ class OAuthExchange(private val httpClient: HttpClient) {
                 append("grant_type", "authorization_code")
                 if (clientSecret != null) {
                     append("client_secret", clientSecret)
+                }
+                if (codeVerifier != null) {
+                    append("code_verifier", codeVerifier)
                 }
             }
         )

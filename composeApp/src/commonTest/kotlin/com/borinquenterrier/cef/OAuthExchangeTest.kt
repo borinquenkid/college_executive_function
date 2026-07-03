@@ -12,6 +12,7 @@ import io.ktor.utils.io.ByteReadChannel
 import kotlinx.coroutines.runBlocking
 import kotlin.test.Test
 import kotlin.test.assertEquals
+import kotlin.test.assertTrue
 
 class OAuthExchangeTest {
 
@@ -43,5 +44,35 @@ class OAuthExchangeTest {
 
         assertEquals("mock-token", response.access_token)
         assertEquals(3600, response.expires_in)
+    }
+
+    @Test
+    fun `exchangeCodeForTokens includes code_verifier when provided (PKCE)`() = runBlocking {
+        var capturedBody = ""
+        val mockEngine = MockEngine { request ->
+            capturedBody = (request.body as io.ktor.client.request.forms.FormDataContent)
+                .formData.entries().joinToString("&") { (k, v) -> "$k=$v" }
+            respond(
+                content = ByteReadChannel("""{"access_token":"mock-token","expires_in":3600}"""),
+                status = HttpStatusCode.OK,
+                headers = headersOf(HttpHeaders.ContentType, "application/json")
+            )
+        }
+        val client = HttpClient(mockEngine) {
+            install(io.ktor.client.plugins.contentnegotiation.ContentNegotiation) {
+                json(kotlinx.serialization.json.Json { ignoreUnknownKeys = true })
+            }
+        }
+        val oauthExchange = OAuthExchange(client)
+
+        oauthExchange.exchangeCodeForTokens(
+            code = "test-code",
+            clientId = "test-id",
+            clientSecret = null,
+            redirectUri = "test-uri",
+            codeVerifier = "test-verifier"
+        )
+
+        assertTrue(capturedBody.contains("code_verifier=[test-verifier]"), "expected code_verifier in request body, got: $capturedBody")
     }
 }

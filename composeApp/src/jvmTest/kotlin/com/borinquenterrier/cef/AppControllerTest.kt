@@ -4,8 +4,10 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import kotlin.time.Duration.Companion.seconds
 import io.kotest.matchers.shouldNotBe
 import io.mockk.coEvery
 import io.mockk.coVerify
@@ -360,7 +362,9 @@ class AppControllerTest : FunSpec({
         val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
         AppController(container, scope) // fires during construction
 
-        coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+        // The retry is the 3rd of several init coroutines on the scope; wait for it rather than
+        // assuming it has run synchronously (that assumption made this test flaky under CI load).
+        eventually(3.seconds) { coVerify(exactly = 1) { calendarAgent.retryLocalOnly() } }
         scope.cancel()
     }
 
@@ -382,7 +386,7 @@ class AppControllerTest : FunSpec({
         linkedFlow.value = false
         linkedFlow.value = true
 
-        coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+        eventually(3.seconds) { coVerify(exactly = 1) { calendarAgent.retryLocalOnly() } }
         scope.cancel()
     }
 })

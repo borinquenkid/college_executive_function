@@ -90,39 +90,7 @@ To enable Calendar sync and file import capabilities:
 
 ## Server & Web Client (Ktor + React)
 
-Alongside the Android/iOS/Desktop apps, [/server](./server) is a Ktor backend and [/web](./web) is a React frontend for it. See [SPEC.md](SPEC.md) for the API/protocol design and [docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md](docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md) for the multi-tenancy/deployment architecture.
-
-### Local Development
-
-Run both, in separate terminals:
-
-```shell
-./gradlew :server:run          # Ktor backend on :8080
-```
-
-```shell
-cd web
-npm install                    # first run only
-npm run dev                    # Vite dev server on :5173, proxies /api to :8080
-```
-
-Open the URL Vite prints (typically `http://localhost:5173`). No env vars are required to boot — the server lazily creates a per-tenant SQLite database on first request. Set the Gemini API key through the app's **Settings** page (`POST /api/settings`) once it's running; it is never read from `.env` in production (see `ServerContainerFactory`).
-
-Requests are routed to a tenant by an `X-Student-ID` header (defaults to `"default"` when absent — that's what the dev Vite proxy and a plain `curl` without the header will hit).
-
-### Production Deployment (Docker)
-
-```shell
-docker compose up -d --build server web
-```
-
-This builds and runs two containers (see `server/Dockerfile`, `web/Dockerfile`, `docker-compose.yml`):
-- **`server`**: the Ktor backend (a `shadowJar` fat jar), with tenant SQLite databases written to a named volume (`tenant-data`) mounted at `/data/tenants`.
-- **`web`**: the built React app served by nginx, which reverse-proxies `/api/*` (including the `/api/agent/stream` SSE endpoint) to `server`.
-
-By default the web client is reachable at `http://localhost` (port 80). `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` are read from the root `.env` if present (needed only to refresh already-linked Google tokens — see the Google Cloud Console setup above). As in local dev, **no Gemini key is baked into the image or auto-imported into any tenant** — each tenant sets their own via the Settings page after the stack is up.
-
-For a real production rollout, put a TLS-terminating reverse proxy (Caddy, Traefik, or your cloud load balancer) in front of the `web` container — this compose file does not set up HTTPS itself.
+Alongside the Android/iOS/Desktop apps, [/server](./server) is a Ktor backend and [/web](./web) is a React frontend for it — the pieces a college runs themselves to host CEF for their own students. See [DEPLOYMENT.md](DEPLOYMENT.md) for local dev setup, production deployment (Docker), and maintenance (backups, vacuuming). See [SPEC.md](SPEC.md) for the API/protocol design and [docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md](docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md) for the multi-tenancy architecture.
 
 ---
 

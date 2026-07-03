@@ -3,6 +3,8 @@
 ## Status
 Accepted
 
+See [DEPLOYMENT.md](../../DEPLOYMENT.md) for the practical how-to (local dev, Docker production, backups/maintenance) — this document covers the design decision and alternatives considered.
+
 ## Context
 The Phase 4 work (`TenantDatabaseFactory`, `TenantConnectionCache`, `TenantSettingsFactory`, `TenantMigrationRunner`, Litestream backup runner) built a full database-per-student sharding layer, but two things were still missing:
 

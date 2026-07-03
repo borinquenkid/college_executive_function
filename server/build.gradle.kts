@@ -54,3 +54,15 @@ tasks.register<JavaExec>("generateTypescript") {
     args(rootProject.projectDir.resolve("web/src").absolutePath)
 }
 
+tasks.register<JavaExec>("vacuumBackup") {
+    group = "maintenance"
+    description = "VACUUM INTO snapshot backup of every tenant SQLite database. " +
+        "Reads CEF_TENANT_BASE_DIR / CEF_BACKUP_DIR, or pass them as -Ptenant= -Pbackup=. See DEPLOYMENT.md."
+    dependsOn("classes")
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.borinquenterrier.cef.BackupCliKt")
+    project.findProperty("tenant")?.let { tenantDir -> project.findProperty("backup")?.let { backupDir ->
+        args(tenantDir, backupDir)
+    } }
+}
+

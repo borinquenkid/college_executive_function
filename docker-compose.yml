@@ -22,16 +22,22 @@ services:
   # Deliberately NOT set here: CEF_GEMINI_API_KEY. Each tenant configures their own
   # Gemini key via POST /api/settings after the stack is up — the server never
   # auto-imports the operator's key into a tenant (see ServerContainerFactory).
+  #
+  # Backups run automatically (see ScheduledBackupJob) — no host cron needed. Disable by
+  # removing CEF_BACKUP_DIR; change frequency with CEF_BACKUP_INTERVAL_HOURS.
   server:
     build:
       context: .
       dockerfile: server/Dockerfile
     environment:
       - CEF_TENANT_BASE_DIR=/data/tenants
+      - CEF_BACKUP_DIR=/data/backups
+      - CEF_BACKUP_INTERVAL_HOURS=${CEF_BACKUP_INTERVAL_HOURS:-24}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
     volumes:
       - tenant-data:/data/tenants
+      - tenant-backups:/data/backups
     restart: unless-stopped
 
   web:
@@ -46,3 +52,4 @@ services:
 volumes:
   openobserve-data:
   tenant-data:
+  tenant-backups:

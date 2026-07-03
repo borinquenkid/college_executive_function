@@ -10,11 +10,29 @@ import io.ktor.server.routing.*
 import io.ktor.utils.io.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.delay
+import java.io.File
 
 fun main() {
+    startScheduledBackupIfConfigured()
     embeddedServer(Netty, port = SERVER_PORT, host = "0.0.0.0", module = Application::module)
         .start(wait = true)
+}
+
+/** Out-of-the-box backups: set CEF_BACKUP_DIR to enable, no host cron required.
+ *  See DEPLOYMENT.md. */
+private fun startScheduledBackupIfConfigured() {
+    val backupDir = System.getenv("CEF_BACKUP_DIR") ?: return
+    val tenantBaseDir = System.getenv("CEF_TENANT_BASE_DIR")
+        ?: File(System.getProperty("user.home"), ".cef/tenants").absolutePath
+    val intervalHours = System.getenv("CEF_BACKUP_INTERVAL_HOURS")?.toLongOrNull() ?: 24L
+
+    val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+    ScheduledBackupJob(tenantBaseDir, backupDir, intervalHours).start(scope)
+    println("[main] Scheduled backups enabled: every ${intervalHours}h to $backupDir")
 }
 
 suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> {

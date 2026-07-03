@@ -8,6 +8,26 @@ See [SPEC.md](SPEC.md) for the API/protocol design and
 [docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md](docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md)
 for the multi-tenancy architecture this deployment shape is built around.
 
+## Quick Start (IT Staff — No Programming Required)
+
+1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) if you don't have it, and make sure it's running.
+2. Download or `git clone` this repository.
+3. Open a terminal in the repository folder and run:
+   ```shell
+   ./scripts/setup-college-server.sh
+   ```
+
+That's it. The script checks that Docker is installed, creates a `.env` file if you don't have one (Google
+Calendar sync fields are optional — leave them blank to skip that feature for now), builds and starts the
+server and web client, and waits until the server responds before printing a "done" message with the web
+address to open.
+
+Backups run automatically every 24 hours — nothing to configure. To update to a newer version later, run
+`git pull` then re-run the same script; it rebuilds and restarts in place without touching student data.
+
+The rest of this document explains what that script does under the hood, and covers maintenance
+(backups/restore) and things that aren't set up yet (Litestream, per-tenant Google OAuth).
+
 ## Local Development
 
 Run both, in separate terminals:
@@ -52,30 +72,43 @@ balancer) in front of the `web` container — this compose file does not set up 
 
 ## Maintenance
 
-### Backups (VACUUM INTO snapshots)
+### Backups (VACUUM INTO snapshots) — automatic, no setup required
 
-`VacuumBackupRunner` walks the tenant volume and runs SQLite's `VACUUM INTO` on every tenant database,
-producing a consistent, compacted snapshot copy — safe to run against live databases (VACUUM INTO doesn't
-lock out readers/writers the way a full VACUUM does). It's exposed via a small CLI entrypoint, `BackupCli.kt`,
-built into the same `server-all.jar` already running in the container:
+`docker-compose.yml` runs the server with `CEF_BACKUP_DIR=/data/backups` and
+`CEF_BACKUP_INTERVAL_HOURS=24` set. `ScheduledBackupJob` (started from `main()`) runs immediately at
+startup and then on that interval for as long as the container is alive — no host cron, no manual step.
+Each run walks the tenant volume and runs SQLite's `VACUUM INTO` on every tenant database, producing a
+consistent, compacted snapshot copy in a *separate* named volume (`tenant-backups`, distinct from
+`tenant-data`) — safe to run against live databases (`VACUUM INTO` doesn't lock out readers/writers the
+way a full `VACUUM` does).
 
+Check it's running:
 ```shell
-# One-off, against a running container:
-docker exec <server-container> mkdir -p /data/backups
-docker exec <server-container> java -cp server.jar com.borinquenterrier.cef.BackupCliKt /data/tenants /data/backups
-
-# Or from a bare-metal / Gradle checkout:
-./gradlew :server:vacuumBackup -Ptenant=/path/to/tenants -Pbackup=/path/to/backups
+docker compose logs server | grep ScheduledBackupJob
 ```
+You should see a line like `[ScheduledBackupJob] Backed up N tenant database(s) to /data/backups (0 failure(s))`
+once at startup and again every `CEF_BACKUP_INTERVAL_HOURS`. Change the frequency by setting
+`CEF_BACKUP_INTERVAL_HOURS` in your `.env`; disable it entirely by removing `CEF_BACKUP_DIR` from
+`docker-compose.yml`.
 
-Prints a summary line (`Vacuumed N tenant database(s) into <dir> (M failure(s))`) and exits non-zero if any
-tenant's backup failed, so it's safe to wire into a cron job or CI health check. To restore a tenant, stop the
-server, copy the relevant `<studentId>.db` file from the backup dir back into its hash-partitioned path under
-`/data/tenants` (`<md5-hash-first-2-chars>/<next-2-chars>/<studentId>.db`), and restart.
+**Off-host copies:** the `tenant-backups` volume protects against corruption or an accidental delete of
+`tenant-data`, but it's still on the same Docker host — for protection against a full host/disk failure,
+periodically copy the `tenant-backups` volume's contents to wherever your institution already does backups
+(network share, cloud storage, tape, whatever you use today). That copy step isn't automated here; it's a
+plain directory of `.db` files, so any file-based backup tool works.
 
-Recommended: a daily cron entry (host-level, or inside the container if you add cron there) calling the
-`docker exec` form above, writing to a *separate* volume or bind mount from `tenant-data` — backing up onto
-the same volume you're backing up doesn't protect against a volume-level failure.
+**To restore a tenant:** stop the server, copy the relevant `<studentId>.db` file from `tenant-backups` back
+into its hash-partitioned path under `/data/tenants` (`<md5-hash-first-2-chars>/<next-2-chars>/<studentId>.db`
+— or just overwrite the same relative path in the volume), and restart.
+
+**Running a backup manually** (e.g. right before a risky change, rather than waiting for the schedule):
+```shell
+docker exec <server-container> java -cp server.jar com.borinquenterrier.cef.BackupCliKt /data/tenants /data/backups
+```
+or, from a bare-metal/Gradle checkout: `./gradlew :server:vacuumBackup -Ptenant=/path/to/tenants -Pbackup=/path/to/backups`.
+This is the same `BackupCli.kt` entrypoint the scheduled job calls internally; it prints a summary and exits
+non-zero on any failure, so it's also usable from your own tooling/health checks if you'd rather not rely on
+the built-in scheduler.
 
 ### Continuous replication (Litestream) — config generation only
 
@@ -84,8 +117,8 @@ for every `.db` file you pass it, for continuous point-in-time WAL replication r
 This generator is implemented and tested, but **the Litestream binary itself is not part of the Docker image or
 compose file** — to actually use it, add a `litestream` sidecar container (or install the binary in the
 `server` image) pointed at a config generated by this class, mounted read-only into the same `tenant-data`
-volume. Treat the VACUUM INTO backups above as the baseline; Litestream is the upgrade path if you need
-tighter recovery-point objectives than "however often you run the cron job."
+volume. Treat the automatic VACUUM INTO backups above as the baseline; Litestream is the upgrade path if you
+need tighter recovery-point objectives than "up to `CEF_BACKUP_INTERVAL_HOURS` of data since the last snapshot."
 
 ### Schema migrations across tenants
 

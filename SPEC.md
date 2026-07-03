@@ -104,6 +104,9 @@ To support sources management, settings persistence, and calendar synchronizatio
 * **`DELETE /api/sources/{id}`**: Deletes a source by its title (which acts as the source ID) and cleans up associated calendar events.
 * **`GET /api/events`**: Returns the list of active calendar events from the local calendar database.
 * **`POST /api/events/sync`**: Forces a two-way synchronization between the local repository and the remote provider.
-* **`GET /api/settings`**: Returns the active system settings: `{ "apiKey": "...", "studyPreferences": { ... } }`.
-* **`POST /api/settings`**: Saves the Gemini API Key and/or study preferences.
+* **`GET /api/settings`**: Returns the active system settings: `{ "apiKey": null, "hasApiKey": boolean, "studyPreferences": { ... } }`. The stored Gemini key never round-trips back to the client — `apiKey` is always `null` in the response; `hasApiKey` just tells the UI whether one is configured.
+* **`POST /api/settings`**: Saves the Gemini API Key (if `apiKey` is present in the body — omit it to leave an existing key untouched) and/or study preferences.
+
+### 4.4 Multi-Tenancy
+Every endpoint above resolves to a per-student `DependencyContainer` based on an `X-Student-ID` request header (defaults to `"default"` when absent). The header is validated against `^[A-Za-z0-9_-]{1,128}$`; anything else returns `400 Bad Request`. Each student's data lives in an isolated, hash-partitioned SQLite database — see [docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md](docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md) for the storage design and Docker deployment shape.
 

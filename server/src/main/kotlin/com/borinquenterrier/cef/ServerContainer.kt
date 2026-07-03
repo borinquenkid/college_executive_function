@@ -1,16 +1,14 @@
 package com.borinquenterrier.cef
 
 import java.io.File
-import kotlinx.coroutines.runBlocking
 
 object ServerContainer {
     private val factory by lazy {
-        val tenantBaseDir = File(System.getProperty("user.home"), ".cef/tenants").absolutePath
+        // Defaults to a path under the operator's home dir for bare local runs; Docker
+        // deployments set this to the mounted tenant-data volume (see docs/adr/0002).
+        val tenantBaseDir = System.getenv("CEF_TENANT_BASE_DIR")
+            ?: File(System.getProperty("user.home"), ".cef/tenants").absolutePath
         ServerContainerFactory(tenantBaseDir = tenantBaseDir)
-    }
-
-    val container: DependencyContainer by lazy {
-        runBlocking { factory.containerFor("default") }
     }
 
     suspend fun containerFor(studentId: String): DependencyContainer =

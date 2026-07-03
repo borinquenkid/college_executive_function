@@ -132,6 +132,63 @@ class StudentIdRoutingTest {
         assertFalse(body.contains("default-key"), "the stored API key must never be sent to the client")
         assertTrue(body.contains("\"hasApiKey\":true"))
     }
+
+    @Test
+    fun `two students hitting the real route with different X-Student-ID headers get isolated settings`() = runBlocking {
+        val baseDir = Files.createTempDirectory("cef-route-isolation-test").toFile()
+        try {
+            val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
+            factory.containerFor("alice").settings.putString("CEF_GEMINI_API_KEY", "alice-key")
+            factory.containerFor("bob").settings.putString("GOOGLE_ACCESS_TOKEN", "bob-token")
+
+            testApplication {
+                application { module(containerFactory = { studentId -> factory.containerFor(studentId) }) }
+
+                val aliceResponse = client.get("/api/settings") { header("X-Student-ID", "alice") }
+                assertTrue(aliceResponse.bodyAsText().contains("\"hasApiKey\":true"))
+
+                val bobResponse = client.get("/api/settings") { header("X-Student-ID", "bob") }
+                assertFalse(bobResponse.bodyAsText().contains("\"hasApiKey\":true"))
+            }
+        } finally {
+            baseDir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `absent X-Student-ID header routes to the default tenant`() = runBlocking {
+        val baseDir = Files.createTempDirectory("cef-route-default-test").toFile()
+        try {
+            val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
+            factory.containerFor("default").settings.putString("CEF_GEMINI_API_KEY", "default-key")
+
+            testApplication {
+                application { module(containerFactory = { studentId -> factory.containerFor(studentId) }) }
+
+                val response = client.get("/api/settings")
+                assertTrue(response.bodyAsText().contains("\"hasApiKey\":true"))
+            }
+        } finally {
+            baseDir.deleteRecursively()
+        }
+    }
+
+    @Test
+    fun `X-Student-ID header with path-traversal characters is rejected`() = runBlocking {
+        val baseDir = Files.createTempDirectory("cef-route-traversal-test").toFile()
+        try {
+            val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
+
+            testApplication {
+                application { module(containerFactory = { studentId -> factory.containerFor(studentId) }) }
+
+                val response = client.get("/api/settings") { header("X-Student-ID", "../../../etc/passwd") }
+                assertEquals(HttpStatusCode.BadRequest, response.status)
+            }
+        } finally {
+            baseDir.deleteRecursively()
+        }
+    }
 }
 
 // ── helpers ───────────────────────────────────────────────────────────────────

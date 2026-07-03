@@ -1,0 +1,28 @@
+# Secrets — never bake these into an image layer
+.env
+.env.*
+*.jks
+*.keystore
+local.properties
+
+# Build outputs (rebuilt inside the image; copying them in wastes cache + build time)
+.gradle
+**/build/
+.kotlin
+web/node_modules/
+web/dist/
+
+# Platform tooling not needed to build the JVM server
+xcuserdata
+*.xcodeproj/
+*.xcworkspace/
+.externalNativeBuild
+.cxx
+
+# Misc
+.git
+.idea
+.DS_Store
+*.log
+models/
+*.gguf

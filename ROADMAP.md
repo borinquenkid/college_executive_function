@@ -291,16 +291,18 @@ Implement the missing REST endpoints on the Ktor server to support the React web
 
 ---
 
-### Phase 4 — Multi-Tenant Institutional Scaling (ADR 0002 & ADR 0003)
-Implement the database-per-student, connection caching, Litestream replication, and async worker pool architectures accepted in ADR 0002 and ADR 0003.
-* **Status**: ⏳ Planned
+### Phase 4 — Multi-Tenant Institutional Scaling ([ADR 0002](docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md)) ✅ **COMPLETED**
+Implement the database-per-student, connection caching, Litestream replication, and async worker pool architecture, then actually wire it into the live server and give it a deployment story.
+* **Status**: ✅ Completed
 * **Tasks**:
   1. ✅ Implement hashed database-per-student sharding and an LRU connection cache to prevent handle leaks.
   2. ✅ Isolate student settings and Google OAuth tokens in their sharded SQLite database files instead of a global shared JVM preference store.
   3. ✅ Create a coroutine-based async ingest worker pool to isolate document parsing and vector indexing from the main HTTP thread pool.
-  4. Wire `ServerContainer` to use `TenantSettingsFactory` instead of the global `PreferencesSettings` instance.
-  5. Set up Litestream parameters and nightly compacted snapshot backups (`VACUUM INTO`).
-  6. Implement an automated multi-database schema migration runner to run upgrades across all active tenant files.
+  4. ✅ Wire `ServerContainer` to use `TenantSettingsFactory` instead of the global `PreferencesSettings` instance.
+  5. ✅ Set up Litestream parameters and nightly compacted snapshot backups (`VACUUM INTO`).
+  6. ✅ Implement an automated multi-database schema migration runner to run upgrades across all active tenant files.
+  7. ✅ Wire `X-Student-ID`-based tenant resolution into every live HTTP route in `Application.kt` (previously only reachable via direct test construction) — validated against path-traversal via `^[A-Za-z0-9_-]{1,128}$` before it reaches any file-path-building code.
+  8. ✅ Give the server + web client a real deployment story: `server/Dockerfile`, `web/Dockerfile`, `docker-compose.yml`, one mounted volume with the existing hash-partitioned tenant storage. See ADR 0002.
 
 ---
 

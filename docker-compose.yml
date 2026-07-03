@@ -12,5 +12,37 @@ services:
     volumes:
       - openobserve-data:/data
 
+  # Production deployment of the Ktor server + React web client.
+  # See docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md for the design.
+  #
+  # GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET come from the root .env (Compose auto-loads
+  # it for ${...} substitution) — the same values the desktop app's OAuth flow uses,
+  # needed here only to refresh already-linked Google tokens.
+  #
+  # Deliberately NOT set here: CEF_GEMINI_API_KEY. Each tenant configures their own
+  # Gemini key via POST /api/settings after the stack is up — the server never
+  # auto-imports the operator's key into a tenant (see ServerContainerFactory).
+  server:
+    build:
+      context: .
+      dockerfile: server/Dockerfile
+    environment:
+      - CEF_TENANT_BASE_DIR=/data/tenants
+      - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
+      - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+    volumes:
+      - tenant-data:/data/tenants
+    restart: unless-stopped
+
+  web:
+    build:
+      context: ./web
+    ports:
+      - "80:80"
+    depends_on:
+      - server
+    restart: unless-stopped
+
 volumes:
   openobserve-data:
+  tenant-data:

@@ -46,9 +46,29 @@ suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> 
     }
 }
 
-fun Application.module(testContainer: DependencyContainer? = null) {
-    val getContainer = {
-        testContainer ?: ServerContainer.container
+/** Matches the tenant-directory naming TenantDatabaseFactory/TenantConnectionCache build file
+ *  paths from. Rejecting anything else here — before a studentId ever reaches those factories —
+ *  is what stops a crafted X-Student-ID header (e.g. "../../../etc/passwd") from escaping the
+ *  tenant data mount via path traversal. */
+private val studentIdPattern = Regex("^[A-Za-z0-9_-]{1,128}$")
+
+private suspend fun ApplicationCall.resolveStudentId(): String? {
+    val header = request.headers["X-Student-ID"]?.takeIf { it.isNotBlank() } ?: return "default"
+    if (!studentIdPattern.matches(header)) {
+        respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid X-Student-ID header"))
+        return null
+    }
+    return header
+}
+
+fun Application.module(
+    testContainer: DependencyContainer? = null,
+    containerFactory: suspend (String) -> DependencyContainer = { studentId -> ServerContainer.containerFor(studentId) }
+) {
+    suspend fun resolveContainer(call: ApplicationCall): DependencyContainer? {
+        testContainer?.let { return it }
+        val studentId = call.resolveStudentId() ?: return null
+        return containerFactory(studentId)
     }
 
     install(ContentNegotiation) {
@@ -61,51 +81,61 @@ fun Application.module(testContainer: DependencyContainer? = null) {
         }
 
         get("/api/sources") {
-            WebIngestionController.handleGetSources(call, getContainer())
+            val container = resolveContainer(call) ?: return@get
+            WebIngestionController.handleGetSources(call, container)
         }
 
         post("/api/sources") {
-            WebIngestionController.handlePostSource(call, getContainer())
+            val container = resolveContainer(call) ?: return@post
+            WebIngestionController.handlePostSource(call, container)
         }
 
         delete("/api/sources/{id}") {
+            val container = resolveContainer(call) ?: return@delete
             val id = call.parameters["id"] ?: ""
-            WebIngestionController.handleDeleteSource(call, id, getContainer())
+            WebIngestionController.handleDeleteSource(call, id, container)
         }
 
         get("/api/events") {
-            WebIngestionController.handleGetEvents(call, getContainer())
+            val container = resolveContainer(call) ?: return@get
+            WebIngestionController.handleGetEvents(call, container)
         }
 
         post("/api/events/sync") {
-            WebIngestionController.handleSyncEvents(call, getContainer())
+            val container = resolveContainer(call) ?: return@post
+            WebIngestionController.handleSyncEvents(call, container)
         }
 
         get("/api/settings") {
-            WebIngestionController.handleGetSettings(call, getContainer())
+            val container = resolveContainer(call) ?: return@get
+            WebIngestionController.handleGetSettings(call, container)
         }
 
         post("/api/settings") {
-            WebIngestionController.handleSaveSettings(call, getContainer())
+            val container = resolveContainer(call) ?: return@post
+            WebIngestionController.handleSaveSettings(call, container)
         }
 
         get("/api/auth/google/status") {
-            WebIngestionController.handleGetGoogleAuthStatus(call, getContainer())
+            val container = resolveContainer(call) ?: return@get
+            WebIngestionController.handleGetGoogleAuthStatus(call, container)
         }
 
         get("/api/calendars") {
-            WebIngestionController.handleGetCalendars(call, getContainer())
+            val container = resolveContainer(call) ?: return@get
+            WebIngestionController.handleGetCalendars(call, container)
         }
 
         post("/api/calendars") {
-            WebIngestionController.handleCreateCalendar(call, getContainer())
+            val container = resolveContainer(call) ?: return@post
+            WebIngestionController.handleCreateCalendar(call, container)
         }
 
-        
         get("/api/agent/stream") {
+            val container = resolveContainer(call) ?: return@get
             val query = call.request.queryParameters["query"] ?: ""
             call.response.cacheControl(io.ktor.http.CacheControl.NoCache(null))
-            
+
             call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
                 try {
                     // 1. RUN_STARTED
@@ -126,7 +156,6 @@ fun Application.module(testContainer: DependencyContainer? = null) {
                     delay(50)
                     
                     // Invoke KMP RAG query logic (either mocked or real)
-                    val container = getContainer()
                     val sources = getAllSourceItems(container)
                     val responseText = try {
                         container.contextAgent.queryAllSources(sources, emptyList(), query)

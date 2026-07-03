@@ -8,7 +8,7 @@ import java.sql.SQLException
 actual open class DriverFactory(val dbFile: File? = null) {
     actual open fun createDriver(): SqlDriver {
         val databaseFile = dbFile ?: File(System.getProperty("user.home"), ".cef/cef.db")
-        val exists = databaseFile.exists()
+        val exists = databaseFile.exists() && databaseFile.length() > 0
 
         if (!databaseFile.parentFile.exists()) {
             databaseFile.parentFile.mkdirs()

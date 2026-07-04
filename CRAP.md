@@ -9,14 +9,14 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 183
+- **Total Files Analyzed**: 185
 - **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
 
 | File | Complexity | Real Coverage | CRAP Index | Risk Status |
 | :--- | :---: | :---: | :---: | :---: |
-| HttpOtelTracer.kt | 33 | 76.6% | 46.89 | 🔴 HIGH |
+| HttpOtelTracer.kt | 31 | 74.7% | 46.48 | 🔴 HIGH |
 | Inflate.kt | 44 | 97.7% | 44.02 | 🔴 HIGH |
 | EventDeduplicator.kt | 43 | 100.0% | 43.00 | 🔴 HIGH |
 | GoogleCalendarSyncService.kt | 39 | 99.4% | 39.00 | 🔴 HIGH |
@@ -36,9 +36,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ## Detailed File Breakdown
 
-### HttpOtelTracer.kt (Score: 46.89 - 🔴 HIGH)
-- **Total Complexity**: 33
-- **Real Coverage**: 76.6%
+### HttpOtelTracer.kt (Score: 46.48 - 🔴 HIGH)
+- **Total Complexity**: 31
+- **Real Coverage**: 74.7%
 
 #### Methods list:
 | Method | Complexity |
@@ -53,7 +53,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `buildJson` | 1 |
 | `setAttribute` | 1 |
 | `setAttribute` | 1 |
-| *... and 4 more* | |
+| *... and 2 more* | |
 
 ### Inflate.kt (Score: 44.02 - 🔴 HIGH)
 - **Total Complexity**: 44
@@ -311,9 +311,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `parseClockTime` | 1 |
 | `stripCodeFences` | 1 |
 
-### CriticActorAIService.kt (Score: 23.89 - 🟡 MEDIUM)
+### CriticActorAIService.kt (Score: 23.81 - 🟡 MEDIUM)
 - **Total Complexity**: 23
-- **Real Coverage**: 88.1%
+- **Real Coverage**: 88.5%
 
 #### Methods list:
 | Method | Complexity |
@@ -1870,6 +1870,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | :--- | :---: |
 | `resolve` | 2 |
 
+### JsonEncoding.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `String.escapeJsonString` | 1 |
+| `randomHexId` | 1 |
+
 ### DirectoryPreferencesManager.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 2
 - **Real Coverage**: 100.0%
@@ -1893,6 +1903,16 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Total Complexity**: 1
 - **Real Coverage**: 0.0%
 
+
+### CriticProgress.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `interface CriticProgressListener {` | 1 |
+| `reportCriticProgress` | 1 |
 
 ### AiEventsService.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 2

@@ -150,7 +150,9 @@ class CriticActorAIService(
     }
 
     override suspend fun generateChatResponse(prompt: String): String {
+        reportCriticProgress(CriticPhase.ACTOR_START)
         val firstPass = delegate.generateChatResponse(prompt)
+        reportCriticProgress(CriticPhase.ACTOR_DONE)
         if (firstPass.isBlank() || firstPass.startsWith("Error:")) return firstPass
 
         // If the prompt is a critique prompt itself, do not critique it (prevent infinite recursion!)
@@ -164,8 +166,10 @@ class CriticActorAIService(
         logger?.d("CriticActor", "First-pass chat response generated. Launching critique pass...")
 
         try {
+            reportCriticProgress(CriticPhase.CRITIQUE_START)
             val critiquePrompt = AiPrompts.getChatCritiquePrompt(prompt, firstPass)
             val critiqueResponse = delegate.generateChatResponse(critiquePrompt)
+            reportCriticProgress(CriticPhase.CRITIQUE_DONE)
             logger?.d("CriticActor", "Chat critique complete.")
             return critiqueResponse
         } catch (e: Exception) {

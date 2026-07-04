@@ -5,6 +5,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import kotlinx.coroutines.withContext
 import kotlinx.datetime.LocalDate
 
 class CriticActorAIServiceTest : FunSpec({
@@ -133,6 +134,39 @@ class CriticActorAIServiceTest : FunSpec({
         coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
 
+    test("reports actor and critique phases via CriticProgressContext when both passes run") {
+        val originalPrompt = "What is the grade weighting for CS101?"
+        coEvery { delegate.generateChatResponse(originalPrompt) } returns "Exams are 60%, Homework is 40%."
+        coEvery { delegate.generateChatResponse(match { it.contains("factual critique") }) } returns
+            "Exams are 60%, Homework is 40%."
+
+        val reportedPhases = mutableListOf<CriticPhase>()
+        val listener = CriticProgressListener { phase -> reportedPhases.add(phase) }
+
+        withContext(CriticProgressContext(listener)) {
+            criticActorService.generateChatResponse(originalPrompt)
+        }
+
+        reportedPhases shouldBe listOf(
+            CriticPhase.ACTOR_START,
+            CriticPhase.ACTOR_DONE,
+            CriticPhase.CRITIQUE_START,
+            CriticPhase.CRITIQUE_DONE
+        )
+    }
+
+    test("reports only the actor phase when the first pass is blank (critique skipped)") {
+        coEvery { delegate.generateChatResponse(any()) } returns ""
+
+        val reportedPhases = mutableListOf<CriticPhase>()
+        val listener = CriticProgressListener { phase -> reportedPhases.add(phase) }
+
+        withContext(CriticProgressContext(listener)) {
+            criticActorService.generateChatResponse("some prompt")
+        }
+
+        reportedPhases shouldBe listOf(CriticPhase.ACTOR_START, CriticPhase.ACTOR_DONE)
+    }
 
     test("passes through when delegate returns empty task decomposition list") {
         coEvery { delegate.decomposeTask(any(), any()) } returns emptyList()

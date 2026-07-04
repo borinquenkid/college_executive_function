@@ -9,7 +9,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 3 (Web Ingestion REST Endpoints)** is in progress to support the new React web client.
+**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.)
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -594,13 +594,13 @@ None. Pure UI change; no Phase 6 or earlier work required.
 - Verified automatically by passing `ChatBuilderTest.kt`.
 - Verified manually by a walkthrough in the app's Chat Panel, verifying that document-grounded chat and critique loop remain 100% functional.
 
-### Phase 0.25 — Add Unit Tests for HttpOtelTracer ⏳ PLANNED
+### Phase 0.25 — Add Unit Tests for HttpOtelTracer ✅ **COMPLETED** (verified 2026-07-04)
 
 **Motivation:** `HttpOtelTracer` provides KMP-native OTLP/HTTP telemetry but is currently untested. Supporting dependency injection of `HttpClient` will enable unit testing of span exports, headers, parent-child trace mapping, and error resilience.
 
 **Deliverables:**
-1. ⏳ `HttpOtelTracer.kt` — Add constructor parameter `client: HttpClient` with default instantiation to enable mock interceptors.
-2. ⏳ `HttpOtelTracerTest.kt` — Add a full suite of tests covering:
+1. ✅ `HttpOtelTracer.kt` — `client: HttpClient` constructor param with default instantiation already present.
+2. ✅ `HttpOtelTracerTest.kt` — full suite already exists and passes (`./gradlew :composeApp:jvmTest --tests "...HttpOtelTracerTest"`):
    - Export serialization structure (spans, resource attributes, events, errors).
    - Trace context propagation (parent-child nested trace/span relationship).
    - Silent error handling (swallowing client post exception).
@@ -609,7 +609,7 @@ None. Pure UI change; no Phase 6 or earlier work required.
 - `HttpOtelTracer`: Complexity < 15, coverage > 85%
 
 **Verification:**
-- Verified automatically by passing `HttpOtelTracerTest.kt`.
+- Confirmed by re-running `HttpOtelTracerTest.kt` — passes clean. This entry was stale; deprioritized to the bottom of the queue in favor of Phase 6b below, which has real open gaps.
 
 ---
 
@@ -1194,31 +1194,40 @@ Execute strictly in this sequence. Do not start the next step until the previous
 
 ---
 
-## Phase 6b — Web Client & Agent-User Interaction (AG-UI) Protocol Integration
+## Phase 6b — Web Client & Agent-User Interaction (AG-UI) Protocol Integration 🔴 IN PROGRESS — 6.5 next up
 
 Bring CEF to the web using a React frontend that dynamically communicates with the Ktor server via a real-time agentic stream, eliminating duplicated data models.
 
-### 6.1 — Gradle & Dependency Realignment
+**Verified 2026-07-04:** 6.1–6.4 are done (server depends on `:composeApp`, `/web` Vite+React app exists with `useAgentStream.ts` + `App.tsx`, 890 lines; 6.2's SSE endpoint now emits real timestamps/runId, escaped JSON, and real Critic-Actor loop events). **6.5 is the remaining gap** — the frontend doesn't yet render the richer event stream distinctly, and responses aren't chunked word-by-word.
+
+### 6.1 — Gradle & Dependency Realignment ✅ DONE
 * Update `server/build.gradle.kts` to depend on `:composeApp` JVM compile target.
 * Align library catalog dependencies (`kotlinx-datetime`, `multiplatform-settings`, Ktor JSON serialization) for server scope.
 * Configure duplicatesStrategy for copy and zip archive tasks.
 
-### 6.2 — Ktor AG-UI SSE Stream Endpoint
-* Implement manual Server-Sent Events (SSE) endpoint `/api/agent/stream` inside `Application.kt`.
-* Map Critic-Actor refinement loops, database queries, and token generation into standard AG-UI events (`RUN_STARTED`, `REASONING_DELTA`, `TOOL_CALL_START`, `TEXT_MESSAGE_DELTA`, etc.).
+### 6.2 — Ktor AG-UI SSE Stream Endpoint ✅ **COMPLETED** (2026-07-04)
 
-### 6.3 — React Frontend & Proxy Scaffolding
+**Deliverables:**
+1. ✅ Real timestamps via `Clock.System.now().toEpochMilliseconds()` on every emitted event (was hardcoded `1717720000000`).
+2. ✅ Real per-request `runId` via `randomHexId(8)`, extracted (along with JSON escaping) from `HttpOtelTracer.kt` into a shared `JsonEncoding.kt` (`escapeJsonString()`, `randomHexId()`) so both files use one implementation.
+3. ✅ All interpolated string fields (`query`, `responseText`, error messages) now pass through `escapeJsonString()`.
+4. ✅ The real Critic-Actor loop is now wired into the stream: `CriticActorAIService.generateChatResponse` reports `ACTOR_START`/`ACTOR_DONE`/`CRITIQUE_START`/`CRITIQUE_DONE` via a new opt-in coroutine-context hook (`CriticProgress.kt`, mirroring `HttpOtelTracer`'s `SpanCtx` pattern — no `AIService` interface change, so Android/iOS/desktop are unaffected). The SSE endpoint listens via `withContext(CriticProgressContext(...))` and emits a distinct `TOOL_CALL_START`/`TOOL_CALL_RESULT` group for the actor pass and the critique pass, instead of one opaque `queryAllSources` call.
+5. ✅ Tests added: `AgentStreamTest.kt` — every emitted `data:` line is valid JSON (including a dedicated escaping test with quotes/newlines/backslashes in the query and response), `runId` is unique per request, and the actor/critique passes surface as their own tool-call event groups (3 start/result pairs: `queryAllSources`, `actorPass`, `critiquePass`). `CriticActorAIServiceTest.kt` — new tests assert the exact phase sequence reported, including the "critique skipped" path when the first pass is blank.
+
+**Known gap carried into 6.5:** the React client (`App.tsx`) doesn't yet render the new intermediate events distinctly — it still shows one fixed reasoning line — and the server still sends the final answer as one `TEXT_MESSAGE_DELTA` rather than word-by-word chunks. Backend plumbing (this phase) is done; the frontend/streaming-UX work is scoped in 6.5.
+
+### 6.3 — React Frontend & Proxy Scaffolding ✅ DONE
 * Bootstrap a Vite-React-TypeScript application inside `/web`.
 * Set up standard `/api` request redirection to Ktor backend in `vite.config.ts`.
 * Establish custom typography (Space Grotesk, Outfit) and layouts in `index.css`.
 
-### 6.4 — ClientuseAgentStream Connection Hook
+### 6.4 — Client useAgentStream Connection Hook ✅ DONE
 * Develop custom `useAgentStream` hook to manage `EventSource` connections.
 * Process streaming AG-UI payloads and distribute updates to React state.
 
-### 6.5 — Dynamic Agentic UI Views
-* Render live "thought bubbles" and reasoning logs during Critic-Actor executions.
-* Stream response texts word-by-word with loading indicators.
+### 6.5 — Dynamic Agentic UI Views ⚠️ PARTIAL — depends on 6.2 fixes above
+* Render live "thought bubbles" and reasoning logs during Critic-Actor executions — UI exists in `App.tsx` but only ever renders the single fixed reasoning line the server sends today.
+* Stream response texts word-by-word with loading indicators — **not implemented**; server sends the full `responseText` in one `TEXT_MESSAGE_DELTA`, not chunked.
 * Render calendar agenda views and source directories dynamically when state updates arrive.
 
 ---

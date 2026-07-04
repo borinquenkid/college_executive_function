@@ -5,7 +5,6 @@ import io.ktor.client.request.*
 import io.ktor.http.*
 import kotlinx.coroutines.*
 import kotlin.coroutines.CoroutineContext
-import kotlin.random.Random
 import kotlin.time.Clock
 
 /**
@@ -41,8 +40,8 @@ class HttpOtelTracer(
         block: suspend SpanScope.() -> T
     ): T {
         val parent = currentCoroutineContext()[SpanCtx.Key]
-        val traceId = parent?.traceId ?: randomHex(16)
-        val spanId = randomHex(8)
+        val traceId = parent?.traceId ?: randomHexId(16)
+        val spanId = randomHexId(8)
         val parentSpanId = parent?.spanId
         val startNs = nowNanos()
         val scope = HttpSpanScope()
@@ -67,8 +66,8 @@ class HttpOtelTracer(
         // Rather than silently drop it (which lost telemetry on paths like study-plan grounding),
         // export it reliably as its own zero-duration span. It loses parent linkage but is never
         // dropped — "must trace reliably".
-        val traceId = randomHex(16)
-        val spanId = randomHex(8)
+        val traceId = randomHexId(16)
+        val spanId = randomHexId(8)
         val now = nowNanos()
         val scope = HttpSpanScope()
         attributes.forEach { (k, v) -> scope.setAttribute(k, v) }
@@ -117,10 +116,10 @@ class HttpOtelTracer(
         error: Throwable?
     ): String {
         val strAttrs = scope.stringAttrs.entries.joinToString(",") { (k, v) ->
-            """{"key":"${k.esc()}","value":{"stringValue":"${v.esc()}"}}"""
+            """{"key":"${k.escapeJsonString()}","value":{"stringValue":"${v.escapeJsonString()}"}}"""
         }
         val intAttrs = scope.longAttrs.entries.joinToString(",") { (k, v) ->
-            """{"key":"${k.esc()}","value":{"intValue":"$v"}}"""
+            """{"key":"${k.escapeJsonString()}","value":{"intValue":"$v"}}"""
         }
         val allAttrs = listOfNotNull(strAttrs.ifEmpty { null }, intAttrs.ifEmpty { null }).joinToString(",")
 
@@ -133,9 +132,9 @@ class HttpOtelTracer(
         }
         val eventsJson = allEvents.joinToString(",") { (evtName, evtNs, evtAttrs) ->
             val ea = evtAttrs.entries.joinToString(",") { (k, v) ->
-                """{"key":"${k.esc()}","value":{"stringValue":"${v.esc()}"}}"""
+                """{"key":"${k.escapeJsonString()}","value":{"stringValue":"${v.escapeJsonString()}"}}"""
             }
-            """{"name":"${evtName.esc()}","timeUnixNano":"$evtNs","attributes":[$ea]}"""
+            """{"name":"${evtName.escapeJsonString()}","timeUnixNano":"$evtNs","attributes":[$ea]}"""
         }
 
         val parentField = if (parentSpanId != null) """"parentSpanId":"$parentSpanId",""" else ""
@@ -146,7 +145,7 @@ class HttpOtelTracer(
             append("""]},"scopeSpans":[{"scope":{"name":"com.borinquenterrier.cef"},"spans":[{""")
             append(""""traceId":"$traceId","spanId":"$spanId",""")
             append(parentField)
-            append(""""name":"${name.esc()}","kind":1,""")
+            append(""""name":"${name.escapeJsonString()}","kind":1,""")
             append(""""startTimeUnixNano":"$startNs","endTimeUnixNano":"$endNs",""")
             append(""""attributes":[$allAttrs],"events":[$eventsJson],""")
             append(""""status":{"code":$statusCode}""")
@@ -188,16 +187,6 @@ private fun nowNanos(): Long {
     val now = Clock.System.now()
     return now.epochSeconds * 1_000_000_000L + now.nanosecondsOfSecond
 }
-
-private fun randomHex(bytes: Int) = buildString(bytes * 2) {
-    repeat(bytes) { append(Random.Default.nextInt(256).toString(16).padStart(2, '0')) }
-}
-
-private fun String.esc() = replace("\\", "\\\\")
-    .replace("\"", "\\\"")
-    .replace("\n", "\\n")
-    .replace("\r", "\\r")
-    .replace("\t", "\\t")
 
 private fun base64(input: String): String {
     val src = input.encodeToByteArray()

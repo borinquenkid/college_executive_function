@@ -13,7 +13,8 @@ import io.ktor.serialization.kotlinx.json.*
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
-import kotlinx.coroutines.delay
+import kotlinx.coroutines.withContext
+import kotlin.time.Clock
 import java.io.File
 
 fun main() {
@@ -155,55 +156,65 @@ fun Application.module(
             call.response.cacheControl(io.ktor.http.CacheControl.NoCache(null))
 
             call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
+                suspend fun emit(type: String, dataJson: String) {
+                    writeStringUtf8("event: message\n")
+                    writeStringUtf8(
+                        "data: {\"type\":\"$type\",\"timestamp\":${Clock.System.now().toEpochMilliseconds()}," +
+                            "\"data\":$dataJson}\n\n"
+                    )
+                    flush()
+                }
+
+                val runId = randomHexId(8)
                 try {
-                    // 1. RUN_STARTED
-                    writeStringUtf8("event: message\n")
-                    writeStringUtf8("data: {\"type\":\"RUN_STARTED\",\"timestamp\":1717720000000,\"data\":{\"runId\":\"test-run\"}}\n\n")
-                    flush()
-                    
-                    // 2. REASONING_DELTA
-                    writeStringUtf8("event: message\n")
-                    writeStringUtf8("data: {\"type\":\"REASONING_DELTA\",\"timestamp\":1717720000000,\"data\":{\"text\":\"Retrieving relevant course documents and syllabi...\"}}\n\n")
-                    flush()
-                    delay(50)
-                    
-                    // 3. TOOL_CALL_START
-                    writeStringUtf8("event: message\n")
-                    writeStringUtf8("data: {\"type\":\"TOOL_CALL_START\",\"timestamp\":1717720000000,\"data\":{\"toolName\":\"queryAllSources\",\"arguments\":\"{\\\"query\\\":\\\"$query\\\"}\"}}\n\n")
-                    flush()
-                    delay(50)
-                    
-                    // Invoke KMP RAG query logic (either mocked or real)
+                    emit("RUN_STARTED", "{\"runId\":\"$runId\"}")
+
+                    emit(
+                        "REASONING_DELTA",
+                        "{\"text\":\"Retrieving relevant course documents and syllabi...\"}"
+                    )
+
+                    emit(
+                        "TOOL_CALL_START",
+                        "{\"toolName\":\"queryAllSources\",\"arguments\":\"{\\\"query\\\":\\\"" +
+                            "${query.escapeJsonString()}\\\"}\"}"
+                    )
+
+                    // Surface the actor/critique passes CriticActorAIService runs under the hood as
+                    // their own tool-call event groups, instead of one opaque queryAllSources call.
+                    val progressListener = CriticProgressListener { phase ->
+                        when (phase) {
+                            CriticPhase.ACTOR_START ->
+                                emit("TOOL_CALL_START", "{\"toolName\":\"actorPass\"}")
+                            CriticPhase.ACTOR_DONE ->
+                                emit("TOOL_CALL_RESULT", "{\"toolName\":\"actorPass\",\"success\":true}")
+                            CriticPhase.CRITIQUE_START -> {
+                                emit("REASONING_DELTA", "{\"text\":\"Reviewing the answer for accuracy...\"}")
+                                emit("TOOL_CALL_START", "{\"toolName\":\"critiquePass\"}")
+                            }
+                            CriticPhase.CRITIQUE_DONE ->
+                                emit("TOOL_CALL_RESULT", "{\"toolName\":\"critiquePass\",\"success\":true}")
+                        }
+                    }
+
                     val sources = getAllSourceItems(container)
                     val responseText = try {
-                        container.contextAgent.queryAllSources(sources, emptyList(), query)
+                        withContext(CriticProgressContext(progressListener)) {
+                            container.contextAgent.queryAllSources(sources, emptyList(), query)
+                        }
                     } catch (e: Throwable) {
                         "Error querying context agent: ${e.message}"
                     }
-                    
-                    // 4. TOOL_CALL_RESULT
-                    writeStringUtf8("event: message\n")
-                    writeStringUtf8("data: {\"type\":\"TOOL_CALL_RESULT\",\"timestamp\":1717720000000,\"data\":{\"toolName\":\"queryAllSources\",\"success\":true}}\n\n")
-                    flush()
-                    delay(50)
-                    
-                    // 5. TEXT_MESSAGE_DELTA (Stream the final answer)
-                    writeStringUtf8("event: message\n")
-                    writeStringUtf8("data: {\"type\":\"TEXT_MESSAGE_DELTA\",\"timestamp\":1717720000000,\"data\":{\"text\":\"$responseText\"}}\n\n")
-                    flush()
-                    delay(50)
+
+                    emit("TOOL_CALL_RESULT", "{\"toolName\":\"queryAllSources\",\"success\":true}")
+
+                    emit("TEXT_MESSAGE_DELTA", "{\"text\":\"${responseText.escapeJsonString()}\"}")
                 } catch (e: Throwable) {
                     println("STREAM ERROR: ${e.message}")
                     e.printStackTrace()
-                    // Emit a fallback error event
-                    writeStringUtf8("event: message\n")
-                    writeStringUtf8("data: {\"type\":\"ERROR\",\"timestamp\":1717720000000,\"data\":{\"message\":\"${e.message}\"}}\n\n")
-                    flush()
+                    emit("ERROR", "{\"message\":\"${(e.message ?: "").escapeJsonString()}\"}")
                 } finally {
-                    // 6. RUN_FINISHED
-                    writeStringUtf8("event: message\n")
-                    writeStringUtf8("data: {\"type\":\"RUN_FINISHED\",\"timestamp\":1717720000000,\"data\":{}}\n\n")
-                    flush()
+                    emit("RUN_FINISHED", "{}")
                 }
             }
         }

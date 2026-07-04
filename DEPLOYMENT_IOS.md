@@ -1,7 +1,7 @@
 # Apple App Store Deployment Plan
 
 Publisher: **Borinquen Terrier LLC**
-Bundle ID: `com.borinquenkid.cef.app` (see Phase 1 — this doesn't currently match Android's `com.borinquenterrier.cef`)
+Bundle ID: `com.borinquenterrier.cef` (matches Android — resolved 2026-07-04, see Phase 1)
 
 > **Not legal advice.** The disclaimer draft in the shared prerequisites below is a starting point to bring to an actual lawyer before publishing — LLC liability and app store agreements are worth a short paid consult, not a guess.
 
@@ -27,14 +27,14 @@ Starter draft — have a lawyer review before publishing:
 
 ## Phase 1 — Accounts & identity
 
-- [ ] **Resolve which team is your production team.** Xcode currently points Release at team `6PS2FVLY6K` and Debug at `F4GSKN4DLP` — confirm which one is the paid Apple Developer Program membership before archiving, and align Release to it.
-- [ ] **Fix the bundle ID mismatch.** iOS ships `com.borinquenkid.cef.app` while Android uses `com.borinquenterrier.cef`. Decide the final bundle ID and register a matching App ID in the Apple Developer portal before creating the App Store Connect record.
+- [x] **Resolve which team is your production team.** ✅ **DONE 2026-07-04.** `F4GSKN4DLP` confirmed as Borinquen Terrier LLC's paid Company account (Xcode's cached team list shows `isFreeProvisioningTeam = false`, `teamType = Company`, once the BT Apple ID was signed into Xcode's Accounts pane). Release now points to `F4GSKN4DLP`; Debug moved to a free personal team (`J749E89A2L`) for local dev signing. The old `6PS2FVLY6K` team on Release was orphaned — not in the account's team list at all.
+- [x] **Fix the bundle ID mismatch.** ✅ **DONE 2026-07-04.** Decided on `com.borinquenterrier.cef` to match Android. Updated in `Config.xcconfig` and `GoogleService-Info.plist`. **Still needed (account action, not code):** register a matching App ID for `com.borinquenterrier.cef` in the Apple Developer portal before creating the App Store Connect record. Google Sign-In is unaffected — it uses a manual OAuth flow keyed off the `com.googleusercontent.apps.<id>` URL scheme in `Info.plist`, not the bundle ID string, so no redirect/scheme changes were needed. Optional hygiene: update the Bundle ID field on the iOS OAuth client in Google Cloud Console to match, for consistency (not functionally required).
 
 ## Phase 2 — App readiness (code)
 
 - [ ] **Add a `PrivacyInfo.xcprivacy` manifest.** The app reads `NSUserDefaults` directly, one of Apple's "required-reason" API categories. Apple's binary validation can warn or reject without a privacy manifest declaring the reason code.
-- [ ] **Sync the version number with Android.** `MARKETING_VERSION`/`CURRENT_PROJECT_VERSION` are still 1.0/1 in `Config.xcconfig`, untouched since project creation, while Android reports `2.0.0`. Decide on one version story before submitting.
-- [ ] **Icon & accent color polish.** The one 1024×1024 icon is technically valid, but dark/tinted appearances fall back to the same art, and `AccentColor` is unset. Fine to ship, worth a real design pass before or shortly after launch.
+- [x] **Sync the version number with Android.** ✅ **DONE 2026-07-04.** `MARKETING_VERSION` bumped to `2.0.0` in `Config.xcconfig` to match Android; `CURRENT_PROJECT_VERSION` (build number) left at `1` as the first build of this marketing version.
+- [x] **Icon & accent color polish.** ✅ Already done in commit `ee272b0` — `AppIcon.appiconset` has base/dark/tinted variants and `AccentColor` is set to the amber accent.
 
 ## Phase 3 — App Store Connect setup
 

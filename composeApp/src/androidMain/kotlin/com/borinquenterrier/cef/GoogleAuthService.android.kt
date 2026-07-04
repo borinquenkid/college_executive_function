@@ -14,6 +14,14 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         val context = AndroidAppContext.applicationContext
             ?: throw Exception("AndroidAppContext is not initialized. Cannot start login.")
 
+        // GoogleAuthCallback.pendingDeferred is a single shared slot — a second concurrent
+        // login() would silently overwrite it, leaving the first caller's await() below
+        // waiting on a deferred nothing will ever complete again. Reject instead of hanging.
+        val existing = GoogleAuthCallback.pendingDeferred
+        if (existing != null && existing.isActive) {
+            throw IllegalStateException("A Google sign-in is already in progress.")
+        }
+
         val deferred = CompletableDeferred<Pair<String, String?>>()
         GoogleAuthCallback.pendingDeferred = deferred
 
@@ -37,7 +45,12 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                 val scopes =
                     "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
                 GoogleAuthUtil.getToken(context, account, scopes)
-            } catch (e: Throwable) {
+            } catch (e: Exception) {
+                // Includes UserRecoverableAuthException (e.g. revoked/expired consent) — there's
+                // no Activity here to launch its recovery intent, so this still just fails to
+                // null, forcing a full interactive re-login rather than in-place recovery. That's
+                // a UX gap, not a crash: catching Exception (not Throwable, as before) at least
+                // stops real Errors (OutOfMemoryError, etc.) from being silently swallowed too.
                 null
             }
         }

@@ -11,20 +11,31 @@ import java.io.File
 
 actual class LocalFileReader(private val context: Context) {
     actual suspend fun readText(path: String): String = withContext(Dispatchers.IO) {
-        if (path.startsWith("content://")) {
-            context.contentResolver.openInputStream(path.toUri())?.use { input ->
-                input.bufferedReader().use { it.readText() }
-            } ?: "Error: Could not open content URI"
-        } else {
-            File(path).readText()
+        try {
+            if (path.startsWith("content://")) {
+                context.contentResolver.openInputStream(path.toUri())?.use { input ->
+                    input.bufferedReader().use { it.readText() }
+                } ?: "Error: Could not open content URI"
+            } else {
+                File(path).readText()
+            }
+        } catch (e: Exception) {
+            "Error reading file: ${e.message}"
         }
     }
 
+    // Matches readText()'s never-throw contract: a revoked/invalid content:// URI throws
+    // SecurityException/FileNotFoundException, a missing local path throws IOException —
+    // this had no try/catch at all before, unlike its sibling above.
     actual suspend fun readBytes(path: String): ByteArray = withContext(Dispatchers.IO) {
-        if (path.startsWith("content://")) {
-            context.contentResolver.openInputStream(path.toUri())?.use { it.readBytes() } ?: ByteArray(0)
-        } else {
-            File(path).readBytes()
+        try {
+            if (path.startsWith("content://")) {
+                context.contentResolver.openInputStream(path.toUri())?.use { it.readBytes() } ?: ByteArray(0)
+            } else {
+                File(path).readBytes()
+            }
+        } catch (e: Exception) {
+            ByteArray(0)
         }
     }
 

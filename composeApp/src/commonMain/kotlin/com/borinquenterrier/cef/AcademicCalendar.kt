@@ -173,9 +173,13 @@ fun AcademicCalendar(
                     },
                     onExport = {
                         scope.launch {
-                            val icsContent = generateIcsString(displayedEvents)
-                            val filePath = writeIcsFile(icsContent)
-                            eventAgent.updateStatus("Exported calendar: $filePath")
+                            try {
+                                val icsContent = generateIcsString(displayedEvents)
+                                val filePath = writeIcsFile(icsContent)
+                                eventAgent.updateStatus("Exported calendar: $filePath")
+                            } catch (e: Exception) {
+                                eventAgent.updateStatus("Export failed: ${e.message}")
+                            }
                         }
                     }
                 )

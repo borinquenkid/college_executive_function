@@ -338,13 +338,17 @@ android {
 
     signingConfigs {
         create("release") {
+            // Env vars first, local.properties as the local-dev fallback — mirrors the
+            // GOOGLE_CLIENT_ID/SECRET pattern in composeApp/build.gradle.kts. Without this,
+            // a signed release build only ever worked on whichever machine happened to have
+            // local.properties populated; CI or another contributor's machine would fail.
             val props = Properties()
             val propsFile = rootProject.layout.projectDirectory.file("local.properties").asFile
             if (propsFile.exists()) propsFile.inputStream().use { props.load(it) }
-            storeFile = props.getProperty("keystore.path")?.let { file(it) }
-            storePassword = props.getProperty("keystore.password")
-            keyAlias = props.getProperty("keystore.alias")
-            keyPassword = props.getProperty("keystore.keyPassword")
+            storeFile = (System.getenv("CEF_KEYSTORE_PATH") ?: props.getProperty("keystore.path"))?.let { file(it) }
+            storePassword = System.getenv("CEF_KEYSTORE_PASSWORD") ?: props.getProperty("keystore.password")
+            keyAlias = System.getenv("CEF_KEYSTORE_ALIAS") ?: props.getProperty("keystore.alias")
+            keyPassword = System.getenv("CEF_KEYSTORE_KEY_PASSWORD") ?: props.getProperty("keystore.keyPassword")
         }
     }
 

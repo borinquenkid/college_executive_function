@@ -12,6 +12,8 @@ import com.google.android.gms.tasks.Task
 import kotlinx.coroutines.CompletableDeferred
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withContext
 
@@ -20,6 +22,17 @@ object GoogleAuthCallback {
 }
 
 class GoogleAuthActivity : ComponentActivity() {
+
+    // Tied to this Activity's own lifetime (cancelled in onDestroy) instead of a bare
+    // GlobalScope-style CoroutineScope(Dispatchers.IO) — otherwise a token-exchange coroutine
+    // launched here keeps a live reference to `this` and can call startActivityForResult/finish()
+    // on an already-destroyed Activity if it's torn down mid-flow (rotation, backgrounding).
+    private val activityScope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
+
+    override fun onDestroy() {
+        activityScope.cancel()
+        super.onDestroy()
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -43,7 +56,7 @@ class GoogleAuthActivity : ComponentActivity() {
             try {
                 val account = task.result
                 if (account != null && account.account != null) {
-                    CoroutineScope(Dispatchers.IO).launch {
+                    activityScope.launch {
                         try {
                             val scopes =
                                 "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
@@ -84,7 +97,7 @@ class GoogleAuthActivity : ComponentActivity() {
                 // Try to get token again
                 val account = GoogleSignIn.getLastSignedInAccount(this)
                 if (account != null && account.account != null) {
-                    CoroutineScope(Dispatchers.IO).launch {
+                    activityScope.launch {
                         try {
                             val scopes =
                                 "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"

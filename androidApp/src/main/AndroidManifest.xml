@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android">
     <uses-permission android:name="android.permission.INTERNET" />
+    <!-- Only needed on API 26-28: IcsExport.android.kt's legacy fallback path writes
+         directly to public Downloads there. API 29+ uses MediaStore, which needs no
+         permission (scoped storage). maxSdkVersion keeps this off newer OSes entirely. -->
+    <uses-permission
+        android:name="android.permission.WRITE_EXTERNAL_STORAGE"
+        android:maxSdkVersion="28" />
 
     <application
         android:allowBackup="true"

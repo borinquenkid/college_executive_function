@@ -28,6 +28,7 @@ jobs:
         with:
           distribution: temurin
           java-version: '21'
+      - uses: android-actions/setup-android@v3
       - uses: gradle/actions/setup-gradle@v4
       - name: Run JVM tests
         # Secrets are unavailable for fork PRs; AI integration tests skip gracefully.
@@ -37,6 +38,15 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID || '' }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET || '' }}
         run: ./gradlew :composeApp:jvmTest
+
+      - name: Run Android unit tests + debug build
+        # No emulator/device needed — testDebugUnitTest runs the shared commonTest suite
+        # headlessly on the JVM (826 tests, confirmed passing locally). Previously nothing
+        # validated the Android target in CI at all, not even a debug compile.
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID || '' }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET || '' }}
+        run: ./gradlew :composeApp:testDebugUnitTest :androidApp:assembleDebug
 
       - name: Verify Google OAuth Credentials (Integration Test)
         env:

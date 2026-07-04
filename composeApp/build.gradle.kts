@@ -364,10 +364,16 @@ compose.desktop {
                 shortcut = true
                 perUserInstall = true
                 upgradeUuid = "AA9FA31A-BB3B-4443-B61C-721556B04FEA"
+                iconFile.set(project.file("packaging/cef-icon.ico"))
             }
 
             macOS {
                 bundleID = "com.borinquenterrier.college_executive_function"
+                iconFile.set(project.file("packaging/cef-icon.icns"))
+            }
+
+            linux {
+                iconFile.set(project.file("packaging/cef-icon.png"))
             }
         }
 

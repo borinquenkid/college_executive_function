@@ -3,6 +3,9 @@ package com.borinquenterrier.cef
 import androidx.compose.ui.window.MenuBar
 import androidx.compose.ui.window.Window
 import androidx.compose.ui.window.application
+import collegeexecutivefunction.composeapp.generated.resources.Res
+import collegeexecutivefunction.composeapp.generated.resources.cef_icon
+import org.jetbrains.compose.resources.painterResource
 
 fun main() {
     Runtime.getRuntime().addShutdownHook(Thread { AppTracer.current.shutdown() })
@@ -10,6 +13,7 @@ fun main() {
     Window(
         onCloseRequest = ::exitApplication,
         title = "College Executive Function",
+        icon = painterResource(Res.drawable.cef_icon),
     ) {
         MenuBar {
             Menu("Edit") {

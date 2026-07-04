@@ -1,13 +1,4 @@
 <svg width="1024" height="1024" viewBox="0 0 1024 1024" xmlns="http://www.w3.org/2000/svg">
-  <defs>
-    <linearGradient id="bg" x1="0%" y1="0%" x2="100%" y2="100%">
-      <stop offset="0%" stop-color="#241C4E"/>
-      <stop offset="100%" stop-color="#443876"/>
-    </linearGradient>
-  </defs>
-
-  <rect x="0" y="0" width="1024" height="1024" fill="url(#bg)"/>
-
   <g transform="translate(512 512) scale(1.18) translate(-512 -512)">
     <path d="M 512,460 L 562,620 L 462,620 Z" fill="#F6EFE1"/>
     <g transform="rotate(-8 512 460)">

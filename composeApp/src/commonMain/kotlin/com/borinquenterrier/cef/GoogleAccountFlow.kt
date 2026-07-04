@@ -9,9 +9,29 @@ import kotlinx.coroutines.flow.asStateFlow
  */
 class GoogleAccountFlow(
     private val authService: GoogleAuthService,
-    private val tokenRepository: GoogleTokenRepository
+    private val tokenRepository: GoogleTokenRepository,
+    private val calendarSyncService: GoogleCalendarSyncService
 ) {
-    lateinit var driveService: GoogleDriveService
+    private sealed interface ValidationResult {
+        data object Success : ValidationResult
+        data object InvalidCredentials : ValidationResult
+        data class NetworkError(val message: String) : ValidationResult
+    }
+
+    // Pings the Calendar API (the only Google scope this app still requests) purely to confirm
+    // the just-granted/just-loaded token actually works — same role the old Drive-based
+    // validateConnection ping played before the drive.readonly scope was dropped.
+    private suspend fun validateConnection(): ValidationResult {
+        return try {
+            calendarSyncService.listCalendars()
+            ValidationResult.Success
+        } catch (e: GoogleApiException) {
+            if (e.statusCode == 401) ValidationResult.InvalidCredentials
+            else ValidationResult.NetworkError(e.message ?: "Network error")
+        } catch (e: Exception) {
+            ValidationResult.NetworkError(e.message ?: "Network error")
+        }
+    }
 
     private val _state = MutableStateFlow<GoogleConnectionState>(
         if (tokenRepository.hasTokens()) GoogleConnectionState.Linked else GoogleConnectionState.Unlinked
@@ -30,17 +50,17 @@ class GoogleAccountFlow(
             println("[GoogleAccountFlow] Saving tokens...")
             tokenRepository.saveTokens(result.first, result.second)
 
-            println("[GoogleAccountFlow] Validating Drive access...")
-            val isValid = driveService.validateConnection(result.first)
+            println("[GoogleAccountFlow] Validating Calendar access...")
+            val isValid = validateConnection() is ValidationResult.Success
 
             if (isValid) {
                 println("[GoogleAccountFlow] Transition: Connecting -> Linked")
                 _state.value = GoogleConnectionState.Linked
             } else {
-                println("[GoogleAccountFlow] Transition: Connecting -> Error (Drive Access Denied)")
+                println("[GoogleAccountFlow] Transition: Connecting -> Error (Calendar Access Denied)")
                 tokenRepository.clearTokens()
                 _state.value = GoogleConnectionState.Error(
-                    "Connected to Google, but Drive access failed. Please ensure you checked the permission box in the browser.",
+                    "Connected to Google, but Calendar access failed. Please ensure you checked the permission box in the browser.",
                     canRetry = true
                 )
             }
@@ -66,16 +86,16 @@ class GoogleAccountFlow(
     }
 
     suspend fun checkConnectionOnStartup() {
-        val accessToken = tokenRepository.getAccessToken() ?: return
-        
-        when (val validation = driveService.validateConnectionResult(accessToken)) {
-            is GoogleDriveService.ValidationResult.Success -> {
+        tokenRepository.getAccessToken() ?: return
+
+        when (val validation = validateConnection()) {
+            is ValidationResult.Success -> {
                 _state.value = GoogleConnectionState.Linked
             }
-            is GoogleDriveService.ValidationResult.NetworkError -> {
+            is ValidationResult.NetworkError -> {
                 println("[GoogleAccountFlow] Startup validation failed with network error: ${validation.message}. Retaining Linked state.")
             }
-            is GoogleDriveService.ValidationResult.InvalidCredentials -> {
+            is ValidationResult.InvalidCredentials -> {
                 println("[GoogleAccountFlow] Startup validation: invalid access token. Attempting refresh...")
                 handleInvalidAccessToken()
             }

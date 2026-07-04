@@ -114,7 +114,6 @@ class ContributorPdfIntegrationTest : FunSpec({
             docxReader = mockk(relaxed = true),
             pdfReader = PdfReader(),
             webReader = mockk(relaxed = true),
-            driveService = mockk(relaxed = true),
             aiService = aiService,
             sourceRepository = sourceRepository
         )

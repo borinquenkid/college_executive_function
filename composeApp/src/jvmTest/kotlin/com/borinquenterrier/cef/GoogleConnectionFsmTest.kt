@@ -15,13 +15,12 @@ class GoogleConnectionFsmTest : FunSpec({
         val settings = MapSettings()
         val tokenRepo = GoogleTokenRepository(settings)
         val authService = mockk<GoogleAuthService>(relaxed = true)
-        val driveService = mockk<GoogleDriveService>(relaxed = true)
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
 
         coEvery { authService.login() } returns Pair("valid-token", "refresh-token")
-        coEvery { driveService.validateConnection("valid-token") } returns true
+        coEvery { calendarSyncService.listCalendars() } returns emptyList()
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo)
-        fsm.driveService = driveService
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
 
         fsm.state.value shouldBe GoogleConnectionState.Unlinked
 
@@ -31,22 +30,21 @@ class GoogleConnectionFsmTest : FunSpec({
         tokenRepo.getAccessToken() shouldBe "valid-token"
     }
 
-    test("FSM: should transition to Error if Drive validation fails") {
+    test("FSM: should transition to Error if Calendar validation fails") {
         val settings = MapSettings()
         val tokenRepo = GoogleTokenRepository(settings)
         val authService = mockk<GoogleAuthService>(relaxed = true)
-        val driveService = mockk<GoogleDriveService>(relaxed = true)
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
 
         coEvery { authService.login() } returns Pair("valid-token", "refresh-token")
-        coEvery { driveService.validateConnection("valid-token") } returns false
+        coEvery { calendarSyncService.listCalendars() } throws GoogleApiException(401, "Unauthorized")
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo)
-        fsm.driveService = driveService
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
 
         fsm.connect()
 
         fsm.state.value.shouldBeInstanceOf<GoogleConnectionState.Error>()
-        (fsm.state.value as GoogleConnectionState.Error).message shouldBe "Connected to Google, but Drive access failed. Please ensure you checked the permission box in the browser."
+        (fsm.state.value as GoogleConnectionState.Error).message shouldBe "Connected to Google, but Calendar access failed. Please ensure you checked the permission box in the browser."
         tokenRepo.hasTokens() shouldBe false // Should clear tokens on partial failure
     }
 
@@ -54,11 +52,11 @@ class GoogleConnectionFsmTest : FunSpec({
         val settings = MapSettings()
         val tokenRepo = GoogleTokenRepository(settings)
         val authService = mockk<GoogleAuthService>(relaxed = true)
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
 
         coEvery { authService.login() } throws Exception("Network Error")
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo)
-        // driveService not needed for this path
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
 
         fsm.connect()
 
@@ -71,7 +69,7 @@ class GoogleConnectionFsmTest : FunSpec({
         val tokenRepo = GoogleTokenRepository(settings)
         tokenRepo.saveTokens("old-token", "refresh")
 
-        val fsm = GoogleAccountFlow(mockk(), tokenRepo)
+        val fsm = GoogleAccountFlow(mockk(relaxed = true), tokenRepo, mockk(relaxed = true))
         fsm.state.value shouldBe GoogleConnectionState.Linked
 
         fsm.reportAuthError("Session expired")
@@ -85,7 +83,7 @@ class GoogleConnectionFsmTest : FunSpec({
         val tokenRepo = GoogleTokenRepository(settings)
         tokenRepo.saveTokens("token", "refresh")
 
-        val fsm = GoogleAccountFlow(mockk(relaxed = true), tokenRepo)
+        val fsm = GoogleAccountFlow(mockk(relaxed = true), tokenRepo, mockk(relaxed = true))
         fsm.state.value shouldBe GoogleConnectionState.Linked
 
         fsm.disconnect()
@@ -98,10 +96,9 @@ class GoogleConnectionFsmTest : FunSpec({
         val settings = MapSettings()
         val tokenRepo = GoogleTokenRepository(settings)
         val authService = mockk<GoogleAuthService>(relaxed = true)
-        val driveService = mockk<GoogleDriveService>(relaxed = true)
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo)
-        fsm.driveService = driveService
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
 
         fsm.state.value shouldBe GoogleConnectionState.Unlinked
 
@@ -116,11 +113,10 @@ class GoogleConnectionFsmTest : FunSpec({
         tokenRepo.saveTokens("valid-token", "refresh-token")
 
         val authService = mockk<GoogleAuthService>(relaxed = true)
-        val driveService = mockk<GoogleDriveService>(relaxed = true)
-        coEvery { driveService.validateConnectionResult("valid-token") } returns GoogleDriveService.ValidationResult.Success
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
+        coEvery { calendarSyncService.listCalendars() } returns emptyList()
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo)
-        fsm.driveService = driveService
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
 
         fsm.state.value shouldBe GoogleConnectionState.Linked
 
@@ -136,12 +132,11 @@ class GoogleConnectionFsmTest : FunSpec({
         tokenRepo.saveTokens("expired-token", "refresh-token")
 
         val authService = mockk<GoogleAuthService>(relaxed = true)
-        val driveService = mockk<GoogleDriveService>(relaxed = true)
-        coEvery { driveService.validateConnectionResult("expired-token") } returns GoogleDriveService.ValidationResult.InvalidCredentials
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
+        coEvery { calendarSyncService.listCalendars() } throws GoogleApiException(401, "Unauthorized")
         coEvery { authService.refreshAccessToken("refresh-token") } returns "new-token"
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo)
-        fsm.driveService = driveService
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
 
         fsm.checkConnectionOnStartup()
 
@@ -155,12 +150,11 @@ class GoogleConnectionFsmTest : FunSpec({
         tokenRepo.saveTokens("expired-token", "refresh-token")
 
         val authService = mockk<GoogleAuthService>(relaxed = true)
-        val driveService = mockk<GoogleDriveService>(relaxed = true)
-        coEvery { driveService.validateConnectionResult("expired-token") } returns GoogleDriveService.ValidationResult.InvalidCredentials
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
+        coEvery { calendarSyncService.listCalendars() } throws GoogleApiException(401, "Unauthorized")
         coEvery { authService.refreshAccessToken("refresh-token") } returns null
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo)
-        fsm.driveService = driveService
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
 
         fsm.checkConnectionOnStartup()
 
@@ -227,12 +221,11 @@ class GoogleConnectionFsmTest : FunSpec({
         tokenRepo.saveTokens("expired-token", "refresh-token")
 
         val authService = mockk<GoogleAuthService>(relaxed = true)
-        val driveService = mockk<GoogleDriveService>(relaxed = true)
-        coEvery { driveService.validateConnectionResult("expired-token") } returns GoogleDriveService.ValidationResult.NetworkError("No Internet")
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
+        coEvery { calendarSyncService.listCalendars() } throws GoogleApiException(0, "No Internet")
         coEvery { authService.refreshAccessToken("refresh-token") } returns null
 
-        val fsm = GoogleAccountFlow(authService, tokenRepo)
-        fsm.driveService = driveService
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
 
         fsm.checkConnectionOnStartup()
 

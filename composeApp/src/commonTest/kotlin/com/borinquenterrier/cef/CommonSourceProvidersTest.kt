@@ -9,8 +9,6 @@ class CommonSourceProvidersTest : FunSpec({
 
     val ingestionAgent = mockk<IngestionAgent>()
     val aiService = mockk<AIService>()
-    val driveService = mockk<GoogleDriveService>()
-    val tokenRepository = mockk<GoogleTokenRepository>()
 
     test("LocalFileSourceProvider properties and authorization") {
         val provider = LocalFileSourceProvider(ingestionAgent, aiService)
@@ -35,19 +33,6 @@ class CommonSourceProvidersTest : FunSpec({
         provider.isAuthorized() shouldBe true
 
         every { aiService.isConfigured() } returns false
-        provider.isAuthorized() shouldBe false
-    }
-
-    test("GoogleDriveSourceProvider properties and authorization") {
-        val provider = GoogleDriveSourceProvider(ingestionAgent, driveService, tokenRepository)
-
-        provider.id shouldBe "google_drive"
-        provider.displayName shouldBe "Drive"
-
-        every { tokenRepository.hasTokens() } returns true
-        provider.isAuthorized() shouldBe true
-
-        every { tokenRepository.hasTokens() } returns false
         provider.isAuthorized() shouldBe false
     }
 })

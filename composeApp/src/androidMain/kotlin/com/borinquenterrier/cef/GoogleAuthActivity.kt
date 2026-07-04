@@ -41,8 +41,7 @@ class GoogleAuthActivity : ComponentActivity() {
         val gso = GoogleSignInOptions.Builder(GoogleSignInOptions.DEFAULT_SIGN_IN)
             .requestEmail()
             .requestScopes(
-                Scope("https://www.googleapis.com/auth/calendar"),
-                Scope("https://www.googleapis.com/auth/drive.readonly")
+                Scope("https://www.googleapis.com/auth/calendar")
             )
             .build()
 
@@ -58,8 +57,7 @@ class GoogleAuthActivity : ComponentActivity() {
                 if (account != null && account.account != null) {
                     activityScope.launch {
                         try {
-                            val scopes =
-                                "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
+                            val scopes = "oauth2:https://www.googleapis.com/auth/calendar"
                             val token = GoogleAuthUtil.getToken(
                                 this@GoogleAuthActivity,
                                 account.account!!,
@@ -99,8 +97,7 @@ class GoogleAuthActivity : ComponentActivity() {
                 if (account != null && account.account != null) {
                     activityScope.launch {
                         try {
-                            val scopes =
-                                "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
+                            val scopes = "oauth2:https://www.googleapis.com/auth/calendar"
                             val token = GoogleAuthUtil.getToken(
                                 this@GoogleAuthActivity,
                                 account.account!!,

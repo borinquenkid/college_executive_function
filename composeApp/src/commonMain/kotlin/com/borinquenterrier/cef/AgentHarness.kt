@@ -38,11 +38,6 @@ class AgentHarness(
     fun setWatchedLocalDirectories(dirs: List<String>) =
         sourceScanner.setWatchedLocalDirectories(dirs)
 
-    fun getWatchedGDriveFolders(): List<String> = sourceScanner.getWatchedGDriveFolders()
-
-    fun setWatchedGDriveFolders(folders: List<String>) =
-        sourceScanner.setWatchedGDriveFolders(folders)
-
     suspend fun runHarness(force: Boolean = false) {
         if (!pollScheduler.shouldPoll(force)) return
 
@@ -60,15 +55,10 @@ class AgentHarness(
             val existingUris = existingSources.mapNotNull { it.originUri }.toSet()
 
             val newLocalFiles = sourceScanner.scanNewLocalFiles(existingUris)
-            val newDriveFiles = sourceScanner.scanNewDriveFiles(existingUris)
-            logger.d(
-                tag,
-                "Found ${newLocalFiles.size} new local files and ${newDriveFiles.size} new GDrive files."
-            )
+            logger.d(tag, "Found ${newLocalFiles.size} new local files.")
 
             eventAgent.loadIncompleteEvents()
             sourceProcessor.processLocalFiles(newLocalFiles) { status -> _status.value = status }
-            sourceProcessor.processDriveFiles(newDriveFiles) { status -> _status.value = status }
 
             _status.value = "Synchronizing calendar..."
             logger.d(tag, "Running calendar synchronization...")

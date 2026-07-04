@@ -1,12 +1,10 @@
 package com.borinquenterrier.cef
 
 /**
- * Lightweight facade coordinating directory preferences across local and Google Drive sources.
- * Delegates to specialized preference managers for local and GDrive directories.
+ * Lightweight facade coordinating directory preferences for local file sources.
  */
 class DirectoryPreferencesManager(
-    private val localPreferences: LocalDirectoryPreferences,
-    private val drivePreferences: DriveDirectoryPreferences
+    private val localPreferences: LocalDirectoryPreferences
 ) {
 
     fun getWatchedLocalDirectories(): List<String> {
@@ -15,13 +13,5 @@ class DirectoryPreferencesManager(
 
     fun setWatchedLocalDirectories(dirs: List<String>) {
         localPreferences.setWatchedDirectories(dirs)
-    }
-
-    fun getWatchedGDriveFolders(): List<String> {
-        return drivePreferences.getWatchedFolders()
-    }
-
-    fun setWatchedGDriveFolders(folders: List<String>) {
-        drivePreferences.setWatchedFolders(folders)
     }
 }

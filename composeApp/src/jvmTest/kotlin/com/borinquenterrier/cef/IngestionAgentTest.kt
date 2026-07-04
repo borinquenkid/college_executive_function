@@ -19,7 +19,6 @@ class IngestionAgentTest : FunSpec({
     lateinit var docxReader: DocxReader
     lateinit var pdfReader: PdfReader
     lateinit var webReader: WebSourceReader
-    lateinit var driveService: GoogleDriveService
     lateinit var aiService: AIService
     lateinit var ingestionAgent: IngestionAgent
 
@@ -32,7 +31,6 @@ class IngestionAgentTest : FunSpec({
         docxReader = mockk(relaxed = true)
         pdfReader = mockk(relaxed = true)
         webReader = mockk(relaxed = true)
-        driveService = mockk(relaxed = true)
         aiService = mockk(relaxed = true)
 
         ingestionAgent = IngestionAgent(
@@ -40,7 +38,6 @@ class IngestionAgentTest : FunSpec({
             docxReader = docxReader,
             pdfReader = pdfReader,
             webReader = webReader,
-            driveService = driveService,
             aiService = aiService,
             sourceRepository = SqlDelightSourceRepository(database)
         )
@@ -144,40 +141,4 @@ class IngestionAgentTest : FunSpec({
         }
     }
 
-    test("addDriveFile categorizes non-ICS drive files using AI service") {
-        val driveFile = DriveFile(
-            "drive-id-1",
-            "lecture_notes.docx",
-            "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-        )
-        coEvery { driveService.getFileContentBytes(driveFile.id, driveFile.mimeType) } returns "docx-bytes".encodeToByteArray()
-        // .docx → normalizer routes to the DOCX reader's bytes overload (no longer raw split)
-        coEvery { docxReader.readSource(any<ByteArray>()) } returns listOf(SourceFragment("Lecture notes content."))
-        coEvery { aiService.categorizeSource(any()) } returns SourceCategory.READING_MATERIAL
-
-        val result = ingestionAgent.addDriveFile(driveFile)
-
-        result.category shouldBe SourceCategory.READING_MATERIAL
-        result.title shouldBe "lecture_notes.docx"
-        coVerify(exactly = 1) { docxReader.readSource(any<ByteArray>()) }
-        coVerify(exactly = 1) { aiService.categorizeSource(any()) }
-    }
-
-    test("addDriveFile returns CALENDAR category for ICS drive files and skips AI") {
-        val driveFile = DriveFile("drive-id-2", "holidays.ics", "text/calendar")
-        val icsContent = """
-            BEGIN:VCALENDAR
-            VERSION:2.0
-            BEGIN:VEVENT
-            SUMMARY:Holiday
-            END:VEVENT
-            END:VCALENDAR
-        """.trimIndent()
-        coEvery { driveService.getFileContentBytes(driveFile.id, driveFile.mimeType) } returns icsContent.encodeToByteArray()
-
-        val result = ingestionAgent.addDriveFile(driveFile)
-
-        result.category shouldBe SourceCategory.CALENDAR
-        coVerify(exactly = 0) { aiService.categorizeSource(any()) }
-    }
 })

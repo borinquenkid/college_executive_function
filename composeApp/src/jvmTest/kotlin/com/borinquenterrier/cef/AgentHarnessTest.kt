@@ -55,7 +55,6 @@ class AgentHarnessTest : FunSpec({
         coEvery { pollScheduler.shouldPoll(true) } returns true
         coEvery { sourceRepository.getAllSources() } returns emptyList()
         coEvery { sourceScanner.scanNewLocalFiles(any()) } returns emptyList()
-        coEvery { sourceScanner.scanNewDriveFiles(any()) } returns emptyList()
 
         harness.runHarness(force = true)
 
@@ -67,13 +66,6 @@ class AgentHarnessTest : FunSpec({
         coEvery { sourceScanner.getWatchedLocalDirectories() } returns dirs
 
         harness.getWatchedLocalDirectories() shouldBe dirs
-    }
-
-    test("delegates watched folder management to source scanner") {
-        val folders = listOf("folder1", "folder2")
-        coEvery { sourceScanner.getWatchedGDriveFolders() } returns folders
-
-        harness.getWatchedGDriveFolders() shouldBe folders
     }
 
     test("delegates poll time to poll scheduler") {

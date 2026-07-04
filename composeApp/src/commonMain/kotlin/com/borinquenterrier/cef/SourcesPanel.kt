@@ -72,6 +72,19 @@ fun SourcesPanel(
             }
         }
 
+        // Drive import goes through the OS file picker now (no in-app Drive browser) — it only
+        // shows Google Drive as a location if the Drive app is installed, so students need to
+        // know that up front rather than wonder why Drive never appears under "File."
+        if (!isDesktop) {
+            Text(
+                "Tip: To import from Google Drive, tap File — Drive will show up as a location " +
+                    "if you have the Google Drive app installed on this device.",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                modifier = Modifier.padding(horizontal = 4.dp)
+            )
+        }
+
         LazyColumn {
             items(sourceItems) { item ->
                 SourceItemView(

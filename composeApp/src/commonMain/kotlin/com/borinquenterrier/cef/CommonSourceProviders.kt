@@ -2,7 +2,6 @@ package com.borinquenterrier.cef
 
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
-import androidx.compose.material.icons.filled.CloudDownload
 import androidx.compose.material.icons.filled.Link
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Text
@@ -146,58 +145,3 @@ class UrlSourceProvider(
     }
 }
 
-class GoogleDriveSourceProvider(
-    private val ingestionAgent: IngestionAgent,
-    private val driveService: GoogleDriveService,
-    private val tokenRepository: GoogleTokenRepository
-) : SourceProvider {
-    override val id = "google_drive"
-    override val displayName = "Drive"
-    override val icon = Icons.Default.CloudDownload
-
-    override fun isAuthorized() = tokenRepository.hasTokens()
-
-    @Composable
-    override fun SelectorUI(onSourceAdded: (SourceItem) -> Unit, onDismiss: () -> Unit) {
-        val accessToken = tokenRepository.getAccessToken()
-        val scope = rememberCoroutineScope()
-        val handler =
-            remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
-        var isIngesting by remember { mutableStateOf(false) }
-
-        if (isIngesting) {
-            IngestingProgressDialog(
-                title = "Reading Drive File",
-                message = "Downloading and analyzing file..."
-            )
-        } else if (accessToken == null) {
-            AlertDialog(
-                onDismissRequest = onDismiss,
-                title = { Text("Google Account Required") },
-                text = { Text("Please link your Google account in Settings to use Drive.") },
-                confirmButton = {
-                    TextButton(onClick = onDismiss) {
-                        Text("OK")
-                    }
-                }
-            )
-        } else {
-            DrivePickerDialog(
-                driveService = driveService,
-                onDismiss = onDismiss,
-                onFilesSelected = { files ->
-                    val collected = mutableListOf<SourceItem>()
-                    handler.ingestDriveFiles(
-                        files = files,
-                        onStart = { isIngesting = true },
-                        onEachSuccess = { collected.add(it) },
-                        onFinish = {
-                            isIngesting = false
-                            if (collected.isEmpty()) onDismiss() else collected.forEach(onSourceAdded)
-                        }
-                    )
-                }
-            )
-        }
-    }
-}

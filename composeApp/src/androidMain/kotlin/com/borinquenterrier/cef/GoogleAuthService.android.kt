@@ -42,8 +42,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
             try {
                 val account =
                     GoogleSignIn.getLastSignedInAccount(context)?.account ?: return@withContext null
-                val scopes =
-                    "oauth2:https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
+                val scopes = "oauth2:https://www.googleapis.com/auth/calendar"
                 GoogleAuthUtil.getToken(context, account, scopes)
             } catch (e: Exception) {
                 // Includes UserRecoverableAuthException (e.g. revoked/expired consent) — there's

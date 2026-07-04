@@ -10,11 +10,9 @@ class HarnessSourceProcessorTest : StringSpec({
     "processSource delegates to pipeline" {
         val pipeline = mockk<SourceProcessingPipeline>()
         val localFileProcessor = mockk<LocalFileProcessor>()
-        val driveFileProcessor = mockk<DriveFileProcessor>()
         val logger = mockk<Logger>(relaxed = true)
 
-        val processor =
-            HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
+        val processor = HarnessSourceProcessor(pipeline, localFileProcessor, logger)
 
         val source = mockk<SourceItem>(relaxed = true)
         coEvery { pipeline.processSource(source) } returns Unit
@@ -27,11 +25,9 @@ class HarnessSourceProcessorTest : StringSpec({
     "processLocalFiles delegates to LocalFileProcessor" {
         val pipeline = mockk<SourceProcessingPipeline>()
         val localFileProcessor = mockk<LocalFileProcessor>()
-        val driveFileProcessor = mockk<DriveFileProcessor>()
         val logger = mockk<Logger>(relaxed = true)
 
-        val processor =
-            HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
+        val processor = HarnessSourceProcessor(pipeline, localFileProcessor, logger)
 
         val files = listOf("/home/doc1.pdf", "/home/doc2.pdf")
         val callback: (String) -> Unit = {}
@@ -40,25 +36,5 @@ class HarnessSourceProcessorTest : StringSpec({
         processor.processLocalFiles(files, callback)
 
         coVerify(exactly = 1) { localFileProcessor.processLocalFiles(files, any()) }
-    }
-
-    "processDriveFiles delegates to DriveFileProcessor" {
-        val pipeline = mockk<SourceProcessingPipeline>()
-        val localFileProcessor = mockk<LocalFileProcessor>()
-        val driveFileProcessor = mockk<DriveFileProcessor>()
-        val logger = mockk<Logger>(relaxed = true)
-
-        val processor =
-            HarnessSourceProcessor(pipeline, localFileProcessor, driveFileProcessor, logger)
-
-        val driveFile1 = mockk<DriveFile>(relaxed = true)
-        val driveFile2 = mockk<DriveFile>(relaxed = true)
-        val files = listOf(driveFile1, driveFile2)
-        val callback: (String) -> Unit = {}
-        coEvery { driveFileProcessor.processDriveFiles(files, any()) } returns Unit
-
-        processor.processDriveFiles(files, callback)
-
-        coVerify(exactly = 1) { driveFileProcessor.processDriveFiles(files, any()) }
     }
 })

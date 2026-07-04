@@ -80,20 +80,13 @@ class DependencyContainer(
         )
     }
 
-    val googleAccountFlow by lazy { GoogleAccountFlow(authService, tokenRepository) }
-
-    val driveService: GoogleDriveService by lazy {
-        GoogleDriveService(
-            httpClient,
-            tokenRepository,
-            authService,
-            { googleAccountFlow.reportAuthError(it) })
+    val googleAccountFlow: GoogleAccountFlow by lazy {
+        GoogleAccountFlow(authService, tokenRepository, syncService)
     }
 
     val webReader by lazy { WebSourceReader() }
 
     init {
-        googleAccountFlow.driveService = driveService
         globalScope.launch {
             googleAccountFlow.checkConnectionOnStartup()
         }
@@ -127,7 +120,6 @@ class DependencyContainer(
             docxReader,
             pdfReader,
             webReader,
-            driveService,
             aiService,
             sourceRepository
         )
@@ -190,19 +182,8 @@ class DependencyContainer(
         )
     }
 
-    val driveDirectoryPreferences by lazy {
-        DriveDirectoryPreferences(
-            settings,
-            preferenceSerializer,
-            logger
-        )
-    }
-
     val directoryPreferencesManager by lazy {
-        DirectoryPreferencesManager(
-            localDirectoryPreferences,
-            driveDirectoryPreferences
-        )
+        DirectoryPreferencesManager(localDirectoryPreferences)
     }
 
     val localFileScanner by lazy {
@@ -213,20 +194,10 @@ class DependencyContainer(
         )
     }
 
-    val driveFileScanner by lazy {
-        DriveFileScanner(
-            driveService,
-            tokenRepository,
-            directoryPreferencesManager,
-            logger
-        )
-    }
-
     val sourceScanner by lazy {
         SourceScanner(
             directoryPreferencesManager,
-            localFileScanner,
-            driveFileScanner
+            localFileScanner
         )
     }
 
@@ -249,20 +220,10 @@ class DependencyContainer(
         )
     }
 
-    val driveFileProcessor by lazy {
-        DriveFileProcessor(
-            ingestionAgent,
-            sourceProcessingPipeline,
-            logger,
-            bugReporter
-        )
-    }
-
     val harnessSourceProcessor by lazy {
         HarnessSourceProcessor(
             sourceProcessingPipeline,
             localFileProcessor,
-            driveFileProcessor,
             logger
         )
     }

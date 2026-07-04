@@ -12,7 +12,7 @@ Do these once; both platform plans assume they're in progress or done. See `DEPL
 1. **Confirm your Apple account type.** developer.apple.com/account → check if it says *Individual* or shows Borinquen Terrier LLC as an *Organization*. An Individual account can't convert to an Organization after the fact — it requires a brand-new enrollment with a D-U-N-S number for the LLC.
 2. **Enroll in Google Play Console** (play.google.com/console/signup) as an **Organization** account, $25 one-time, with Borinquen Terrier LLC's business details. (Needed for the Android plan, not iOS — listed here since it's a shared prerequisite.)
 3. **Draft and host a Privacy Policy + Terms of Service.** Both stores require a public Privacy Policy URL before submission. Host as a static page anywhere reachable.
-4. **Move the Google OAuth consent screen from Testing to Production — start this first, it's the longest pole.** The app's Calendar/Drive scopes are "sensitive/restricted," so Google's verification can require a CASA security assessment taking days to weeks. Needs the privacy policy URL from step 3.
+4. **Move the Google OAuth consent screen from Testing to Production.** The app only requests the `calendar` scope now — the Drive scope was dropped entirely in favor of native OS file pickers (no Drive API calls, no OAuth scope needed). `calendar` is a "sensitive" scope requiring standard Google review, not the CASA-tier security assessment a "restricted" scope like `drive.readonly` would need. Needs the privacy policy URL from step 3.
 5. **Use one publisher name everywhere** — "Borinquen Terrier LLC" should match exactly across App Store Connect's Business/Agreements page and Play Console's org profile.
 
 ### Draft AI-disclaimer clause for the Terms of Service
@@ -45,7 +45,7 @@ Starter draft — have a lawyer review before publishing:
 ## Phase 4 — Build, test, submit
 
 - [ ] **Archive & upload.** No Fastlane exists yet — do this via Xcode's Product → Archive, then upload through Organizer or Transporter.
-- [ ] **TestFlight pass, then submit for review.** Run an internal TestFlight build first. Include App Review notes explaining how to test Google Sign-In — reviewers need a clear path through any login-gated flow, a common first-round rejection reason.
+- [ ] **TestFlight pass, then submit for review.** Run an internal TestFlight build first. Include App Review notes explaining how to test Google Sign-In — reviewers need a clear path through any login-gated flow, a common first-round rejection reason. Also note in the review notes that importing from Google Drive requires the separate Drive app to be installed on the test device (Drive access goes through iOS's native file picker now, not an in-app browser) — otherwise a reviewer without Drive installed may not find where "Drive" is and flag it as broken.
 
 ## Explicitly not addressed here
 

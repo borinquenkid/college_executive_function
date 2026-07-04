@@ -13,7 +13,6 @@ class IngestionAgent(
     private val docxReader: DocxReader,
     private val pdfReader: PdfReader,
     private val webReader: WebSourceReader,
-    private val driveService: GoogleDriveService,
     private val aiService: AIService,
     private val sourceRepository: SourceRepository
 ) {
@@ -67,31 +66,6 @@ class IngestionAgent(
                 setAttribute("source.category", category.name)
                 val sourceItem = SourceItem(url, fragments, category)
                 persistSource(sourceItem, url)
-                sourceItem
-            }
-        } finally {
-            _isBusy.value = false
-        }
-    }
-
-    suspend fun addDriveFile(file: DriveFile): SourceItem {
-        _isBusy.value = true
-        return try {
-            AppTracer.current.span("ingestion.add_drive_file",
-                mapOf("source.name" to file.name, "drive.file_id" to file.id)
-            ) {
-                // Route Drive downloads through the normalizer so PDFs/DOCX are actually
-                // text-extracted instead of stored as raw bytes (the "%PDF-1.4…" bug).
-                val format = SourceFormatDetector.detect(file.name.ifBlank { file.mimeType })
-                setAttribute("source.type", format.name)
-                val bytes = driveService.getFileContentBytes(file.id, file.mimeType)
-                val rawFragments = normalizer.normalize(bytes, format)
-                val fragments = if (format == SourceFormat.ICS) rawFragments else WeekAnchorExtractor.inject(rawFragments)
-                setAttribute("fragment.count", fragments.size.toLong())
-                val category = resolveCategory(format == SourceFormat.ICS, fragments)
-                setAttribute("source.category", category.name)
-                val sourceItem = SourceItem(file.name, fragments, category)
-                persistSource(sourceItem, "google_drive://${file.id}")
                 sourceItem
             }
         } finally {

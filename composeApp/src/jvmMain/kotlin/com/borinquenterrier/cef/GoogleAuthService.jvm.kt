@@ -30,8 +30,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
     private val jsonFactory = GsonFactory.getDefaultInstance()
     private val transport = NetHttpTransport()
     private val scopes = listOf(
-        "https://www.googleapis.com/auth/calendar",
-        "https://www.googleapis.com/auth/drive.readonly"
+        "https://www.googleapis.com/auth/calendar"
     )
 
     actual suspend fun login(): Pair<String, String?> = withContext(Dispatchers.IO) {

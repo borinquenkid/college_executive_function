@@ -104,10 +104,4 @@ class SourceIngestionHandlerTest : FunSpec({
         failed shouldBe true
         finished shouldBe false
     }
-
-    test("GoogleDriveQueryBuilder builds correct query") {
-        val query = GoogleDriveQueryBuilder.buildIngestibleFilesQuery()
-        query.contains("application/pdf") shouldBe true
-        query.contains("name contains '.ics'") shouldBe true
-    }
 })

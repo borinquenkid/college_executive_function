@@ -26,8 +26,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
         "1014783111965-ttk2sf44ue2k97qjucvemqgmr15cjv3n.apps.googleusercontent.com"
     private val redirectUri =
         "com.googleusercontent.apps.1014783111965-ttk2sf44ue2k97qjucvemqgmr15cjv3n:/"
-    private val scope =
-        "https://www.googleapis.com/auth/calendar https://www.googleapis.com/auth/drive.readonly"
+    private val scope = "https://www.googleapis.com/auth/calendar"
 
     private val httpClient = HttpClient(Darwin) {
         install(ContentNegotiation) {

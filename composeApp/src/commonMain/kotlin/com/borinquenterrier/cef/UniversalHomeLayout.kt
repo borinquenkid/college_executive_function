@@ -106,12 +106,7 @@ fun UniversalHomeLayout(container: DependencyContainer) {
     val sourceProviders = remember(container) {
         listOf(
             LocalFileSourceProvider(container.ingestionAgent, container.aiService),
-            UrlSourceProvider(container.ingestionAgent, container.aiService),
-            GoogleDriveSourceProvider(
-                container.ingestionAgent,
-                container.driveService,
-                container.tokenRepository
-            )
+            UrlSourceProvider(container.ingestionAgent, container.aiService)
         )
     }
 

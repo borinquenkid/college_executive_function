@@ -12,7 +12,7 @@ Do these once; both platform plans assume they're in progress or done. See `DEPL
 1. **Confirm your Apple account type** (Individual vs Organization) — needed for iOS, not Android, but listed here since it's a shared prerequisite.
 2. **Enroll in Google Play Console** (play.google.com/console/signup) as an **Organization** account, $25 one-time, with Borinquen Terrier LLC's business details.
 3. **Draft and host a Privacy Policy + Terms of Service.** Both stores require a public Privacy Policy URL before submission. Host as a static page anywhere reachable.
-4. **Move the Google OAuth consent screen from Testing to Production — start this first, it's the longest pole.** The app's Calendar/Drive scopes are "sensitive/restricted," so Google's verification can require a CASA security assessment taking days to weeks. Needs the privacy policy URL from step 3.
+4. **Move the Google OAuth consent screen from Testing to Production.** The app only requests the `calendar` scope now — the Drive scope was dropped entirely in favor of native OS file pickers (Android's Storage Access Framework already browses into Drive with no Drive API calls, no OAuth scope needed). `calendar` is a "sensitive" scope requiring standard Google review, not the CASA-tier security assessment a "restricted" scope like `drive.readonly` would need. Needs the privacy policy URL from step 3.
 5. **Use one publisher name everywhere** — "Borinquen Terrier LLC" should match exactly across App Store Connect's Business/Agreements page and Play Console's org profile.
 
 ### Draft AI-disclaimer clause for the Terms of Service
@@ -45,6 +45,7 @@ Starter draft — have a lawyer review before publishing:
 
 - [ ] **Check whether a closed-testing period is required first.** Play's newer policy can require 12 testers for 14 days on a testing track before opening Production, mainly for new personal developer accounts — verify whether this applies to the Organization account in Console before planning a release date.
 - [ ] **Upload & promote to Production.** Upload the signed `.aab` to a testing track, then promote once satisfied.
+- [ ] **Note the Drive app dependency for testers/reviewers.** Importing from Google Drive goes through Android's native file picker now, not an in-app browser — it only shows Drive as a location if the Drive app is installed on the device. Mention this in any tester/review notes so it isn't mistaken for a missing feature.
 
 ## Explicitly not addressed here
 

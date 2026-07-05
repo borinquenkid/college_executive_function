@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 186
+- **Total Files Analyzed**: 187
 - **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
@@ -1898,6 +1898,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `collect` | 1 |
+
+### LogFileCap.kt (Score: 2.00 - 🟢 LOW)
+- **Total Complexity**: 2
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `capLogContent` | 2 |
 
 ### UiOnly.kt (Score: 2.00 - 🟢 LOW)
 - **Total Complexity**: 1

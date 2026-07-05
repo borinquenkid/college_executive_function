@@ -1292,7 +1292,7 @@ dropped.
 | HARD-3 | Surface a persistent `LOCAL_ONLY` sync failure on event **update** instead of swallowing it | 2 — silent→churn | ✅ |
 | HARD-4 | Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` | 3 — decision core | ✅ |
 | HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ✅ |
-| HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ⬜ |
+| HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ✅ |
 | HARD-7 | Wire up the already-built override-log retention (`pruneOldLogs`) | 4 — scale landmine | ⬜ |
 | HARD-8 | Warn before a document is large enough to trigger extra Gemini cost | 4 — scale landmine | ⬜ |
 | HARD-9 | Full teardown on Google account disconnect, not just token clearing | 5 — structural | ⬜ |
@@ -1573,7 +1573,7 @@ CEF's version of "scale" is a single install accumulating state over months/year
 real use, or one unusually large document — not tenant count. Lower urgency than
 Archetypes 1–3, but real.
 
-#### HARD-6 — Cap desktop `debug_logs.txt` growth in release builds
+#### HARD-6 — Cap desktop `debug_logs.txt` growth in release builds ✅ DONE 2026-07-04
 
 **What:** `Platform.jvm.kt`'s `writeLogToFile()` appends to `debug_logs.txt` forever
 with no size cap, gated only by `isDebug` — and `isDebug` (line 8) defaults to
@@ -1582,18 +1582,33 @@ var to `"false"`. Neither `release-desktop.yml` nor `composeApp/build.gradle.kts
 that for packaged builds. Android (`Platform.android.kt`) and iOS (`Platform.ios.kt`)
 both already cap this at `MAX_LOG_FILE_BYTES = 500_000` with `takeLast` trimming —
 desktop is the one platform that shipped without the cap its siblings already have.
+(Confirmed the leak was real: the local repo's gitignored `debug_logs.txt` had grown
+to 36MB before this fix.)
 
 **Acceptance criteria:**
-- [ ] Desktop `writeLogToFile()` gets the same size cap + trim behavior Android/iOS
+- [x] Desktop `writeLogToFile()` gets the same size cap + trim behavior Android/iOS
       already implement (extract to shared code if it isn't already, rather than a
-      third independent copy).
-- [ ] Packaged release builds explicitly set `isDebug = false` (or an equivalent
+      third independent copy). Extracted `capLogContent()`/`MAX_LOG_FILE_BYTES` into
+      commonMain's new `LogFileCap.kt`; Android and iOS now call the shared function
+      too instead of each carrying its own copy of the same trim logic.
+- [x] Packaged release builds explicitly set `isDebug = false` (or an equivalent
       release-vs-dev distinction that doesn't rely on an env var nobody sets) so this
-      doesn't also silently regress via the `isDebug` default itself.
-- [ ] Test: `writeLogToFile()` called past the cap trims rather than growing
-      unbounded.
+      doesn't also silently regress via the `isDebug` default itself. Added a
+      `generateJvmBuildFlags` Gradle task that bakes `IS_PACKAGED_DESKTOP_RELEASE`
+      into a compiled constant from the actual requested task names (true only when
+      a `packageRelease*` task is invoked), so a release build can't ship debug-on
+      just because nobody remembered to set a flag — `isDebug`'s gating logic itself
+      is the pure, unit-tested `computeIsDebug()` in `DesktopBuildFlags.kt`.
+- [x] Test: `writeLogToFile()` called past the cap trims rather than growing
+      unbounded. `capLogFile()` (the file-level wrapper `writeLogToFile()` calls) is
+      covered directly in `LogFileCapJvmTest`, including a repeated-append case that
+      asserts the file never exceeds the cap; `capLogContent()`'s pure trim logic is
+      covered in commonTest's `LogFileCapTest`.
 
-**Files:** `composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/Platform.jvm.kt`
+**Files:** `composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/Platform.jvm.kt`,
+`DesktopBuildFlags.kt` (new); `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/LogFileCap.kt`
+(new); `composeApp/src/androidMain/.../Platform.android.kt`, `composeApp/src/iosMain/.../Platform.ios.kt`;
+`composeApp/build.gradle.kts` (`generateJvmBuildFlags` task).
 
 #### HARD-7 — Wire up the already-built override-log retention
 

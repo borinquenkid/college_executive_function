@@ -36,7 +36,7 @@ actual fun rememberDriverFactory(): DriverFactory {
 }
 
 // Caps the debug log file so it can't grow unbounded across a long-running session.
-private const val MAX_LOG_FILE_BYTES = 500_000
+// The cap/trim logic itself lives in commonMain's LogFileCap.kt, shared with Android and desktop.
 private const val LOG_FILE_NAME = "cef_debug_log.txt"
 
 /**
@@ -62,7 +62,7 @@ actual fun writeLogToFile(message: String) {
 
         val existing = if (fileSystem.exists(path)) fileSystem.read(path) { readUtf8() } else ""
         val updated = existing + "[${NSDate()}] $message\n"
-        val trimmed = if (updated.length > MAX_LOG_FILE_BYTES) updated.takeLast(MAX_LOG_FILE_BYTES) else updated
+        val trimmed = capLogContent(updated)
 
         fileSystem.write(path, mustCreate = false) { writeUtf8(trimmed) }
     } catch (e: Exception) {

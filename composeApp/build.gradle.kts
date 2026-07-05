@@ -170,6 +170,38 @@ tasks.matching { it.name.contains("packageRelease", ignoreCase = true) }.configu
     dependsOn(verifyReleaseTelemetrySecrets)
 }
 
+// HARD-6 (ROADMAP.md Phase 10): desktop's isDebug defaulted to true unless a `debug` system
+// property or DEBUG env var was explicitly set to "false" — nothing in this file or
+// release-desktop.yml ever set that, so a packaged .dmg/.msi/.deb shipped debug-on (unbounded
+// debug_logs.txt growth included) by default. Rather than add another flag nobody remembers to
+// set, bake whether this invocation was requested to package a release straight from the
+// requested task names into a compiled constant, so a packageRelease* build can never silently
+// ship debug-on the way an unset env var let it before. Computed as a local val (not a top-level
+// script var) and read only inside this task's own doLast — capturing the outer script object in
+// a task action breaks the configuration cache.
+val generateJvmBuildFlags = tasks.register("generateJvmBuildFlags") {
+    group = "build"
+    description = "Bakes whether this invocation is packaging a desktop release into a compiled constant."
+    val isPackagingDesktopRelease = gradle.startParameter.taskNames.any {
+        it.contains("packageRelease", ignoreCase = true)
+    }
+    inputs.property("isPackagingDesktopRelease", isPackagingDesktopRelease)
+    val jvmBuildFlagsDir = layout.buildDirectory.dir("generated/cef/jvmMain/kotlin")
+    outputs.dir(jvmBuildFlagsDir)
+    outputs.upToDateWhen { false }
+    doLast {
+        val file = jvmBuildFlagsDir.get().file("com/borinquenterrier/cef/JvmBuildFlags.kt").asFile
+        file.parentFile.mkdirs()
+        file.writeText(
+            """
+            package com.borinquenterrier.cef
+
+            internal const val IS_PACKAGED_DESKTOP_RELEASE: Boolean = $isPackagingDesktopRelease
+            """.trimIndent() + "\n"
+        )
+    }
+}
+
 // Exclude pure Compose UI files (annotated @file:UiOnly) from coverage gate and reports.
 // These files contain only rendering code and cannot be meaningfully unit-tested without
 // a full Compose test harness. Domain logic is already extracted into separate classes.
@@ -239,6 +271,9 @@ kotlin {
     sourceSets {
         commonMain {
             kotlin.srcDir(generateBuildSecrets)
+        }
+        jvmMain {
+            kotlin.srcDir(generateJvmBuildFlags)
         }
         androidMain.dependencies {
             implementation(compose.preview)

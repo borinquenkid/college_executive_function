@@ -49,7 +49,7 @@ class IngestionAgent(
             AppTracer.current.span("ingestion.add_file") {
                 val fileName = path.substringAfterLast("/").substringAfterLast("\\")
                 val format = SourceFormatDetector.detect(fileName)
-                setAttribute("source.name", fileName)
+                setAttribute("source.name_hash", TelemetryIdHasher.hash(fileName))
                 setAttribute("source.type", format.name)
                 val rawFragments = normalizer.normalize(fileReader.readBytes(path), format)
                 val fragments = if (format == SourceFormat.ICS) rawFragments else WeekAnchorExtractor.inject(rawFragments)
@@ -70,7 +70,7 @@ class IngestionAgent(
         _isBusy.value = true
         _largeDocumentNotice.value = null
         return try {
-            AppTracer.current.span("ingestion.add_url", mapOf("source.url" to url)) {
+            AppTracer.current.span("ingestion.add_url", mapOf("source.url_hash" to TelemetryIdHasher.hash(url))) {
                 // Web pages default to HTML; a URL ending .pdf/.ics routes to that extractor.
                 val format = SourceFormatDetector.detect(url, default = SourceFormat.HTML)
                 setAttribute("source.type", format.name)

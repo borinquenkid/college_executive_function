@@ -40,7 +40,7 @@ class EventGenerationService(
         onProgress: ((message: String) -> Unit)? = null
     ): List<Event> = AppTracer.current.span(
         "events.extract_deliverables",
-        mapOf("source.title" to source.title, "source.category" to source.category.name)
+        mapOf("source.title_hash" to TelemetryIdHasher.hash(source.title), "source.category" to source.category.name)
     ) {
         val prefs = preferencesRepository.getPreferences()
 
@@ -145,7 +145,7 @@ class EventGenerationService(
     suspend fun generateStudyPlan(source: SourceItem, existingEvents: List<Event>): StudyPlanResult =
         AppTracer.current.span(
             "events.generate_study_plan",
-            mapOf("source.title" to source.title, "calendar.existing_count" to existingEvents.size.toString())
+            mapOf("source.title_hash" to TelemetryIdHasher.hash(source.title), "calendar.existing_count" to existingEvents.size.toString())
         ) {
             val syllabusText = source.fragments.joinToString("\n\n") { it.text }
             val existingScheduleText = buildScheduleContext(existingEvents)

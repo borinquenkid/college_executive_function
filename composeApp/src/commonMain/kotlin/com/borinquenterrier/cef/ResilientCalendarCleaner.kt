@@ -24,7 +24,7 @@ class ResilientCalendarCleaner(
     }
 
     suspend fun clear(calendarId: String): Result =
-        AppTracer.current.span("calendar.resilient_clear", mapOf("calendar.id" to calendarId)) {
+        AppTracer.current.span("calendar.resilient_clear", mapOf("calendar.id_hash" to TelemetryIdHasher.hash(calendarId))) {
             val events = try {
                 remoteRepo.getAllEvents(calendarId)
             } catch (e: Exception) {

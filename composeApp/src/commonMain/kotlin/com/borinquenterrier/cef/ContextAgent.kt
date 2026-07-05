@@ -30,7 +30,7 @@ class ContextAgent(
         }
         _isAnalyzing.value = true
         try {
-            AppTracer.current.span("context.analyze_source", mapOf("source.title" to source.title)) {
+            AppTracer.current.span("context.analyze_source", mapOf("source.title_hash" to TelemetryIdHasher.hash(source.title))) {
                 val fullText = source.fragments.joinToString("\n\n") { it.text }
                 val metadataJson = aiService.analyzeDocument(fullText)
 

@@ -136,7 +136,7 @@ class CalendarAgent(
      * for the user to confirm — never deleting a real event silently. Returns the full report.
      */
     suspend fun selfHeal(calendarId: String = "default"): ReconciliationReport =
-        AppTracer.current.span("calendar.self_heal", mapOf("calendar.id" to calendarId)) {
+        AppTracer.current.span("calendar.self_heal", mapOf("calendar.id_hash" to TelemetryIdHasher.hash(calendarId))) {
             val report = reconcile(calendarId)
             setAttribute("drift.duplicates", report.duplicatesToDelete.size.toLong())
             setAttribute("drift.out_of_term", report.outOfSemesterToDelete.size.toLong())

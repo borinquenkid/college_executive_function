@@ -286,7 +286,7 @@ class EventAgent(
     suspend fun pushToCalendar(calendarId: String = "default"): List<Event> =
         AppTracer.current.span(
             "events.push_to_calendar",
-            mapOf("calendar.id" to calendarId, "events.count" to _lastGeneratedEvents.value.size.toString())
+            mapOf("calendar.id_hash" to TelemetryIdHasher.hash(calendarId), "events.count" to _lastGeneratedEvents.value.size.toString())
         ) {
             val conflicts = calendarPusher.push(_lastGeneratedEvents.value, calendarId)
             loadPersistedWarnings()

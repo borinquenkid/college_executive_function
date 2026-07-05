@@ -37,9 +37,9 @@ class CriticActorAIService(
                 (firstPass.count { it.category == AcademicCategory.CLASS } -
                  refined.count { it.category == AcademicCategory.CLASS }).toLong())
             setAttribute("critique.modified", modified.toString())
-            setAttribute("events.raw_titles", firstPass.joinToString("|") { it.title })
+            setAttribute("events.raw_title_hashes", firstPass.joinToString("|") { TelemetryIdHasher.hash(it.title) })
             setAttribute("events.raw_dates", firstPass.joinToString("|") { EventDeduplicator.dateOf(it).toString() })
-            setAttribute("events.final_titles", refined.joinToString("|") { it.title })
+            setAttribute("events.final_title_hashes", refined.joinToString("|") { TelemetryIdHasher.hash(it.title) })
             setAttribute("events.final_dates", refined.joinToString("|") { EventDeduplicator.dateOf(it).toString() })
             val rawList = firstPass.joinToString("; ") { "${it.title} @ ${EventDeduplicator.dateOf(it)}" }
             val finalList = refined.joinToString("; ") { "${it.title} @ ${EventDeduplicator.dateOf(it)}" }

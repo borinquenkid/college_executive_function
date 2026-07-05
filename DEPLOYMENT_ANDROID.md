@@ -32,7 +32,7 @@ Starter draft — have a lawyer review before publishing:
 ## Phase 2 — App readiness (code) — hard blockers
 
 - [x] **Add a launcher icon.** ✅ Already done in commit `ee272b0` — `mipmap-*` and adaptive-icon resources exist and `AndroidManifest.xml` sets `android:icon`/`android:roundIcon`. (This item was stale; the icon landed alongside the iOS/desktop/web branding pass.)
-- [ ] **Fix the hardcoded `versionCode`.** It's fixed at `1` in `androidApp/build.gradle.kts`. Play rejects a re-upload with a duplicate version code, so an incrementing strategy is needed before the second release — tying it into `release.sh` alongside `versionName` is the natural place.
+- [x] **Fix the hardcoded `versionCode`.** ✅ **DONE 2026-07-05.** `androidApp/build.gradle.kts` now reads `cef.versionCode` from `gradle.properties` (default `1`), and `release.sh` increments it by 1 on every release run, alongside the `versionName` bump. Verified `:androidApp:assembleDebug` still builds clean.
 - [x] **Signed release build** — ready. The keystore and env-var-first signing config (`CEF_KEYSTORE_PATH` etc.) are already wired up. Confirm `bundleRelease` produces a signed `.aab` (Play requires App Bundles, not APKs) once the versionCode fix above lands.
 
 ## Phase 2.5 — Hardening pass (blocks submission)

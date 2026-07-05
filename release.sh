@@ -3,6 +3,12 @@
 # CEF Release Script
 # Usage: ./release.sh <version>   e.g. ./release.sh 1.0.14
 # - Updates cef.versionName in gradle.properties
+# - Updates MARKETING_VERSION in iosApp/Configuration/Config.xcconfig (kept in sync with
+#   Android — these two drifted once already: gradle.properties reached 2.0.1 while
+#   Config.xcconfig stayed at 2.0.0, which would have shipped a mismatched version to
+#   App Store Connect)
+# - Increments cef.versionCode (Android's Play-Store build number; must strictly increase
+#   on every uploaded artifact, independent of versionName)
 # - Commits the bump (skipped if already at that version)
 # - Pushes the commit
 # - Tags vX.Y.Z and pushes the tag → triggers Release Desktop (JVM) workflow
@@ -48,8 +54,17 @@ echo "--------------------------------------------------"
 # 1. Bump version in gradle.properties
 sed -i '' "s/^cef\.versionName=.*/cef.versionName=$VERSION/" gradle.properties
 
+CURRENT_VERSION_CODE=$(grep -E '^cef\.versionCode=' gradle.properties | cut -d'=' -f2 | tr -d '[:space:]')
+NEW_VERSION_CODE=$((CURRENT_VERSION_CODE + 1))
+sed -i '' "s/^cef\.versionCode=.*/cef.versionCode=$NEW_VERSION_CODE/" gradle.properties
+echo -e "${GREEN}✓ Bumped cef.versionCode $CURRENT_VERSION_CODE → $NEW_VERSION_CODE${NC}"
+
+# 1b. Keep iOS's marketing version in sync with Android's versionName
+sed -i '' "s/^MARKETING_VERSION=.*/MARKETING_VERSION=$VERSION/" iosApp/Configuration/Config.xcconfig
+echo -e "${GREEN}✓ Synced iOS MARKETING_VERSION to $VERSION${NC}"
+
 # 2. Commit only if the version actually changed
-git add gradle.properties
+git add gradle.properties iosApp/Configuration/Config.xcconfig
 if ! git diff --cached --quiet; then
     git commit -m "version bump to $VERSION"
     echo -e "${GREEN}✓ Committed version bump${NC}"

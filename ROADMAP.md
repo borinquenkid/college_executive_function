@@ -1290,7 +1290,7 @@ dropped.
 | HARD-1 | Fail loud (not silent) when telemetry degrades to a no-op tracer in a packaged build | 0 — visibility | ✅ |
 | HARD-2 | Fix the hardcoded Fall-2024 default date range in `AddRoutineItemDialog` | 1 — bleeding now | ✅ |
 | HARD-3 | Surface a persistent `LOCAL_ONLY` sync failure on event **update** instead of swallowing it | 2 — silent→churn | ✅ |
-| HARD-4 | Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` | 3 — decision core | ⬜ |
+| HARD-4 | Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` | 3 — decision core | ✅ |
 | HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ⬜ |
 | HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ⬜ |
 | HARD-7 | Wire up the already-built override-log retention (`pruneOldLogs`) | 4 — scale landmine | ⬜ |
@@ -1458,7 +1458,7 @@ Oficio's qualification-agent reliability gate played there. CEF's whole product
 depends on the Gemini extraction pipeline actually getting syllabus dates right; today
 that reliability is unmeasured in any way that can block a regression from shipping.
 
-#### HARD-4 — Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest`
+#### HARD-4 — Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` ✅ DONE 2026-07-05
 
 **What:** `SyllabusEvaluationIntegrationTest.kt` already does the hard part — it runs
 2 real syllabi through the actual `RealAIService.generateCalendarEvents()` and
@@ -1472,13 +1472,25 @@ assertions against the real `contributions/` corpus), already have exactly the
 assertion shape this test is missing.
 
 **Acceptance criteria:**
-- [ ] Replace the results-table `println` with real assertions — a minimum recall%
+- [x] Replace the results-table `println` with real assertions — a minimum recall%
       and date-accuracy% threshold, chosen from the current measured baseline (run it
       once, record the number, set the bar at or slightly below today's actual
       performance so this change doesn't immediately fail CI on a pre-existing dip).
-- [ ] Keep the printed table for humans — assert *and* report, not one or the other.
-- [ ] Do not silently loosen `ContributorPdfIntegrationTest`/`StlccIntegrationTest`'s
+- [x] Keep the printed table for humans — assert *and* report, not one or the other.
+- [x] Do not silently loosen `ContributorPdfIntegrationTest`/`StlccIntegrationTest`'s
       existing assertions while touching this file.
+
+**Resolution:** Ran the suite once against the real Gemini API to measure the
+baseline: both fixture syllabi (`syllabus_bdan250.pdf`, `syllabus_hist152.pdf`)
+scored 100% recall and 100% date accuracy (8/8 expected events matched, 8/8 matched
+dates correct). Added `totalExpected`/`totalMatched`/`totalDateCorrect` accumulators
+across the `testCases.forEach` loop and two `withClue`-wrapped assertions after it —
+aggregate recall and aggregate date accuracy must each be `shouldBeGreaterThanOrEqual`
+80.0%, a threshold chosen below the 100% baseline so a single flaky miss across the
+8-event corpus (87.5%) doesn't fail CI, while a real regression (e.g. the 90%→10%
+scenario this task exists to catch) still fails loudly. The per-file `println` table
+is unchanged — assert *and* report. `ContributorPdfIntegrationTest.kt` and
+`StlccIntegrationTest.kt` were not touched.
 
 **Files:** `composeApp/src/jvmTest/kotlin/com/borinquenterrier/cef/SyllabusEvaluationIntegrationTest.kt`
 

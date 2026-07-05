@@ -1,7 +1,9 @@
 package com.borinquenterrier.cef
 
 import com.russhwolf.settings.MapSettings
+import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
+import io.kotest.matchers.doubles.shouldBeGreaterThanOrEqual
 import kotlinx.datetime.LocalDate
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonArray
@@ -11,6 +13,13 @@ import java.io.File
 import kotlin.time.Duration.Companion.milliseconds
 
 class SyllabusEvaluationIntegrationTest : FunSpec({
+
+    // Baseline measured 2026-07-04: both fixture syllabi scored 100% recall and
+    // 100% date accuracy (8/8 expected events matched, 8/8 matched dates correct).
+    // Thresholds are set below that baseline so a single flaky miss doesn't fail
+    // CI, while a real regression (e.g. 90% -> 10%) still fails loudly.
+    val MIN_RECALL_PERCENT = 80.0
+    val MIN_DATE_ACCURACY_PERCENT = 80.0
 
     data class ExpectedEvent(
         val title: String,
@@ -78,6 +87,10 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
         )
         println("-------------------------------------------------------------------------------------")
 
+        var totalExpected = 0
+        var totalMatched = 0
+        var totalDateCorrect = 0
+
         testCases.forEach { (pdfName, expectedJsonName) ->
             val pdfFile = listOf(
                 File("src/commonTest/resources/$pdfName"),
@@ -142,7 +155,29 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
                     dateAccuracy
                 )
             )
+
+            totalExpected += expectedEvents.size
+            totalMatched += matchedCount
+            totalDateCorrect += dateCorrectCount
         }
         println("=======================================================\n")
+
+        val overallRecall =
+            if (totalExpected > 0) (totalMatched.toDouble() / totalExpected.toDouble()) * 100.0 else 100.0
+        val overallDateAccuracy =
+            if (totalMatched > 0) (totalDateCorrect.toDouble() / totalMatched.toDouble()) * 100.0 else 100.0
+
+        withClue(
+            "Overall recall $overallRecall% ($totalMatched/$totalExpected) is below the " +
+                "$MIN_RECALL_PERCENT% threshold — event extraction has regressed."
+        ) {
+            overallRecall shouldBeGreaterThanOrEqual MIN_RECALL_PERCENT
+        }
+        withClue(
+            "Overall date accuracy $overallDateAccuracy% ($totalDateCorrect/$totalMatched matched) is below " +
+                "the $MIN_DATE_ACCURACY_PERCENT% threshold — date extraction has regressed."
+        ) {
+            overallDateAccuracy shouldBeGreaterThanOrEqual MIN_DATE_ACCURACY_PERCENT
+        }
     }
 })

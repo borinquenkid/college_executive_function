@@ -72,15 +72,16 @@ fun SourcesPanel(
             }
         }
 
-        // Drive import goes through the OS file picker now (no in-app Drive browser). Having the
-        // Drive app installed is necessary but not sufficient on iOS — Drive must also be enabled
-        // as a Files "Location," which is a separate, easy-to-miss toggle. Naming that toggle
-        // explicitly is the actual fix for "Drive won't show up even though it's installed."
+        // Cloud imports go through the OS file picker now (no in-app browser for any provider).
+        // Having a provider's app installed (Google Drive, Dropbox, OneDrive, etc.) is necessary
+        // but not sufficient on iOS — it must also be enabled as a Files "Location," a separate,
+        // easy-to-miss toggle. Naming that toggle explicitly is the actual fix for "my cloud
+        // storage app won't show up even though it's installed."
         if (!isDesktop) {
             Text(
-                "Tip: To import from Google Drive, tap File. If Drive doesn't appear as a " +
-                    "location, open the Files app, tap Browse, then \"···\" → Edit, and turn on " +
-                    "Google Drive under Locations.",
+                "Tip: To import from Google Drive, Dropbox, OneDrive, or another cloud storage " +
+                    "app, tap File. If it doesn't appear as a location, open the Files app, tap " +
+                    "Browse, then \"···\" → Edit, and turn it on under Locations.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)

@@ -17,7 +17,6 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
@@ -62,8 +61,7 @@ fun SemesterWindowCard(
                 Text("Semester Window", style = MaterialTheme.typography.titleMedium)
             }
             Text(
-                "Events from calendar sources outside this range are hidden. " +
-                "Use YYYY-MM-DD format.",
+                "Events from calendar sources outside this range are hidden.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
@@ -74,18 +72,16 @@ fun SemesterWindowCard(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                OutlinedTextField(
+                DatePickerField(
                     value = semesterStartStr,
+                    label = "Start",
                     onValueChange = { onSemesterStartChange(it); validationError = null },
-                    label = { Text("Start (YYYY-MM-DD)") },
-                    singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
-                OutlinedTextField(
+                DatePickerField(
                     value = semesterEndStr,
+                    label = "End",
                     onValueChange = { onSemesterEndChange(it); validationError = null },
-                    label = { Text("End (YYYY-MM-DD)") },
-                    singleLine = true,
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -100,15 +96,7 @@ fun SemesterWindowCard(
                         ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
                     val end = semesterEndStr.ifBlank { null }
                         ?.let { runCatching { LocalDate.parse(it) }.getOrNull() }
-                    validationError = when {
-                        semesterStartStr.isNotBlank() && start == null ->
-                            "Invalid start date — use YYYY-MM-DD"
-                        semesterEndStr.isNotBlank() && end == null ->
-                            "Invalid end date — use YYYY-MM-DD"
-                        start != null && end != null && end < start ->
-                            "End date must be after start date"
-                        else -> null
-                    }
+                    validationError = SemesterWindowValidator.validate(start, end)
                     if (validationError == null) onSave()
                 },
                 modifier = Modifier.fillMaxWidth()

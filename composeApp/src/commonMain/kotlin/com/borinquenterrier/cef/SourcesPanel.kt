@@ -72,13 +72,15 @@ fun SourcesPanel(
             }
         }
 
-        // Drive import goes through the OS file picker now (no in-app Drive browser) — it only
-        // shows Google Drive as a location if the Drive app is installed, so students need to
-        // know that up front rather than wonder why Drive never appears under "File."
+        // Drive import goes through the OS file picker now (no in-app Drive browser). Having the
+        // Drive app installed is necessary but not sufficient on iOS — Drive must also be enabled
+        // as a Files "Location," which is a separate, easy-to-miss toggle. Naming that toggle
+        // explicitly is the actual fix for "Drive won't show up even though it's installed."
         if (!isDesktop) {
             Text(
-                "Tip: To import from Google Drive, tap File — Drive will show up as a location " +
-                    "if you have the Google Drive app installed on this device.",
+                "Tip: To import from Google Drive, tap File. If Drive doesn't appear as a " +
+                    "location, open the Files app, tap Browse, then \"···\" → Edit, and turn on " +
+                    "Google Drive under Locations.",
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant,
                 modifier = Modifier.padding(horizontal = 4.dp)

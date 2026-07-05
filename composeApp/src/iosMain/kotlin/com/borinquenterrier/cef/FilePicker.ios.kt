@@ -35,6 +35,9 @@ actual fun FilePicker(show: Boolean, onFilesSelected: (List<String>) -> Unit) {
             val types = listOfNotNull(
                 UTType.typeWithIdentifier("org.openxmlformats.wordprocessingml.document")
                     ?: UTType.typeWithFilenameExtension("docx"),
+                UTType.typeWithFilenameExtension("doc"),
+                UTType.typeWithFilenameExtension("rtf"),
+                UTType.typeWithFilenameExtension("csv"),
                 UTTypePDF,
                 UTTypePlainText,
                 UTType.typeWithIdentifier("public.calendar")

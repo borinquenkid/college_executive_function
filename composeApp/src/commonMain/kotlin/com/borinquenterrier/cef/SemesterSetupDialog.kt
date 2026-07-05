@@ -7,7 +7,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
@@ -38,18 +37,16 @@ fun SemesterSetupDialog(
                     "This avoids showing events from other terms in your schedule.",
                     style = MaterialTheme.typography.bodyMedium
                 )
-                OutlinedTextField(
+                DatePickerField(
                     value = startText,
+                    label = "Semester start",
                     onValueChange = { startText = it; validationError = null },
-                    label = { Text("Semester start (YYYY-MM-DD)") },
-                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
-                OutlinedTextField(
+                DatePickerField(
                     value = endText,
+                    label = "Semester end",
                     onValueChange = { endText = it; validationError = null },
-                    label = { Text("Semester end (YYYY-MM-DD)") },
-                    singleLine = true,
                     modifier = Modifier.fillMaxWidth()
                 )
                 validationError?.let {
@@ -62,10 +59,9 @@ fun SemesterSetupDialog(
                 val start = runCatching { LocalDate.parse(startText) }.getOrNull()
                 val end = runCatching { LocalDate.parse(endText) }.getOrNull()
                 validationError = when {
-                    start == null -> "Enter a valid start date, e.g. 2026-06-09"
-                    end == null -> "Enter a valid end date, e.g. 2026-08-08"
-                    end < start -> "End date must be after start date"
-                    else -> null
+                    start == null -> "Select a start date"
+                    end == null -> "Select an end date"
+                    else -> SemesterWindowValidator.validate(start, end)
                 }
                 if (validationError == null) onSave(startText, endText)
             }) {

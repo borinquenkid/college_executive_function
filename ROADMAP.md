@@ -39,6 +39,7 @@
 | Issue | Notes |
 |---|---|
 | `GoogleOAuthIntegrationTest` enabled in CI | Renamed from `ModelNegotiationIntegrationTest` to correctly reflect that it verifies Google sign-in credentials. Configured to run in CI (`pr-check.yml` & `release-desktop.yml`) only when secrets are available, ensuring we validate client secrets before merging/building. |
+| **Internationalization (i18n)** | Found during the 2026-07-05 TestFlight pass: the Semester Window date fields hardcoded a "YYYY-MM-DD" (ISO-8601, dash-separated) format, which isn't the standard US date convention and confused a real tester. Fixed the immediate case by replacing free-text entry with a native calendar picker (`DatePickerField.kt`) + a locale-neutral "Jul 5, 2026" display format (`DateDisplayFormatter.kt`) — see git history around 2026-07-05. That's a targeted fix, not real i18n: there's still no locale-aware date/number/string formatting anywhere in the app, and all user-facing strings are hardcoded English with no localization framework. **Not scoped or prioritized yet** — flagging so it doesn't get silently forgotten. Needs its own Clarify Protocol pass (which locales/languages first, string-resource strategy across Android/iOS/Desktop/JVM, RTL support scope) before planning.|
 
 
 ---

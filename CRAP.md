@@ -9,7 +9,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Formula**: $\text{CRAP} = \text{Complexity}^2 \times (1 - \text{Coverage})^3 + \text{Complexity}$
 
 ## Overall Summary
-- **Total Files Analyzed**: 185
+- **Total Files Analyzed**: 186
 - **High-Risk Files (CRAP > 30)**: 7
 
 ### Top 15 High-Risk Files
@@ -2059,6 +2059,15 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 - **Total Complexity**: 1
 - **Real Coverage**: 100.0%
 
+
+### RoutineWindowValidator.kt (Score: 1.00 - 🟢 LOW)
+- **Total Complexity**: 1
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `isFullyInPast` | 1 |
 
 ### GoogleConnectionState.kt (Score: 1.00 - 🟢 LOW)
 - **Total Complexity**: 1

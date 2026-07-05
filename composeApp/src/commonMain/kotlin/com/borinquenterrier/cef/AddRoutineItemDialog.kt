@@ -34,23 +34,31 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import kotlin.time.Clock
 import kotlinx.datetime.DayOfWeek
 import kotlinx.datetime.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.atStartOfDayIn
+import kotlinx.datetime.todayIn
 import kotlinx.datetime.toLocalDateTime
 
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalLayoutApi::class)
 @Composable
-fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
+fun AddRoutineItemDialog(
+    onDismiss: () -> Unit,
+    today: LocalDate = Clock.System.todayIn(TimeZone.currentSystemDefault()),
+    onSave: (TimeEvent) -> Unit
+) {
+    val semesterRange = remember(today) { SemesterResolver.getSemesterRange(today) }
     var title by remember { mutableStateOf("") }
     var selectedDays by remember { mutableStateOf(setOf<DayOfWeek>()) }
     var startTime by remember { mutableStateOf(LocalTime(10, 30)) }
     var endTime by remember { mutableStateOf(LocalTime(11, 45)) }
-    var startDate by remember { mutableStateOf(LocalDate(2024, 8, 26)) }
-    var endDate by remember { mutableStateOf(LocalDate(2024, 12, 13)) }
+    var startDate by remember { mutableStateOf(semesterRange.first) }
+    var endDate by remember { mutableStateOf(semesterRange.second) }
+    var showPastWindowError by remember { mutableStateOf(false) }
 
     // Suppress: IDE can't model Compose recomposition — null writes are read on the next frame.
     @Suppress("AssignedValueIsNeverRead")
@@ -120,6 +128,14 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                     )
                 }
 
+                if (showPastWindowError) {
+                    Text(
+                        "End date is in the past — this routine would never occur. Pick a future end date.",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+
                 Row(
                     modifier = Modifier.fillMaxWidth().padding(top = 8.dp),
                     horizontalArrangement = Arrangement.End,
@@ -128,6 +144,11 @@ fun AddRoutineItemDialog(onDismiss: () -> Unit, onSave: (TimeEvent) -> Unit) {
                         Text("Cancel")
                     }
                     Button(onClick = {
+                        if (RoutineWindowValidator.isFullyInPast(endDate, today)) {
+                            showPastWindowError = true
+                            return@Button
+                        }
+                        showPastWindowError = false
                         val newEvent = TimeEvent(
                             title = title,
                             source = EventSource.ROUTINE,

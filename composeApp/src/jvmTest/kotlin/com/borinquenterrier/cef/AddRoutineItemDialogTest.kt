@@ -8,6 +8,7 @@ import androidx.compose.ui.test.performClick
 import androidx.compose.ui.test.performTextInput
 import androidx.compose.ui.test.runComposeUiTest
 import kotlinx.datetime.DayOfWeek
+import kotlinx.datetime.LocalDate
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
@@ -15,6 +16,11 @@ import kotlin.test.assertTrue
 
 @OptIn(ExperimentalTestApi::class)
 class AddRoutineItemDialogTest {
+
+    private val fixedToday = LocalDate(2026, 1, 15)
+    private val fixedRange = SemesterResolver.getSemesterRange(fixedToday)
+    private val fixedStartDate = fixedRange.first
+    private val fixedEndDate = fixedRange.second
 
     @Test
     fun testDialogRendersWithDefaultFields() = runComposeUiTest {
@@ -88,23 +94,38 @@ class AddRoutineItemDialogTest {
 
     @Test
     fun testStartDateFieldOpensDatePickerAndConfirmingClosesIt() = runComposeUiTest {
-        setContent { AddRoutineItemDialog(onDismiss = {}, onSave = {}) }
+        setContent { AddRoutineItemDialog(onDismiss = {}, onSave = {}, today = fixedToday) }
 
-        onNodeWithText("2024-08-26").performClick()
+        onNodeWithText(fixedStartDate.toString()).performClick()
         onNodeWithText("OK").assertExists()
 
         onNodeWithText("OK").performClick()
-        onNodeWithText("2024-08-26").assertExists()
+        onNodeWithText(fixedStartDate.toString()).assertExists()
     }
 
     @Test
     fun testEndDateFieldOpensDatePickerAndCanBeCancelled() = runComposeUiTest {
-        setContent { AddRoutineItemDialog(onDismiss = {}, onSave = {}) }
+        setContent { AddRoutineItemDialog(onDismiss = {}, onSave = {}, today = fixedToday) }
 
-        onNodeWithText("2024-12-13").performClick()
+        onNodeWithText(fixedEndDate.toString()).performClick()
         onNodeWithText("OK").assertExists()
 
         onAllNodesWithText("Cancel")[1].performClick()
-        onNodeWithText("2024-12-13").assertExists()
+        onNodeWithText(fixedEndDate.toString()).assertExists()
     }
+
+    @Test
+    fun testUntouchedDefaultsProduceRecurrenceEndingInTheFuture() = runComposeUiTest {
+        var savedEvent: TimeEvent? = null
+
+        setContent {
+            AddRoutineItemDialog(onDismiss = {}, onSave = { savedEvent = it }, today = fixedToday)
+        }
+
+        onNodeWithText("Save").performClick()
+
+        val event = assertNotNull(savedEvent)
+        assertTrue(event.recurrence!!.endDate > fixedToday)
+    }
+
 }

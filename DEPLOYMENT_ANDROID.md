@@ -45,7 +45,7 @@ reviewers and new users at once. See ROADMAP.md's Phase 10 section for full writ
 file references; check items off here as they land there.
 
 - [x] **HARD-1** — ✅ **DONE 2026-07-04.** Fail loud (not silent) when telemetry degrades to a no-op tracer in a packaged/release build.
-- [ ] **HARD-2** — Fix the hardcoded Fall-2024 default date range in `AddRoutineItemDialog` (recurrences silently never fire).
+- [x] **HARD-2** — Fix the hardcoded Fall-2024 default date range in `AddRoutineItemDialog` (recurrences silently never fire).
 - [ ] **HARD-3** — Surface a persistent `LOCAL_ONLY` sync failure on event update instead of swallowing it.
 - [ ] **HARD-4** — Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` (today it only prints, never fails).
 - [ ] **HARD-5** — Wire the real corpus evals into CI as an actual gate (depends on HARD-4 landing first).

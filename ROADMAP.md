@@ -1288,7 +1288,7 @@ dropped.
 | # | Task | Archetype | Status |
 |---|---|---|---|
 | HARD-1 | Fail loud (not silent) when telemetry degrades to a no-op tracer in a packaged build | 0 — visibility | ✅ |
-| HARD-2 | Fix the hardcoded Fall-2024 default date range in `AddRoutineItemDialog` | 1 — bleeding now | ⬜ |
+| HARD-2 | Fix the hardcoded Fall-2024 default date range in `AddRoutineItemDialog` | 1 — bleeding now | ✅ |
 | HARD-3 | Surface a persistent `LOCAL_ONLY` sync failure on event **update** instead of swallowing it | 2 — silent→churn | ⬜ |
 | HARD-4 | Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` | 3 — decision core | ⬜ |
 | HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ⬜ |
@@ -1350,7 +1350,7 @@ gating condition — not just the existing Noop-fallback behavior, which was alr
 
 ### Archetype 1 — Currently-bleeding, cheap, deterministic
 
-#### HARD-2 — Fix the hardcoded Fall-2024 default date range
+#### HARD-2 — Fix the hardcoded Fall-2024 default date range ✅ DONE 2026-07-04
 
 **What:** `AddRoutineItemDialog.kt:52-53` defaults a new routine item's recurrence
 window to `LocalDate(2024, 8, 26)`–`LocalDate(2024, 12, 13)` — a specific past
@@ -1365,17 +1365,28 @@ been shipping since whenever this dialog was last touched, and it bleeds on ever
 session where a user doesn't happen to open the date fields.
 
 **Acceptance criteria:**
-- [ ] Default `startDate`/`endDate` derive from the current date (or the student's
+- [x] Default `startDate`/`endDate` derive from the current date (or the student's
       active-semester window, if that's already resolvable at this call site —
       `CalendarReconciler`'s semester-window logic may already have something
       reusable) instead of a hardcoded 2024 literal.
-- [ ] Add a save-time guard: reject (or warn on) a recurrence window that's already
+- [x] Add a save-time guard: reject (or warn on) a recurrence window that's already
       fully in the past, so this class of bug can't reappear via a different stale
       default later.
-- [ ] Test: creating a routine item with the dialog's untouched defaults produces a
+- [x] Test: creating a routine item with the dialog's untouched defaults produces a
       `Recurrence` whose `endDate` is in the future relative to a fixed clock.
 
-**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AddRoutineItemDialog.kt`
+**Resolution:** `AddRoutineItemDialog` now takes a `today: LocalDate` parameter
+(defaulting to `Clock.System.todayIn(TimeZone.currentSystemDefault())`, same pattern
+as `EventItemView`/`AcademicCalendar`) and seeds `startDate`/`endDate` from
+`SemesterResolver.getSemesterRange(today)` instead of the hardcoded 2024 literals.
+The Save button guards on a new `RoutineWindowValidator.isFullyInPast(endDate, today)`
+check — a plain, directly-unit-tested function (`RoutineWindowValidatorTest.kt`) — and
+shows an inline error instead of calling `onSave` when the window is already stale.
+Covered by `AddRoutineItemDialogTest` (untouched-defaults-produce-future-endDate) and
+`RoutineWindowValidatorTest` (3 cases: before/equal/after today).
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AddRoutineItemDialog.kt`,
+`composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/RoutineWindowValidator.kt` (new)
 
 ### Archetype 2 — Bound the silent-failure-to-churn class
 

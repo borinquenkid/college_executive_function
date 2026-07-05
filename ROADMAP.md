@@ -1291,7 +1291,7 @@ dropped.
 | HARD-2 | Fix the hardcoded Fall-2024 default date range in `AddRoutineItemDialog` | 1 — bleeding now | ✅ |
 | HARD-3 | Surface a persistent `LOCAL_ONLY` sync failure on event **update** instead of swallowing it | 2 — silent→churn | ✅ |
 | HARD-4 | Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` | 3 — decision core | ✅ |
-| HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ⬜ |
+| HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ✅ |
 | HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ⬜ |
 | HARD-7 | Wire up the already-built override-log retention (`pruneOldLogs`) | 4 — scale landmine | ⬜ |
 | HARD-8 | Warn before a document is large enough to trigger extra Gemini cost | 4 — scale landmine | ⬜ |
@@ -1541,6 +1541,31 @@ cheaper cadence (nightly/pre-release only), the same cost-vs-signal tradeoff
 
 **Files:** `.github/workflows/pr-check.yml` and/or a new scheduled workflow,
 `composeApp/build.gradle.kts`, `AGENTS.md` (document the cadence decision)
+
+**Resolution:** Added a new scheduled workflow, `.github/workflows/eval-corpus.yml`,
+rather than adding these tests to `pr-check.yml`. Cadence chosen: **nightly**
+(`cron: '0 8 * * *'`) plus manual `workflow_dispatch`, not every PR — a full run
+makes ~20-60 real Gemini calls across the 16-file `contributions/` corpus + 3
+STLCC-specific docs + 2 syllabus fixtures, and CEF's free-tier Gemini key shares
+one RPM/RPD quota across all models (see this file's own "Observed failure mode
+(June 2026)" note, where ~20 calls in under a minute already cascaded through
+every fallback model). Gating on every PR would contend for that same quota
+against concurrent PRs and the app's own runtime usage. The workflow runs exactly
+the 3 eval-shaped classes via `--tests` (not a blanket `-PrunAITests=true` run,
+which would also pull in `GoogleOAuthIntegrationTest`). `CEF_GEMINI_API_KEY` was
+added as a GitHub Actions repo secret, used only by this workflow — confirmed it
+is not wired into `generateBuildSecrets`, so it never ships inside a packaged
+binary (a scoped exception to the Gemini key normally being a per-user runtime
+`Settings` value, explicitly approved for this CI-test-only use). Since
+`resolveApiKey()` returns `null` and skips (not fails) when no key is found, the
+workflow adds a "Verify Gemini API key is configured" step that fails the job
+outright if the secret is empty — so a revoked/deleted secret shows up as a red
+job, not a suite of silently-skipped tests. Verified the gate actually fails:
+locally ran `SyllabusEvaluationIntegrationTest` with `MIN_RECALL_PERCENT`
+temporarily set to an unreachable 999.0 via the exact CI invocation
+(`-PrunAITests=true --tests ...`) against the real Gemini API — the build failed
+with the expected `AssertionFailedError`; reverted immediately after confirming.
+Full tradeoff writeup lives in `AGENTS.md`'s new "AI Eval Corpus Gate" section.
 
 ### Archetype 4 — Scaling landmines: fine now, fatal later
 

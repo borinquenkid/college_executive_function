@@ -281,6 +281,16 @@ This excludes every class whose name contains `IntegrationTest` or `ContributorP
 
 Never use Kotest tags (`object Flaky : Tag()`, `tags(Flaky)`, `@io.kotest.core.annotation.Tags`) to gate integration tests in this project.
 
+### AI Eval Corpus Gate (CI cadence & cost)
+
+Three test classes are "eval-shaped" — they assert real extraction quality against hand-labeled/depth-checked expectations, not just "did it not crash": `SyllabusEvaluationIntegrationTest` (recall/date-accuracy thresholds against 2 hand-labeled syllabi), `ContributorPdfIntegrationTest` (depth assertions across the full 16-file `contributions/` corpus), and `StlccIntegrationTest` (per-document dedup/stability assertions on 3 STLCC docs). These run in `.github/workflows/eval-corpus.yml`.
+
+**Cadence: nightly (`schedule: cron '0 8 * * *'`) plus manual `workflow_dispatch`, not on every PR.** A full run makes roughly 20-60 real Gemini calls. CEF's Gemini key is a free-tier key where **all models share one RPM/RPD quota** — see the "Observed failure mode (June 2026)" note in `ROADMAP.md`, where ~20 calls in under a minute already cascaded through every fallback model and hit the 5-minute global rate-limit window. Running this corpus on every PR would compete for that same quota against concurrent PRs and the app's own runtime usage, and would risk a rate-limit failure unrelated to the PR's actual change. Nightly gives same-day regression detection (a bad prompt/model/parser change merged today is caught by tomorrow morning) without that contention.
+
+**Secret:** `CEF_GEMINI_API_KEY` is stored as a GitHub Actions repo secret used *only* by this workflow — it is never wired into `generateBuildSecrets` (`composeApp/build.gradle.kts`) or any packaging/release task, so it never ships inside the app binary. This is a scoped exception to the rule that the Gemini key is normally a per-user runtime `Settings` value (see `SettingsScreen.kt` / `AIService.jvm.kt`) — CI-test-only use was explicitly approved; build-time baking was not and remains off-limits.
+
+**Fail loud, not silent:** `resolveApiKey()` returns `null` and *skips* the test (not fails) when no key is found — the exact silent-green failure mode `HARD-1` exists to catch elsewhere. The workflow's "Verify Gemini API key is configured" step fails the job outright if the secret is empty, so a revoked/deleted secret shows up as a red job rather than a suite of quietly-skipped tests.
+
 ---
 
 ## Development Roadmap

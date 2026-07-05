@@ -1,0 +1,54 @@
+name: Eval Corpus (Real Gemini API)
+
+# Gates the real-corpus AI extraction quality (HARD-5 in ROADMAP.md) — a prompt
+# change, model swap, or parser regression that tanks extraction accuracy fails
+# this workflow instead of shipping unnoticed.
+#
+# Cadence: nightly, NOT on every PR. This corpus makes ~20-60 real Gemini calls
+# across 3 test classes (16-file contributions/ corpus + 3 STLCC-specific docs +
+# 2 syllabus fixtures). CEF's Gemini key is free-tier, where all models share one
+# RPM/RPD quota (see ROADMAP.md's "Observed failure mode (June 2026)" — ~20 calls
+# in under a minute already exhausted every fallback model). Running this on every
+# PR would burn that shared quota against concurrent PRs and the app's own runtime
+# usage, and would risk cascading rate-limit failures unrelated to the PR's actual
+# change. Nightly gives same-day regression detection without that contention.
+# See AGENTS.md's Integration Test Naming Convention section for the full tradeoff.
+on:
+  schedule:
+    - cron: '0 8 * * *' # 08:00 UTC daily
+  workflow_dispatch: {} # manual trigger for on-demand runs
+
+jobs:
+  eval-corpus:
+    name: Run AI extraction eval corpus
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          lfs: true
+
+      - name: Verify Gemini API key is configured
+        run: |
+          if [ -z "${{ secrets.CEF_GEMINI_API_KEY }}" ]; then
+            echo "::error::CEF_GEMINI_API_KEY secret is not set. The eval tests would" \
+                 "skip silently (green) instead of gating anything — failing loudly" \
+                 "here instead. Add the secret in repo Settings > Secrets > Actions."
+            exit 1
+          fi
+
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '21'
+      - uses: gradle/actions/setup-gradle@v4
+
+      - name: Run AI extraction eval corpus
+        # Scoped to exactly the 3 eval-shaped classes — NOT every *IntegrationTest,
+        # which would also pull in the live Google OAuth test.
+        env:
+          CEF_GEMINI_API_KEY: ${{ secrets.CEF_GEMINI_API_KEY }}
+        run: |
+          ./gradlew :composeApp:jvmTest -PrunAITests=true \
+            --tests "com.borinquenterrier.cef.SyllabusEvaluationIntegrationTest" \
+            --tests "com.borinquenterrier.cef.ContributorPdfIntegrationTest" \
+            --tests "com.borinquenterrier.cef.StlccIntegrationTest"

@@ -1289,7 +1289,7 @@ dropped.
 |---|---|---|---|
 | HARD-1 | Fail loud (not silent) when telemetry degrades to a no-op tracer in a packaged build | 0 — visibility | ✅ |
 | HARD-2 | Fix the hardcoded Fall-2024 default date range in `AddRoutineItemDialog` | 1 — bleeding now | ✅ |
-| HARD-3 | Surface a persistent `LOCAL_ONLY` sync failure on event **update** instead of swallowing it | 2 — silent→churn | ⬜ |
+| HARD-3 | Surface a persistent `LOCAL_ONLY` sync failure on event **update** instead of swallowing it | 2 — silent→churn | ✅ |
 | HARD-4 | Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` | 3 — decision core | ⬜ |
 | HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ⬜ |
 | HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ⬜ |
@@ -1396,7 +1396,7 @@ map onto CEF — there's no billing surface (confirmed absent — see "Ruled out
 and the Gemini integration already surfaces every failure path it hits (also
 confirmed — see "Ruled out"). One real gap survives on the Google Calendar side.
 
-#### HARD-3 — Surface a persistent `LOCAL_ONLY` sync failure on update
+#### HARD-3 — Surface a persistent `LOCAL_ONLY` sync failure on update ✅ DONE 2026-07-04
 
 **What:** `RemoteFirstWriter.save()` (lines 11-22) correctly falls back to
 local-only *and rethrows* `RemoteSyncFailedException` so a caller can react. Its
@@ -1414,22 +1414,42 @@ indefinitely with a debug log as the only trace. A student who edits or moves a
 deadline believes it's synced; it silently isn't.
 
 **Acceptance criteria:**
-- [ ] `update()` either rethrows like `save()` does, or — if silently degrading to
+- [x] `update()` either rethrows like `save()` does, or — if silently degrading to
       local-only on update really is the intended UX for transient failures — the app
       surfaces a persistent (not one-shot) indicator once an event has been
       `LOCAL_ONLY` for longer than some threshold (e.g. survives N sync cycles), not
       just a debug log line.
-- [ ] Same treatment for `SyncNegotiator`'s push/delete catch-and-log-only paths.
-- [ ] At minimum, a "N events haven't synced to Google Calendar" indicator exists
+- [x] Same treatment for `SyncNegotiator`'s push/delete catch-and-log-only paths.
+- [x] At minimum, a "N events haven't synced to Google Calendar" indicator exists
       somewhere reachable (Settings or the calendar view) — today grepping the whole
       UI layer for any reference to `SyncStatus` (including `LOCAL_ONLY`) returns
       nothing.
-- [ ] Test: an `update()` call whose remote write throws a non-`CalendarNotFoundException`
+- [x] Test: an `update()` call whose remote write throws a non-`CalendarNotFoundException`
       error is caught by the existing reconciler/harness scenario tests and asserted
       to leave a durably-discoverable trace, not just a log line.
 
-**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/RemoteFirstWriter.kt`,
-`composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SyncNegotiator.kt`
+**Resolution:** Kept `RemoteFirstWriter.update()`'s existing no-rethrow behavior —
+`update()` backs frequent, low-stakes call sites (check-in complete/skip,
+reschedule, timestamp-repair stamping) where rethrowing on every transient network
+blip would surface a scary error for what is otherwise a successful local action;
+the existing `LocalOnlyRetrier`/`SyncNegotiator` retry-next-sync behavior is correct
+for transient failures. Instead, went with the durable-indicator half of the "OR":
+`SyncNegotiator` now takes a `Logger?` and logs both the push and delete
+catch-and-continue paths in `pushLocalChanges()` (previously comment-only, zero
+trace). `CalendarAgent` exposes a new `unsyncedCount: StateFlow<Int>` backed by
+`localRepo.getEventsBySyncStatus(LOCAL_ONLY, calendarId)`, refreshed after
+`updateEvent`, `saveEvent`, `synchronize`, `retryLocalOnly`, and `checkHealth` (the
+last one runs at app startup, so the count is populated before the user ever opens
+Settings). `SettingsScreen` shows "N events haven't synced to Google Calendar" when
+Google is linked and the count is nonzero — the first UI surface anywhere reading
+`SyncStatus`. Covered by new tests in `SyncNegotiatorTest.kt` (logger invoked on
+push/delete failure) and `CalendarAgentTest.kt` (`unsyncedCount` reflects LOCAL_ONLY
+events after retry and after a failed `updateEvent`, proving the LOCAL_ONLY row is a
+durably-discoverable DB trace, not just a log line).
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SyncNegotiator.kt`,
+`composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CalendarAgent.kt`,
+`composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SettingsScreen.kt`
 
 ### Archetype 3 — The decision core (own timeline, highest stakes)
 

@@ -36,6 +36,8 @@ class AppContentTest {
         every { mockContainer.tokenRepository } returns tokenRepo
         every { tokenRepo.isLinked } returns MutableStateFlow(false)
 
+        every { mockCalendarAgent.unsyncedCount } returns MutableStateFlow(0)
+
         every { mockEventAgent.isLoading } returns MutableStateFlow(false)
         every { mockEventAgent.statusMessage } returns MutableStateFlow("Select a source and an action.")
         every { mockEventAgent.lastGeneratedEvents } returns MutableStateFlow(emptyList())

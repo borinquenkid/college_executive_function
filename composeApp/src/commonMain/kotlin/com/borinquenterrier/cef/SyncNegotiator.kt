@@ -9,8 +9,10 @@ class SyncNegotiator(
     private val localRepo: StudentCalendarRepository,
     private val remoteRepo: RemoteCalendarRepository,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
-    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
+    private val logger: Logger? = null
 ) {
+    private val tag = "SyncNegotiator"
     private val studyBlockShiftResolver =
         StudyBlockShiftResolver(userPreferenceMemoryRepository, preferencesRepository)
 
@@ -58,6 +60,7 @@ class SyncNegotiator(
                     localRepo.hardDeleteEvent(id, calendarId)
                 } catch (e: Exception) {
                     // Network failure, keep as DELETED_LOCALLY to try again later
+                    logger?.e(tag, "Remote delete failed, keeping '${local.title}' as DELETED_LOCALLY", e)
                 }
             }
         }
@@ -68,7 +71,8 @@ class SyncNegotiator(
                 remoteRepo.saveEvent(local, calendarId)
                 localRepo.updateEvent(local.withSyncStatus(SyncStatus.SYNCED), calendarId)
             } catch (e: Exception) {
-                // Network failure or overlap on remote, keep as LOCAL_ONLY
+                // Network failure or overlap on remote, keep as LOCAL_ONLY to retry next sync
+                logger?.e(tag, "Remote push failed, keeping '${local.title}' as LOCAL_ONLY", e)
             }
         }
     }

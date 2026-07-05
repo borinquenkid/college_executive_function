@@ -31,7 +31,7 @@ class CalendarAgent(
         localRepo, remoteRepo, syncGate, logger, userPreferenceMemoryRepository, remoteClearDelayFn
     )
     private val negotiator =
-        SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository)
+        SyncNegotiator(localRepo, remoteRepo, userPreferenceMemoryRepository, preferencesRepository, logger)
     private val negotiationApplier =
         SyncNegotiationApplier(localRepo, remoteRepo, logger, userPreferenceMemoryRepository)
 
@@ -49,12 +49,17 @@ class CalendarAgent(
 
     suspend fun saveEvent(event: Event, calendarId: String = "default") {
         val repaired = EventTimeRepairer.repair(event).also { it.validate() }
-        persistence.save(repaired, calendarId)
+        try {
+            persistence.save(repaired, calendarId)
+        } finally {
+            refreshUnsyncedCount(calendarId)
+        }
     }
 
     suspend fun updateEvent(event: Event, calendarId: String = "default") {
         val repaired = EventTimeRepairer.repair(event).also { it.validate() }
         persistence.update(repaired, calendarId)
+        refreshUnsyncedCount(calendarId)
     }
 
     suspend fun saveEventLocally(event: Event, calendarId: String = "default") {
@@ -65,8 +70,10 @@ class CalendarAgent(
     suspend fun hardDeleteLocalOnly(id: String, calendarId: String) =
         localRepo.hardDeleteEvent(id, calendarId)
 
-    suspend fun retryLocalOnly(calendarId: String = "default") =
+    suspend fun retryLocalOnly(calendarId: String = "default") {
         persistence.retryLocalOnly(calendarId)
+        refreshUnsyncedCount(calendarId)
+    }
 
     suspend fun deleteEvent(eventId: String, calendarId: String = "default") =
         persistence.delete(eventId, calendarId)
@@ -102,6 +109,20 @@ class CalendarAgent(
         } catch (e: Exception) {
             logger?.e("CalendarAgent", "Self-heal after sync failed (non-fatal): ${e.message}", e)
         }
+        refreshUnsyncedCount(calendarId)
+    }
+
+    private val _unsyncedCount = MutableStateFlow(0)
+
+    /**
+     * Count of events stuck in [SyncStatus.LOCAL_ONLY] — pushes/updates that couldn't reach Google
+     * Calendar and are silently retried on the next sync. Surfaced durably (not just a debug log
+     * line) so a persistent failure (deleted calendar, revoked scope) doesn't go unnoticed.
+     */
+    val unsyncedCount: StateFlow<Int> = _unsyncedCount.asStateFlow()
+
+    private suspend fun refreshUnsyncedCount(calendarId: String = "default") {
+        _unsyncedCount.value = localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, calendarId).size
     }
 
     private val _pendingReview = MutableStateFlow<List<Event>>(emptyList())
@@ -138,6 +159,7 @@ class CalendarAgent(
     suspend fun checkHealth(calendarId: String = "default"): ReconciliationReport {
         val report = reconcile(calendarId)
         _pendingReview.value = report.outOfSemesterToDelete + report.orphansToDelete
+        refreshUnsyncedCount(calendarId)
         return report
     }
 

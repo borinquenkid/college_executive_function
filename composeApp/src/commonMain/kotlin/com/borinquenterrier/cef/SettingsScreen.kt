@@ -192,6 +192,17 @@ fun SettingsScreen(
             scope = scope
         )
 
+        val unsyncedCount by container.calendarAgent.unsyncedCount.collectAsState()
+        if (isGoogleLinked && unsyncedCount > 0) {
+            Text(
+                if (unsyncedCount == 1) "1 event hasn't synced to Google Calendar"
+                else "$unsyncedCount events haven't synced to Google Calendar",
+                style = MaterialTheme.typography.bodySmall,
+                color = MaterialTheme.colorScheme.error,
+                modifier = Modifier.testTag("unsynced_count_indicator")
+            )
+        }
+
         SemesterWindowCard(
             semesterStartStr = semesterStartStr,
             semesterEndStr = semesterEndStr,

@@ -77,6 +77,10 @@ class ComposeUiFlowsTest {
         every { mockGoogleFlow.state } returns MutableStateFlow(GoogleConnectionState.Unlinked)
         every { mockContainer.googleAccountFlow } returns mockGoogleFlow
 
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        every { mockCalendarAgent.unsyncedCount } returns MutableStateFlow(0)
+        every { mockContainer.calendarAgent } returns mockCalendarAgent
+
         setContent {
             SettingsScreen(container = mockContainer)
         }
@@ -356,6 +360,10 @@ class ComposeUiFlowsTest {
         coEvery { mockRemoteRepo.getAvailableCalendars() } returns listOf(
             RemoteCalendarMetadata("new-cal-123", "New Test Calendar")
         )
+
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        every { mockCalendarAgent.unsyncedCount } returns MutableStateFlow(0)
+        every { mockContainer.calendarAgent } returns mockCalendarAgent
 
         setContent {
             SettingsScreen(container = mockContainer)

@@ -8,6 +8,7 @@ import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.datetime.LocalDate
 
 class SyncNegotiatorTest : FunSpec({
@@ -175,6 +176,42 @@ class SyncNegotiatorTest : FunSpec({
         negotiator.buildNegotiation("default")
 
         coVerify { remoteRepo.saveEvent(local, "default") }
+    }
+
+    // ── pushLocalChanges — failures are logged, not silently swallowed (HARD-3) ─────
+
+    test("pushLocalChanges logs when remote delete fails") {
+        val localRepo = mockk<StudentCalendarRepository>(relaxed = true)
+        val remoteRepo = mockk<RemoteCalendarRepository>(relaxed = true)
+        val logger = mockk<Logger>(relaxed = true)
+        val deleted = day("HW1", id = "hw1", syncStatus = SyncStatus.DELETED_LOCALLY)
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.DELETED_LOCALLY, any()) } returns listOf(deleted)
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, any()) } returns emptyList()
+        coEvery { localRepo.getAllEvents(any()) } returns emptyList()
+        coEvery { remoteRepo.deleteEvent(any(), any()) } throws RuntimeException("offline")
+        coEvery { remoteRepo.getAllEvents(any()) } returns emptyList()
+
+        val negotiator = SyncNegotiator(localRepo, remoteRepo, logger = logger)
+        negotiator.buildNegotiation("default")
+
+        verify(exactly = 1) { logger.e(any(), any(), any()) }
+    }
+
+    test("pushLocalChanges logs when remote push fails") {
+        val localRepo = mockk<StudentCalendarRepository>(relaxed = true)
+        val remoteRepo = mockk<RemoteCalendarRepository>(relaxed = true)
+        val logger = mockk<Logger>(relaxed = true)
+        val local = day("New HW", id = "newhw", syncStatus = SyncStatus.LOCAL_ONLY)
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.DELETED_LOCALLY, any()) } returns emptyList()
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, any()) } returns listOf(local)
+        coEvery { localRepo.getAllEvents(any()) } returns emptyList()
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws RuntimeException("offline")
+        coEvery { remoteRepo.getAllEvents(any()) } returns emptyList()
+
+        val negotiator = SyncNegotiator(localRepo, remoteRepo, logger = logger)
+        negotiator.buildNegotiation("default")
+
+        verify(exactly = 1) { logger.e(any(), any(), any()) }
     }
 
     // ── duplicate proposals (regression: DB can have two copies of same study block) ──

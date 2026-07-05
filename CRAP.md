@@ -28,9 +28,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | GeminiRetryService.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
 | AppController.kt | 27 | 93.9% | 27.17 | 🟡 MEDIUM |
 | GeminiRequestExecutor.kt | 27 | 100.0% | 27.00 | 🟡 MEDIUM |
+| CalendarAgent.kt | 26 | 96.9% | 26.02 | 🟡 MEDIUM |
 | SqlDelightLocalCalendarRepository.kt | 26 | 100.0% | 26.00 | 🟡 MEDIUM |
 | AppContent.kt | 13 | 57.8% | 25.72 | 🟡 MEDIUM |
-| CalendarAgent.kt | 25 | 97.7% | 25.01 | 🟡 MEDIUM |
 
 ---
 
@@ -247,6 +247,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `<T> executeWithRetry` | 1 |
 | `<T> executeWithRetryInternal` | 1 |
 
+### CalendarAgent.kt (Score: 26.02 - 🟡 MEDIUM)
+- **Total Complexity**: 26
+- **Real Coverage**: 96.9%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `applyReconciliation` | 5 |
+| `synchronize` | 3 |
+| `checkSyncProposals` | 2 |
+| `getEvents` | 1 |
+| `getSemesterEvents` | 1 |
+| `saveEvent` | 1 |
+| `updateEvent` | 1 |
+| `saveEventLocally` | 1 |
+| `hardDeleteLocalOnly` | 1 |
+| `retryLocalOnly` | 1 |
+| *... and 8 more* | |
+
 ### SqlDelightLocalCalendarRepository.kt (Score: 26.00 - 🟡 MEDIUM)
 - **Total Complexity**: 26
 - **Real Coverage**: 100.0%
@@ -274,25 +293,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `AppContent` | 13 |
-
-### CalendarAgent.kt (Score: 25.01 - 🟡 MEDIUM)
-- **Total Complexity**: 25
-- **Real Coverage**: 97.7%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `applyReconciliation` | 5 |
-| `synchronize` | 3 |
-| `checkSyncProposals` | 2 |
-| `getEvents` | 1 |
-| `getSemesterEvents` | 1 |
-| `saveEvent` | 1 |
-| `updateEvent` | 1 |
-| `saveEventLocally` | 1 |
-| `hardDeleteLocalOnly` | 1 |
-| `retryLocalOnly` | 1 |
-| *... and 7 more* | |
 
 ### GeminiResponseParser.kt (Score: 25.00 - 🟡 MEDIUM)
 - **Total Complexity**: 25

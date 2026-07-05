@@ -443,13 +443,47 @@ class CalendarAgentTest : FunSpec({
         coVerify(exactly = 0) { localRepo.updateEvent(any(), any()) }
     }
 
-    test("retryLocalOnly skips when Google is not linked") {
+    test("retryLocalOnly skips remote push when Google is not linked but still refreshes unsyncedCount") {
         coEvery { localRepo.getSettings() } returns MapSettings() // no GOOGLE_ACCESS_TOKEN
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, "default") } returns emptyList()
 
         calendarAgent.retryLocalOnly("default")
 
-        coVerify(exactly = 0) { localRepo.getEventsBySyncStatus(any(), any()) }
         coVerify(exactly = 0) { remoteRepo.saveEvent(any(), any()) }
+        coVerify(exactly = 1) { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, "default") }
+    }
+
+    // ── unsyncedCount (HARD-3) ───────────────────────────────────────────────
+
+    test("retryLocalOnly refreshes unsyncedCount from LOCAL_ONLY events remaining after retry") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
+        coEvery { localRepo.getSettings() } returns mockSettings
+        val pendingEvent = timeEvent.copy(syncStatus = SyncStatus.LOCAL_ONLY)
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, "default") } returns listOf(pendingEvent)
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws Exception("network error")
+
+        calendarAgent.retryLocalOnly("default")
+
+        calendarAgent.unsyncedCount.value shouldBe 1
+    }
+
+    test("updateEvent leaves a durably-discoverable LOCAL_ONLY trace when remote push fails") {
+        val mockSettings = MapSettings()
+        mockSettings.putString("run_profile", "local")
+        mockSettings.putString("GOOGLE_ACCESS_TOKEN", "valid-token")
+        coEvery { localRepo.getSettings() } returns mockSettings
+        coEvery { localRepo.getAllEvents("default") } returns emptyList()
+        coEvery { remoteRepo.saveEvent(any(), any()) } throws Exception("offline")
+        coEvery { localRepo.updateEvent(any(), any()) } just runs
+        coEvery { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, "default") } returns
+            listOf(timeEvent.copy(syncStatus = SyncStatus.LOCAL_ONLY))
+
+        calendarAgent.updateEvent(timeEvent, "default")
+
+        coVerify(exactly = 1) { localRepo.updateEvent(match { it.syncStatus == SyncStatus.LOCAL_ONLY }, "default") }
+        calendarAgent.unsyncedCount.value shouldBe 1
     }
 
     // ── resetCalendar ─────────────────────────────────────────────────────────

@@ -12,6 +12,18 @@ plugins {
     alias(libs.plugins.kotlin.serialization)
     alias(libs.plugins.sqldelight)
     alias(libs.plugins.kover)
+    alias(libs.plugins.sonarqube)
+}
+
+fun loadEnvKey(key: String): String? {
+    System.getenv(key)?.let { return it }
+    val envFile = rootProject.file(".env").takeIf { it.exists() } ?: return null
+    return envFile.readLines()
+        .firstOrNull { it.startsWith("$key=") }
+        ?.substringAfter("=")
+        ?.trim()
+        ?.removeSurrounding("\"")
+        ?.removeSurrounding("'")
 }
 
 val generateBuildSecrets = tasks.register("generateBuildSecrets") {
@@ -220,12 +232,43 @@ kover {
     }
 }
 
-tasks.register<JavaExec>("generateCrapReport") {
-    group = "verification"
-    description = "Generate CRAP and Coverage reports from the Kover XML report."
-    mainClass.set("com.borinquenterrier.cef.CrapIndexReporter")
-    outputs.upToDateWhen { false }
+// Retired the hand-rolled CrapIndexReporter (regex/brace-counting complexity proxy) in favor
+// of SonarQube's real AST-based analysis — see docs/ops/sonarqube-local.md. Config ported
+// from the sibling oficio project's :server module, adapted to this module's KMP source
+// layout (commonMain + jvmMain feed the analyzer; jvmTest is the only test source Kover
+// instruments today).
+sonar {
+    properties {
+        property("sonar.projectKey", "cef-composeApp")
+        property("sonar.projectName", "College Executive Function (composeApp)")
+        property("sonar.host.url", "http://localhost:9000")
+        property("sonar.sources", "src/commonMain/kotlin,src/jvmMain/kotlin")
+        property("sonar.tests", "src/jvmTest/kotlin")
+        // Absolute path — Sonar's JaCoCo-XML import silently shows 0% coverage on a
+        // bad relative path rather than failing the scan.
+        property(
+            "sonar.coverage.jacoco.xmlReportPaths",
+            layout.buildDirectory.file("reports/kover/reportJvm.xml").get().asFile.absolutePath,
+        )
+        loadEnvKey("SONAR_TOKEN")?.let { property("sonar.token", it) }
+    }
+}
+
+// A stale/missing report would otherwise silently read as 0% coverage instead of failing.
+tasks.named("sonar") {
     dependsOn("koverXmlReportJvm")
+}
+
+// Replaces the old generateCrapReport/refreshCrap entry point. Chains
+// jvmTest → koverXmlReportJvm → sonar → the Quality Gate check in one command.
+// Requires `docker compose up -d sonarqube` running locally (see docs/ops/sonarqube-local.md).
+tasks.register<JavaExec>("checkQualityGate") {
+    group = "verification"
+    description = "Polls the last Sonar analysis and hard-fails if the Quality Gate is not OK."
+    mainClass.set("com.borinquenterrier.cef.SonarQualityGateChecker")
+    dependsOn("sonar")
+    systemProperty("sonar.host.url", "http://localhost:9000")
+    loadEnvKey("SONAR_TOKEN")?.let { systemProperty("sonar.token", it) }
 
     val jvmTarget = kotlin.targets.getByName("jvm")
     val jvmTestCompilation = jvmTarget.compilations.getByName("test")
@@ -234,13 +277,6 @@ tasks.register<JavaExec>("generateCrapReport") {
         jvmTestCompilation.compileDependencyFiles,
         jvmTestCompilation.runtimeDependencyFiles
     )
-}
-
-// Single entry-point: runs jvmTest → koverXmlReportJvm → generateCrapReport in order.
-tasks.register("refreshCrap") {
-    group = "verification"
-    description = "Run tests, refresh Kover XML coverage, and regenerate CRAP/COVERAGE reports."
-    dependsOn("generateCrapReport")
 }
 
 kotlin {

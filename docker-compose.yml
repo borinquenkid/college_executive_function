@@ -49,7 +49,29 @@ services:
       - server
     restart: unless-stopped
 
+  # Local-only trial (see docs/ops/sonarqube-local.md) — replaces CrapIndexReporter/CRAP.md
+  # with real AST-based Kotlin analysis. Not wired into CI, no persistent server yet. Config
+  # ported verbatim from the sibling oficio project's docker-compose.yml, same pinned image
+  # tag and healthcheck — not a from-scratch Docker setup.
+  sonarqube:
+    image: sonarqube:26.6.0.123539-community
+    ports:
+      - "9000:9000"
+    volumes:
+      - sonarqube_data:/opt/sonarqube/data
+      - sonarqube_extensions:/opt/sonarqube/extensions
+      - sonarqube_logs:/opt/sonarqube/logs
+    # curl, not wget — verified against this pinned tag: curl is present, wget is not.
+    healthcheck:
+      test: ["CMD-SHELL", "curl -sf http://localhost:9000/api/system/status | grep -q -e '\"status\":\"UP\"' -e '\"status\":\"DB_MIGRATION_NEEDED\"' -e '\"status\":\"DB_MIGRATION_RUNNING\"'"]
+      interval: 10s
+      timeout: 5s
+      retries: 30
+
 volumes:
   openobserve-data:
   tenant-data:
   tenant-backups:
+  sonarqube_data:
+  sonarqube_extensions:
+  sonarqube_logs:

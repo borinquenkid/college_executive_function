@@ -1,9 +1,16 @@
 # College Executive Function — Development Roadmap
 
 > **Source of truth for all planned work.** `AGENTS.md` provides mandates and architecture context.
-> **CRITICAL PRIORITY**: High CRAP index files (complexity² × (1 - coverage)³) are the primary source of bugs.
-> Phases are ordered: (1) CRAP Remediation, (2) User-Reported Issues, (3) New Features.
+> **CRITICAL PRIORITY**: High-complexity, low-coverage files are the primary source of bugs.
+> Phases are ordered: (1) Complexity Remediation, (2) User-Reported Issues, (3) New Features.
 > Within phases, items are ordered by user impact × implementation readiness.
+>
+> **Tooling note (2026-07-05):** the CRAP-index tooling (`CrapIndexReporter.kt`, `CRAP.md`,
+> `COVERAGE.md`) referenced throughout the phase write-ups below has been retired and
+> replaced with SonarQube — see AGENTS.md's "Static Analysis Quality Gate Protocol" and
+> `docs/ops/sonarqube-local.md`. The phase entries below are a historical record of what
+> each one measured at the time and are left as-is; new work should measure against
+> `./gradlew :composeApp:checkQualityGate` instead.
 
 ---
 

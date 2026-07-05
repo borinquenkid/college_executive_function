@@ -11,7 +11,7 @@ Before writing any phase plan into `ROADMAP.md`, ask these questions and get ans
 
 1. **Verification** — How will we know this is working? Can it be tested automatically, or does it require a manual walkthrough? If manual, who does it and under what conditions?
 2. **Edge cases** — What inputs or states could break this? Name at least two.
-3. **CRAP impact** — Which existing files does this touch? Will any of them exceed complexity 5 per method or 15 per file after the change?
+3. **Quality Gate impact** — Which existing files does this touch? Will any of them exceed complexity 5 per method or 15 per file after the change?
 4. **Dependencies** — Does this block or get blocked by anything else in the roadmap?
 
 If any answer is "I don't know," resolve it before planning. A plan built on an unresolved unknown will produce a phase with a gap (like 9C — Drive picker unverifiability — which was a planning gap, not an implementation gap).
@@ -23,7 +23,7 @@ After writing a phase plan into `ROADMAP.md` but **before writing any code**, ch
 
 1. **Spec ↔ Plan:** Every user-facing behavior described in the motivation has a corresponding deliverable row. Nothing in the deliverables table is absent from the motivation.
 2. **Plan ↔ Tests:** Every deliverable row has at least one corresponding test listed. No deliverable is marked done without a test requirement.
-3. **Plan ↔ CRAP:** Every file in the "files changed" column has a CRAP acceptance criterion. No file is added to the plan without specifying its complexity budget.
+3. **Plan ↔ Quality Gate:** Every file in the "files changed" column has a Quality Gate acceptance criterion. No file is added to the plan without specifying its complexity budget.
 4. **Plan ↔ Verification:** The plan explicitly states how 9C-class manual steps (things that can't be unit-tested) will be verified and by whom.
 
 If any check fails, fix the plan before implementing. An inconsistency found here costs one edit to `ROADMAP.md`; the same inconsistency found after implementation costs a phase rollback.
@@ -31,46 +31,57 @@ If any check fails, fix the plan before implementing. An inconsistency found her
 ---
 
 ### Converge Protocol
-After completing a phase (after CRAP regeneration and build verification pass), perform a structured gap audit before closing the phase:
+After completing a phase (after the Sonar Quality Gate check and build verification pass), perform a structured gap audit before closing the phase:
 
 1. **Spec coverage** — Read the phase motivation. For each stated goal, confirm there is a commit that addresses it. Name the commit.
-2. **Test coverage** — For each new class or method introduced, confirm a test exists that exercises its primary path. Check `CRAP.md` for 0% coverage entries in new files.
+2. **Test coverage** — For each new class or method introduced, confirm a test exists that exercises its primary path. Check the Sonar dashboard (or `checkQualityGate`'s printed conditions) for 0% coverage entries in new files.
 3. **UI reachability** — For any UI change, confirm the changed surface was actually reached during the session (screenshot, manual walkthrough, or Compose test). Unreachable UI = unverified UI.
 4. **Regression check** — Run the full JVM test suite. Confirm no previously-passing tests now fail.
-5. **Mandate compliance** — Confirm the phase respected all AGENTS.md mandates: CRAP limits, build verification, integration test naming, StateFlowReader/Writer pattern, Confabulation Gate for any new AI method.
+5. **Mandate compliance** — Confirm the phase respected all AGENTS.md mandates: complexity limits (Quality Gate), build verification, integration test naming, StateFlowReader/Writer pattern, Confabulation Gate for any new AI method.
 
 If any item above is unresolved, document it as a named gap in ROADMAP.md under the phase (like `9C — NEEDS HUMAN`) rather than silently leaving it open. A gap that is named is a gap that gets closed; an unnamed gap becomes a bug.
 
-**Trigger:** This protocol is mandatory at phase completion, in addition to — not instead of — the CRAP Index Verification Protocol and Build Verification Protocol. Run all three.
+**Trigger:** This protocol is mandatory at phase completion, in addition to — not instead of — the Static Analysis Quality Gate Protocol and Build Verification Protocol. Run all three.
 
 ---
 
 ### Build Verification Protocol
-Whenever a task or feature is reported as "done" (except when specifically running unit tests or CRAP index checks), verify that all three primary build targets compile successfully:
+Whenever a task or feature is reported as "done" (except when specifically running unit tests or Quality Gate checks), verify that all three primary build targets compile successfully:
 ```bash
 ./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble
 ```
 Confirm these three builds pass before confirming completion.
 
-### CRAP Index Verification Protocol
-To regenerate and verify the CRAP index scores in `CRAP.md` after code changes or test additions:
+### Static Analysis Quality Gate Protocol
+
+> **Deviation from this file's own prior CRAP-index approach, as of 2026-07-05.** This
+> section previously described a hand-rolled "CRAP index" regex/brace-counting tool
+> (`CrapIndexReporter.kt`, `CRAP.md`/`COVERAGE.md`). Retired in favor of SonarQube
+> Community Edition (self-hosted, local — see `docs/ops/sonarqube-local.md`), real
+> AST-based analysis, after the sibling `oficio` project traced the old tool's regex to
+> two mechanical bugs on a real file: double-counted `?.let{}` safe-call guards (matching
+> both a `\?\.` pattern and a `\.let\b` pattern on the same characters) and English words
+> ("for", "when") inside comments matched as real control flow — a ~3.5x complexity
+> overcount, not a reasonable difference of opinion between two valid tools.
+>
+> Original lesson this section still honors: **TDD gets you coverage, it does not
+> force refactor. Tested spaghetti is still spaghetti** — a real static-analysis gate
+> is the check TDD doesn't enforce by itself.
+
+To check code quality and coverage after code changes or test additions:
 ```bash
-# Step 1: Run all JVM tests to generate fresh coverage data
-./gradlew :composeApp:jvmTest --no-daemon
-
-# Step 2: Generate Kover code coverage XML report (JVM variant — Android variant needs a device)
-./gradlew :composeApp:koverXmlReportJvm -q
-
-# Step 3: Generate CRAP.md from coverage data
-./gradlew generateCrapReport -q
+docker compose up -d sonarqube   # if not already running (see docs/ops/sonarqube-local.md)
+./gradlew :composeApp:checkQualityGate
 ```
-All three commands must complete successfully. The updated `CRAP.md` will reflect current complexity and test coverage metrics. Commit the regenerated `CRAP.md` as part of the phase completion.
+This single command chains `jvmTest` → `koverXmlReportJvm` → `sonar` → the Quality Gate
+check automatically. If the Quality Gate is not OK — **the phase is not done.** The task
+prints each failing condition (metric, actual value, threshold) before failing the build.
 
 ### UI Verification Protocol
 For UI-related changes, verify the visual state by running the relevant module (e.g., `:composeApp:jvmRun`) and performing a screen capture (e.g., using macOS `screencapture`). Layout optimizations and visual features must be physically verified on-screen before being reported as complete.
 
-### CRAP Remediation Protocol
-When a file scores high on the CRAP index (`CRAP.md`), prefer **decomposing it into smaller, single-responsibility files before writing tests against it**. The formula (`complexity² × (1 - coverage)³ + complexity`) squares complexity, so splitting one high-complexity file into focused units shrinks the score sharply on its own — often more than coverage alone would. Testing a monolith first is a sunk cost: once it's split, those tests have to be rewritten or relocated against the new shape anyway. Decompose first, then write targeted tests against the smaller, stable units that result.
+### Quality Gate Remediation Protocol
+When a file fails or nears the Quality Gate (high cyclomatic/cognitive complexity, low coverage, poor maintainability rating), prefer **decomposing it into smaller, single-responsibility files before writing tests against it**. Splitting one high-complexity file into focused units shrinks its complexity and duplication sharply on its own — often more than coverage alone would. Testing a monolith first is a sunk cost: once it's split, those tests have to be rewritten or relocated against the new shape anyway. Decompose first, then write targeted tests against the smaller, stable units that result.
 
 ### Reactive State Testability Pattern: StateFlowReader/StateFlowWriter
 
@@ -120,7 +131,7 @@ every { mockContainer.sourceItems } returns mockSourceItems
 ```
 
 ### Complexity & Decomposition Standards
-Prevent high-CRAP code by designing for decomposition and testability **from the spec phase**, not by discovering problems during metrics review. Architectural requirements must enforce these limits:
+Prevent Quality Gate failures by designing for decomposition and testability **from the spec phase**, not by discovering problems during metrics review. Architectural requirements must enforce these limits:
 
 1. **Per-Method Complexity Limit: 5**
    - Any public method exceeding 5 control flows (branches, loops, logical operators, safe calls, collection operators) must be refactored into smaller focused methods or delegated to extracted services.
@@ -150,12 +161,12 @@ Prevent high-CRAP code by designing for decomposition and testability **from the
    - No file shall have coverage below the threshold determined at spec time (e.g., "no business logic below 80% coverage").
    - Coverage gaps are blockers: code with 0% coverage cannot be merged, even if "it's new."
 
-7. **CRAP Index as Non-Functional Requirement**
-   - Include CRAP acceptance criteria in the spec: "No file shall exceed CRAP index of 20."
+7. **Quality Gate as Non-Functional Requirement**
+   - Include Quality Gate acceptance criteria in the spec: "No file shall exceed cyclomatic complexity 20 / maintainability rating worse than A."
    - Files exceeding the threshold at PR time are rejected; author must decompose before re-review.
-   - Use `generateCrapReport` as part of CI/CD validation, not post-hoc analysis.
+   - Use `./gradlew :composeApp:checkQualityGate` as part of the done definition, not post-hoc analysis.
 
-**Pattern:** The three-service structure that emerged in Phase 0.23 (`CalendarIdResolver`, `EventConflictDetector`, `EventRangeFilter`) is what should have been in the original spec — not derived through refactoring. Spec decomposition prevents CRAP; metrics review only measures what you missed.
+**Pattern:** The three-service structure that emerged in Phase 0.23 (`CalendarIdResolver`, `EventConflictDetector`, `EventRangeFilter`) is what should have been in the original spec — not derived through refactoring. Spec decomposition prevents complexity from accruing; metrics review only measures what you missed.
 
 ### Confabulation Gate Protocol
 

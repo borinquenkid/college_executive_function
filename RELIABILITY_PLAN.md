@@ -32,7 +32,7 @@ Memory saved: [tests wrote to the real cef.db](.claude memory `bug_tests_wrote_r
 
 ## 2. Definition of Done for this branch (before merge)
 
-- [ ] Regenerate CRAP (`koverXmlReportJvm generateCrapReport --rerun-tasks -PunitTestsOnly=true`) and commit `CRAP.md`.
+- [ ] Run the Sonar Quality Gate check (`docker compose up -d sonarqube` then `./gradlew :composeApp:checkQualityGate`) — see AGENTS.md's "Static Analysis Quality Gate Protocol".
 - [ ] 3-target build check: `compileKotlinJvm` + `compileDebugKotlinAndroid` (together), `compileKotlinIosSimulatorArm64` (separately — OOM).
 - [ ] Full unit suite green (the `AppControllerTest > retryLocalOnly …` timing test is **flaky** — see item T1; passes in isolation).
 - [ ] One clean JVM replay: reset → load 3 docs → verify auto-push, no dup accumulation, no rate-limit stall, in-semester.

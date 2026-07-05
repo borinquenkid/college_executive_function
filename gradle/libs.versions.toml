@@ -32,6 +32,7 @@ okio = "3.17.0"
 pdfbox = "3.0.7"
 pdfbox-android = "2.0.27.0"
 kover = "0.9.8"
+sonarqube = "7.3.1.8318"
 
 play-services-auth = "21.6.0"
 
@@ -100,3 +101,4 @@ sqldelight = { id = "app.cash.sqldelight", version.ref = "sqldelight" }
 kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
+sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }

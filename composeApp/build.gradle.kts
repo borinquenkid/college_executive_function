@@ -26,7 +26,7 @@ val generateBuildSecrets = tasks.register("generateBuildSecrets") {
     
     val outputDir = layout.buildDirectory.dir("generated/cef/commonMain/kotlin")
     outputs.dir(outputDir)
-    
+
     inputs.property("GOOGLE_CLIENT_ID", System.getenv("GOOGLE_CLIENT_ID") ?: "")
     inputs.property("GOOGLE_CLIENT_SECRET", System.getenv("GOOGLE_CLIENT_SECRET") ?: "")
     inputs.property("WEB3FORMS_ACCESS_KEY", System.getenv("WEB3FORMS_ACCESS_KEY") ?: "")
@@ -132,6 +132,42 @@ tasks.register<JavaExec>("generateTest") {
 // Never cache koverXmlReportJvm: new tests may exist even when source classes are unchanged.
 tasks.matching { it.name == "koverXmlReportJvm" }.configureEach {
     outputs.upToDateWhen { false }
+}
+
+// HARD-1 (ROADMAP.md Phase 10): a packaged release build with blank OTLP secrets ships with
+// tracing silently downgraded to NoopTracer — until now the only trace was a println swallowed
+// by Gradle's output, so a release could ship blind with nobody noticing. Fail loud instead,
+// for any packageRelease{Dmg,Msi,Deb} invocation. This is a standalone task (not folded into
+// generateBuildSecrets's doLast) and deliberately never cacheable, so it re-checks the actual
+// secrets on every release-packaging run rather than silently reusing a stale UP-TO-DATE result
+// from an earlier build that had different (or missing) secrets.
+val verifyReleaseTelemetrySecrets = tasks.register("verifyReleaseTelemetrySecrets") {
+    group = "verification"
+    description = "Fails the build if a packageRelease* task is running without OTLP telemetry secrets configured."
+    outputs.upToDateWhen { false }
+    val localPropertiesFile = project.rootProject.file("local.properties")
+    val envFile = project.rootProject.file(".env")
+    doLast {
+        val localProps = Properties()
+        if (localPropertiesFile.exists()) localPropertiesFile.inputStream().use { localProps.load(it) }
+        val envProps = Properties()
+        if (envFile.exists()) envFile.inputStream().use { envProps.load(it) }
+        fun resolve(key: String) = System.getenv(key) ?: localProps.getProperty(key) ?: envProps.getProperty(key) ?: ""
+
+        val missing = listOf("CEF_OTLP_ENDPOINT", "CEF_OTLP_USER", "CEF_OTLP_PASSWORD").filter { resolve(it).isBlank() }
+        if (missing.isNotEmpty()) {
+            error(
+                "Release packaging build is about to ship with tracing DISABLED (NoopTracer) " +
+                    "— missing OTLP secret(s): ${missing.joinToString(", ")}. Configure them as " +
+                    "repository secrets before cutting a release (see ROADMAP.md HARD-1), or this " +
+                    "release ships blind with no way to tell."
+            )
+        }
+    }
+}
+
+tasks.matching { it.name.contains("packageRelease", ignoreCase = true) }.configureEach {
+    dependsOn(verifyReleaseTelemetrySecrets)
 }
 
 // Exclude pure Compose UI files (annotated @file:UiOnly) from coverage gate and reports.

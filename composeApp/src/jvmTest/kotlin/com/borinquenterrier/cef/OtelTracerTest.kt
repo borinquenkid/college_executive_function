@@ -3,6 +3,8 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.shouldNotBe
+import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.kotest.matchers.types.shouldBeInstanceOf
 
 class OtelTracerTest : FunSpec({
@@ -88,5 +90,42 @@ class OtelTracerTest : FunSpec({
         val tracer = createTracer(settings, AppEnv(emptyMap()))
         tracer.shouldBeInstanceOf<OtelTracer>()
         tracer.shutdown()
+    }
+
+    // ── ReleaseTelemetryCheck (HARD-1) ─────────────────────────────────────────
+
+    test("ReleaseTelemetryCheck.missingSecrets lists every unset key") {
+        clearProps()
+        ReleaseTelemetryCheck.missingSecrets(AppEnv(emptyMap())) shouldBe
+            listOf("CEF_OTLP_ENDPOINT", "CEF_OTLP_USER", "CEF_OTLP_PASSWORD")
+    }
+
+    test("ReleaseTelemetryCheck.missingSecrets is empty when all three are set") {
+        System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
+        System.setProperty(USER_KEY, "u")
+        System.setProperty(PASS_KEY, "p")
+        ReleaseTelemetryCheck.missingSecrets(AppEnv(emptyMap())) shouldBe emptyList()
+    }
+
+    test("ReleaseTelemetryCheck.failureMessage is null on a non-release build even when secrets are missing") {
+        clearProps()
+        ReleaseTelemetryCheck.failureMessage(AppEnv(emptyMap()), isReleaseBuild = false) shouldBe null
+    }
+
+    test("ReleaseTelemetryCheck.failureMessage is null on a release build when secrets are present") {
+        System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
+        System.setProperty(USER_KEY, "u")
+        System.setProperty(PASS_KEY, "p")
+        ReleaseTelemetryCheck.failureMessage(AppEnv(emptyMap()), isReleaseBuild = true) shouldBe null
+    }
+
+    test("ReleaseTelemetryCheck.failureMessage names the missing secrets on a release build") {
+        clearProps()
+        System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
+        val message = ReleaseTelemetryCheck.failureMessage(AppEnv(emptyMap()), isReleaseBuild = true)
+        message shouldNotBe null
+        message!! shouldContain "CEF_OTLP_USER"
+        message shouldContain "CEF_OTLP_PASSWORD"
+        message shouldNotContain "CEF_OTLP_ENDPOINT"
     }
 })

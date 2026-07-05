@@ -1232,6 +1232,436 @@ Bring CEF to the web using a React frontend that dynamically communicates with t
 
 ---
 
+## Phase 10 — Hardening Pass (Post-Feature-Complete) 🔴 CERTIFICATION GATE
+
+**Certification gate:** this entire list (HARD-1 through HARD-9) is a hard prerequisite for
+App Store / Play Store submission — see the "Phase 2.5 — Hardening pass" gate in
+`DEPLOYMENT_IOS.md` and `DEPLOYMENT_ANDROID.md`. Check items off here as they land; those two
+docs reference this section rather than duplicating its content.
+
+> **Provenance:** this plan ports a hardening *methodology*, not any code, from a sibling
+> project (Oficio, a separate Borinquen Terrier product) that ran an "Ops Hardening"
+> sprint once its feature set stabilized. Every finding below was independently
+> re-derived against **this** codebase — file:line cited — not copied or assumed from
+> that project. Nothing here references Oficio's actual code or data.
+
+### Why this exists
+
+CEF's roadmap above lists a long, genuinely-shipped feature set: sync hardening,
+resilient reset, a reconciler, a fault-injectable test harness, a real OTEL pipeline.
+That is unusual — most projects get to "feature complete" long before they get to "has
+an immune system." The risk at this stage isn't missing features; it's that a handful
+of currently-invisible or currently-silent bugs are sitting underneath a lot of working
+functionality, waiting for scale (more users, more time, more documents) to surface
+them as support tickets nobody can diagnose.
+
+**The methodology, in one line:** convert invisible or silently-wrong behavior into
+visible, bounded behavior — cheapest and currently-bleeding first — and only chase pure
+scaling landmines once they're actually close to biting, not speculatively.
+
+**Sequencing principle — six archetypes, in this order:**
+
+| # | Archetype | Question it answers |
+|---|---|---|
+| 0 | Make failure visible | Can we even tell when something breaks? |
+| 1 | Currently-bleeding, cheap, deterministic | What's silently wrong for real users *right now*, with a small fix? |
+| 2 | Bound the silent-failure-to-churn class | What external-integration failure produces zero signal until a user quietly gives up? |
+| 3 | The decision core (own timeline, highest stakes) | Is the thing the whole product depends on (the AI extraction pipeline) actually measured, and can a regression in it ship silently? |
+| 4 | Scaling landmines | What's fine at today's usage but breaks as documents/time/users accumulate? |
+| 5 | Structural / self-serve gaps | What feature has a "do" half but no "undo" half? |
+
+Archetype 0 is a prerequisite for verifying everything after it. Archetypes 1–2 are
+independent and cheap — do them in any order. Archetype 3 is its own multi-step
+timeline (measure, then gate) and is the highest-leverage item in this plan. Archetypes
+4–5 are real but lower urgency — CEF is a single-user, local-first app, so "scale" here
+means *time and document volume on one install*, not tenant count.
+
+**What this document is not:** a literal restatement of Oficio's task list. Several of
+its categories (per-tenant cost caps, billing/dunning, multi-tenant migration
+isolation, compliance opt-out) don't apply to CEF's actual shape — a BYOK,
+single-user, local-first app with no monetization surface and no shared infrastructure
+across users. Those are called out explicitly below as *ruled out*, not silently
+dropped.
+
+### Summary
+
+| # | Task | Archetype | Status |
+|---|---|---|---|
+| HARD-1 | Fail loud (not silent) when telemetry degrades to a no-op tracer in a packaged build | 0 — visibility | ✅ |
+| HARD-2 | Fix the hardcoded Fall-2024 default date range in `AddRoutineItemDialog` | 1 — bleeding now | ⬜ |
+| HARD-3 | Surface a persistent `LOCAL_ONLY` sync failure on event **update** instead of swallowing it | 2 — silent→churn | ⬜ |
+| HARD-4 | Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` | 3 — decision core | ⬜ |
+| HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ⬜ |
+| HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ⬜ |
+| HARD-7 | Wire up the already-built override-log retention (`pruneOldLogs`) | 4 — scale landmine | ⬜ |
+| HARD-8 | Warn before a document is large enough to trigger extra Gemini cost | 4 — scale landmine | ⬜ |
+| HARD-9 | Full teardown on Google account disconnect, not just token clearing | 5 — structural | ⬜ |
+
+### Archetype 0 — Make failure visible at all
+
+**Mostly already done — one residual gap, not a from-scratch build.** CEF already has
+a real, wired OTLP exporter (`HttpOtelTracer.kt`, plus a heavier JVM-only
+`OtelTracer.kt`), and the specific spans referenced in `RELIABILITY_PLAN.md`
+(`calendar.self_heal`, `calendar.reconcile_apply`, `calendar.resilient_clear`,
+`gemini.request`) are real, not aspirational. This is a materially stronger starting
+position than most projects reach for this pass.
+
+#### HARD-1 — Fail loud when telemetry silently degrades to Noop ✅ DONE 2026-07-04
+
+**What:** `OtelTracer`'s and `HttpOtelTracer`'s `createTracer()` both fall back to
+`NoopTracer` when the build-time OTLP env vars (`CEF_OTLP_ENDPOINT`/`USER`/`PASSWORD`,
+baked into `BuildSecrets` at build time — see `composeApp/build.gradle.kts:33-35,77-108`)
+are unset, with only a `println("[OTEL] Tracing DISABLED...")` as a trace. That println
+is invisible in a packaged release binary — nobody sees it, and there is no other
+signal that a given build shipped with zero tracing. If a release build is ever cut
+without those secrets configured (a CI misconfiguration, a new build machine, a
+forgotten env var), every hardening decision that depends on telemetry (including
+HARD-4/HARD-5 below) goes blind for that release, and nobody would know until they
+went looking for traces that don't exist.
+
+**Acceptance criteria:**
+- [x] Release build tooling (`release.sh` / `.github/workflows/release-desktop.yml`)
+      fails the build, or at minimum emits a loud warning surfaced somewhere a human
+      will actually see it (build log summary, not just a `println` swallowed by
+      Gradle output), when the OTLP secrets are unset for a release-tagged build.
+- [x] Local/dev builds keep working exactly as today (Noop is the correct dev default
+      — this is about *release* builds only).
+- [x] Unit test covers: `createTracer()` returns Noop when secrets are blank, and the
+      new loud-failure path only fires under whatever condition marks a build as
+      release (don't gate on `isDebug` — see HARD-6, that flag has its own bug).
+
+**Resolution:** Added a standalone, never-cached `verifyReleaseTelemetrySecrets` Gradle task
+(`composeApp/build.gradle.kts`) that `dependsOn` is attached to any `packageRelease*` task via
+`tasks.matching { it.name.contains("packageRelease") }.configureEach { dependsOn(...) }`. It
+re-resolves the three OTLP secrets from env/`local.properties`/`.env` on every invocation (never
+UP-TO-DATE, so a stale cached success can't hide a later misconfiguration) and fails the build
+with a clear message naming exactly which secret(s) are missing. Verified: `packageReleaseDmg`
+fails with `.env`'s OTLP block temporarily removed, and succeeds with it restored;
+`:composeApp:jvmTest`, `packageDmg` (debug/dev distributable), and the three build targets
+(`assembleDebug`, `iosApp:assemble`, `server:assemble`) are all unaffected. Added a pure,
+independently-testable `ReleaseTelemetryCheck` object in `OtelTracer.kt` (takes an explicit
+`isReleaseBuild: Boolean`, not `isDebug`) with unit tests in `OtelTracerTest.kt` proving the
+gating condition — not just the existing Noop-fallback behavior, which was already covered.
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/HttpOtelTracer.kt`,
+`composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/OtelTracer.kt`,
+`composeApp/src/jvmTest/kotlin/com/borinquenterrier/cef/OtelTracerTest.kt`,
+`composeApp/build.gradle.kts`
+
+### Archetype 1 — Currently-bleeding, cheap, deterministic
+
+#### HARD-2 — Fix the hardcoded Fall-2024 default date range
+
+**What:** `AddRoutineItemDialog.kt:52-53` defaults a new routine item's recurrence
+window to `LocalDate(2024, 8, 26)`–`LocalDate(2024, 12, 13)` — a specific past
+semester, hardcoded as UI initial state with no validation forcing the user to change
+it before saving. The `Save` handler builds the `TimeEvent`/`Recurrence` directly from
+these values with no guard. As of today this window is already well over a year in
+the past — any student who adds a recurring routine (a weekly class, a standing study
+block) without explicitly opening both date pickers gets a recurrence that will never
+fire, silently, with zero error and zero telemetry event. This is exactly the "one
+literal that was correct for a moment, now silently wrong for everyone" shape — it's
+been shipping since whenever this dialog was last touched, and it bleeds on every
+session where a user doesn't happen to open the date fields.
+
+**Acceptance criteria:**
+- [ ] Default `startDate`/`endDate` derive from the current date (or the student's
+      active-semester window, if that's already resolvable at this call site —
+      `CalendarReconciler`'s semester-window logic may already have something
+      reusable) instead of a hardcoded 2024 literal.
+- [ ] Add a save-time guard: reject (or warn on) a recurrence window that's already
+      fully in the past, so this class of bug can't reappear via a different stale
+      default later.
+- [ ] Test: creating a routine item with the dialog's untouched defaults produces a
+      `Recurrence` whose `endDate` is in the future relative to a fixed clock.
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AddRoutineItemDialog.kt`
+
+### Archetype 2 — Bound the silent-failure-to-churn class
+
+**Scoped down from Oficio's version of this archetype.** Most of Oficio's
+Archetype-2 shape (a paid external API declining, a webhook redelivery loop) doesn't
+map onto CEF — there's no billing surface (confirmed absent — see "Ruled out," below)
+and the Gemini integration already surfaces every failure path it hits (also
+confirmed — see "Ruled out"). One real gap survives on the Google Calendar side.
+
+#### HARD-3 — Surface a persistent `LOCAL_ONLY` sync failure on update
+
+**What:** `RemoteFirstWriter.save()` (lines 11-22) correctly falls back to
+local-only *and rethrows* `RemoteSyncFailedException` so a caller can react. Its
+sibling, `RemoteFirstWriter.update()` (lines 27-38), does the identical local-only
+fallback but **does not rethrow** — it only logs (`logger?.e(tag, "Remote update
+failed, falling back to local-only update", e)`) and returns normally, as if the
+update succeeded. The same catch-and-log-only shape appears in `SyncNegotiator.kt`'s
+push (lines 66-71) and remote-delete (lines 51-62) paths. There is no UI surface
+anywhere that reads `SyncStatus.LOCAL_ONLY` to tell a student "this edit didn't reach
+Google Calendar" — `LocalOnlyRetrier` retries silently on the next sync, which is the
+right behavior for a *transient* failure, but if the underlying cause is persistent
+(the target calendar was deleted server-side, a scope was revoked in a way that
+doesn't trip the already-handled 401 path), the event can sit in `LOCAL_ONLY`
+indefinitely with a debug log as the only trace. A student who edits or moves a
+deadline believes it's synced; it silently isn't.
+
+**Acceptance criteria:**
+- [ ] `update()` either rethrows like `save()` does, or — if silently degrading to
+      local-only on update really is the intended UX for transient failures — the app
+      surfaces a persistent (not one-shot) indicator once an event has been
+      `LOCAL_ONLY` for longer than some threshold (e.g. survives N sync cycles), not
+      just a debug log line.
+- [ ] Same treatment for `SyncNegotiator`'s push/delete catch-and-log-only paths.
+- [ ] At minimum, a "N events haven't synced to Google Calendar" indicator exists
+      somewhere reachable (Settings or the calendar view) — today grepping the whole
+      UI layer for any reference to `SyncStatus` (including `LOCAL_ONLY`) returns
+      nothing.
+- [ ] Test: an `update()` call whose remote write throws a non-`CalendarNotFoundException`
+      error is caught by the existing reconciler/harness scenario tests and asserted
+      to leave a durably-discoverable trace, not just a log line.
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/RemoteFirstWriter.kt`,
+`composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SyncNegotiator.kt`
+
+### Archetype 3 — The decision core (own timeline, highest stakes)
+
+**This is the single highest-leverage item in this plan** — the same role
+Oficio's qualification-agent reliability gate played there. CEF's whole product
+depends on the Gemini extraction pipeline actually getting syllabus dates right; today
+that reliability is unmeasured in any way that can block a regression from shipping.
+
+#### HARD-4 — Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest`
+
+**What:** `SyllabusEvaluationIntegrationTest.kt` already does the hard part — it runs
+2 real syllabi through the actual `RealAIService.generateCalendarEvents()` and
+computes recall% and date-accuracy% against hand-labeled expected-JSON fixtures
+(lines 121-146). But the test body only `println`s the results table; there is no
+`shouldBe`/threshold assertion anywhere in it. A recall regression from 90% to 10%
+would not fail this test — it would print a much worse number and pass anyway. By
+contrast, two sibling tests in the same package, `ContributorPdfIntegrationTest.kt`
+(`failures.size shouldBe 0`) and `StlccIntegrationTest.kt` (several `shouldBeGreaterThan`
+assertions against the real `contributions/` corpus), already have exactly the
+assertion shape this test is missing.
+
+**Acceptance criteria:**
+- [ ] Replace the results-table `println` with real assertions — a minimum recall%
+      and date-accuracy% threshold, chosen from the current measured baseline (run it
+      once, record the number, set the bar at or slightly below today's actual
+      performance so this change doesn't immediately fail CI on a pre-existing dip).
+- [ ] Keep the printed table for humans — assert *and* report, not one or the other.
+- [ ] Do not silently loosen `ContributorPdfIntegrationTest`/`StlccIntegrationTest`'s
+      existing assertions while touching this file.
+
+**Files:** `composeApp/src/jvmTest/kotlin/com/borinquenterrier/cef/SyllabusEvaluationIntegrationTest.kt`
+
+#### HARD-5 — Wire the real corpus evals into CI as an actual gate
+
+**What:** The infrastructure for a real reliability gate already exists in the
+codebase — real assertions (once HARD-4 lands), a real 20-file corpus across
+`contributions/mo/...` and `contributions/tx/ut_austin/...`, and three eval-shaped
+test classes. None of it runs in CI, ever, on any workflow:
+`composeApp/build.gradle.kts:390-391` excludes every AI integration test from the
+default `:composeApp:jvmTest` task unless `-PrunAITests=true` is passed, and neither
+`pr-check.yml` nor `release-desktop.yml` ever passes that flag for anything except
+the unrelated `GoogleOAuthIntegrationTest` — nor do they set `CEF_GEMINI_API_KEY`
+anywhere, so even a manually-flagged run would resolve no API key and skip. The
+`validate-contributions` CI job only checks path-namespace/poison-content
+(`scripts/validate_contributions.py`) — it never runs the extraction pipeline or
+measures quality. Net effect: a prompt change, a model swap, or a parser regression
+that tanks real-world extraction accuracy can merge and ship with nothing in CI
+noticing, exactly the gap Oficio's OPS-11/OPS-12 closed for its own AI pipeline.
+
+**Sequencing note, matching the sibling project's own precedent:** that project
+originally assumed it needed a from-scratch eval harness and, on inspection, found
+the actual fix was cheaper than assumed (see its own OPS-13 sub-task breakdown for
+the shape of "measure first, don't build before you've measured"). Do the same
+here — HARD-4 first (make the existing eval assert something), then land this task,
+then decide from real numbers whether a corpus eval belongs on every PR or on a
+cheaper cadence (nightly/pre-release only), the same cost-vs-signal tradeoff
+`AGENTS.md`'s Integration Test Naming Convention section already gestures at.
+
+**Acceptance criteria:**
+- [ ] Decide and document the cadence: every PR (if the corpus is cheap/fast enough),
+      or gated to a scheduled/pre-release run (if a real Gemini API key's cost or
+      latency makes per-PR runs impractical) — this is a real tradeoff to make
+      explicitly, not default silently to "never," which is today's status quo.
+- [ ] Whichever cadence is chosen, add the required secret
+      (`CEF_GEMINI_API_KEY`/equivalent) to the relevant workflow and pass
+      `-PrunAITests=true` for the eval test classes specifically (not blanket-enabling
+      every `IntegrationTest`-suffixed class, which would also pull in the live
+      Google OAuth test).
+- [ ] A regression below the HARD-4 threshold, or a `ContributorPdfIntegrationTest`/
+      `StlccIntegrationTest` assertion failure, fails that workflow run — confirm by
+      deliberately breaking one assertion locally and running the wired CI step (or
+      its local equivalent) to see it fail before considering this done.
+- [ ] Document the eval-cost tradeoff (API cost per run × chosen cadence) somewhere
+      discoverable (this section or `AGENTS.md`), matching the transparency Oficio's
+      own `AGENTS.md` gives its eval-cost discipline — so a future contributor
+      understands why the cadence was chosen, not just what it is.
+
+**Files:** `.github/workflows/pr-check.yml` and/or a new scheduled workflow,
+`composeApp/build.gradle.kts`, `AGENTS.md` (document the cadence decision)
+
+### Archetype 4 — Scaling landmines: fine now, fatal later
+
+CEF's version of "scale" is a single install accumulating state over months/years of
+real use, or one unusually large document — not tenant count. Lower urgency than
+Archetypes 1–3, but real.
+
+#### HARD-6 — Cap desktop `debug_logs.txt` growth in release builds
+
+**What:** `Platform.jvm.kt`'s `writeLogToFile()` appends to `debug_logs.txt` forever
+with no size cap, gated only by `isDebug` — and `isDebug` (line 8) defaults to
+**true** unless something explicitly sets the `debug` system property or `DEBUG` env
+var to `"false"`. Neither `release-desktop.yml` nor `composeApp/build.gradle.kts` sets
+that for packaged builds. Android (`Platform.android.kt`) and iOS (`Platform.ios.kt`)
+both already cap this at `MAX_LOG_FILE_BYTES = 500_000` with `takeLast` trimming —
+desktop is the one platform that shipped without the cap its siblings already have.
+
+**Acceptance criteria:**
+- [ ] Desktop `writeLogToFile()` gets the same size cap + trim behavior Android/iOS
+      already implement (extract to shared code if it isn't already, rather than a
+      third independent copy).
+- [ ] Packaged release builds explicitly set `isDebug = false` (or an equivalent
+      release-vs-dev distinction that doesn't rely on an env var nobody sets) so this
+      doesn't also silently regress via the `isDebug` default itself.
+- [ ] Test: `writeLogToFile()` called past the cap trims rather than growing
+      unbounded.
+
+**Files:** `composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/Platform.jvm.kt`
+
+#### HARD-7 — Wire up the already-built override-log retention
+
+**What:** `UserPreferenceMemoryRepository.pruneOldLogs(olderThanMs)` is fully
+implemented (`SqlDelightUserPreferenceMemoryRepository.kt:47`) but has exactly one
+caller in the entire codebase: its own test. `logOverride()` writes a row every time a
+user's manual edit diverges from an AI suggestion, and nothing ever prunes that table
+— it grows for the life of the install, feeding `getDerivedConstraints()`'s preference
+inference indefinitely. The fix here is wiring, not building — the retention logic
+already exists and is already tested in isolation.
+
+**Acceptance criteria:**
+- [ ] Call `pruneOldLogs()` from an existing recurring entry point — `AgentHarness`'s
+      startup/daily poll (already referenced above) is the natural home, matching how
+      this class of periodic-maintenance concern is handled elsewhere.
+- [ ] Choose and document a retention window (e.g. keep enough history for
+      `getDerivedConstraints()` to still see meaningful patterns — this is a product
+      judgment call, not a technical one; state the reasoning wherever the constant
+      lives).
+- [ ] Test: `AgentHarness`'s periodic run actually invokes pruning (not just that
+      `pruneOldLogs()` works in isolation, which is already covered).
+
+**Files:** `AgentHarness` (wherever its periodic poll lives), `SqlDelightUserPreferenceMemoryRepository.kt`
+
+#### HARD-8 — Warn before a document is large enough to trigger extra Gemini cost
+
+**What:** Lower priority than HARD-6/7 given BYOK — it's the student's own key and
+own money, not CEF's, so this isn't a cost-to-the-business risk the way Oficio's
+per-tenant Claude cap was. But there's still zero signal to the user before a large
+document (>20MB inline cap, routed through the Gemini Files API —
+`GeminiAIService.kt:100,269`, `GeminiFileUploader.kt:16-17`) burns more of their quota
+or takes noticeably longer. A confused student with no visibility into why a
+particular upload is slow or ate their day's free-tier quota has no way to connect
+that experience to "this one document was unusually large."
+
+**Acceptance criteria:**
+- [ ] Before routing a document through the Files API path (i.e. once it's known the
+      document exceeds the inline-request size), surface a lightweight, dismissible
+      signal to the user — "this document is large, processing may take longer/use
+      more of your API quota" — not a hard block.
+- [ ] No behavior change to the actual routing/upload logic — this is purely a
+      user-facing signal added at the existing size-check branch point.
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt`,
+wherever the upload/ingest UI surfaces progress today
+
+### Archetype 5 — Structural / self-serve gaps
+
+#### HARD-9 — Full teardown on Google account disconnect
+
+**What:** `GoogleAccountFlow.disconnect()` (lines 73-78) only clears OAuth tokens and
+flips the connection state to `Unlinked`:
+
+```kotlin
+fun disconnect() {
+    println("[GoogleAccountFlow] Transition: * -> Unlinked")
+    authService.logout()
+    tokenRepository.clearTokens()
+    _state.value = GoogleConnectionState.Unlinked
+}
+```
+
+It does not clear locally-cached `SyncStatus.SYNCED` events, reset the selected
+calendar-id/name preference, or touch the local event tables at all. The only UI entry
+point is a bare "Disconnect Account" button (`GoogleCalendarPanel.kt:107-113`) with no
+confirmation dialog and no messaging about what is or isn't retained. This is the same
+shape as a self-serve cancellation flow that clears billing but forgets the data — the
+"connect" half of this feature is well-built (it even rolls back cleanly on partial
+failure — see "Ruled out," below); the "disconnect" half was never given the same
+teardown treatment.
+
+Note this is genuinely narrower than a first read of `disconnect()` suggests:
+`CalendarIdResolver.getCEFCalendarId()` does partially self-heal the calendar-ID
+consequence on a later reconnect (re-resolves by name, or recreates if the saved ID
+no longer exists). What's missing is a deliberate, user-facing choice about the
+previously-synced *event data* — today it just sits there, silently stale, associated
+with a connection that no longer exists.
+
+**Acceptance criteria:**
+- [ ] Add a confirmation step to "Disconnect Account" that states plainly what will
+      happen to previously-synced events (kept locally as unsynced records? cleared
+      entirely? — this is a product decision to make explicitly, not default
+      silently).
+- [ ] Whichever choice is made, implement it: either purge the `SyncStatus.SYNCED`
+      rows and reset the calendar-id preference, or explicitly flip them to a
+      "disconnected, not synced" status the UI can show truthfully.
+- [ ] Test: after `disconnect()`, local event state matches whatever the chosen
+      policy promises — today there is no test asserting anything about local state
+      post-disconnect, only that tokens are cleared.
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleAccountFlow.kt`,
+`GoogleCalendarPanel.kt`
+
+### Build order
+
+```
+HARD-1                                          Archetype 0 — prerequisite (thin: signal-only fix)
+HARD-2                                          Archetype 1 — standalone, do first (cheapest, bleeding now)
+HARD-3                                          Archetype 2 — standalone
+HARD-4 → HARD-5                                 Archetype 3 — own timeline, sequential (measure, then gate)
+HARD-6  HARD-7  HARD-8                          Archetype 4 — any order, all independent
+HARD-9                                          Archetype 5 — standalone
+```
+
+### Ruled out — investigated, not a gap
+
+Listed explicitly so this section stays honest about what was actually checked,
+rather than silently omitting categories that don't apply:
+
+- **Per-user/per-tenant Gemini cost cap** — CEF is BYOK; the student's own key means
+  there's no shared-infrastructure cost for CEF to bound the way Oficio bounded
+  per-tenant Claude spend. HARD-8 covers the residual "no warning before higher cost"
+  gap at a much lower severity.
+- **Gemini error handling beyond quota/model-negotiation** — `GeminiRequestExecutor`
+  categorizes every failure path (401/403/structural/quota/rate-limit/transient) and
+  either retries, blacklists a model, or throws. No silently-swallowed Gemini failure
+  was found.
+- **Per-item fault isolation in batch operations** — `ResilientCalendarCleaner`,
+  `SyncNegotiator`, `CalendarAgent.applyReconciliation()`, and `SourceAdder` all
+  already isolate per-event/per-source failures so one bad item doesn't abort an
+  entire sync/reconcile/reset/ingest batch. This is a real, already-shipped strength
+  (matches `RELIABILITY_PLAN.md`'s own F3 claim) — no task needed.
+- **Google account connect-flow rollback** — `GoogleAccountFlow.connect()` already
+  clears tokens and transitions to `Error` if post-token validation fails, rather than
+  leaving "tokens saved but unusable" state hanging. Only the disconnect half (HARD-9)
+  has a gap.
+- **Billing/subscription/payment system** — confirmed absent (`grep -rliE
+  "stripe|billing|subscription|payment"` returns no real hits). Nothing to harden;
+  Oficio's whole Archetype-2 billing-decline/dunning shape doesn't apply here.
+- **Compliance opt-out (STOP/SMS-equivalent)** — no SMS/A2P surface exists in CEF at
+  all; not applicable.
+- **Per-tenant DB migration isolation** — CEF has one local SQLite DB per install, no
+  multi-schema/multi-tenant concept; not applicable.
+
+---
+
 ## Dependency Graph
 
 ```

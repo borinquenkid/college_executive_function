@@ -107,3 +107,25 @@ private class OtelSpanScope(private val span: Span) : SpanScope {
 @Suppress("UNUSED_PARAMETER")
 actual fun createTracer(settings: com.russhwolf.settings.Settings, appEnv: AppEnv): Tracer =
     OtelTracer.create(appEnv) ?: NoopTracer
+
+/**
+ * Decides whether a *release packaging* build is about to ship with tracing silently
+ * disabled. Deliberately takes [isReleaseBuild] as an explicit parameter rather than
+ * reading [isDebug] — that flag defaults to `true` and isn't a reliable release signal
+ * (see HARD-6 in ROADMAP.md). The actual release signal is "a packageRelease* Gradle
+ * task was requested," computed by the build script, not by anything at runtime.
+ */
+object ReleaseTelemetryCheck {
+    private val REQUIRED_KEYS = listOf("CEF_OTLP_ENDPOINT", "CEF_OTLP_USER", "CEF_OTLP_PASSWORD")
+
+    fun missingSecrets(appEnv: AppEnv): List<String> = REQUIRED_KEYS.filter { appEnv.get(it) == null }
+
+    fun failureMessage(appEnv: AppEnv, isReleaseBuild: Boolean): String? {
+        if (!isReleaseBuild) return null
+        val missing = missingSecrets(appEnv)
+        if (missing.isEmpty()) return null
+        return "Release build is shipping with tracing DISABLED (NoopTracer) — missing OTLP " +
+            "secret(s): ${missing.joinToString(", ")}. Configure them as repository secrets " +
+            "before cutting a release, or this release ships blind with no way to tell."
+    }
+}

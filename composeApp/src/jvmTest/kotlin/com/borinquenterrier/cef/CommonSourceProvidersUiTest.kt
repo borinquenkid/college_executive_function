@@ -11,7 +11,6 @@ import androidx.compose.ui.test.runComposeUiTest
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.coVerify
-import io.mockk.every
 import io.mockk.mockk
 import kotlin.test.Test
 

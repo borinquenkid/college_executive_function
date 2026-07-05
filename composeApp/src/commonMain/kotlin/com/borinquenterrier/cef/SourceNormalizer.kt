@@ -29,6 +29,9 @@ class SourceNormalizer(
     // Optional: when provided, an image-only PDF (no extractable text) is OCR'd via the model's
     // document vision instead of yielding empty fragments. Null keeps the pure text-only behavior.
     private val aiService: AIService? = null,
+    // Fired right before a document is routed through the Files API (i.e. it's too big for an
+    // inline request) so callers can surface a "this may take longer / use more quota" notice.
+    private val onLargeDocumentDetected: () -> Unit = {},
 ) {
     suspend fun normalize(bytes: ByteArray, format: SourceFormat): List<SourceFragment> = when (format) {
         SourceFormat.PDF -> normalizePdf(bytes)
@@ -42,6 +45,7 @@ class SourceNormalizer(
         val extracted = pdfReader.readSource(bytes)
         if (aiService == null || !PdfTextQuality.isImageOnly(extracted)) return extracted
         // Scanned/image-only PDF: recover the text with document vision.
+        if (GeminiAIService.exceedsInlineDocumentLimit(bytes)) onLargeDocumentDetected()
         val visionText = aiService.extractTextFromDocument(bytes, "application/pdf")
         return if (!visionText.isNullOrBlank()) SourceProcessor.split(visionText) else extracted
     }

@@ -59,11 +59,18 @@ class PdfVisionFallbackTest : FunSpec({
 
         fun normalizer(
             extracted: List<SourceFragment>,
-            ai: AIService?
+            ai: AIService?,
+            onLargeDocumentDetected: () -> Unit = {}
         ): SourceNormalizer {
             val pdfReader = mockk<PdfReader>(relaxed = true)
             coEvery { pdfReader.readSource(any<ByteArray>()) } returns extracted
-            return SourceNormalizer(pdfReader, mockk(relaxed = true), mockk(relaxed = true), ai)
+            return SourceNormalizer(
+                pdfReader,
+                mockk(relaxed = true),
+                mockk(relaxed = true),
+                ai,
+                onLargeDocumentDetected
+            )
         }
 
         test("routes a text-less PDF to document vision") {
@@ -92,6 +99,63 @@ class PdfVisionFallbackTest : FunSpec({
                 normalizer(emptyList(), null).normalize("%PDF".encodeToByteArray(), SourceFormat.PDF)
             }
             result shouldBe emptyList()
+        }
+    }
+
+    context("SourceNormalizer large-document notice (HARD-8)") {
+        fun normalizer(
+            extracted: List<SourceFragment>,
+            ai: AIService?,
+            onLargeDocumentDetected: () -> Unit = {}
+        ): SourceNormalizer {
+            val pdfReader = mockk<PdfReader>(relaxed = true)
+            coEvery { pdfReader.readSource(any<ByteArray>()) } returns extracted
+            return SourceNormalizer(
+                pdfReader,
+                mockk(relaxed = true),
+                mockk(relaxed = true),
+                ai,
+                onLargeDocumentDetected
+            )
+        }
+
+        test("fires the callback when a text-less PDF exceeds the inline size cap") {
+            val ai = mockk<AIService>(relaxed = true)
+            coEvery { ai.extractTextFromDocument(any(), any()) } returns "Recovered text"
+            var fired = false
+            val bigBytes = ByteArray(14 * 1024 * 1024 + 1)
+
+            runBlocking {
+                normalizer(emptyList(), ai) { fired = true }.normalize(bigBytes, SourceFormat.PDF)
+            }
+
+            fired shouldBe true
+        }
+
+        test("does not fire the callback for a text-less PDF under the inline size cap") {
+            val ai = mockk<AIService>(relaxed = true)
+            coEvery { ai.extractTextFromDocument(any(), any()) } returns "Recovered text"
+            var fired = false
+
+            runBlocking {
+                normalizer(emptyList(), ai) { fired = true }.normalize("%PDF-scan".encodeToByteArray(), SourceFormat.PDF)
+            }
+
+            fired shouldBe false
+        }
+
+        test("does not fire the callback for a large PDF that already has extractable text") {
+            val ai = mockk<AIService>(relaxed = true)
+            var fired = false
+            val bigBytes = ByteArray(14 * 1024 * 1024 + 1)
+            val rich = listOf(frag("A full page of extractable syllabus content ".repeat(5)))
+
+            runBlocking {
+                normalizer(rich, ai) { fired = true }.normalize(bigBytes, SourceFormat.PDF)
+            }
+
+            fired shouldBe false
+            coVerify(exactly = 0) { ai.extractTextFromDocument(any(), any()) }
         }
     }
 })

@@ -25,12 +25,26 @@ class IngestionAgent(
     private val _sources = MutableStateFlow<List<SourceItem>>(emptyList())
     val sources: StateFlow<List<SourceItem>> = _sources.asStateFlow()
 
+    private val _largeDocumentNotice = MutableStateFlow<String?>(null)
+
+    /** Non-null when the document currently being ingested is large enough to route through the
+     * slower, quota-heavier Gemini Files API. Dismissible — purely informational, never blocks
+     * ingestion. Cleared at the start of the next ingest call. */
+    val largeDocumentNotice: StateFlow<String?> = _largeDocumentNotice.asStateFlow()
+
     // Single format→fragments dispatch shared by the ingestion paths. aiService enables the
     // image-only-PDF vision fallback.
-    private val normalizer = SourceNormalizer(pdfReader, docxReader, webReader, aiService)
+    private val normalizer = SourceNormalizer(
+        pdfReader,
+        docxReader,
+        webReader,
+        aiService,
+        onLargeDocumentDetected = { _largeDocumentNotice.value = LARGE_DOCUMENT_NOTICE }
+    )
 
     suspend fun addLocalFile(path: String): SourceItem {
         _isBusy.value = true
+        _largeDocumentNotice.value = null
         return try {
             AppTracer.current.span("ingestion.add_file") {
                 val fileName = path.substringAfterLast("/").substringAfterLast("\\")
@@ -54,6 +68,7 @@ class IngestionAgent(
 
     suspend fun addUrl(url: String): SourceItem {
         _isBusy.value = true
+        _largeDocumentNotice.value = null
         return try {
             AppTracer.current.span("ingestion.add_url", mapOf("source.url" to url)) {
                 // Web pages default to HTML; a URL ending .pdf/.ics routes to that extractor.
@@ -95,5 +110,10 @@ class IngestionAgent(
 
     private suspend fun persistSource(item: SourceItem, originUri: String?) {
         sourceRepository.saveSource(item, originUri)
+    }
+
+    companion object {
+        internal const val LARGE_DOCUMENT_NOTICE =
+            "This document is large — processing may take longer and use more of your Gemini API quota."
     }
 }

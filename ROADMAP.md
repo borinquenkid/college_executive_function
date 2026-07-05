@@ -1294,7 +1294,7 @@ dropped.
 | HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ✅ |
 | HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ✅ |
 | HARD-7 | Wire up the already-built override-log retention (`pruneOldLogs`) | 4 — scale landmine | ✅ |
-| HARD-8 | Warn before a document is large enough to trigger extra Gemini cost | 4 — scale landmine | ⬜ |
+| HARD-8 | Warn before a document is large enough to trigger extra Gemini cost | 4 — scale landmine | ✅ |
 | HARD-9 | Full teardown on Google account disconnect, not just token clearing | 5 — structural | ⬜ |
 
 ### Archetype 0 — Make failure visible at all
@@ -1655,7 +1655,7 @@ stays 🟢 LOW, coverage rose from 83.3% to 84.8%), `:composeApp:assembleDebug`,
 `UserPreferenceMemoryRepository.kt`, `SqlDelightUserPreferenceMemoryRepository.kt`,
 `DependencyContainer.kt`; `composeApp/src/jvmTest/kotlin/com/borinquenterrier/cef/AgentHarnessTest.kt`
 
-#### HARD-8 — Warn before a document is large enough to trigger extra Gemini cost
+#### HARD-8 — Warn before a document is large enough to trigger extra Gemini cost ✅ DONE 2026-07-05
 
 **What:** Lower priority than HARD-6/7 given BYOK — it's the student's own key and
 own money, not CEF's, so this isn't a cost-to-the-business risk the way Oficio's
@@ -1667,15 +1667,41 @@ particular upload is slow or ate their day's free-tier quota has no way to conne
 that experience to "this one document was unusually large."
 
 **Acceptance criteria:**
-- [ ] Before routing a document through the Files API path (i.e. once it's known the
+- [x] Before routing a document through the Files API path (i.e. once it's known the
       document exceeds the inline-request size), surface a lightweight, dismissible
       signal to the user — "this document is large, processing may take longer/use
-      more of your API quota" — not a hard block.
-- [ ] No behavior change to the actual routing/upload logic — this is purely a
+      more of your API quota" — not a hard block. Extracted the existing inline-vs-
+      Files-API size check into a public `GeminiAIService.exceedsInlineDocumentLimit(bytes)`,
+      called from `SourceNormalizer.normalizePdf()` (the only path that reaches
+      `extractTextFromDocument`, gated on the PDF being image-only) to fire a new
+      `onLargeDocumentDetected` callback. `IngestionAgent` wires that callback to a
+      `largeDocumentNotice: StateFlow<String?>`, cleared at the start of every
+      `addLocalFile`/`addUrl` call. `IngestingProgressDialog` (already shown while
+      ingesting) gained an optional `notice` line with its own "Dismiss" button —
+      dismissing only hides the text; it doesn't touch the ingestion running
+      underneath, which continues regardless.
+- [x] No behavior change to the actual routing/upload logic — this is purely a
       user-facing signal added at the existing size-check branch point.
+      `exceedsInlineDocumentLimit` replaced the inline `bytes.size > INLINE_DOCUMENT_LIMIT_BYTES`
+      comparison at the Files-API branch with a call to the same shared function, so
+      there's one size check, not two.
+
+**Resolution:** Verified with new tests at every layer: `GeminiAIServiceTest`
+(`exceedsInlineDocumentLimit` boundary), `PdfVisionFallbackTest` (the callback fires
+only for a text-less PDF over the cap, not for a small scan or a large PDF that
+already has extractable text), `IngestionAgentTest` (`largeDocumentNotice` sets and
+clears correctly across ingest calls), and `IngestingProgressDialogTest` (the notice
+renders and is dismissible without affecting the rest of the dialog). Full JVM suite,
+CRAP regen, and all three build targets pass — `GeminiAIService.kt` was already
+🔴 HIGH-CRAP pre-existing debt (35.21 before this change); the one-line pure
+`exceedsInlineDocumentLimit` function nudged it to 36.22, not something this task
+introduced or was scoped to fix.
 
 **Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiAIService.kt`,
-wherever the upload/ingest UI surfaces progress today
+`SourceNormalizer.kt`, `IngestionAgent.kt`, `IngestingProgressDialog.kt`,
+`CommonSourceProviders.kt`; tests in `composeApp/src/jvmTest/kotlin/com/borinquenterrier/cef/`
+(`GeminiAIServiceTest.kt`, `PdfVisionFallbackTest.kt`, `IngestionAgentTest.kt`,
+`IngestingProgressDialogTest.kt`)
 
 ### Archetype 5 — Structural / self-serve gaps
 

@@ -51,7 +51,7 @@ file references; check items off here as they land there.
 - [x] **HARD-5** — Wire the real corpus evals into CI as an actual gate (depends on HARD-4 landing first).
 - [x] **HARD-6** — Cap desktop `debug_logs.txt` growth in packaged release builds.
 - [x] **HARD-7** — ✅ **DONE 2026-07-04.** Wire up the already-built override-log retention (`pruneOldLogs`) into a recurring entry point.
-- [ ] **HARD-8** — Warn before a document is large enough to trigger extra Gemini cost.
+- [x] **HARD-8** — ✅ **DONE 2026-07-05.** Warn before a document is large enough to trigger extra Gemini cost.
 - [ ] **HARD-9** — Full teardown (or an explicit, honest retention choice) on Google account disconnect — **do this before finalizing the Phase 3 Data Safety section below**, since what disconnect actually does to local data determines what that declaration should say.
 
 ## Phase 3 — Play Console listing

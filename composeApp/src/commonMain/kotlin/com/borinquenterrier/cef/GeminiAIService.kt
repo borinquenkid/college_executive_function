@@ -99,6 +99,10 @@ class GeminiAIService private constructor(
     companion object {
         // Below the Gemini ~20 MB inline-request cap, with headroom for base64 (~33%) + JSON overhead.
         private const val INLINE_DOCUMENT_LIMIT_BYTES = 14 * 1024 * 1024
+
+        /** True when [bytes] will route through the (slower, quota-heavier) Files API rather than an inline request. */
+        fun exceedsInlineDocumentLimit(bytes: ByteArray): Boolean = bytes.size > INLINE_DOCUMENT_LIMIT_BYTES
+
         private val json = Json {
             ignoreUnknownKeys = true
             isLenient = true
@@ -268,7 +272,7 @@ class GeminiAIService private constructor(
             val prompt = AiPrompts.getPdfVisionExtractionPrompt()
             // Inline base64 has a ~20 MB request cap; larger docs (big scans) go via the Files API.
             val body: (String) -> JsonObject = when {
-                bytes.size > INLINE_DOCUMENT_LIMIT_BYTES -> {
+                exceedsInlineDocumentLimit(bytes) -> {
                     val fileUri = GeminiFileUploader(client, apiKey, logger).uploadAndAwait(bytes, mimeType)
                         ?: return null // upload/processing failed → caller keeps its (empty) extraction
                     val b: (String) -> JsonObject = {

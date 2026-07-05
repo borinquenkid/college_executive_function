@@ -141,4 +141,46 @@ class IngestionAgentTest : FunSpec({
         }
     }
 
+    // ── large-document notice (HARD-8) ─────────────────────────────────────────
+
+    test("addLocalFile sets largeDocumentNotice for a text-less PDF over the inline size cap") {
+        val path = "scanned_syllabus.pdf"
+        coEvery { fileReader.readBytes(path) } returns ByteArray(14 * 1024 * 1024 + 1)
+        coEvery { pdfReader.readSource(any<ByteArray>()) } returns emptyList()
+        coEvery { aiService.extractTextFromDocument(any(), any()) } returns "Recovered syllabus text"
+        coEvery { aiService.categorizeSource(any()) } returns SourceCategory.SYLLABUS
+
+        ingestionAgent.addLocalFile(path)
+
+        ingestionAgent.largeDocumentNotice.value shouldBe IngestionAgent.LARGE_DOCUMENT_NOTICE
+    }
+
+    test("addLocalFile leaves largeDocumentNotice null for a small text-less PDF") {
+        val path = "small_scan.pdf"
+        coEvery { fileReader.readBytes(path) } returns "%PDF-scan".encodeToByteArray()
+        coEvery { pdfReader.readSource(any<ByteArray>()) } returns emptyList()
+        coEvery { aiService.extractTextFromDocument(any(), any()) } returns "Recovered text"
+        coEvery { aiService.categorizeSource(any()) } returns SourceCategory.SYLLABUS
+
+        ingestionAgent.addLocalFile(path)
+
+        ingestionAgent.largeDocumentNotice.value shouldBe null
+    }
+
+    test("largeDocumentNotice clears at the start of the next ingest call") {
+        val bigPath = "scanned_syllabus.pdf"
+        coEvery { fileReader.readBytes(bigPath) } returns ByteArray(14 * 1024 * 1024 + 1)
+        coEvery { pdfReader.readSource(any<ByteArray>()) } returns emptyList()
+        coEvery { aiService.extractTextFromDocument(any(), any()) } returns "Recovered syllabus text"
+        coEvery { aiService.categorizeSource(any()) } returns SourceCategory.SYLLABUS
+        ingestionAgent.addLocalFile(bigPath)
+        ingestionAgent.largeDocumentNotice.value shouldNotBe null
+
+        val smallPath = "notes.txt"
+        coEvery { fileReader.readBytes(smallPath) } returns "Course: CS101.".encodeToByteArray()
+        ingestionAgent.addLocalFile(smallPath)
+
+        ingestionAgent.largeDocumentNotice.value shouldBe null
+    }
+
 })

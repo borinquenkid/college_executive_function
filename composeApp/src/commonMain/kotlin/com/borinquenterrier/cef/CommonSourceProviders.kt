@@ -8,6 +8,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -45,11 +46,13 @@ class LocalFileSourceProvider(
         var hasTriggered by remember { mutableStateOf(false) }
         var isIngesting by remember { mutableStateOf(false) }
         var ingestingTitle by remember { mutableStateOf("Reading Document") }
+        val largeDocumentNotice by ingestionAgent.largeDocumentNotice.collectAsState()
 
         if (isIngesting) {
             IngestingProgressDialog(
                 title = ingestingTitle,
-                message = "Extracting text and analyzing structure..."
+                message = "Extracting text and analyzing structure...",
+                notice = largeDocumentNotice
             )
         }
 
@@ -95,6 +98,7 @@ class UrlSourceProvider(
             remember(ingestionAgent, scope) { SourceIngestionHandler(ingestionAgent, scope) }
         var url by remember { mutableStateOf("") }
         var isIngesting by remember { mutableStateOf(false) }
+        val largeDocumentNotice by ingestionAgent.largeDocumentNotice.collectAsState()
 
         val submitUrl = {
             val urls = UrlListParser.parse(url)
@@ -115,7 +119,8 @@ class UrlSourceProvider(
         if (isIngesting) {
             IngestingProgressDialog(
                 title = "Reading URLs",
-                message = "Fetching content and analyzing structure..."
+                message = "Fetching content and analyzing structure...",
+                notice = largeDocumentNotice
             )
         } else {
             AlertDialog(

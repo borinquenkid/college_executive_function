@@ -20,8 +20,8 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Inflate.kt | 44 | 97.7% | 44.02 | 🔴 HIGH |
 | EventDeduplicator.kt | 43 | 100.0% | 43.00 | 🔴 HIGH |
 | GoogleCalendarSyncService.kt | 39 | 99.4% | 39.00 | 🔴 HIGH |
+| GeminiAIService.kt | 36 | 94.5% | 36.22 | 🔴 HIGH |
 | EventAgent.kt | 35 | 94.1% | 35.25 | 🔴 HIGH |
-| GeminiAIService.kt | 35 | 94.4% | 35.21 | 🔴 HIGH |
 | EventGenerationService.kt | 33 | 92.8% | 33.41 | 🔴 HIGH |
 | Event.kt | 28 | 96.9% | 28.02 | 🟡 MEDIUM |
 | StudyPlanBuilder.kt | 28 | 100.0% | 28.00 | 🟡 MEDIUM |
@@ -111,6 +111,25 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `deleteEvent` | 1 |
 | *... and 1 more* | |
 
+### GeminiAIService.kt (Score: 36.22 - 🔴 HIGH)
+- **Total Complexity**: 36
+- **Real Coverage**: 94.5%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `generateCalendarEvents` | 5 |
+| `extractTextFromDocument` | 5 |
+| `categorizeSource` | 4 |
+| `analyzeDocument` | 3 |
+| `generateEventsFromPrompt` | 2 |
+| `generateChatResponse` | 2 |
+| `exceedsInlineDocumentLimit` | 1 |
+| `extractSourceYears` | 1 |
+| `filterToSourceYears` | 1 |
+| `parseEventsJson` | 1 |
+| *... and 9 more* | |
+
 ### EventAgent.kt (Score: 35.25 - 🔴 HIGH)
 - **Total Complexity**: 35
 - **Real Coverage**: 94.1%
@@ -129,25 +148,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `reportError` | 1 |
 | `setGeneratedEvents` | 1 |
 | *... and 14 more* | |
-
-### GeminiAIService.kt (Score: 35.21 - 🔴 HIGH)
-- **Total Complexity**: 35
-- **Real Coverage**: 94.4%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `generateCalendarEvents` | 5 |
-| `extractTextFromDocument` | 5 |
-| `categorizeSource` | 4 |
-| `analyzeDocument` | 3 |
-| `generateEventsFromPrompt` | 2 |
-| `generateChatResponse` | 2 |
-| `extractSourceYears` | 1 |
-| `filterToSourceYears` | 1 |
-| `parseEventsJson` | 1 |
-| `parseDecomposeTaskJson` | 1 |
-| *... and 8 more* | |
 
 ### EventGenerationService.kt (Score: 33.41 - 🔴 HIGH)
 - **Total Complexity**: 33
@@ -539,9 +539,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `applyFilter` | 1 |
 | `isCacheStale` | 1 |
 
-### CommonSourceProviders.kt (Score: 14.30 - 🟢 LOW)
+### CommonSourceProviders.kt (Score: 14.45 - 🟢 LOW)
 - **Total Complexity**: 14
-- **Real Coverage**: 88.5%
+- **Real Coverage**: 86.8%
 
 #### Methods list:
 | Method | Complexity |
@@ -1132,6 +1132,17 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `resolveCategory` | 1 |
 | `persistSource` | 1 |
 
+### SourceNormalizer.kt (Score: 8.00 - 🟢 LOW)
+- **Total Complexity**: 8
+- **Real Coverage**: 100.0%
+
+#### Methods list:
+| Method | Complexity |
+| :--- | :---: |
+| `normalizePdf` | 4 |
+| `detect` | 2 |
+| `normalize` | 2 |
+
 ### PreferenceSerializer.kt (Score: 7.07 - 🟢 LOW)
 - **Total Complexity**: 7
 - **Real Coverage**: 88.9%
@@ -1182,17 +1193,6 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | Method | Complexity |
 | :--- | :---: |
 | `persist` | 1 |
-
-### SourceNormalizer.kt (Score: 7.00 - 🟢 LOW)
-- **Total Complexity**: 7
-- **Real Coverage**: 100.0%
-
-#### Methods list:
-| Method | Complexity |
-| :--- | :---: |
-| `normalizePdf` | 3 |
-| `detect` | 2 |
-| `normalize` | 2 |
 
 ### TFIDFScorer.kt (Score: 7.00 - 🟢 LOW)
 - **Total Complexity**: 7

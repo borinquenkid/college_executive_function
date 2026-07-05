@@ -30,6 +30,19 @@ class GeminiAIServiceTest : FunSpec({
         GeminiRequestExecutor.clearRateLimitResetForTesting()
     }
 
+    // ── inline vs Files API routing threshold (HARD-8) ─────────────────────────
+
+    context("exceedsInlineDocumentLimit") {
+        test("bytes at or below the 14MB inline cap do not exceed it") {
+            GeminiAIService.exceedsInlineDocumentLimit(ByteArray(14 * 1024 * 1024)) shouldBe false
+            GeminiAIService.exceedsInlineDocumentLimit(ByteArray(1)) shouldBe false
+        }
+
+        test("bytes over the 14MB inline cap exceed it") {
+            GeminiAIService.exceedsInlineDocumentLimit(ByteArray(14 * 1024 * 1024 + 1)) shouldBe true
+        }
+    }
+
     // ── production constructor (null customClient → real HttpClient init) ──────
 
     test("production constructor builds service with internal HttpClient") {

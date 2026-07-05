@@ -50,7 +50,7 @@ file references; check items off here as they land there.
 - [x] **HARD-3** — ✅ **DONE 2026-07-04.** Surface a persistent `LOCAL_ONLY` sync failure on event update instead of swallowing it.
 - [x] **HARD-4** — ✅ **DONE 2026-07-05.** Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` (today it only prints, never fails).
 - [x] **HARD-5** — Wire the real corpus evals into CI as an actual gate (depends on HARD-4 landing first).
-- [ ] **HARD-6** — Cap desktop `debug_logs.txt` growth in packaged release builds.
+- [x] **HARD-6** — Cap desktop `debug_logs.txt` growth in packaged release builds.
 - [ ] **HARD-7** — Wire up the already-built override-log retention (`pruneOldLogs`) into a recurring entry point.
 - [ ] **HARD-8** — Warn before a document is large enough to trigger extra Gemini cost.
 - [ ] **HARD-9** — Full teardown (or an explicit, honest retention choice) on Google account disconnect — **do this before finalizing the Phase 3 App Privacy nutrition label below**, since what disconnect actually does to local data determines what that label should say.

@@ -1232,7 +1232,7 @@ Bring CEF to the web using a React frontend that dynamically communicates with t
 
 ---
 
-## Phase 10 — Hardening Pass (Post-Feature-Complete) 🔴 CERTIFICATION GATE
+## Phase 10 — Hardening Pass (Post-Feature-Complete) ✅ CERTIFICATION GATE — ALL HARD-1..9 DONE 2026-07-05
 
 **Certification gate:** this entire list (HARD-1 through HARD-9) is a hard prerequisite for
 App Store / Play Store submission — see the "Phase 2.5 — Hardening pass" gate in
@@ -1295,7 +1295,7 @@ dropped.
 | HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ✅ |
 | HARD-7 | Wire up the already-built override-log retention (`pruneOldLogs`) | 4 — scale landmine | ✅ |
 | HARD-8 | Warn before a document is large enough to trigger extra Gemini cost | 4 — scale landmine | ✅ |
-| HARD-9 | Full teardown on Google account disconnect, not just token clearing | 5 — structural | ⬜ |
+| HARD-9 | Full teardown on Google account disconnect, not just token clearing | 5 — structural | ✅ |
 
 ### Archetype 0 — Make failure visible at all
 
@@ -1705,7 +1705,7 @@ introduced or was scoped to fix.
 
 ### Archetype 5 — Structural / self-serve gaps
 
-#### HARD-9 — Full teardown on Google account disconnect
+#### HARD-9 — Full teardown on Google account disconnect ✅ DONE 2026-07-05
 
 **What:** `GoogleAccountFlow.disconnect()` (lines 73-78) only clears OAuth tokens and
 flips the connection state to `Unlinked`:
@@ -1736,19 +1736,48 @@ previously-synced *event data* — today it just sits there, silently stale, ass
 with a connection that no longer exists.
 
 **Acceptance criteria:**
-- [ ] Add a confirmation step to "Disconnect Account" that states plainly what will
+- [x] Add a confirmation step to "Disconnect Account" that states plainly what will
       happen to previously-synced events (kept locally as unsynced records? cleared
       entirely? — this is a product decision to make explicitly, not default
       silently).
-- [ ] Whichever choice is made, implement it: either purge the `SyncStatus.SYNCED`
+- [x] Whichever choice is made, implement it: either purge the `SyncStatus.SYNCED`
       rows and reset the calendar-id preference, or explicitly flip them to a
       "disconnected, not synced" status the UI can show truthfully.
-- [ ] Test: after `disconnect()`, local event state matches whatever the chosen
+- [x] Test: after `disconnect()`, local event state matches whatever the chosen
       policy promises — today there is no test asserting anything about local state
       post-disconnect, only that tokens are cleared.
 
-**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleAccountFlow.kt`,
-`GoogleCalendarPanel.kt`
+**Product decision (explicit, not a default):** neither of the two options above,
+on reflection — "disconnect" is not meant to be a data-purge action, and bundling
+one into it would be surprising. The chosen policy is a third path: disconnect
+touches **zero** local event data. Previously-`SYNCED` rows are left exactly as
+they are; nothing is purged, nothing is bulk-flipped to a new status. This avoids
+two real risks the other options carried: (1) purging is destructive and
+irreversible for a local-first app where CEF's DB, not Google, is the source of
+truth; (2) bulk-flipping `SYNCED` → `LOCAL_ONLY` would lose the association with
+the still-valid remote event, risking a duplicate push on reconnect (Google
+Calendar's actual event isn't deleted by disconnecting, only CEF's link to it).
+A dedicated "clear synced calendar data" action, if wanted later, deserves its own
+explicit, separately-confirmed affordance — not something inherited for free by
+"Disconnect Account." The gap this task actually closes is the missing
+**confirmation + honest messaging**, not a change to what data disconnect touches.
+
+**Resolution:** `GoogleCalendarPanel.kt`'s "Disconnect Account" button no longer
+calls `disconnect()` directly — it opens a confirmation `AlertDialog` ("Disconnect
+Google Calendar?") stating plainly that only the connection is removed, events
+already in CEF stay on-device, and reconnecting resumes syncing. Only the dialog's
+"Disconnect" button calls `container.googleAccountFlow.disconnect()`; "Cancel"
+dismisses without side effects. `GoogleAccountFlow.disconnect()` itself is
+unchanged — it structurally has no reference to local event storage, which is
+itself evidence the "zero local data touched" policy was already true in practice,
+just never confirmed or communicated to the user. New `GoogleCalendarPanelTest.kt`
+covers all three paths (open confirmation without disconnecting, cancel without
+disconnecting, confirm calls `disconnect()` exactly once). Verified: full JVM
+suite, CRAP regen (no change — `GoogleCalendarPanel.kt` is `@UiOnly`, excluded from
+CRAP tracking like other Compose files), and all three build targets pass.
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GoogleCalendarPanel.kt`;
+`composeApp/src/jvmTest/kotlin/com/borinquenterrier/cef/GoogleCalendarPanelTest.kt` (new)
 
 ### Build order
 

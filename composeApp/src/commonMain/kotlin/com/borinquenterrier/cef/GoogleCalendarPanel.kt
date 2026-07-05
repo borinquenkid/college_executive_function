@@ -13,6 +13,7 @@ import androidx.compose.foundation.layout.width
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.CheckCircle
 import androidx.compose.material.icons.filled.Lock
+import androidx.compose.material3.AlertDialog
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
@@ -54,6 +55,7 @@ fun GoogleCalendarPanel(
     var newCalendarNameInput by remember { mutableStateOf("") }
     var isCreatingCalendar by remember { mutableStateOf(false) }
     var createCalendarError by remember { mutableStateOf<String?>(null) }
+    var showDisconnectConfirm by remember { mutableStateOf(false) }
 
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -107,7 +109,7 @@ fun GoogleCalendarPanel(
                 }
             } else {
                 TextButton(
-                    onClick = { container.googleAccountFlow.disconnect() },
+                    onClick = { showDisconnectConfirm = true },
                     enabled = !isBusy,
                     modifier = Modifier.fillMaxWidth()
                 ) {
@@ -194,6 +196,29 @@ fun GoogleCalendarPanel(
                     newCalendarNameInput = ""
                     createCalendarError = null
                 }
+            }
+        )
+    }
+
+    if (showDisconnectConfirm) {
+        AlertDialog(
+            onDismissRequest = { showDisconnectConfirm = false },
+            title = { Text("Disconnect Google Calendar?") },
+            text = {
+                Text(
+                    "This only removes the connection. Events already in your CEF calendar " +
+                        "stay on this device — nothing is deleted. You can reconnect anytime " +
+                        "to resume syncing."
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = {
+                    showDisconnectConfirm = false
+                    container.googleAccountFlow.disconnect()
+                }) { Text("Disconnect") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDisconnectConfirm = false }) { Text("Cancel") }
             }
         )
     }

@@ -53,7 +53,7 @@ file references; check items off here as they land there.
 - [x] **HARD-6** — Cap desktop `debug_logs.txt` growth in packaged release builds.
 - [x] **HARD-7** — ✅ **DONE 2026-07-04.** Wire up the already-built override-log retention (`pruneOldLogs`) into a recurring entry point.
 - [x] **HARD-8** — ✅ **DONE 2026-07-05.** Warn before a document is large enough to trigger extra Gemini cost.
-- [ ] **HARD-9** — Full teardown (or an explicit, honest retention choice) on Google account disconnect — **do this before finalizing the Phase 3 App Privacy nutrition label below**, since what disconnect actually does to local data determines what that label should say.
+- [x] **HARD-9** — ✅ **DONE 2026-07-05.** Full teardown (or an explicit, honest retention choice) on Google account disconnect — decision: disconnect touches zero local event data (see ROADMAP.md); the gap closed was the missing confirmation dialog and honest messaging, not a data change.
 
 ## Phase 3 — App Store Connect setup
 

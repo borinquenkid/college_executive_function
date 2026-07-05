@@ -279,6 +279,7 @@ class DependencyContainer(
             pollScheduler,
             sourceScanner,
             harnessSourceProcessor,
+            userPreferenceMemoryRepository,
             logger,
             bugReporter
         )

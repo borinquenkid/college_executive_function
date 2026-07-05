@@ -1293,7 +1293,7 @@ dropped.
 | HARD-4 | Add real pass/fail thresholds to `SyllabusEvaluationIntegrationTest` | 3 — decision core | ✅ |
 | HARD-5 | Wire the real corpus evals into CI as an actual gate | 3 — decision core | ✅ |
 | HARD-6 | Cap desktop `debug_logs.txt` growth in packaged release builds | 4 — scale landmine | ✅ |
-| HARD-7 | Wire up the already-built override-log retention (`pruneOldLogs`) | 4 — scale landmine | ⬜ |
+| HARD-7 | Wire up the already-built override-log retention (`pruneOldLogs`) | 4 — scale landmine | ✅ |
 | HARD-8 | Warn before a document is large enough to trigger extra Gemini cost | 4 — scale landmine | ⬜ |
 | HARD-9 | Full teardown on Google account disconnect, not just token clearing | 5 — structural | ⬜ |
 
@@ -1610,7 +1610,7 @@ to 36MB before this fix.)
 (new); `composeApp/src/androidMain/.../Platform.android.kt`, `composeApp/src/iosMain/.../Platform.ios.kt`;
 `composeApp/build.gradle.kts` (`generateJvmBuildFlags` task).
 
-#### HARD-7 — Wire up the already-built override-log retention
+#### HARD-7 — Wire up the already-built override-log retention ✅ DONE 2026-07-04
 
 **What:** `UserPreferenceMemoryRepository.pruneOldLogs(olderThanMs)` is fully
 implemented (`SqlDelightUserPreferenceMemoryRepository.kt:47`) but has exactly one
@@ -1621,17 +1621,39 @@ inference indefinitely. The fix here is wiring, not building — the retention l
 already exists and is already tested in isolation.
 
 **Acceptance criteria:**
-- [ ] Call `pruneOldLogs()` from an existing recurring entry point — `AgentHarness`'s
+- [x] Call `pruneOldLogs()` from an existing recurring entry point — `AgentHarness`'s
       startup/daily poll (already referenced above) is the natural home, matching how
-      this class of periodic-maintenance concern is handled elsewhere.
-- [ ] Choose and document a retention window (e.g. keep enough history for
+      this class of periodic-maintenance concern is handled elsewhere. `runHarness()`
+      is already gated behind `PollScheduler.shouldPoll()` (once per 24h unless
+      forced), so calling `pruneOldLogs()` unconditionally inside its success path
+      (right after calendar sync, before `setLastPollTime`) gives it the same daily
+      cadence without adding a second scheduling mechanism.
+- [x] Choose and document a retention window (e.g. keep enough history for
       `getDerivedConstraints()` to still see meaningful patterns — this is a product
       judgment call, not a technical one; state the reasoning wherever the constant
-      lives).
-- [ ] Test: `AgentHarness`'s periodic run actually invokes pruning (not just that
-      `pruneOldLogs()` works in isolation, which is already covered).
+      lives). Added `UserPreferenceMemoryRepository.OVERRIDE_LOG_RETENTION_MS` (30
+      days) with the reasoning inline: long enough for `getDerivedConstraints()`'s
+      4-occurrence threshold to still catch a recurring weekly pattern, short enough
+      that a semester-old habit doesn't keep suppressing a schedule the student has
+      since changed. `getDerivedConstraints()` previously hardcoded its own duplicate
+      30-day literal for an opportunistic prune-on-read — refactored it to reference
+      the same constant so the two prune paths (periodic + opportunistic) can't drift.
+- [x] Test: `AgentHarness`'s periodic run actually invokes pruning (not just that
+      `pruneOldLogs()` works in isolation, which is already covered). Added
+      `AgentHarnessTest`: "prunes old override logs on a successful run" (verifies the
+      call fires when the poll proceeds) and "does not prune override logs when the
+      poll is skipped" (verifies it doesn't fire when `shouldPoll()` returns false).
 
-**Files:** `AgentHarness` (wherever its periodic poll lives), `SqlDelightUserPreferenceMemoryRepository.kt`
+**Resolution:** `AgentHarness` now takes a `UserPreferenceMemoryRepository` and calls
+`pruneOldLogs(now - OVERRIDE_LOG_RETENTION_MS)` on every successful harness run,
+wired through `DependencyContainer`'s existing `userPreferenceMemoryRepository`
+instance. Verified: full JVM suite passes, CRAP.md regenerated (`AgentHarness.kt`
+stays 🟢 LOW, coverage rose from 83.3% to 84.8%), `:composeApp:assembleDebug`,
+`:server:assemble`, and `:iosApp:assemble` all pass.
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AgentHarness.kt`,
+`UserPreferenceMemoryRepository.kt`, `SqlDelightUserPreferenceMemoryRepository.kt`,
+`DependencyContainer.kt`; `composeApp/src/jvmTest/kotlin/com/borinquenterrier/cef/AgentHarnessTest.kt`
 
 #### HARD-8 — Warn before a document is large enough to trigger extra Gemini cost
 

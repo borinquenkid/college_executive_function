@@ -16,6 +16,7 @@ class AgentHarnessTest : FunSpec({
     lateinit var pollScheduler: PollScheduler
     lateinit var sourceScanner: SourceScanner
     lateinit var harnessSourceProcessor: HarnessSourceProcessor
+    lateinit var userPreferenceMemoryRepository: UserPreferenceMemoryRepository
     lateinit var logger: Logger
     lateinit var harness: AgentHarness
 
@@ -28,6 +29,7 @@ class AgentHarnessTest : FunSpec({
         pollScheduler = mockk(relaxed = true)
         sourceScanner = mockk(relaxed = true)
         harnessSourceProcessor = mockk(relaxed = true)
+        userPreferenceMemoryRepository = mockk(relaxed = true)
         logger = mockk(relaxed = true)
 
         harness = AgentHarness(
@@ -39,6 +41,7 @@ class AgentHarnessTest : FunSpec({
             pollScheduler,
             sourceScanner,
             harnessSourceProcessor,
+            userPreferenceMemoryRepository,
             logger
         )
     }
@@ -59,6 +62,24 @@ class AgentHarnessTest : FunSpec({
         harness.runHarness(force = true)
 
         coVerify(exactly = 1) { sourceRepository.getAllSources() }
+    }
+
+    test("prunes old override logs on a successful run") {
+        coEvery { pollScheduler.shouldPoll(true) } returns true
+        coEvery { sourceRepository.getAllSources() } returns emptyList()
+        coEvery { sourceScanner.scanNewLocalFiles(any()) } returns emptyList()
+
+        harness.runHarness(force = true)
+
+        coVerify(exactly = 1) { userPreferenceMemoryRepository.pruneOldLogs(any()) }
+    }
+
+    test("does not prune override logs when the poll is skipped") {
+        coEvery { pollScheduler.shouldPoll(false) } returns false
+
+        harness.runHarness(force = false)
+
+        coVerify(exactly = 0) { userPreferenceMemoryRepository.pruneOldLogs(any()) }
     }
 
     test("delegates watched directory management to source scanner") {

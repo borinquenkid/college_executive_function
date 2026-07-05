@@ -1043,9 +1043,9 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 | `activeSemesterFrom` | 2 |
 | `classify` | 1 |
 
-### AgentHarness.kt (Score: 8.30 - 🟢 LOW)
+### AgentHarness.kt (Score: 8.23 - 🟢 LOW)
 - **Total Complexity**: 8
-- **Real Coverage**: 83.3%
+- **Real Coverage**: 84.8%
 
 #### Methods list:
 | Method | Complexity |
@@ -1981,7 +1981,7 @@ A higher CRAP index indicates higher risk when changing that file. A score **abo
 
 ### DependencyContainer.kt (Score: 1.12 - 🟢 LOW)
 - **Total Complexity**: 1
-- **Real Coverage**: 51.3%
+- **Real Coverage**: 51.1%
 
 
 ### RoutineItem.kt (Score: 1.00 - 🟢 LOW)

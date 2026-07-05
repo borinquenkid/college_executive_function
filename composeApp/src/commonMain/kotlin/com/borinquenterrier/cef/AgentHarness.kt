@@ -18,6 +18,7 @@ class AgentHarness(
     private val pollScheduler: PollScheduler,
     private val sourceScanner: SourceScanner,
     private val sourceProcessor: HarnessSourceProcessor,
+    private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository,
     private val logger: Logger,
     private val bugReporter: BugReporter? = null
 ) {
@@ -63,6 +64,10 @@ class AgentHarness(
             _status.value = "Synchronizing calendar..."
             logger.d(tag, "Running calendar synchronization...")
             calendarAgent.synchronize("default")
+
+            val retentionCutoff = Clock.System.now().toEpochMilliseconds() -
+                UserPreferenceMemoryRepository.OVERRIDE_LOG_RETENTION_MS
+            userPreferenceMemoryRepository.pruneOldLogs(retentionCutoff)
 
             pollScheduler.setLastPollTime(Clock.System.now().toEpochMilliseconds())
             _status.value = "Completed successfully."

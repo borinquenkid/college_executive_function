@@ -51,10 +51,9 @@ class SqlDelightUserPreferenceMemoryRepository(
 
     override suspend fun getDerivedConstraints(overrideThreshold: Int): List<UserPreferenceConstraint> =
         withContext(Dispatchers.Default) {
-            // Prune logs older than 30 days
-            val thirtyDaysAgo =
-                Clock.System.now().toEpochMilliseconds() - (30L * 24 * 60 * 60 * 1000)
-            database.appDatabaseQueries.deleteOverrideLogsOlderThan(thirtyDaysAgo)
+            val retentionCutoff = Clock.System.now().toEpochMilliseconds() -
+                UserPreferenceMemoryRepository.OVERRIDE_LOG_RETENTION_MS
+            database.appDatabaseQueries.deleteOverrideLogsOlderThan(retentionCutoff)
 
             val logs = database.appDatabaseQueries.selectAllOverrideLogs().executeAsList()
             val counts = mutableMapOf<DayOfWeek, IntArray>()

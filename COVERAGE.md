@@ -4,7 +4,7 @@ This report displays the **actual test coverage** for all classes in `composeApp
 Generated using the **JetBrains Kover** plugin after running JVM unit/integration tests.
 
 ## Overall Metrics
-- **Overall Line Coverage**: **91.67%** (10786/11766 lines)
+- **Overall Line Coverage**: **91.66%** (10794/11776 lines)
 - **Total Source Files**: 187
 
 ## Coverage by File (🔴 and 🟡 only)
@@ -25,7 +25,7 @@ Generated using the **JetBrains Kover** plugin after running JVM unit/integratio
 | 🔴 | SourceLoader.kt | 19.0% (8/42) | 0.0% (0/4) | 9.7% |
 | 🔴 | GoogleAuthManager.kt | 40.0% (12/30) | N/A | 20.7% |
 | 🟡 | RecursiveDecompositionAIService.kt | 50.0% (4/8) | N/A | 38.1% |
-| 🟡 | DependencyContainer.kt | 51.3% (192/374) | 50.0% (2/4) | 78.6% |
+| 🟡 | DependencyContainer.kt | 51.1% (192/376) | 50.0% (2/4) | 78.4% |
 | 🟡 | AppContent.kt | 57.8% (156/270) | 45.0% (36/80) | 59.0% |
 | 🟡 | GoogleCalendarSelector.kt | 58.2% (92/158) | 70.8% (34/48) | 60.7% |
 | 🟡 | SourcesPanel.kt | 60.9% (78/128) | 39.2% (58/148) | 71.5% |

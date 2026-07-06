@@ -34,3 +34,6 @@ img*.png
 *.keystore
 ~$*
 composeApp/composeApp/
+
+# Play Store screenshots hold real calendar/course data — keep out of the public repo
+branding/play-store/screenshots/

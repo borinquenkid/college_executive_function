@@ -17,18 +17,34 @@ class NormalizationService : EventExtractor {
             }
 
             val title = event.title.lowercase()
+            // "Final Grades Due/Close" mention a grade but aren't a graded submission or exam —
+            // don't let the bare "final"/"due" keywords below claim them.
+            val mentionsGrades = title.contains("grade")
+            // "Last Day of [Summer] Term/Semester/Session" is a registrar term boundary, not a
+            // deadline — distinguish it from a bare "last day" deadline phrase (e.g. "last day to
+            // submit...") by requiring a term-length word alongside it.
+            val isTermBoundaryPhrase = title.contains("last day") &&
+                (title.contains("term") || title.contains("semester") || title.contains("session"))
+
             val newCategory = when {
                 title.contains("holiday") || title.contains("break") || title.contains("no class") ->
                     AcademicCategory.HOLIDAY
+
+                isTermBoundaryPhrase || title.contains("semester start") || title.contains("semester end") ||
+                    title.contains("add/drop") || title.contains("withdrawal") ->
+                    AcademicCategory.SEMESTER_BOUND
+
+                // Force this even when the AI itself mistags grade-posting housekeeping as
+                // FINALS/DEADLINE — the "mentionsGrades" guards below only stop OUR keyword rules
+                // from doing that, they don't undo a wrong category the AI already assigned.
+                mentionsGrades ->
+                    AcademicCategory.REGULAR
 
                 title.contains("final") || title.contains("exam") ->
                     AcademicCategory.FINALS
 
                 title.contains("deadline") || title.contains("last day") || title.contains("due") ->
                     AcademicCategory.DEADLINE
-
-                title.contains("semester start") || title.contains("semester end") ->
-                    AcademicCategory.SEMESTER_BOUND
 
                 else -> event.category
             }

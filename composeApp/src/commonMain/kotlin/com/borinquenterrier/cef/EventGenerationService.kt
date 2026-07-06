@@ -25,7 +25,7 @@ class EventGenerationService(
     private companion object {
         // Bump when the post-LLM pipeline (normalize/dedup/prefix-strip) changes, so old cache
         // entries — cached in the previous format — are ignored instead of served stale.
-        const val GENERATION_CACHE_VERSION = 1
+        const val GENERATION_CACHE_VERSION = 2
         const val CACHE_TTL_MS = 7L * 24 * 60 * 60 * 1000
     }
     /**

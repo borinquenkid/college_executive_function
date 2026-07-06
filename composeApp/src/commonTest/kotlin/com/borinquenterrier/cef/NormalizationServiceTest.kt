@@ -38,6 +38,47 @@ class NormalizationServiceTest : FunSpec({
         result[2].category shouldBe AcademicCategory.STUDY_BLOCK
     }
 
+    test("registrar housekeeping dates are not miscategorized as DEADLINE/FINALS") {
+        val service = NormalizationService()
+        val baseDate = LocalDate(2026, 8, 2)
+
+        // The AI extractor itself sometimes mistags these as DEADLINE/FINALS despite its own
+        // prompt rules (bare "final"/"last day"/"due" keywords) — the normalizer must actively
+        // correct that, not just avoid re-tagging an already-REGULAR event.
+        fun aiMistagged(title: String, category: AcademicCategory) = DayEvent(
+            title = title,
+            source = EventSource.AI_GENERATED,
+            category = category,
+            date = baseDate
+        )
+
+        val lastDayOfTerm = aiMistagged("Last Day of Summer Term", AcademicCategory.DEADLINE)
+        val finalGradesDue = aiMistagged("Final Grades Due", AcademicCategory.FINALS)
+        val finalGradesClose = aiMistagged("Final Grades Close", AcademicCategory.FINALS)
+
+        val result = service.extract(listOf(lastDayOfTerm, finalGradesDue, finalGradesClose))
+
+        // Term boundary — not an actionable deadline, so it shouldn't get "Break It Down (AI)".
+        result[0].category shouldBe AcademicCategory.SEMESTER_BOUND
+        // Grade-posting housekeeping — not a graded submission or a final exam for the student.
+        result[1].category shouldBe AcademicCategory.REGULAR
+        result[2].category shouldBe AcademicCategory.REGULAR
+    }
+
+    test("a genuine final exam is still categorized as FINALS even with 'last day' nearby") {
+        val service = NormalizationService()
+        val examEvent = DayEvent(
+            title = "Math Final Exam",
+            source = EventSource.MANUAL,
+            category = AcademicCategory.REGULAR,
+            date = LocalDate(2026, 12, 10)
+        )
+
+        val result = service.extract(listOf(examEvent))
+
+        result[0].category shouldBe AcademicCategory.FINALS
+    }
+
     test("should sanitize TimeEvents with invalid or flipped times") {
         val service = NormalizationService()
         val baseDate = LocalDate(2026, 6, 7)

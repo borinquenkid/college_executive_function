@@ -218,7 +218,48 @@ The application supports two distinct run profiles to manage different execution
 
 ## Release
 
-`./release.sh` updates the version tag locally and pushes it to the branch running the release (which triggers the release CI workflow). Run it from the branch you intend to release.
+`./release.sh X.Y.Z` bumps `cef.versionName` in `gradle.properties`, auto-increments
+`cef.versionCode`, syncs iOS `MARKETING_VERSION` in `iosApp/Configuration/Config.xcconfig`,
+commits, pushes the branch, then tags `vX.Y.Z` and pushes the tag (which triggers the
+**Release Desktop (JVM)** workflow). Run it from the branch you intend to release.
+
+- **Caveat:** the branch push only happens when the script actually creates a version-bump
+  commit. If `gradle.properties` is already at that version, it pushes *only* the tag — any
+  unpushed code commits are left behind. So bump to a new version each release.
+- The repo is public OSS, so cutting a desktop/CI release is independent of the app stores —
+  you can release even while a store submission is pending. **Never commit secrets or anything
+  with real user data here** (screenshots live gitignored under `branding/play-store/screenshots/`).
+
+### Store submission reference
+
+Store-listing assets and questionnaire drafts live in `branding/play-store/`.
+
+- **Privacy Policy:** https://borinquenterrier.com/cef-privacy-policy
+- **Terms of Service:** https://borinquenterrier.com/cef-terms-of-service
+- **Marketing page:** https://borinquenterrier.com/college-executive-function
+- Support/contact: privacy@borinquenterrier.com
+- **iOS** (App Store Connect, team *Borinquen Terrier LLC* / `F4GSKN4DLP`, signed in the
+  **Release** config): archive via Xcode GUI → Organizer → Distribute → App Store Connect →
+  Upload. You **cannot have two versions in review at once** (must "remove from review" to swap
+  a build), so don't re-submit while a prior version is Waiting for Review.
+- **Android** (Play Console, org account *Borinquen Terrier LLC*, package
+  `com.borinquenterrier.cef`): `./gradlew :androidApp:bundleRelease` → signed `.aab` at
+  `androidApp/build/outputs/bundle/release/` (keystore `cef-release`, configured via
+  `local.properties`/env — never checked in). App is Free, no ads/IAP, not child-directed.
+
+### Ops gotchas (cost us time — don't relearn)
+
+- **iOS upload hangs** at *"Waiting for App Store Connect analysis response"* when a Homebrew
+  `rsync` shadows Apple's `/usr/bin/rsync` (Xcode's uploader shells out to it). Fix:
+  `brew uninstall rsync` so PATH falls back to `/usr/bin/rsync`. This Xcode has no transport
+  picker in the Organizer.
+- **`eval-corpus` CI** needs `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` secrets (the
+  `generateBuildSecrets` task aborts config without them), plus `CEF_GEMINI_API_KEY` = the
+  **BorinquenTerrier paid (Tier 1) Gemini key** for integration tests — the free tier's shared
+  RPM quota degrades extraction recall. `CEF_TEST_USER_API_KEY` is a separate manual-testing key.
+- **Flaky async tests:** verify StateFlow-collector invocation counts with `runTest` +
+  `StandardTestDispatcher(testScheduler)` + `advanceUntilIdle()`, not `Dispatchers.Unconfined`
+  + wall-clock `eventually()` (that raced under CI load — see `AppControllerTest`).
 
 ---
 

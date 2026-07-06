@@ -47,6 +47,10 @@ jobs:
         # which would also pull in the live Google OAuth test.
         env:
           CEF_GEMINI_API_KEY: ${{ secrets.CEF_GEMINI_API_KEY }}
+          # generateBuildSecrets (run as part of the JVM build) requires these; without them
+          # the build aborts during configuration before any eval test runs.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: |
           ./gradlew :composeApp:jvmTest -PrunAITests=true \
             --tests "com.borinquenterrier.cef.SyllabusEvaluationIntegrationTest" \

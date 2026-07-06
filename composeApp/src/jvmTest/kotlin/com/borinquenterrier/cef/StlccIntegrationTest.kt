@@ -74,7 +74,10 @@ class StlccIntegrationTest : FunSpec({
         )
         val sourceRepository = SqlDelightSourceRepository(database)
         val ingestionAgent = IngestionAgent(
-            fileReader = mockk(relaxed = true),
+            // Real reader: addLocalFile now routes bytes through fileReader.readBytes() (the
+            // SourceNormalizer refactor). A relaxed mock returns a bare Object for the suspend
+            // ByteArray return, which the coroutine casts to ByteArray → ClassCastException.
+            fileReader = LocalFileReader(),
             docxReader = mockk(relaxed = true),
             pdfReader = PdfReader(),
             webReader = mockk(relaxed = true),

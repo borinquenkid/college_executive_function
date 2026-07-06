@@ -23,8 +23,11 @@ class EventGenerationService(
     private val clock: Clock = Clock.System
 ) {
     private companion object {
-        // Bump when the post-LLM pipeline (normalize/dedup/prefix-strip) changes, so old cache
-        // entries — cached in the previous format — are ignored instead of served stale.
+        // Bump when anything between source content and the cached result changes: the AI
+        // extraction prompt (EventBuilder), the post-LLM pipeline (normalize/dedup/prefix-strip),
+        // etc. The cache key only hashes the source content, not the prompt or pipeline version,
+        // so any of these changing without a bump means old entries — produced under the previous
+        // logic — get served stale for up to CACHE_TTL_MS instead of being ignored.
         const val GENERATION_CACHE_VERSION = 2
         const val CACHE_TTL_MS = 7L * 24 * 60 * 60 * 1000
     }

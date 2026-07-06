@@ -18,8 +18,12 @@ class NormalizationService : EventExtractor {
 
             val title = event.title.lowercase()
             // "Final Grades Due/Close" mention a grade but aren't a graded submission or exam —
-            // don't let the bare "final"/"due" keywords below claim them.
-            val mentionsGrades = title.contains("grade")
+            // don't let the bare "final"/"due" keywords below claim them. BUT a drop/withdrawal
+            // deadline that merely references a grade ("last day to drop … without a grade") is a
+            // real, actionable deadline — excluding drop/withdraw here keeps it from being demoted
+            // to REGULAR so it flows through to the DEADLINE rule below.
+            val isGradePostingHousekeeping = title.contains("grade") &&
+                !title.contains("drop") && !title.contains("withdraw")
             // "Last Day of [Summer] Term/Semester/Session" is a registrar term boundary, not a
             // deadline — distinguish it from a bare "last day" deadline phrase (e.g. "last day to
             // submit...") by requiring a term-length word alongside it.
@@ -35,9 +39,8 @@ class NormalizationService : EventExtractor {
                     AcademicCategory.SEMESTER_BOUND
 
                 // Force this even when the AI itself mistags grade-posting housekeeping as
-                // FINALS/DEADLINE — the "mentionsGrades" guards below only stop OUR keyword rules
-                // from doing that, they don't undo a wrong category the AI already assigned.
-                mentionsGrades ->
+                // FINALS/DEADLINE — this overrides a wrong category the AI already assigned.
+                isGradePostingHousekeeping ->
                     AcademicCategory.REGULAR
 
                 title.contains("final") || title.contains("exam") ->

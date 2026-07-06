@@ -65,6 +65,31 @@ class NormalizationServiceTest : FunSpec({
         result[2].category shouldBe AcademicCategory.REGULAR
     }
 
+    test("drop/withdrawal deadlines are DEADLINE even when the title mentions a grade") {
+        val service = NormalizationService()
+        val baseDate = LocalDate(2026, 1, 28)
+
+        // The AI extracts these as SEMESTER_BOUND; the normalizer re-categorizes by keyword.
+        // Regression guard: "…without a grade" must NOT be demoted to REGULAR by the
+        // grade-posting-housekeeping rule — it's a real, actionable drop deadline.
+        fun aiTagged(title: String) = DayEvent(
+            title = title,
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.SEMESTER_BOUND,
+            date = baseDate
+        )
+
+        val dropNoGrade = aiTagged("Last day to drop this course without a grade")
+        val dropWithW = aiTagged("Last day to drop this course with a \"W\"")
+        val withdrawDeadline = aiTagged("Last day to withdraw from the course")
+
+        val result = service.extract(listOf(dropNoGrade, dropWithW, withdrawDeadline))
+
+        result[0].category shouldBe AcademicCategory.DEADLINE
+        result[1].category shouldBe AcademicCategory.DEADLINE
+        result[2].category shouldBe AcademicCategory.DEADLINE
+    }
+
     test("a genuine final exam is still categorized as FINALS even with 'last day' nearby") {
         val service = NormalizationService()
         val examEvent = DayEvent(

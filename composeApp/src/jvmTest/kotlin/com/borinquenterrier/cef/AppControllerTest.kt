@@ -4,6 +4,9 @@ import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
+import kotlinx.coroutines.test.StandardTestDispatcher
+import kotlinx.coroutines.test.advanceUntilIdle
+import kotlinx.coroutines.test.runTest
 import io.kotest.assertions.nondeterministic.eventually
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
@@ -334,59 +337,69 @@ class AppControllerTest : FunSpec({
 
     // ── init: retryLocalOnly ──────────────────────────────────────────────────
 
-    // These use an Unconfined scope so the init collector runs synchronously on the setter thread —
-    // no Dispatchers.Main scheduling race, no fixed-delay waits. The scope is cancelled after each.
+    // Deterministic virtual-time scheduling: the AppController's init coroutines run on the test's
+    // StandardTestDispatcher, driven by advanceUntilIdle(). This replaced Dispatchers.Unconfined +
+    // wall-clock eventually(), whose scheduling raced under CI load and flaked the count assertion.
     test("init triggers retryLocalOnly once when isLinked transitions to true") {
-        val linkedFlow = MutableStateFlow(false)
-        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns linkedFlow
-        every { container.tokenRepository } returns tokenRepo
+        runTest {
+            val linkedFlow = MutableStateFlow(false)
+            val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+            every { tokenRepo.isLinked } returns linkedFlow
+            every { container.tokenRepository } returns tokenRepo
 
-        io.mockk.clearMocks(calendarAgent)
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
-        AppController(container, scope)
+            io.mockk.clearMocks(calendarAgent)
+            val scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler))
+            AppController(container, scope)
+            advanceUntilIdle() // init collectors subscribe
 
-        linkedFlow.value = true // collector resumes synchronously
+            linkedFlow.value = true
+            advanceUntilIdle()
 
-        coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
-        scope.cancel()
+            coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+            scope.cancel()
+        }
     }
 
     test("init triggers retryLocalOnly immediately when isLinked is already true") {
-        val linkedFlow = MutableStateFlow(true)
-        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns linkedFlow
-        every { container.tokenRepository } returns tokenRepo
+        runTest {
+            val linkedFlow = MutableStateFlow(true)
+            val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+            every { tokenRepo.isLinked } returns linkedFlow
+            every { container.tokenRepository } returns tokenRepo
 
-        io.mockk.clearMocks(calendarAgent)
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
-        AppController(container, scope) // fires during construction
+            io.mockk.clearMocks(calendarAgent)
+            val scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler))
+            AppController(container, scope)
+            advanceUntilIdle() // the already-true value fires the retry during init
 
-        // The retry is the 3rd of several init coroutines on the scope; wait for it rather than
-        // assuming it has run synchronously (that assumption made this test flaky under CI load).
-        eventually(3.seconds) { coVerify(exactly = 1) { calendarAgent.retryLocalOnly() } }
-        scope.cancel()
+            coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+            scope.cancel()
+        }
     }
 
     test("init triggers retryLocalOnly exactly once even if isLinked emits true multiple times") {
-        val linkedFlow = MutableStateFlow(false)
-        val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
-        every { tokenRepo.isLinked } returns linkedFlow
-        every { container.tokenRepository } returns tokenRepo
+        runTest {
+            val linkedFlow = MutableStateFlow(false)
+            val tokenRepo = mockk<GoogleTokenRepository>(relaxed = true)
+            every { tokenRepo.isLinked } returns linkedFlow
+            every { container.tokenRepository } returns tokenRepo
 
-        io.mockk.clearMocks(calendarAgent)
-        val scope = CoroutineScope(SupervisorJob() + Dispatchers.Unconfined)
-        AppController(container, scope)
+            io.mockk.clearMocks(calendarAgent)
+            val scope = CoroutineScope(SupervisorJob() + StandardTestDispatcher(testScheduler))
+            AppController(container, scope)
+            advanceUntilIdle()
 
-        // Multiple true emissions; take(1) in init must collapse them to a single retry.
-        linkedFlow.value = true
-        linkedFlow.value = false
-        linkedFlow.value = true
-        // Further emissions must NOT trigger it again (take(1) already completed).
-        linkedFlow.value = false
-        linkedFlow.value = true
+            // Drive the collector through several true emissions (advancing between each so it
+            // actually observes them). take(1) in init must collapse them to a single retry —
+            // emissions after the first true must NOT trigger it again.
+            linkedFlow.value = true; advanceUntilIdle()
+            linkedFlow.value = false; advanceUntilIdle()
+            linkedFlow.value = true; advanceUntilIdle()
+            linkedFlow.value = false; advanceUntilIdle()
+            linkedFlow.value = true; advanceUntilIdle()
 
-        eventually(3.seconds) { coVerify(exactly = 1) { calendarAgent.retryLocalOnly() } }
-        scope.cancel()
+            coVerify(exactly = 1) { calendarAgent.retryLocalOnly() }
+            scope.cancel()
+        }
     }
 })

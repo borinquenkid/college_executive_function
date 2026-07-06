@@ -54,8 +54,26 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
 
         val n1 = normalize(title1)
         val n2 = normalize(title2)
+        if (n1.isEmpty() || n2.isEmpty()) return false
 
-        return n1.contains(n2) || n2.contains(n1)
+        // Fast path: exact substring (prefix/suffix rewording).
+        if (n1.contains(n2) || n2.contains(n1)) return true
+
+        // Token-subset: tolerate the AI rewording a title with interstitial words —
+        // e.g. "Last day to drop this course without a grade" vs the fixture's
+        // "Drop course without a grade" (the inserted "this"/"last day to" broke a
+        // plain substring check). We treat the two as the same event when every
+        // meaningful token of the shorter title appears in the longer one. Common
+        // filler words are ignored, but content words like "grade" vs "w" are kept,
+        // so "…without a grade" still won't cross-match "…with a W".
+        val filler = setOf("a", "an", "the", "to", "of", "for", "this", "your", "on", "in")
+        fun meaningfulTokens(s: String) =
+            s.split(" ").filter { it.isNotBlank() && it !in filler }.toSet()
+        val t1 = meaningfulTokens(n1)
+        val t2 = meaningfulTokens(n2)
+        if (t1.isEmpty() || t2.isEmpty()) return false
+        val (smaller, larger) = if (t1.size <= t2.size) t1 to t2 else t2 to t1
+        return larger.containsAll(smaller)
     }
 
     test("Run evaluation suite on test syllabi").config(

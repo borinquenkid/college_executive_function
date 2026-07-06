@@ -23,6 +23,10 @@ actual class LocalFileReader {
             emptyList()
         }
     }
+
+    // Desktop's file picker always hands back a plain local path, which already carries its own
+    // name — callers recover it by parsing the path.
+    actual suspend fun resolveDisplayName(path: String): String = ""
 }
 
 @Composable

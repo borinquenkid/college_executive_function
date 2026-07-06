@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import android.content.Context
+import android.provider.OpenableColumns
 import androidx.core.net.toUri
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
@@ -45,6 +46,23 @@ actual class LocalFileReader(private val context: Context) {
             dir.listFiles()?.filter { it.isFile }?.map { it.absolutePath } ?: emptyList()
         } else {
             emptyList()
+        }
+    }
+
+    // Cloud-storage document providers (Google Drive, Dropbox, etc.) hand back an opaque
+    // content:// URI whose path segment carries no filename/extension — unlike on-device
+    // storage providers, whose URI happens to embed the real path. DISPLAY_NAME is the only
+    // reliable way to recover the real name across every SAF provider.
+    actual suspend fun resolveDisplayName(path: String): String = withContext(Dispatchers.IO) {
+        if (!path.startsWith("content://")) return@withContext ""
+        try {
+            context.contentResolver.query(path.toUri(), arrayOf(OpenableColumns.DISPLAY_NAME), null, null, null)
+                ?.use { cursor ->
+                    val nameIndex = cursor.getColumnIndex(OpenableColumns.DISPLAY_NAME)
+                    if (nameIndex >= 0 && cursor.moveToFirst()) cursor.getString(nameIndex) else null
+                } ?: ""
+        } catch (e: Exception) {
+            ""
         }
     }
 }

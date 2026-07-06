@@ -86,6 +86,30 @@ class IngestionAgentTest : FunSpec({
         persisted shouldNotBe null
         persisted?.category shouldBe "CALENDAR"
     }
+    test("addLocalFile resolves format and title from the reader's display name when the path itself carries no extension (e.g. a Drive content:// URI)") {
+        val path = "content://com.google.android.apps.docs.storage/document/acc=1;doc=xyz;version=1"
+        coEvery { fileReader.resolveDisplayName(path) } returns "syllabus.pdf"
+        coEvery { fileReader.readBytes(path) } returns "%PDF-1.4 fake bytes".encodeToByteArray()
+        coEvery { pdfReader.readSource(any<ByteArray>()) } returns listOf(SourceFragment("Course: CS101."))
+        coEvery { aiService.categorizeSource(any()) } returns SourceCategory.SYLLABUS
+
+        val result = ingestionAgent.addLocalFile(path)
+
+        result.title shouldBe "syllabus.pdf"
+        coVerify(exactly = 1) { pdfReader.readSource(any<ByteArray>()) }
+    }
+
+    test("addLocalFile falls back to parsing the path when the reader has no better display name") {
+        val path = "cs101_syllabus.txt"
+        coEvery { fileReader.resolveDisplayName(path) } returns ""
+        coEvery { fileReader.readBytes(path) } returns "Course: CS101.".encodeToByteArray()
+        coEvery { aiService.categorizeSource(any()) } returns SourceCategory.SYLLABUS
+
+        val result = ingestionAgent.addLocalFile(path)
+
+        result.title shouldBe path
+    }
+
     test("addLocalFile throws SourceValidationException for an ICS with no events") {
         val path = "empty.ics"
         coEvery { fileReader.readBytes(path) } returns "BEGIN:VCALENDAR\nEND:VCALENDAR".encodeToByteArray()

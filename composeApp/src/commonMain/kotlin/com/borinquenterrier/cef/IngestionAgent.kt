@@ -47,7 +47,9 @@ class IngestionAgent(
         _largeDocumentNotice.value = null
         return try {
             AppTracer.current.span("ingestion.add_file") {
-                val fileName = path.substringAfterLast("/").substringAfterLast("\\")
+                val fileName = fileReader.resolveDisplayName(path).ifBlank {
+                    path.substringAfterLast("/").substringAfterLast("\\")
+                }
                 val format = SourceFormatDetector.detect(fileName)
                 setAttribute("source.name_hash", TelemetryIdHasher.hash(fileName))
                 setAttribute("source.type", format.name)

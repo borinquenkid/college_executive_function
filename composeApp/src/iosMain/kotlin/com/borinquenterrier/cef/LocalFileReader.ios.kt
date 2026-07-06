@@ -63,6 +63,10 @@ actual class LocalFileReader {
             emptyList()
         }
     }
+
+    // iOS's picker copies picked documents locally (asCopy = true) with the original filename
+    // preserved as the path's last component, so callers already recover it by parsing the path.
+    actual suspend fun resolveDisplayName(path: String): String = ""
 }
 
 @OptIn(ExperimentalForeignApi::class)

@@ -15,9 +15,16 @@ internal class AutoDecomposer(
     private val repository: CalendarAgent,
     private val decompositionService: TaskDecompositionService,
     private val clock: Clock = Clock.System
-) : AgentAction<Unit, DecompositionResult> {
+) : AgentAction<Int, DecompositionResult> {
 
-    override suspend fun run(input: Unit, calendarId: String): DecompositionResult {
+    /**
+     * @param input maximum number of deliverables to decompose this run — the nearest-due ones
+     * are picked first. Callers that want everything decomposed in one pass (e.g. a manual,
+     * user-initiated action) pass [Int.MAX_VALUE]. Background/poll-driven callers should pass a
+     * small cap so a large backlog of unplanned deliverables doesn't burn through a big chunk of
+     * the day's AI quota in one run — see AgentHarness.
+     */
+    override suspend fun run(input: Int, calendarId: String): DecompositionResult {
         val today = clock.todayIn(TimeZone.currentSystemDefault())
         val unplanned = repository.getEvents(calendarId).filter { event ->
             (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) &&
@@ -26,7 +33,8 @@ internal class AutoDecomposer(
         if (unplanned.isEmpty()) {
             return DecompositionResult(0, 0, 0, "All deliverables already have study plans.")
         }
-        val (future, pastDue) = unplanned.partition { it.date >= today }
+        val (allFuture, pastDue) = unplanned.partition { it.date >= today }
+        val future = allFuture.sortedBy { it.date }.take(input)
         var totalSteps = 0
         for (event in future) {
             val tasks = decompositionService.decompose(event)

@@ -23,10 +23,13 @@ object CalendarEventGrouper {
 
     /**
      * Determines if an event can be decomposed (broken down into subtasks).
-     * Only DEADLINE and FINALS events are decomposable.
+     * Only DEADLINE and FINALS events are decomposable, and only if they don't already
+     * have a study plan — matches [AutoDecomposer]'s "already planned" check, so the
+     * "Break It Down (AI)" affordance doesn't linger on a deadline the user already broke down.
      */
     fun isDecomposable(event: Event): Boolean {
-        return event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS
+        return (event.category == AcademicCategory.DEADLINE || event.category == AcademicCategory.FINALS) &&
+            event.studyPlanStart == null
     }
 
     /**

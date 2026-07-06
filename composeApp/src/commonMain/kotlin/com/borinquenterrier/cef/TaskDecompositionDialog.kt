@@ -34,7 +34,7 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
     val scope = rememberCoroutineScope()
     val decomposedTasks by eventAgent.decomposedTasks.collectAsState()
     val isLoading by eventAgent.isLoading.collectAsState()
-    val statusMessage by eventAgent.statusMessage.collectAsState()
+    val statusMessage by eventAgent.decompositionStatusMessage.collectAsState()
 
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -103,9 +103,10 @@ fun TaskDecompositionDialog(event: Event, eventAgent: EventAgent, onDismiss: () 
                     }
                 }
 
-                if (statusMessage.isNotBlank() && statusMessage != "Select a source and an action.") {
+                val currentStatusMessage = statusMessage
+                if (!currentStatusMessage.isNullOrBlank()) {
                     Text(
-                        statusMessage,
+                        currentStatusMessage,
                         style = MaterialTheme.typography.bodySmall,
                         color = MaterialTheme.colorScheme.outline
                     )

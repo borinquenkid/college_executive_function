@@ -149,11 +149,11 @@ class ComposeUiFlowsTest {
 
         val decomposedTasksFlow = MutableStateFlow<List<DecomposedTask>>(emptyList())
         val isLoadingFlow = MutableStateFlow(false)
-        val statusMessageFlow = MutableStateFlow("")
+        val decompositionStatusMessageFlow = MutableStateFlow<String?>(null)
 
         every { mockEventAgent.decomposedTasks } returns decomposedTasksFlow
         every { mockEventAgent.isLoading } returns isLoadingFlow
-        every { mockEventAgent.statusMessage } returns statusMessageFlow
+        every { mockEventAgent.decompositionStatusMessage } returns decompositionStatusMessageFlow
 
         val event = DayEvent(
             id = "test-deadline",
@@ -337,6 +337,60 @@ class ComposeUiFlowsTest {
             routineButton.performClick()
             navigatedScreen shouldBe AppScreen.Routine
         }
+    }
+
+    @Test
+    fun testAcademicCalendarReloadsEventsAfterDecompositionDialogCloses() = runComposeUiTest {
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        every { mockCalendarAgent.resetVersion } returns MutableStateFlow(0)
+
+        val deadline = DayEvent(
+            id = "deadline-1",
+            title = "Essay 1",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2026, 6, 12)
+        )
+        coEvery { mockCalendarAgent.getEvents(any()) } returns listOf(deadline)
+        coEvery { mockCalendarAgent.getSemesterEvents(any()) } returns listOf(deadline)
+
+        val mockEventAgent = mockk<EventAgent>(relaxed = true)
+        val decomposedTasksFlow = MutableStateFlow<List<DecomposedTask>>(emptyList())
+        every { mockEventAgent.decomposedTasks } returns decomposedTasksFlow
+        every { mockEventAgent.isLoading } returns MutableStateFlow(false)
+        every { mockEventAgent.decompositionStatusMessage } returns MutableStateFlow(null)
+        every { mockEventAgent.errorState } returns MutableStateFlow(null)
+
+        setContent {
+            AcademicCalendar(
+                aiGeneratedEvents = emptyList(),
+                calendarAgent = mockCalendarAgent,
+                eventAgent = mockEventAgent,
+                authService = GoogleAuthService(MapSettings(), AppEnv()),
+                onNavigate = {},
+                today = LocalDate(2026, 6, 1)
+            )
+        }
+
+        // Initial mount loads the event list once.
+        coVerify(exactly = 1) { mockCalendarAgent.getSemesterEvents("default") }
+
+        // Open the decomposition dialog for the deadline (card-level button; dialog not open yet
+        // so its text is unambiguous), then drive it through to "Add Steps to Calendar".
+        onNodeWithText("Break It Down (AI)").performClick()
+        onNodeWithTag("break_it_down_button").performClick()
+        coVerify { mockEventAgent.decomposeTask(deadline) }
+
+        decomposedTasksFlow.value = listOf(DecomposedTask("Draft outline", 3, "leaf"))
+        onNodeWithTag("add_steps_button").performClick()
+        coVerify { mockEventAgent.acceptDecomposition() }
+
+        // Study steps added by "Add Steps to Calendar" are saved straight through
+        // CalendarAgent.saveEvent, which never bumps resetVersion. Without a reload on dialog
+        // dismissal, the already-mounted Calendar screen keeps showing its stale event list
+        // until the user leaves and re-enters the screen — the newly created steps are
+        // invisible even though they were persisted successfully.
+        coVerify(exactly = 2) { mockCalendarAgent.getSemesterEvents("default") }
     }
 
     @Test

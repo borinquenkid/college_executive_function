@@ -105,6 +105,16 @@ class EventAgent(
     private val _decompositionTarget = MutableStateFlow<Event?>(null)
     val decompositionTarget: StateFlow<Event?> = _decompositionTarget.asStateFlow()
 
+    private val _decompositionStatusMessage = MutableStateFlow<String?>(null)
+
+    /**
+     * Status/error text for the current "Break It Down" dialog only — distinct from the shared
+     * [statusMessage], which every other action (push, extract, sync...) also writes to. Reading
+     * that shared field here would show whatever some unrelated prior action last set, before the
+     * user has even pressed anything in this dialog. Cleared by [clearDecomposition].
+     */
+    val decompositionStatusMessage: StateFlow<String?> = _decompositionStatusMessage.asStateFlow()
+
     private val _errorState = MutableStateFlow<AgentError?>(null)
 
     /** Non-null when an error requiring user attention has occurred. Call [clearError] to dismiss. */
@@ -192,6 +202,7 @@ class EventAgent(
     private suspend fun runAgentAction(
         logContext: String,
         handleQuotaErrors: Boolean = false,
+        onStatus: (String) -> Unit = { _statusMessage.value = it },
         block: suspend () -> Unit
     ) {
         _isLoading.value = true
@@ -201,9 +212,9 @@ class EventAgent(
             logger?.e(tag, logContext, e)
             if (handleQuotaErrors && e.isQuotaError()) {
                 _errorState.value = AgentError.QuotaExhausted
-                _statusMessage.value = "Daily AI quota reached."
+                onStatus("Daily AI quota reached.")
             } else {
-                _statusMessage.value = friendlyError(e)
+                onStatus(friendlyError(e))
             }
         } finally {
             _isLoading.value = false
@@ -248,16 +259,18 @@ class EventAgent(
     }
 
     /**
-     * Automatically decomposes all unplanned DEADLINE/FINALS events in the calendar into
-     * STUDY_BLOCK steps. Runs after the first [pushToCalendar] in the pipeline so the events
-     * are already persisted and can be updated with a [studyPlanStart] marker.
+     * Automatically decomposes unplanned DEADLINE/FINALS events (nearest-due first) into
+     * STUDY_BLOCK steps. Called from [AgentHarness]'s background poll with a small
+     * [maxDeliverables] cap, so a large backlog of deadlines doesn't burn through a big chunk of
+     * the day's AI quota in one run — a full, uncapped pass is still available on demand by
+     * passing [Int.MAX_VALUE].
      *
      * Skips events that already have a [studyPlanStart] (already decomposed).
      */
-    suspend fun autoDecomposeDeliverables(calendarId: String = "default") {
+    suspend fun autoDecomposeDeliverables(calendarId: String = "default", maxDeliverables: Int = Int.MAX_VALUE) {
         runAgentAction("Error auto-decomposing deliverables", handleQuotaErrors = true) {
             _statusMessage.value = "Breaking down deliverables into study steps..."
-            val result = autoDecomposer.run(Unit, calendarId)
+            val result = autoDecomposer.run(maxDeliverables, calendarId)
             _statusMessage.value = result.statusMessage
         }
     }
@@ -300,24 +313,31 @@ class EventAgent(
     }
 
     suspend fun decomposeTask(event: Event) {
-        runAgentAction("Error decomposing task", handleQuotaErrors = true) {
+        runAgentAction(
+            "Error decomposing task",
+            handleQuotaErrors = true,
+            onStatus = { _decompositionStatusMessage.value = it }
+        ) {
             _decompositionTarget.value = event
             _decomposedTasks.value = emptyList()
-            _statusMessage.value = "Breaking down '${event.title}'..."
+            _decompositionStatusMessage.value = "Breaking down '${event.title}'..."
 
             val tasks = decompositionService.decompose(event)
             _decomposedTasks.value = tasks
-            _statusMessage.value = "${tasks.size} steps created."
+            _decompositionStatusMessage.value = "${tasks.size} steps created."
         }
     }
 
     suspend fun acceptDecomposition(calendarId: String = "default") {
-        runAgentAction("Error accepting decomposition") {
+        runAgentAction(
+            "Error accepting decomposition",
+            onStatus = { _decompositionStatusMessage.value = it }
+        ) {
             val count = decompositionAcceptor.run(
                 AcceptInput(_decomposedTasks.value, _decompositionTarget.value),
                 calendarId
             )
-            _statusMessage.value = "$count steps added to calendar."
+            _decompositionStatusMessage.value = "$count steps added to calendar."
             clearDecomposition()
         }
     }
@@ -325,6 +345,7 @@ class EventAgent(
     fun clearDecomposition() {
         _decomposedTasks.value = emptyList()
         _decompositionTarget.value = null
+        _decompositionStatusMessage.value = null
     }
 
     private val _incompleteEvents = MutableStateFlow<List<Event>>(emptyList())

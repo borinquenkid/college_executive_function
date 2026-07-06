@@ -110,6 +110,14 @@ fun AcademicCalendar(
         if (selectedEventForDecomposition != null) {
             selectedEventForDecomposition = null
         }
+        // Study steps just added by "Add Steps to Calendar" are saved straight through
+        // CalendarAgent.saveEvent, which never bumps resetVersion — so without this, the
+        // already-mounted Calendar screen keeps showing its stale pre-decomposition event list
+        // until the user leaves and re-enters the screen (or does something else that happens
+        // to bump resetVersion).
+        scope.launch {
+            displayedEvents = calendarAgent.getSemesterEvents("default")
+        }
     }
 
     SyncNegotiationDialogFor(

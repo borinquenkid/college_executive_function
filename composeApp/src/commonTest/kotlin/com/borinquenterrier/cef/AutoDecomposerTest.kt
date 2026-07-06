@@ -49,7 +49,7 @@ class AutoDecomposerTest : FunSpec({
         val repo = mockk<CalendarAgent>(relaxed = true)
         coEvery { repo.getEvents(calendarId) } returns emptyList()
 
-        val result = makeDecomposer(repo).run(Unit, calendarId)
+        val result = makeDecomposer(repo).run(Int.MAX_VALUE, calendarId)
 
         result.stepCount shouldBe 0
         result.deliverableCount shouldBe 0
@@ -64,7 +64,7 @@ class AutoDecomposerTest : FunSpec({
             deadline("Essay", studyPlanStart = "2026-08-25")
         )
 
-        makeDecomposer(repo, service).run(Unit, calendarId)
+        makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         coVerify(exactly = 0) { service.decompose(any()) }
     }
@@ -74,7 +74,7 @@ class AutoDecomposerTest : FunSpec({
         val service = mockk<TaskDecompositionService>(relaxed = true)
         coEvery { repo.getEvents(calendarId) } returns listOf(classEvent("Lecture"))
 
-        makeDecomposer(repo, service).run(Unit, calendarId)
+        makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         coVerify(exactly = 0) { service.decompose(any()) }
     }
@@ -89,7 +89,7 @@ class AutoDecomposerTest : FunSpec({
         coEvery { service.decompose(event) } returns listOf(task("Draft"), task("Review"))
         coEvery { service.applyDecomposition(event, any(), calendarId) } returns 2
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         result.stepCount shouldBe 2
         result.deliverableCount shouldBe 1
@@ -107,7 +107,7 @@ class AutoDecomposerTest : FunSpec({
         coEvery { service.decompose(event) } returns listOf(task("Ch1"), task("Ch2"), task("Review"))
         coEvery { service.applyDecomposition(event, any(), calendarId) } returns 3
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         result.stepCount shouldBe 3
         result.deliverableCount shouldBe 1
@@ -125,11 +125,34 @@ class AutoDecomposerTest : FunSpec({
         coEvery { service.applyDecomposition(e1, any(), calendarId) } returns 1
         coEvery { service.applyDecomposition(e2, any(), calendarId) } returns 2
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         result.stepCount shouldBe 3
         result.deliverableCount shouldBe 2
         result.lateCount shouldBe 0
+    }
+
+    // ── Cap ────────────────────────────────────────────────────────────────────
+
+    test("cap limits to the nearest-due deliverables and leaves the rest unplanned") {
+        val repo = mockk<CalendarAgent>(relaxed = true)
+        val service = mockk<TaskDecompositionService>(relaxed = true)
+        val soonest = deadline("Due Soonest", date = LocalDate(2026, 10, 1))
+        val middle = deadline("Due Middle", date = LocalDate(2026, 10, 10))
+        val latest = deadline("Due Latest", date = LocalDate(2026, 10, 20))
+        // Intentionally out of date order, to prove the cap sorts before taking.
+        coEvery { repo.getEvents(calendarId) } returns listOf(latest, soonest, middle)
+        coEvery { service.decompose(soonest) } returns listOf(task("Draft"))
+        coEvery { service.applyDecomposition(soonest, any(), calendarId) } returns 1
+        coEvery { service.decompose(middle) } returns listOf(task("Draft"))
+        coEvery { service.applyDecomposition(middle, any(), calendarId) } returns 1
+
+        val result = makeDecomposer(repo, service).run(2, calendarId)
+
+        result.deliverableCount shouldBe 2
+        coVerify(exactly = 1) { service.decompose(soonest) }
+        coVerify(exactly = 1) { service.decompose(middle) }
+        coVerify(exactly = 0) { service.decompose(latest) }
     }
 
     // ── Past-due detection ────────────────────────────────────────────────────
@@ -140,7 +163,7 @@ class AutoDecomposerTest : FunSpec({
         val pastEvent = deadline("Missed Essay", date = LocalDate(2026, 9, 1))
         coEvery { repo.getEvents(calendarId) } returns listOf(pastEvent)
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         coVerify(exactly = 0) { service.decompose(any()) }
         result.lateCount shouldBe 1
@@ -155,7 +178,7 @@ class AutoDecomposerTest : FunSpec({
         val pastFinal = finals("Past Final", date = LocalDate(2026, 8, 1))
         coEvery { repo.getEvents(calendarId) } returns listOf(pastFinal)
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         result.lateCount shouldBe 1
         coVerify(exactly = 0) { service.decompose(any()) }
@@ -170,7 +193,7 @@ class AutoDecomposerTest : FunSpec({
         coEvery { service.decompose(future) } returns listOf(task("Draft"))
         coEvery { service.applyDecomposition(future, any(), calendarId) } returns 1
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         result.stepCount shouldBe 1
         result.deliverableCount shouldBe 1
@@ -188,7 +211,7 @@ class AutoDecomposerTest : FunSpec({
             deadline("Past B", date = LocalDate(2026, 9, 5))
         )
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         result.stepCount shouldBe 0
         result.deliverableCount shouldBe 0
@@ -207,7 +230,7 @@ class AutoDecomposerTest : FunSpec({
         coEvery { repo.getEvents(calendarId) } returns listOf(event)
         coEvery { service.decompose(event) } returns emptyList()
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         coVerify(exactly = 0) { service.applyDecomposition(any(), any(), any()) }
         result.stepCount shouldBe 0
@@ -222,7 +245,7 @@ class AutoDecomposerTest : FunSpec({
         coEvery { service.decompose(event) } returns listOf(task("Step"))
         coEvery { service.applyDecomposition(event, any(), calendarId) } returns 0
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         result.stepCount shouldBe 0
         result.statusMessage shouldContain "already have study plans or no steps"
@@ -238,7 +261,7 @@ class AutoDecomposerTest : FunSpec({
         coEvery { service.decompose(todayEvent) } returns listOf(task("Submit"))
         coEvery { service.applyDecomposition(todayEvent, any(), calendarId) } returns 1
 
-        val result = makeDecomposer(repo, service).run(Unit, calendarId)
+        val result = makeDecomposer(repo, service).run(Int.MAX_VALUE, calendarId)
 
         result.lateCount shouldBe 0
         result.stepCount shouldBe 1

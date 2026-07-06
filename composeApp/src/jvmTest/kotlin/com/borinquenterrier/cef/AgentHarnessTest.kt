@@ -82,6 +82,24 @@ class AgentHarnessTest : FunSpec({
         coVerify(exactly = 0) { userPreferenceMemoryRepository.pruneOldLogs(any()) }
     }
 
+    test("auto-decomposes a small capped batch of deliverables on a successful run") {
+        coEvery { pollScheduler.shouldPoll(true) } returns true
+        coEvery { sourceRepository.getAllSources() } returns emptyList()
+        coEvery { sourceScanner.scanNewLocalFiles(any()) } returns emptyList()
+
+        harness.runHarness(force = true)
+
+        coVerify(exactly = 1) { eventAgent.autoDecomposeDeliverables(calendarId = "default", maxDeliverables = 2) }
+    }
+
+    test("does not auto-decompose when the poll is skipped") {
+        coEvery { pollScheduler.shouldPoll(false) } returns false
+
+        harness.runHarness(force = false)
+
+        coVerify(exactly = 0) { eventAgent.autoDecomposeDeliverables(calendarId = any(), maxDeliverables = any()) }
+    }
+
     test("delegates watched directory management to source scanner") {
         val dirs = listOf("/path1", "/path2")
         coEvery { sourceScanner.getWatchedLocalDirectories() } returns dirs

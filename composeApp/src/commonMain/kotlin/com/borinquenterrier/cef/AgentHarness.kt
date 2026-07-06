@@ -24,6 +24,10 @@ class AgentHarness(
 ) {
     private val tag = "AgentHarness"
 
+    /** Nearest-due deliverables decomposed per poll — keeps a big backlog from burning through
+     *  a large chunk of the day's AI quota in one background run (see AutoDecomposer). */
+    private val autoDecomposeCapPerPoll = 2
+
     private val _isBusy = MutableStateFlow(false)
     val isBusy: StateFlow<Boolean> = _isBusy.asStateFlow()
 
@@ -64,6 +68,10 @@ class AgentHarness(
             _status.value = "Synchronizing calendar..."
             logger.d(tag, "Running calendar synchronization...")
             calendarAgent.synchronize("default")
+
+            _status.value = "Breaking down upcoming deliverables..."
+            logger.d(tag, "Auto-decomposing up to $autoDecomposeCapPerPoll nearest-due deliverable(s)...")
+            eventAgent.autoDecomposeDeliverables(calendarId = "default", maxDeliverables = autoDecomposeCapPerPoll)
 
             val retentionCutoff = Clock.System.now().toEpochMilliseconds() -
                 UserPreferenceMemoryRepository.OVERRIDE_LOG_RETENTION_MS

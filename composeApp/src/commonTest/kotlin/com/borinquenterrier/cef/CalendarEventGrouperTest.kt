@@ -150,6 +150,19 @@ class CalendarEventGrouperTest {
     }
 
     @Test
+    fun `isDecomposable returns false for a DEADLINE that already has a study plan`() {
+        val event = DayEvent(
+            title = "Assignment",
+            date = LocalDate(2024, 1, 1),
+            source = EventSource.ROUTINE,
+            category = AcademicCategory.DEADLINE,
+            studyPlanStart = "2023-12-20"
+        )
+
+        assertFalse(CalendarEventGrouper.isDecomposable(event))
+    }
+
+    @Test
     fun `filterEventsByDateRange includes events within range`() {
         val startDate = LocalDate(2024, 1, 1)
         val endDate = LocalDate(2024, 1, 31)

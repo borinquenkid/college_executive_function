@@ -1,23 +1,25 @@
 package com.borinquenterrier.cef
 
 import com.borinquenterrier.cef.db.AppDatabase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 
 class SqlDelightChatRepository(
-    private val database: AppDatabase
+    private val database: AppDatabase,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
 ) : ChatRepository {
 
     private val queries get() = database.appDatabaseQueries
 
     override suspend fun ensureConversation(conversationId: String, title: String) =
-        withContext(Dispatchers.Default) {
+        withContext(dispatcher) {
             ensureConversationRow(conversationId, title)
         }
 
     override suspend fun saveMessage(message: ChatMessage, tokenEstimate: Long) =
-        withContext(Dispatchers.Default) {
+        withContext(dispatcher) {
             ensureConversationRow(message.conversationId, DEFAULT_TITLE)
             val entity = ChatMessageMapper.toEntity(message, tokenEstimate)
             queries.insertChatMessage(
@@ -32,14 +34,14 @@ class SqlDelightChatRepository(
         }
 
     override suspend fun getMessages(conversationId: String): List<ChatMessage> =
-        withContext(Dispatchers.Default) {
+        withContext(dispatcher) {
             queries.selectMessagesByConversation(conversationId)
                 .executeAsList()
                 .map(ChatMessageMapper::toDomain)
         }
 
     override suspend fun deleteMessages(conversationId: String) =
-        withContext(Dispatchers.Default) {
+        withContext(dispatcher) {
             queries.deleteMessagesByConversation(conversationId)
             Unit
         }

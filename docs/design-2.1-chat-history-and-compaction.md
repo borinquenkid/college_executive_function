@@ -193,8 +193,13 @@ load pattern.
    single (implicit) conversation. `ChatMessageMapper` serder round-trip + deterministic
    `ChatRepositoryTest` (save/load/restart/idempotent) + `AppController` survives-restart test.
    Quality Gate OK, 3-target build green.
-2. **Management UI** — `ConversationEntity`, conversation list drawer, new/rename/delete/switch,
-   per-chat source pin.
+2. **Management UI** ✅ **DONE** — `Conversation`/`ChatSourceScope` domain + repository CRUD +
+   conversation-aware `AppController` (currentConversationId, conversations flow, new/select/
+   rename/delete, first-message title derivation) + `ConversationsPanel` drawer (list, switch,
+   New chat, per-row rename + confirmed delete) + `ChatPanel` top bar and per-chat source pin.
+   Greeting became a true empty-state. Serder round-trip + repository CRUD + deterministic
+   `AppController` + `ConversationsPanel` compose tests. Quality Gate OK (new coverage 89.4%,
+   0 new violations), 3-target build green.
 3. **Compaction** — `TokenEstimator`, `ModelContextWindow`, budget allocation, rolling summary.
 4. **Robustness** — oversized-error classification + recovery, `maxOutputTokens`, critic-cost
    handling, `querySource` unification.

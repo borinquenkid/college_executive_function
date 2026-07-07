@@ -279,6 +279,9 @@ zero token accounting). Two halves:
   long chats stay in-window instead of dropping turns or erroring on size; plus oversized-request
   recovery and `maxOutputTokens`.
 * **Full design + data model + phasing:** [docs/design-2.1-chat-history-and-compaction.md](docs/design-2.1-chat-history-and-compaction.md).
+* **Phase 1 (Persistence) ✅ DONE:** typed `ChatMessage`/`ChatRole`, `Conversation`/`ChatMessage`
+  tables, `ChatRepository`, and startup hydration — chat now survives restart (single implicit
+  conversation). Next: Phase 2 (management UI: conversation list, new/rename/delete, per-chat scope).
 * Also folds in the drop/withdrawal-deadline-as-`DEADLINE` thread (NormalizationService fix already
   on `main`).
 

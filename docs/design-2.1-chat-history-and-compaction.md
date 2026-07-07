@@ -188,8 +188,11 @@ load pattern.
 ---
 
 ## Phasing / milestones
-1. **Persistence** — `ChatMessage` id/timestamp/role + `ChatRepository` + tables; history survives
-   restart for a single (implicit) conversation. Serder + load tests.
+1. **Persistence** ✅ **DONE** — `ChatMessage` id/timestamp/role + `ChatRole` enum +
+   `ConversationEntity`/`ChatMessageEntity` tables + `ChatRepository`; history survives restart for a
+   single (implicit) conversation. `ChatMessageMapper` serder round-trip + deterministic
+   `ChatRepositoryTest` (save/load/restart/idempotent) + `AppController` survives-restart test.
+   Quality Gate OK, 3-target build green.
 2. **Management UI** — `ConversationEntity`, conversation list drawer, new/rename/delete/switch,
    per-chat source pin.
 3. **Compaction** — `TokenEstimator`, `ModelContextWindow`, budget allocation, rolling summary.

@@ -146,3 +146,49 @@ DELETE FROM UserOverrideLogEntity WHERE timestamp < ?;
 
 deleteAllOverrideLogs:
 DELETE FROM UserOverrideLogEntity;
+
+-- Chat History & Compaction (design 2.1)
+CREATE TABLE IF NOT EXISTS ConversationEntity (
+    id           TEXT NOT NULL PRIMARY KEY,   -- deterministic id
+    title        TEXT NOT NULL,               -- user-editable; auto-derived from first message
+    createdAt    INTEGER NOT NULL,            -- epoch millis
+    updatedAt    INTEGER NOT NULL,
+    sourceScope  TEXT NOT NULL DEFAULT 'ALL', -- 'ALL' | 'SOURCE:<sourceId>' (per-chat pin)
+    summary      TEXT                         -- rolling compaction summary (nullable, Part B)
+);
+
+CREATE TABLE IF NOT EXISTS ChatMessageEntity (
+    id             TEXT NOT NULL PRIMARY KEY,
+    conversationId TEXT NOT NULL,
+    role           TEXT NOT NULL,             -- 'USER' | 'AI'
+    content        TEXT NOT NULL,
+    createdAt      INTEGER NOT NULL,
+    tokenEstimate  INTEGER NOT NULL DEFAULT 0,-- cached estimate for budgeting (Part B)
+    FOREIGN KEY (conversationId) REFERENCES ConversationEntity(id)
+);
+
+insertConversation:
+INSERT OR REPLACE INTO ConversationEntity(id, title, createdAt, updatedAt, sourceScope, summary)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectConversationById:
+SELECT * FROM ConversationEntity WHERE id = ?;
+
+selectAllConversations:
+SELECT * FROM ConversationEntity ORDER BY updatedAt DESC;
+
+deleteConversation:
+DELETE FROM ConversationEntity WHERE id = ?;
+
+insertChatMessage:
+INSERT OR REPLACE INTO ChatMessageEntity(id, conversationId, role, content, createdAt, tokenEstimate)
+VALUES (?, ?, ?, ?, ?, ?);
+
+selectMessagesByConversation:
+SELECT * FROM ChatMessageEntity WHERE conversationId = ? ORDER BY createdAt ASC, id ASC;
+
+deleteMessagesByConversation:
+DELETE FROM ChatMessageEntity WHERE conversationId = ?;
+
+deleteAllChatMessages:
+DELETE FROM ChatMessageEntity;

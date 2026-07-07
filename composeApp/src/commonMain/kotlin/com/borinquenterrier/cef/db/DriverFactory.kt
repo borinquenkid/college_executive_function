@@ -69,5 +69,43 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
     } catch (_: Exception) {
         // Table may already exist, ignore.
     }
+    // Chat History & Compaction (design 2.1) — additive tables reach existing installs here.
+    try {
+        driver.execute(
+            null,
+            """
+            CREATE TABLE IF NOT EXISTS ConversationEntity (
+                id           TEXT NOT NULL PRIMARY KEY,
+                title        TEXT NOT NULL,
+                createdAt    INTEGER NOT NULL,
+                updatedAt    INTEGER NOT NULL,
+                sourceScope  TEXT NOT NULL DEFAULT 'ALL',
+                summary      TEXT
+            )
+            """.trimIndent(),
+            0
+        )
+    } catch (_: Exception) {
+        // Table may already exist, ignore.
+    }
+    try {
+        driver.execute(
+            null,
+            """
+            CREATE TABLE IF NOT EXISTS ChatMessageEntity (
+                id             TEXT NOT NULL PRIMARY KEY,
+                conversationId TEXT NOT NULL,
+                role           TEXT NOT NULL,
+                content        TEXT NOT NULL,
+                createdAt      INTEGER NOT NULL,
+                tokenEstimate  INTEGER NOT NULL DEFAULT 0,
+                FOREIGN KEY (conversationId) REFERENCES ConversationEntity(id)
+            )
+            """.trimIndent(),
+            0
+        )
+    } catch (_: Exception) {
+        // Table may already exist, ignore.
+    }
     return AppDatabase(driver)
 }

@@ -91,7 +91,8 @@ class ContextAgent(
             getSourceMetadata(sourceId)
         }
 
-        val historyPairs = conversationHistory.map { it.author to it.content }
+        val historyPairs =
+            conversationHistory.map { (if (it.role == ChatRole.USER) "User" else "AI") to it.content }
         val prompt = AiPrompts.getMultiSourceChatPrompt(sourceBlocks, historyPairs, question, warnings)
 
         logger?.d(

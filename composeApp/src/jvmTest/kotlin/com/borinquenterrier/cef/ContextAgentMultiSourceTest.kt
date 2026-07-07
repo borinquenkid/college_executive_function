@@ -122,9 +122,9 @@ class ContextAgentMultiSourceTest : FunSpec({
         coEvery { mockAiService.generateChatResponse(capture(promptSlot)) } returns "ok"
 
         val history = listOf(
-            ChatMessage("User", "What is the late policy?"),
-            ChatMessage("AI", "Assignments lose 10% per day late."),
-            ChatMessage("User", "What about exams?")
+            ChatMessage.create("What is the late policy?", ChatRole.USER, 1L),
+            ChatMessage.create("Assignments lose 10% per day late.", ChatRole.AI, 2L),
+            ChatMessage.create("What about exams?", ChatRole.USER, 3L)
         )
 
         sut.queryAllSources(

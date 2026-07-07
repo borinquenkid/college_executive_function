@@ -200,7 +200,7 @@ class AppControllerTest : FunSpec({
 
     test("addChatMessage appends to chatMessages") {
         val initialCount = controller.chatMessages.value.size
-        controller.addChatMessage(ChatMessage("User", "Hello!"))
+        controller.addChatMessage(ChatMessage.create("Hello!", ChatRole.USER, 1L))
         controller.chatMessages.value.size shouldBe initialCount + 1
         controller.chatMessages.value.last().content shouldBe "Hello!"
     }

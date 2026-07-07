@@ -134,7 +134,7 @@ class ComposeUiFlowsTest {
 
         // Wait for AI response to be added to chat messages
         waitUntil(timeoutMillis = 5000L) {
-            appController.chatMessages.value.any { it.author == "AI" && it.content == "This is the mocked response" }
+            appController.chatMessages.value.any { it.role == ChatRole.AI && it.content == "This is the mocked response" }
         }
 
         // Verify the response is visible/added

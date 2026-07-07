@@ -28,16 +28,10 @@ class AppController(
     private val eventsService = AiEventsService()
     private val sourceManager = container.sourceManager
 
-    // Chat State - wrapped for testability
+    // Chat State - wrapped for testability. Seeded with the in-memory greeting (never persisted);
+    // replaced by persisted history on init if any exists.
     private val _chatMessagesWrapper: MutableStateFlowWrapper<List<ChatMessage>> =
-        mutableStateFlowWrapper(
-            listOf(
-                ChatMessage(
-                    "AI",
-                    "Hello! How can I help you today?"
-                )
-            )
-        )
+        mutableStateFlowWrapper(listOf(ChatMessage.greeting()))
     val chatMessages: StateFlowReader<List<ChatMessage>> = _chatMessagesWrapper
 
     // Listeners for platform-specific UI (like native iOS)

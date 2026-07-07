@@ -52,8 +52,6 @@ import kotlin.time.Clock
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 
-data class ChatMessage(val author: String, val content: String)
-
 @Composable
 fun ChatPanel(
     modifier: Modifier = Modifier,
@@ -138,7 +136,13 @@ fun ChatPanel(
                     val userText = newMessage
                     // Snapshot history BEFORE appending the new user message
                     val history = messages
-                    appController.addChatMessage(ChatMessage("User", userText))
+                    appController.addChatMessage(
+                        ChatMessage.create(
+                            userText,
+                            ChatRole.USER,
+                            Clock.System.now().toEpochMilliseconds()
+                        )
+                    )
                     newMessage = ""
 
                     coroutineScope.launch {
@@ -157,7 +161,13 @@ fun ChatPanel(
 
                             else -> "Please select a source from the Sources panel, or switch to All Sources mode."
                         }
-                        appController.addChatMessage(ChatMessage("AI", aiResponse))
+                        appController.addChatMessage(
+                            ChatMessage.create(
+                                aiResponse,
+                                ChatRole.AI,
+                                Clock.System.now().toEpochMilliseconds()
+                            )
+                        )
                     }
                 }
             }
@@ -207,7 +217,7 @@ fun ChatPanel(
 
 @Composable
 fun MessageView(message: ChatMessage) {
-    val isUser = message.author == "User"
+    val isUser = message.role == ChatRole.USER
     val horizontalArrangement = if (isUser) Arrangement.End else Arrangement.Start
     val backgroundColor =
         if (isUser) MaterialTheme.colorScheme.primaryContainer else MaterialTheme.colorScheme.surfaceVariant
@@ -242,7 +252,7 @@ fun MessageView(message: ChatMessage) {
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    message.author,
+                    message.displayLabel,
                     style = MaterialTheme.typography.labelSmall,
                     color = textColor.copy(alpha = 0.7f)
                 )

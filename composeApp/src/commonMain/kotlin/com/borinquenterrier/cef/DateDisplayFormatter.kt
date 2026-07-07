@@ -10,6 +10,6 @@ import kotlinx.datetime.LocalDate
 object DateDisplayFormatter {
     fun format(date: LocalDate): String {
         val month = date.month.name.take(3).lowercase().replaceFirstChar { it.uppercase() }
-        return "$month ${date.dayOfMonth}, ${date.year}"
+        return "$month ${date.day}, ${date.year}"
     }
 }

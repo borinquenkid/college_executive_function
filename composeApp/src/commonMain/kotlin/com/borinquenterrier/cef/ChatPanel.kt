@@ -59,6 +59,7 @@ fun ChatPanel(
 ) {
     val selectedSource by appController.selectedSource.asStateFlow().collectAsState()
     val messages by appController.chatMessages.asStateFlow().collectAsState()
+    val currentConversationId by appController.currentConversationId.asStateFlow().collectAsState()
     val sourceItems by appController.sourceItems.asStateFlow().collectAsState()
     val contextAgent = appController.container.contextAgent
     val eventAgent = appController.container.eventAgent
@@ -140,7 +141,8 @@ fun ChatPanel(
                         ChatMessage.create(
                             userText,
                             ChatRole.USER,
-                            Clock.System.now().toEpochMilliseconds()
+                            Clock.System.now().toEpochMilliseconds(),
+                            currentConversationId
                         )
                     )
                     newMessage = ""
@@ -165,7 +167,8 @@ fun ChatPanel(
                             ChatMessage.create(
                                 aiResponse,
                                 ChatRole.AI,
-                                Clock.System.now().toEpochMilliseconds()
+                                Clock.System.now().toEpochMilliseconds(),
+                                currentConversationId
                             )
                         )
                     }

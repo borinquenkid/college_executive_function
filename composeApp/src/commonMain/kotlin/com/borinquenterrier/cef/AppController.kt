@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.take
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlin.time.Clock
 
 /**
  * Lightweight facade coordinating navigation, AI events, sources, and chat state.
@@ -34,6 +35,16 @@ class AppController(
     private val _chatMessagesWrapper: MutableStateFlowWrapper<List<ChatMessage>> =
         mutableStateFlowWrapper(listOf(ChatMessage.greeting()))
     val chatMessages: StateFlowReader<List<ChatMessage>> = _chatMessagesWrapper
+
+    // The conversation whose messages [chatMessages] currently reflects.
+    private val _currentConversationIdWrapper: MutableStateFlowWrapper<String> =
+        mutableStateFlowWrapper(ChatMessage.DEFAULT_CONVERSATION_ID)
+    val currentConversationId: StateFlowReader<String> = _currentConversationIdWrapper
+
+    // All persisted conversations, most-recently-updated first (drives the management drawer).
+    private val _conversationsWrapper: MutableStateFlowWrapper<List<Conversation>> =
+        mutableStateFlowWrapper(emptyList())
+    val conversations: StateFlowReader<List<Conversation>> = _conversationsWrapper
 
     // Listeners for platform-specific UI (like native iOS)
     private var screenListener: ((AppScreen) -> Unit)? = null
@@ -98,14 +109,107 @@ class AppController(
         }
     }
 
-    /** Reloads the active conversation's persisted messages, replacing the in-memory greeting. */
+    /**
+     * Hydrates the conversation list and the active conversation's messages on startup so chats
+     * survive app restart. Ensures a default conversation exists so the drawer is never empty.
+     */
     fun loadChatHistory() {
         scope.launch {
-            val persisted = runCatching {
-                chatRepository.getMessages(ChatMessage.DEFAULT_CONVERSATION_ID)
-            }.getOrDefault(emptyList())
-            if (persisted.isNotEmpty()) {
-                _chatMessagesWrapper.setValue(persisted)
+            runCatching {
+                chatRepository.ensureConversation(
+                    ChatMessage.DEFAULT_CONVERSATION_ID,
+                    Conversation.DEFAULT_CONVERSATION_TITLE
+                )
+                refreshConversations()
+                loadMessages(_currentConversationIdWrapper.value)
+            }
+        }
+    }
+
+    private suspend fun refreshConversations() {
+        _conversationsWrapper.setValue(chatRepository.getConversations())
+    }
+
+    /** Loads [conversationId]'s messages, falling back to the greeting empty-state when none exist. */
+    private suspend fun loadMessages(conversationId: String) {
+        val persisted = chatRepository.getMessages(conversationId)
+        _chatMessagesWrapper.setValue(
+            persisted.ifEmpty { listOf(ChatMessage.greeting(conversationId)) }
+        )
+    }
+
+    /** Creates a new empty conversation and switches to it. */
+    fun newConversation(createdAt: Long = Clock.System.now().toEpochMilliseconds()) {
+        scope.launch {
+            val conversation = Conversation.create(createdAt)
+            runCatching {
+                chatRepository.createConversation(conversation)
+                _currentConversationIdWrapper.setValue(conversation.id)
+                refreshConversations()
+                loadMessages(conversation.id)
+            }
+        }
+    }
+
+    /** Switches the active conversation and loads its messages. */
+    fun selectConversation(id: String) {
+        scope.launch {
+            _currentConversationIdWrapper.setValue(id)
+            runCatching { loadMessages(id) }
+        }
+    }
+
+    /** Renames a conversation; the drawer list refreshes to reflect the new title/order. */
+    fun renameConversation(
+        id: String,
+        title: String,
+        updatedAt: Long = Clock.System.now().toEpochMilliseconds()
+    ) {
+        scope.launch {
+            runCatching {
+                chatRepository.renameConversation(id, title, updatedAt)
+                refreshConversations()
+            }
+        }
+    }
+
+    /** Repins a conversation's source scope (per-chat "All" vs a single source). */
+    fun setConversationSourceScope(
+        id: String,
+        scope: ChatSourceScope,
+        updatedAt: Long = Clock.System.now().toEpochMilliseconds()
+    ) {
+        this.scope.launch {
+            runCatching {
+                chatRepository.setSourceScope(id, scope, updatedAt)
+                refreshConversations()
+            }
+        }
+    }
+
+    /**
+     * Deletes a conversation and its messages. When the active conversation is deleted, switches to
+     * the most-recent remaining one, recreating the default conversation if none remain.
+     */
+    fun deleteConversation(id: String) {
+        scope.launch {
+            runCatching {
+                chatRepository.deleteConversation(id)
+                refreshConversations()
+                if (_currentConversationIdWrapper.value != id) return@runCatching
+                val next = _conversationsWrapper.value.firstOrNull()
+                if (next != null) {
+                    _currentConversationIdWrapper.setValue(next.id)
+                    loadMessages(next.id)
+                } else {
+                    chatRepository.ensureConversation(
+                        ChatMessage.DEFAULT_CONVERSATION_ID,
+                        Conversation.DEFAULT_CONVERSATION_TITLE
+                    )
+                    refreshConversations()
+                    _currentConversationIdWrapper.setValue(ChatMessage.DEFAULT_CONVERSATION_ID)
+                    loadMessages(ChatMessage.DEFAULT_CONVERSATION_ID)
+                }
             }
         }
     }
@@ -205,8 +309,29 @@ class AppController(
         _chatMessagesWrapper.setValue(_chatMessagesWrapper.value + message)
         // Persist off the UI update; a write failure must never lose the on-screen message.
         scope.launch {
-            runCatching { chatRepository.saveMessage(message) }
+            runCatching {
+                chatRepository.saveMessage(message)
+                deriveTitleFromFirstUserMessage(message)
+                refreshConversations()
+            }
         }
+    }
+
+    /**
+     * Names a still-untitled conversation from its first user turn. Only fires while the title is a
+     * placeholder, so a user-chosen title is never overwritten.
+     */
+    private suspend fun deriveTitleFromFirstUserMessage(message: ChatMessage) {
+        if (message.role != ChatRole.USER) return
+        val conversation = chatRepository.getConversation(message.conversationId) ?: return
+        val isPlaceholder = conversation.title == Conversation.DEFAULT_TITLE ||
+            conversation.title == Conversation.DEFAULT_CONVERSATION_TITLE
+        if (!isPlaceholder) return
+        chatRepository.renameConversation(
+            message.conversationId,
+            ConversationTitle.fromFirstMessage(message.content),
+            message.createdAt
+        )
     }
 
     fun setScreenListener(listener: (AppScreen) -> Unit) {

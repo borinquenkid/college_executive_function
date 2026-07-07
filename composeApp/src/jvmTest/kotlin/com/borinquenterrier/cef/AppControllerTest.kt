@@ -227,6 +227,103 @@ class AppControllerTest : FunSpec({
         driver.close()
     }
 
+    // ── Conversation management (design 2.1, Phase 2) ───────────────────────────
+
+    test("newConversation creates a conversation, switches to it, and shows the greeting") {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        every { container.chatRepository } returns SqlDelightChatRepository(AppDatabase(driver))
+        val app = AppController(container)
+        delay(300)
+
+        app.newConversation(createdAt = 1_000L)
+        delay(300)
+
+        val created = Conversation.create(createdAt = 1_000L)
+        app.currentConversationId.value shouldBe created.id
+        app.conversations.value.any { it.id == created.id } shouldBe true
+        app.chatMessages.value.map { it.content } shouldBe listOf("Hello! How can I help you today?")
+        driver.close()
+    }
+
+    test("messages are isolated per conversation and reload on selectConversation") {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        every { container.chatRepository } returns SqlDelightChatRepository(AppDatabase(driver))
+        val app = AppController(container)
+        delay(300)
+
+        // Default conversation gets a message...
+        app.addChatMessage(ChatMessage.create("in default", ChatRole.USER, 1L, ChatMessage.DEFAULT_CONVERSATION_ID))
+        delay(300)
+
+        // ...a new conversation gets its own, distinct message.
+        app.newConversation(createdAt = 2_000L)
+        delay(300)
+        val secondId = app.currentConversationId.value
+        app.addChatMessage(ChatMessage.create("in second", ChatRole.USER, 2L, secondId))
+        delay(300)
+        app.chatMessages.value.any { it.content == "in default" } shouldBe false
+
+        // Switching back restores the default conversation's messages only.
+        app.selectConversation(ChatMessage.DEFAULT_CONVERSATION_ID)
+        delay(300)
+        app.chatMessages.value.any { it.content == "in default" } shouldBe true
+        app.chatMessages.value.any { it.content == "in second" } shouldBe false
+        driver.close()
+    }
+
+    test("addChatMessage derives the conversation title from the first user message") {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        every { container.chatRepository } returns SqlDelightChatRepository(AppDatabase(driver))
+        val app = AppController(container)
+        delay(300)
+
+        app.addChatMessage(
+            ChatMessage.create("When is the final exam?", ChatRole.USER, 1L, ChatMessage.DEFAULT_CONVERSATION_ID)
+        )
+        delay(300)
+
+        val default = app.conversations.value.first { it.id == ChatMessage.DEFAULT_CONVERSATION_ID }
+        default.title shouldBe "When is the final exam?"
+        driver.close()
+    }
+
+    test("deleteConversation removes it and falls back to the default conversation") {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        every { container.chatRepository } returns SqlDelightChatRepository(AppDatabase(driver))
+        val app = AppController(container)
+        delay(300)
+
+        app.newConversation(createdAt = 3_000L)
+        delay(300)
+        val doomed = app.currentConversationId.value
+
+        app.deleteConversation(doomed)
+        delay(300)
+
+        app.conversations.value.any { it.id == doomed } shouldBe false
+        app.currentConversationId.value shouldNotBe doomed
+        driver.close()
+    }
+
+    test("renameConversation updates the title in the conversations list") {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        every { container.chatRepository } returns SqlDelightChatRepository(AppDatabase(driver))
+        val app = AppController(container)
+        delay(300)
+
+        app.renameConversation(ChatMessage.DEFAULT_CONVERSATION_ID, "My renamed chat", updatedAt = 42L)
+        delay(300)
+
+        app.conversations.value.first { it.id == ChatMessage.DEFAULT_CONVERSATION_ID }
+            .title shouldBe "My renamed chat"
+        driver.close()
+    }
+
     // ── loadSources ───────────────────────────────────────────────────────────
 
     test("loadSources updates sourceItems with what the loader returns") {

@@ -42,5 +42,7 @@ Not affiliated with or endorsed by any college, university, or Google.
 
 - [x] App icon (hi-res 512×512) — `hires_icon_512x512.png`
 - [x] Feature graphic (1024×500) — `feature_graphic_1024x500.png`
-- [ ] Phone screenshots (min 2, recommend 4–8; 16:9 or 9:16, min 320px side) — pending emulator capture
-- [ ] 7" / 10" tablet screenshots (optional but recommended)
+- [x] Phone screenshots — 5 captured @ 1080×2400 (meets ≥4 / ≥1080px promotion-eligibility bar), gitignored under `screenshots/`:
+      `01_calendar` (deadline agenda + sync banner), `02_semester_plan` (AI-generated study steps),
+      `03_setup_connections`, `04_startup_checkin` (handle overdue items), `05_multisource_chat`
+- [ ] 7" / 10" tablet screenshots (optional; not required for phone promotion eligibility)

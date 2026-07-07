@@ -269,6 +269,21 @@ High CRAP scores indicate high risk of bugs. Per `AGENTS.md`, high-complexity fi
 
 ## 🆕 Planned Work & User-Reported Issues
 
+### 🔜 v2.1 — Chat History & Compaction ⏳ **SCOPED** (2026-07-06)
+"Managing the chat." Make the multi-source AI chat **persistent and context-safe**. Today chat is
+in-memory only (wiped on restart; no chat table) and context-naive (flat prompt, `takeLast(10)`,
+zero token accounting). Two halves:
+* **Chat history (customer):** multiple named conversations that survive restart, each with a
+  pinned source scope; new / rename / delete / switch.
+* **Compaction (model):** per-model context windows + a token budget + a **rolling summary** so
+  long chats stay in-window instead of dropping turns or erroring on size; plus oversized-request
+  recovery and `maxOutputTokens`.
+* **Full design + data model + phasing:** [docs/design-2.1-chat-history-and-compaction.md](docs/design-2.1-chat-history-and-compaction.md).
+* Also folds in the drop/withdrawal-deadline-as-`DEADLINE` thread (NormalizationService fix already
+  on `main`).
+
+---
+
 ### Phase 1 — Custom Google Calendar Selection UI ✅ **COMPLETED**
 Add ability to fetch available Google Calendars, save the selected calendar ID/name to preferences, and configure the synchronization pipeline to target the chosen calendar. This enables flexible desktop testing using specific test calendars instead of hardcoding target IDs.
 * **Status**: ✅ Completed

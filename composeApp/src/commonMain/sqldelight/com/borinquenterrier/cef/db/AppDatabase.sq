@@ -177,6 +177,12 @@ SELECT * FROM ConversationEntity WHERE id = ?;
 selectAllConversations:
 SELECT * FROM ConversationEntity ORDER BY updatedAt DESC;
 
+updateConversationTitle:
+UPDATE ConversationEntity SET title = ?, updatedAt = ? WHERE id = ?;
+
+updateConversationScope:
+UPDATE ConversationEntity SET sourceScope = ?, updatedAt = ? WHERE id = ?;
+
 deleteConversation:
 DELETE FROM ConversationEntity WHERE id = ?;
 

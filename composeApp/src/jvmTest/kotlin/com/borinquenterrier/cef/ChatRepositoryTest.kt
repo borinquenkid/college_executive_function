@@ -76,4 +76,61 @@ class ChatRepositoryTest : FunSpec({
 
         repository.getMessages(convId) shouldBe emptyList()
     }
+
+    // --- Conversation management (design 2.1, Part A / Phase 2) ---
+
+    test("createConversation then getConversation returns it intact") {
+        val conversation = Conversation.create(createdAt = 10L, title = "Aid")
+
+        repository.createConversation(conversation)
+
+        repository.getConversation(conversation.id) shouldBe conversation
+    }
+
+    test("getConversations orders by updatedAt descending") {
+        val older = Conversation.create(createdAt = 100L, title = "older")
+        val newer = Conversation.create(createdAt = 200L, title = "newer")
+
+        repository.createConversation(older)
+        repository.createConversation(newer)
+
+        repository.getConversations().map { it.title } shouldBe listOf("newer", "older")
+    }
+
+    test("renameConversation updates the title and bumps updatedAt") {
+        val conversation = Conversation.create(createdAt = 10L, title = "old")
+        repository.createConversation(conversation)
+
+        repository.renameConversation(conversation.id, "new", updatedAt = 500L)
+
+        val reloaded = repository.getConversation(conversation.id).shouldNotBeNull()
+        reloaded.title shouldBe "new"
+        reloaded.updatedAt shouldBe 500L
+    }
+
+    test("setSourceScope repins the conversation and survives reload") {
+        val conversation = Conversation.create(createdAt = 10L, title = "pin me")
+        repository.createConversation(conversation)
+
+        repository.setSourceScope(conversation.id, ChatSourceScope.Source("s7"), updatedAt = 600L)
+
+        val reloaded = repository.getConversation(conversation.id).shouldNotBeNull()
+        reloaded.sourceScope shouldBe ChatSourceScope.Source("s7")
+        reloaded.updatedAt shouldBe 600L
+    }
+
+    test("deleteConversation removes the conversation and its messages") {
+        val conversation = Conversation.create(createdAt = 10L, title = "doomed")
+        repository.createConversation(conversation)
+        repository.saveMessage(ChatMessage.create("hi", ChatRole.USER, 1L, conversation.id))
+
+        repository.deleteConversation(conversation.id)
+
+        repository.getConversation(conversation.id) shouldBe null
+        repository.getMessages(conversation.id) shouldBe emptyList()
+    }
+
+    test("getConversation returns null for an unknown id") {
+        repository.getConversation("nope") shouldBe null
+    }
 })

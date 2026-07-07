@@ -33,6 +33,58 @@ class SqlDelightChatRepository(
             Unit
         }
 
+    override suspend fun getConversations(): List<Conversation> =
+        withContext(dispatcher) {
+            queries.selectAllConversations()
+                .executeAsList()
+                .map(ConversationMapper::toDomain)
+        }
+
+    override suspend fun getConversation(id: String): Conversation? =
+        withContext(dispatcher) {
+            queries.selectConversationById(id)
+                .executeAsOneOrNull()
+                ?.let(ConversationMapper::toDomain)
+        }
+
+    override suspend fun createConversation(conversation: Conversation) =
+        withContext(dispatcher) {
+            val entity = ConversationMapper.toEntity(conversation)
+            queries.insertConversation(
+                id = entity.id,
+                title = entity.title,
+                createdAt = entity.createdAt,
+                updatedAt = entity.updatedAt,
+                sourceScope = entity.sourceScope,
+                summary = entity.summary
+            )
+            Unit
+        }
+
+    override suspend fun renameConversation(id: String, title: String, updatedAt: Long) =
+        withContext(dispatcher) {
+            queries.updateConversationTitle(title = title, updatedAt = updatedAt, id = id)
+            Unit
+        }
+
+    override suspend fun setSourceScope(id: String, scope: ChatSourceScope, updatedAt: Long) =
+        withContext(dispatcher) {
+            queries.updateConversationScope(
+                sourceScope = scope.serialize(),
+                updatedAt = updatedAt,
+                id = id
+            )
+            Unit
+        }
+
+    override suspend fun deleteConversation(id: String) =
+        withContext(dispatcher) {
+            // Delete children first — ChatMessageEntity has a FK to ConversationEntity.
+            queries.deleteMessagesByConversation(id)
+            queries.deleteConversation(id)
+            Unit
+        }
+
     override suspend fun getMessages(conversationId: String): List<ChatMessage> =
         withContext(dispatcher) {
             queries.selectMessagesByConversation(conversationId)
@@ -61,6 +113,6 @@ class SqlDelightChatRepository(
     }
 
     private companion object {
-        const val DEFAULT_TITLE = "Chat"
+        val DEFAULT_TITLE = Conversation.DEFAULT_CONVERSATION_TITLE
     }
 }

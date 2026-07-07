@@ -32,6 +32,9 @@ data class ChatMessage(
     companion object {
         const val DEFAULT_CONVERSATION_ID = "default"
 
+        /** Id of the non-persisted greeting placeholder shown as a conversation's empty state. */
+        const val GREETING_ID = "greeting"
+
         /** Builds a message with a deterministic, content-derived id. */
         fun create(
             content: String,
@@ -48,7 +51,7 @@ data class ChatMessage(
 
         /** In-memory greeting shown as the empty state of a fresh conversation; never persisted. */
         fun greeting(conversationId: String = DEFAULT_CONVERSATION_ID): ChatMessage = ChatMessage(
-            id = "greeting",
+            id = GREETING_ID,
             conversationId = conversationId,
             role = ChatRole.AI,
             content = "Hello! How can I help you today?",

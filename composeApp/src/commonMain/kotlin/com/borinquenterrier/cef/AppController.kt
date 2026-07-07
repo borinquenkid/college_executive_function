@@ -306,7 +306,10 @@ class AppController(
     }
 
     fun addChatMessage(message: ChatMessage) {
-        _chatMessagesWrapper.setValue(_chatMessagesWrapper.value + message)
+        // The greeting is a non-persisted empty-state; drop it once a real turn arrives so it never
+        // lingers above the conversation or gets confused for history.
+        val base = _chatMessagesWrapper.value.filterNot { it.id == ChatMessage.GREETING_ID }
+        _chatMessagesWrapper.setValue(base + message)
         // Persist off the UI update; a write failure must never lose the on-screen message.
         scope.launch {
             runCatching {

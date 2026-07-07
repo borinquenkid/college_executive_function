@@ -73,9 +73,12 @@ fun UniversalHomeLayout(container: DependencyContainer) {
     val appController = container.appController
     val sourceItems by appController.sourceItems.asStateFlow().collectAsState()
     val selectedSource by appController.selectedSource.asStateFlow().collectAsState()
+    val conversations by appController.conversations.asStateFlow().collectAsState()
+    val currentConversationId by appController.currentConversationId.asStateFlow().collectAsState()
 
     var showSources by remember { mutableStateOf(false) }
     var showStudio by remember { mutableStateOf(false) }
+    var showConversations by remember { mutableStateOf(false) }
 
     val scope = rememberCoroutineScope()
     val preferences by container.preferencesFlow.collectAsState()
@@ -116,12 +119,44 @@ fun UniversalHomeLayout(container: DependencyContainer) {
         // This is always the foundation. It fills the screen and is never squished.
         ChatPanel(
             modifier = Modifier.fillMaxSize(),
-            appController = appController
+            appController = appController,
+            onOpenConversations = {
+                showConversations = true; showSources = false; showStudio = false
+            }
         )
 
         // --- LAYER 3: ADAPTIVE OVERLAY DRAWERS ---
         if (isDesktop) {
             // Desktop: slide-in side panels
+            androidx.compose.animation.AnimatedVisibility(
+                visible = showConversations,
+                enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
+                exit = slideOutHorizontally(targetOffsetX = { -it }) + fadeOut(),
+                modifier = Modifier.align(Alignment.CenterStart)
+            ) {
+                Surface(
+                    modifier = Modifier.fillMaxHeight().width(320.dp).shadow(16.dp)
+                        .testTag("conversations_drawer"),
+                    color = MaterialTheme.colorScheme.surface,
+                    border = BorderStroke(1.dp, MaterialTheme.colorScheme.outlineVariant)
+                ) {
+                    Box {
+                        ConversationsPanel(
+                            conversations = conversations,
+                            currentConversationId = currentConversationId,
+                            onSelect = { appController.selectConversation(it); showConversations = false },
+                            onNew = { appController.newConversation(); showConversations = false },
+                            onRename = { id, title -> appController.renameConversation(id, title) },
+                            onDelete = { appController.deleteConversation(it) }
+                        )
+                        IconButton(
+                            onClick = { showConversations = false },
+                            modifier = Modifier.align(Alignment.TopEnd).padding(8.dp)
+                        ) { Icon(Icons.Default.Close, null) }
+                    }
+                }
+            }
+
             androidx.compose.animation.AnimatedVisibility(
                 visible = showSources,
                 enter = slideInHorizontally(initialOffsetX = { -it }) + fadeIn(),
@@ -185,6 +220,23 @@ fun UniversalHomeLayout(container: DependencyContainer) {
             }
         } else {
             // Mobile: full-width modal bottom sheets
+            if (showConversations) {
+                ModalBottomSheet(
+                    onDismissRequest = { showConversations = false },
+                    sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true),
+                    modifier = Modifier.testTag("conversations_drawer")
+                ) {
+                    ConversationsPanel(
+                        conversations = conversations,
+                        currentConversationId = currentConversationId,
+                        onSelect = { appController.selectConversation(it); showConversations = false },
+                        onNew = { appController.newConversation(); showConversations = false },
+                        onRename = { id, title -> appController.renameConversation(id, title) },
+                        onDelete = { appController.deleteConversation(it) }
+                    )
+                }
+            }
+
             if (showSources) {
                 ModalBottomSheet(
                     onDismissRequest = { showSources = false },
@@ -235,7 +287,7 @@ fun UniversalHomeLayout(container: DependencyContainer) {
             contentAlignment = Alignment.Center
         ) {
             FloatingActionButton(
-                onClick = { showSources = !showSources; if (showSources) showStudio = false },
+                onClick = { showSources = !showSources; if (showSources) { showStudio = false; showConversations = false } },
                 containerColor = MaterialTheme.colorScheme.secondaryContainer,
                 modifier = Modifier.size(48.dp).testTag("sources_toggle_button")
             ) {
@@ -253,7 +305,7 @@ fun UniversalHomeLayout(container: DependencyContainer) {
         ) {
             StudioFab(
                 isOpen = showStudio,
-                onClick = { showStudio = !showStudio; if (showStudio) showSources = false }
+                onClick = { showStudio = !showStudio; if (showStudio) { showSources = false; showConversations = false } }
             )
         }
     }

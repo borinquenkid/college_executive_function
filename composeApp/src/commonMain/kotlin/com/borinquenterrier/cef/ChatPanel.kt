@@ -20,7 +20,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.BasicTextField
 import androidx.compose.foundation.text.selection.SelectionContainer
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.ContentCopy
+import androidx.compose.material.icons.filled.Menu
 import androidx.compose.material.icons.filled.Send
 import androidx.compose.material3.FilterChip
 import androidx.compose.material3.Icon
@@ -46,6 +48,7 @@ import androidx.compose.ui.input.key.type
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.platform.testTag
 import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import kotlinx.coroutines.launch
 import kotlin.time.Clock
@@ -55,11 +58,18 @@ import kotlinx.datetime.todayIn
 @Composable
 fun ChatPanel(
     modifier: Modifier = Modifier,
-    appController: AppController
+    appController: AppController,
+    onOpenConversations: () -> Unit = {}
 ) {
     val selectedSource by appController.selectedSource.asStateFlow().collectAsState()
     val messages by appController.chatMessages.asStateFlow().collectAsState()
     val currentConversationId by appController.currentConversationId.asStateFlow().collectAsState()
+    val conversations by appController.conversations.asStateFlow().collectAsState()
+    val currentConversation = conversations.firstOrNull { it.id == currentConversationId }
+    val currentTitle = currentConversation?.title ?: Conversation.DEFAULT_CONVERSATION_TITLE
+    // Scope now comes from the conversation's persisted pin, not throw-away local state:
+    // "All" (or an unknown/legacy scope) reasons across every source; a single-source pin does not.
+    val useAllSources = currentConversation?.sourceScope !is ChatSourceScope.Source
     val sourceItems by appController.sourceItems.asStateFlow().collectAsState()
     val contextAgent = appController.container.contextAgent
     val eventAgent = appController.container.eventAgent
@@ -73,9 +83,6 @@ fun ChatPanel(
     LaunchedEffect(Unit) { eventAgent.loadPersistedWarnings() }
 
     var newMessage by remember { mutableStateOf("") }
-    // true  = reason across every loaded source (multi-source mode)
-    // false = scope to the currently selected source only
-    var useAllSources by remember { mutableStateOf(true) }
     val coroutineScope = rememberCoroutineScope()
 
     Column(
@@ -84,6 +91,34 @@ fun ChatPanel(
             .padding(8.dp)
             .border(1.dp, MaterialTheme.colorScheme.outline)
     ) {
+        // ── Top bar: conversation controls ────────────────────────────────
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(horizontal = 4.dp, vertical = 2.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            IconButton(
+                onClick = onOpenConversations,
+                modifier = Modifier.testTag("conversations_open_button")
+            ) {
+                Icon(Icons.Default.Menu, contentDescription = "Conversations")
+            }
+            Text(
+                currentTitle,
+                style = MaterialTheme.typography.titleSmall,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis,
+                modifier = Modifier.weight(1f).padding(horizontal = 4.dp)
+            )
+            IconButton(
+                onClick = { appController.newConversation() },
+                modifier = Modifier.testTag("new_conversation_button")
+            ) {
+                Icon(Icons.Default.Add, contentDescription = "New chat")
+            }
+        }
+
         // ── Scope selector ────────────────────────────────────────────────
         Row(
             modifier = Modifier
@@ -94,7 +129,9 @@ fun ChatPanel(
         ) {
             FilterChip(
                 selected = useAllSources,
-                onClick = { useAllSources = true },
+                onClick = {
+                    appController.setConversationSourceScope(currentConversationId, ChatSourceScope.All)
+                },
                 label = {
                     Text(
                         "All Sources (${sourceItems.size})",
@@ -103,11 +140,16 @@ fun ChatPanel(
                 },
                 modifier = Modifier.height(32.dp)
             )
-            if (selectedSource != null) {
-                val chipLabel = ChatInputPresenter.chipLabel(selectedSource!!.title)
+            selectedSource?.let { source ->
+                val chipLabel = ChatInputPresenter.chipLabel(source.title)
                 FilterChip(
                     selected = !useAllSources,
-                    onClick = { useAllSources = false },
+                    onClick = {
+                        appController.setConversationSourceScope(
+                            currentConversationId,
+                            ChatSourceScope.Source(source.title)
+                        )
+                    },
                     label = {
                         Text(chipLabel, style = MaterialTheme.typography.labelSmall)
                     },

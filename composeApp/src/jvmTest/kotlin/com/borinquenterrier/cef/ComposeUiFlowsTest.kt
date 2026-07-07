@@ -137,10 +137,11 @@ class ComposeUiFlowsTest {
             appController.chatMessages.value.any { it.role == ChatRole.AI && it.content == "This is the mocked response" }
         }
 
-        // Verify the response is visible/added
-        appController.chatMessages.value.size shouldBe 3 // Initial, User message, AI message
-        appController.chatMessages.value[1].content shouldBe "Hello AI"
-        appController.chatMessages.value[2].content shouldBe "This is the mocked response"
+        // Verify the response is visible/added. The greeting is a non-persisted empty-state, so the
+        // first real turn replaces it: the list holds just the user turn + the AI reply.
+        appController.chatMessages.value.size shouldBe 2
+        appController.chatMessages.value[0].content shouldBe "Hello AI"
+        appController.chatMessages.value[1].content shouldBe "This is the mocked response"
     }
 
     @Test

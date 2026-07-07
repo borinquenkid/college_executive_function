@@ -200,11 +200,10 @@ class AppControllerTest : FunSpec({
 
     // ── Chat ──────────────────────────────────────────────────────────────────
 
-    test("addChatMessage appends to chatMessages") {
-        val initialCount = controller.chatMessages.value.size
+    test("addChatMessage replaces the greeting empty-state with the first real message") {
         controller.addChatMessage(ChatMessage.create("Hello!", ChatRole.USER, 1L))
-        controller.chatMessages.value.size shouldBe initialCount + 1
         controller.chatMessages.value.last().content shouldBe "Hello!"
+        controller.chatMessages.value.none { it.id == ChatMessage.GREETING_ID } shouldBe true
     }
 
     test("chat history is persisted and restored on init (survives restart)") {

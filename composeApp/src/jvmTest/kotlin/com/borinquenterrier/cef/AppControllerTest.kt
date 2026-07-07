@@ -21,6 +21,8 @@ import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 import kotlinx.coroutines.GlobalScope
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.borinquenterrier.cef.db.AppDatabase
 
 class AppControllerTest : FunSpec({
 
@@ -203,6 +205,26 @@ class AppControllerTest : FunSpec({
         controller.addChatMessage(ChatMessage.create("Hello!", ChatRole.USER, 1L))
         controller.chatMessages.value.size shouldBe initialCount + 1
         controller.chatMessages.value.last().content shouldBe "Hello!"
+    }
+
+    test("chat history is persisted and restored on init (survives restart)") {
+        // Back the container with a real chat repository over an in-memory DB.
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        val db = AppDatabase(driver)
+        every { container.chatRepository } returns SqlDelightChatRepository(db)
+
+        // One controller sends a message (which persists it)...
+        val sender = AppController(container)
+        sender.addChatMessage(ChatMessage.create("remember me", ChatRole.USER, 100L))
+        delay(300)
+
+        // ...a fresh controller repopulates it from the DB on init alone.
+        val restarted = AppController(container)
+        delay(300)
+
+        restarted.chatMessages.value.any { it.content == "remember me" } shouldBe true
+        driver.close()
     }
 
     // ── loadSources ───────────────────────────────────────────────────────────

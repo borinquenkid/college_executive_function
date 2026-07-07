@@ -27,6 +27,7 @@ class AppController(
     private val navigationService = AppNavigationService()
     private val eventsService = AiEventsService()
     private val sourceManager = container.sourceManager
+    private val chatRepository = container.chatRepository
 
     // Chat State - wrapped for testability. Seeded with the in-memory greeting (never persisted);
     // replaced by persisted history on init if any exists.
@@ -81,6 +82,9 @@ class AppController(
         // fragments) came up empty after every restart. Loading is a pure DB read — it does NOT
         // re-trigger processing, which stays once-per-source via the analysis cache.
         loadSources()
+        // Restore persisted chat history so conversations survive app restart. The greeting seed
+        // stays only when there is no saved history (an empty DB read is a no-op).
+        loadChatHistory()
         // Startup integrity check: surface any out-of-term drift for review (read-only; the safe
         // drift is auto-corrected by self-heal on the next sync). Never fatal.
         scope.launch {
@@ -91,6 +95,18 @@ class AppController(
     fun loadSources() {
         scope.launch {
             sourceManager.loadSources()
+        }
+    }
+
+    /** Reloads the active conversation's persisted messages, replacing the in-memory greeting. */
+    fun loadChatHistory() {
+        scope.launch {
+            val persisted = runCatching {
+                chatRepository.getMessages(ChatMessage.DEFAULT_CONVERSATION_ID)
+            }.getOrDefault(emptyList())
+            if (persisted.isNotEmpty()) {
+                _chatMessagesWrapper.setValue(persisted)
+            }
         }
     }
 
@@ -187,6 +203,10 @@ class AppController(
 
     fun addChatMessage(message: ChatMessage) {
         _chatMessagesWrapper.setValue(_chatMessagesWrapper.value + message)
+        // Persist off the UI update; a write failure must never lose the on-screen message.
+        scope.launch {
+            runCatching { chatRepository.saveMessage(message) }
+        }
     }
 
     fun setScreenListener(listener: (AppScreen) -> Unit) {

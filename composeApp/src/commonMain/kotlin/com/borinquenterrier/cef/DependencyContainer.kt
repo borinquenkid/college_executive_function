@@ -113,6 +113,7 @@ class DependencyContainer(
         )
     }
     val sourceRepository by lazy { SqlDelightSourceRepository(database) }
+    val chatRepository by lazy { SqlDelightChatRepository(database) }
     val analysisCacheRepository by lazy { SqlDelightAnalysisCacheRepository(database) }
     val ingestionAgent by lazy {
         IngestionAgent(

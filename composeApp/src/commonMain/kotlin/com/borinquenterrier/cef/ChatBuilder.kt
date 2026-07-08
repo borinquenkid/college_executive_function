@@ -8,6 +8,47 @@ object ChatBuilder {
 
     internal const val MAX_CHARS_PER_SOURCE = 6_000
     private const val MAX_HISTORY_TURNS = 10
+    private val PARAGRAPH_SPLIT = Regex("""\n\s*\n""")
+    private val SENTENCE_SPLIT = Regex("""(?<=[.!?])\s+""")
+
+    /** Splits into paragraphs when the text has any; falls back to sentences for single-block text. */
+    private fun chunksFor(text: String): List<String> {
+        val paragraphs = text.split(PARAGRAPH_SPLIT).map { it.trim() }.filter { it.isNotEmpty() }
+        val chunks = if (paragraphs.size > 1) paragraphs
+            else text.split(SENTENCE_SPLIT).map { it.trim() }.filter { it.isNotEmpty() }
+        return chunks.ifEmpty { listOf(text) }
+    }
+
+    /**
+     * When [fragmentText] fits under [MAX_CHARS_PER_SOURCE], returns it unchanged. Otherwise ranks
+     * its paragraphs/sentences against [question] with [Bm25Ranker] and keeps the most relevant
+     * ones — reassembled in original document order — up to the budget, instead of blindly cutting
+     * off whatever happened to be first. Falls back to a plain prefix cut when nothing scores above
+     * zero (e.g. the question shares no terms with the source at all), so behavior never gets worse
+     * than the old naive truncation.
+     */
+    private fun selectRelevantContent(fragmentText: String, question: String): String {
+        if (fragmentText.length <= MAX_CHARS_PER_SOURCE) return fragmentText
+
+        val chunks = chunksFor(fragmentText)
+        val ranked = Bm25Ranker.rank(question, chunks)
+        if (chunks.size <= 1 || ranked.none { it.score > 0.0 }) {
+            return fragmentText.take(MAX_CHARS_PER_SOURCE) + "\n… [content truncated]"
+        }
+
+        val selected = mutableSetOf<Int>()
+        var length = 0
+        for (r in ranked) {
+            val chunkLength = chunks[r.index].length + 2 // account for the "\n\n" join below
+            if (length + chunkLength > MAX_CHARS_PER_SOURCE && selected.isNotEmpty()) continue
+            selected += r.index
+            length += chunkLength
+            if (length >= MAX_CHARS_PER_SOURCE) break
+        }
+
+        return selected.sorted().joinToString("\n\n") { chunks[it] } +
+            "\n… [content truncated] (showing sections most relevant to the question)"
+    }
 
     fun getMultiSourceChatPrompt(
         sourceBlocks: List<SourceContextBlock>,
@@ -32,9 +73,7 @@ object ChatBuilder {
                         appendLine(block.metadata)
                         appendLine()
                     }
-                    val content = if (block.fragmentText.length > MAX_CHARS_PER_SOURCE)
-                        block.fragmentText.take(MAX_CHARS_PER_SOURCE) + "\n… [content truncated]"
-                    else block.fragmentText
+                    val content = selectRelevantContent(block.fragmentText, question)
                     appendLine("**Content:**")
                     append(content)
                 }

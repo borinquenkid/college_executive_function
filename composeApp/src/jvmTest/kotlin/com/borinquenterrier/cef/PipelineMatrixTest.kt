@@ -324,10 +324,12 @@ class PipelineMatrixTest : FunSpec({
                 expectedStatusContains = "Select a source"
             ),
             PushFilterCase(
-                "all past events → status set to 'No future events', events cleared",
+                // Per the Confabulation Gate mandate (AGENTS.md), pushToCalendar must not filter
+                // by today's date — a past-dated, correctly-grounded deliverable still gets pushed.
+                "all past events → still pushed successfully, events cleared",
                 listOf(day("Old Exam", LocalDate(2020, 1, 1))),
                 expectedEventsCleared = true,
-                expectedStatusContains = "No future events"
+                expectedStatusContains = "Success"
             ),
             PushFilterCase(
                 "all future events → push succeeds, events cleared",

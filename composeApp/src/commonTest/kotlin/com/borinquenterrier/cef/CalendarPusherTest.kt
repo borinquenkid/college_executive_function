@@ -7,26 +7,13 @@ import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.mockk.coEvery
 import io.mockk.mockk
-import kotlin.time.Clock
-import kotlin.time.Instant
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.atStartOfDayIn
 
 class CalendarPusherTest : FunSpec({
 
-    val today = LocalDate(2026, 8, 1)
     val tomorrow = LocalDate(2026, 8, 2)
     val yesterday = LocalDate(2026, 7, 31)
-
-    // Noon UTC on today so todayIn(any timezone) resolves to `today`
-    val fixedClock = object : Clock {
-        override fun now(): Instant =
-            Instant.fromEpochMilliseconds(
-                today.atStartOfDayIn(TimeZone.UTC).toEpochMilliseconds() + 12 * 3600_000L
-            )
-    }
 
     fun dayEvent(title: String, date: LocalDate, cat: AcademicCategory = AcademicCategory.DEADLINE) =
         DayEvent(title = title, source = EventSource.AI_GENERATED, category = cat, date = date)
@@ -49,7 +36,6 @@ class CalendarPusherTest : FunSpec({
         pushResolver = pushResolver,
         repository = repository,
         logger = null,
-        clock = fixedClock,
         onIsLoading = onIsLoading,
         onStatus = onStatus,
         onGeneratedEvents = onGeneratedEvents,
@@ -66,17 +52,22 @@ class CalendarPusherTest : FunSpec({
         loadingCalled shouldBe false
     }
 
-    test("all past events clears generated events and returns empty") {
+    test("past-dated events are still pushed, not skipped") {
+        val repo = mockk<CalendarAgent>(relaxed = true)
+        val resolver = mockk<CalendarPushResolver>(relaxed = true)
+        coEvery { repo.getEvents("default") } returns emptyList()
+        coEvery { resolver.resolveAndPush(any(), any(), any()) } returns
+            PushOutcome(successCount = 1, conflicts = emptyList())
+
         val statuses = mutableListOf<String>()
-        val generated = mutableListOf<List<Event>>()
         val result = makePusher(
-            onStatus = { statuses += it },
-            onGeneratedEvents = { generated += listOf(it) }
+            pushResolver = resolver, repository = repo,
+            onStatus = { statuses += it }
         ).push(listOf(dayEvent("Past", yesterday)), "default")
 
         result.shouldBeEmpty()
-        statuses.last() shouldContain "past events skipped"
-        generated.last().shouldBeEmpty()
+        statuses.last() shouldContain "Success"
+        io.mockk.coVerify { resolver.resolveAndPush(match { it.any { e -> e.title == "Past" } }, any(), any()) }
     }
 
     // ── Success path ──────────────────────────────────────────────────────────
@@ -205,14 +196,14 @@ class CalendarPusherTest : FunSpec({
         states.last() shouldBe false
     }
 
-    // ── Skipped-count note ────────────────────────────────────────────────────
+    // ── Mixed past/future batches ─────────────────────────────────────────────
 
-    test("skipped note included in status when past and future events are mixed") {
+    test("a mix of past and future events are all pushed together") {
         val repo = mockk<CalendarAgent>(relaxed = true)
         val resolver = mockk<CalendarPushResolver>(relaxed = true)
         coEvery { repo.getEvents("default") } returns emptyList()
         coEvery { resolver.resolveAndPush(any(), any(), any()) } returns
-            PushOutcome(successCount = 1, conflicts = emptyList())
+            PushOutcome(successCount = 2, conflicts = emptyList())
 
         val statuses = mutableListOf<String>()
         makePusher(
@@ -220,6 +211,9 @@ class CalendarPusherTest : FunSpec({
             onStatus = { statuses += it }
         ).push(listOf(dayEvent("Past", yesterday), dayEvent("Future", tomorrow)), "default")
 
-        statuses.last() shouldContain "past events skipped"
+        statuses.last() shouldContain "All 2 events pushed"
+        io.mockk.coVerify {
+            resolver.resolveAndPush(match { it.size == 2 }, any(), any())
+        }
     }
 })

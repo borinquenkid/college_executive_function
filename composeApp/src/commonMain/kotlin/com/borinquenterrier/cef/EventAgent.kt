@@ -64,7 +64,6 @@ class EventAgent(
         pushResolver = pushResolver,
         repository = repository,
         logger = logger,
-        clock = clock,
         onIsLoading = { _isLoading.value = it },
         onStatus = { _statusMessage.value = it },
         onGeneratedEvents = { _lastGeneratedEvents.value = it },

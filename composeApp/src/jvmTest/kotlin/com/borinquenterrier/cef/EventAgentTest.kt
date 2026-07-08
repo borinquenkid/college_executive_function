@@ -435,7 +435,7 @@ class HeadlessLogicTest : FunSpec({
         eventAgent.statusMessage.value shouldBe "Sync Error: Database failure"
     }
 
-    test("EventAgent pushToCalendar filters out past events and only pushes future ones") {
+    test("EventAgent pushToCalendar pushes past-dated events too, not just future ones") {
         val mockCalendarAgent = mockk<CalendarAgent>()
         val eventAgent = EventAgent(
             mockk(),
@@ -469,11 +469,14 @@ class HeadlessLogicTest : FunSpec({
 
         eventAgent.pushToCalendar()
 
-        coVerify(exactly = 0) { mockCalendarAgent.saveEvent(match { it.title == "Past Deadline" }, any()) }
+        // Per the Confabulation Gate mandate (AGENTS.md), a correctly-grounded past-dated
+        // deliverable (e.g. an Issue Brief due earlier this semester) must still reach the
+        // calendar — pushToCalendar must not silently drop it just because it predates "today".
+        coVerify(exactly = 1) { mockCalendarAgent.saveEvent(match { it.title == "Past Deadline" }, any()) }
         coVerify(exactly = 1) { mockCalendarAgent.saveEvent(match { it.title == "Future Exam" }, any()) }
     }
 
-    test("EventAgent pushToCalendar with only past events returns empty list and sets skip status") {
+    test("EventAgent pushToCalendar pushes even when all generated events are past-dated") {
         val mockCalendarAgent = mockk<CalendarAgent>()
         val eventAgent = EventAgent(
             mockk(),
@@ -502,48 +505,13 @@ class HeadlessLogicTest : FunSpec({
         (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
             listOf(pastEvent1, pastEvent2)
 
-        val result = eventAgent.pushToCalendar()
-
-        result shouldBe emptyList()
-        eventAgent.statusMessage.value shouldBe "No future events to sync (2 past events skipped)."
-        coVerify(exactly = 0) { mockCalendarAgent.saveEvent(any(), any()) }
-    }
-
-    test("EventAgent pushToCalendar status message includes skipped count when mix of past and future") {
-        val mockCalendarAgent = mockk<CalendarAgent>()
-        val eventAgent = EventAgent(
-            mockk(),
-            mockCalendarAgent,
-            null,
-            NormalizationService(),
-            logger = Logger(MapSettings()),
-            clock = fixedClock(LocalDate(2026, 6, 17))
-        )
-
-        val pastEvent = DayEvent(
-            title = "Past Event",
-            source = EventSource.AI_GENERATED,
-            category = AcademicCategory.DEADLINE,
-            date = LocalDate(2026, 1, 1)
-        )
-        val futureEvent = DayEvent(
-            title = "Future Event",
-            source = EventSource.AI_GENERATED,
-            category = AcademicCategory.DEADLINE,
-            date = LocalDate(2027, 6, 1)
-        )
-
-        val lastGeneratedProp = eventAgent::class.java.getDeclaredField("_lastGeneratedEvents")
-        lastGeneratedProp.isAccessible = true
-        (lastGeneratedProp.get(eventAgent) as kotlinx.coroutines.flow.MutableStateFlow<List<Event>>).value =
-            listOf(pastEvent, futureEvent)
-
         coEvery { mockCalendarAgent.getEvents(any()) } returns emptyList()
         coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
 
         eventAgent.pushToCalendar()
 
-        eventAgent.statusMessage.value.contains("1 past events skipped") shouldBe true
+        coVerify(exactly = 1) { mockCalendarAgent.saveEvent(match { it.title == "Old Midterm" }, any()) }
+        coVerify(exactly = 1) { mockCalendarAgent.saveEvent(match { it.title == "Old Final" }, any()) }
     }
 
     test("EventAgent operations should handle exceptions gracefully") {

@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import kotlin.time.Clock
+
 /**
  * Compares Local and Remote calendar state and compiles a [SyncNegotiation] proposal,
  * including pushing pending local changes to Remote and resolving Study Block collisions
@@ -10,7 +12,9 @@ class SyncNegotiator(
     private val remoteRepo: RemoteCalendarRepository,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
     private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
-    private val logger: Logger? = null
+    private val logger: Logger? = null,
+    private val clock: Clock = Clock.System,
+    private val deletionGracePeriodMs: Long = DELETE_GRACE_PERIOD_MS
 ) {
     private val tag = "SyncNegotiator"
     private val studyBlockShiftResolver =
@@ -102,14 +106,28 @@ class SyncNegotiator(
         }
     }
 
+    /**
+     * A locally-SYNCED event absent from the remote list is only treated as remote-deleted once
+     * it's older than [deletionGracePeriodMs]. Google Calendar's list endpoint isn't guaranteed to
+     * reflect a just-created event on the very next call — without this grace period, a sync that
+     * races a just-pushed event (e.g. the background harness poll running right after ingesting a
+     * new source) misreads that lag as a remote deletion and hard-deletes it locally.
+     */
     private fun findDeletedLocalIds(
         localEvents: List<Event>,
         remoteEvents: List<Event>
     ): List<String> {
+        val now = clock.now().toEpochMilliseconds()
         return localEvents
             .filter { it.syncStatus == SyncStatus.SYNCED }
+            .filter { now - it.updatedAt >= deletionGracePeriodMs }
             .filter { local -> remoteEvents.none { it.id == local.id } }
             .mapNotNull { it.id }
+    }
+
+    companion object {
+        /** 5 minutes — comfortably longer than Google Calendar's observed read-after-write lag. */
+        const val DELETE_GRACE_PERIOD_MS = 5 * 60 * 1000L
     }
 
     private fun buildProposedBaseCalendar(

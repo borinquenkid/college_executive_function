@@ -1,9 +1,5 @@
 package com.borinquenterrier.cef
 
-import kotlin.time.Clock
-import kotlinx.datetime.TimeZone
-import kotlinx.datetime.todayIn
-
 /**
  * Executes the calendar push logic for a batch of events extracted by [EventAgent].
  *
@@ -14,7 +10,6 @@ internal class CalendarPusher(
     private val pushResolver: CalendarPushResolver,
     private val repository: CalendarAgent,
     private val logger: Logger?,
-    private val clock: Clock = Clock.System,
     private val onIsLoading: (Boolean) -> Unit,
     private val onStatus: (String) -> Unit,
     private val onGeneratedEvents: (List<Event>) -> Unit,
@@ -24,30 +19,25 @@ internal class CalendarPusher(
     private val tag = "CalendarPusher"
 
     /**
-     * Filters [allEvents] to future-only, pushes them via [pushResolver], and applies
-     * outcomes to state via the callbacks. Returns the events that could not be pushed
-     * (conflicts), or an empty list on success or when all events are in the past.
+     * Pushes [allEvents] via [pushResolver] and applies outcomes to state via the callbacks.
+     * Returns the events that could not be pushed (conflicts), or an empty list on success.
+     *
+     * Does NOT filter by date. Per the Confabulation Gate mandate (AGENTS.md), students load
+     * syllabi from any semester — past, current, or future — and every correctly-grounded event
+     * must reach the calendar regardless of today's wall-clock date. A past-date filter here
+     * previously discarded already-elapsed deliverables (e.g. an Issue Brief due earlier in the
+     * same semester) before they were ever saved.
      */
     suspend fun push(allEvents: List<Event>, calendarId: String): List<Event> {
-        val today = clock.todayIn(TimeZone.currentSystemDefault())
-        val events = allEvents.filter { it.date >= today }
-        val skippedCount = allEvents.size - events.size
-
         if (allEvents.isEmpty()) return emptyList()
-        if (events.isEmpty()) {
-            onStatus("No future events to sync ($skippedCount past events skipped).")
-            onGeneratedEvents(emptyList())
-            return emptyList()
-        }
 
         onIsLoading(true)
-        val skippedNote = if (skippedCount > 0) " ($skippedCount past events skipped)" else ""
-        onStatus("Syncing ${events.size} events to your calendar...$skippedNote")
+        onStatus("Syncing ${allEvents.size} events to your calendar...")
 
         var conflicts: List<Event> = emptyList()
         try {
             val existing = repository.getEvents(calendarId)
-            val outcome = pushResolver.resolveAndPush(events, existing, calendarId)
+            val outcome = pushResolver.resolveAndPush(allEvents, existing, calendarId)
             conflicts = outcome.conflicts
 
             if (outcome.unresolvableConflicts.isNotEmpty()) {
@@ -59,19 +49,19 @@ internal class CalendarPusher(
             if (conflicts.isEmpty() && outcome.unresolvableConflicts.isEmpty()) {
                 when {
                     outcome.successCount == 0 && localOnlyCount == 0 ->
-                        onStatus("All events already synced — nothing new to push.$skippedNote")
+                        onStatus("All events already synced — nothing new to push.")
                     localOnlyCount > 0 && outcome.successCount == 0 ->
-                        onStatus("Saved $localOnlyCount events locally — could not reach Google Calendar.$skippedNote")
+                        onStatus("Saved $localOnlyCount events locally — could not reach Google Calendar.")
                     localOnlyCount > 0 ->
-                        onStatus("Synced ${outcome.successCount} to Google Calendar, $localOnlyCount saved locally (offline).$skippedNote")
+                        onStatus("Synced ${outcome.successCount} to Google Calendar, $localOnlyCount saved locally (offline).")
                     else ->
-                        onStatus("Success! All ${outcome.successCount} events pushed to Google Calendar.$skippedNote")
+                        onStatus("Success! All ${outcome.successCount} events pushed to Google Calendar.")
                 }
                 onGeneratedEvents(emptyList())
             } else {
                 val unresolvableCount = outcome.unresolvableConflicts.size
                 val localNote = if (localOnlyCount > 0) ", $localOnlyCount saved locally" else ""
-                onStatus("Synced ${outcome.successCount} events$localNote. $unresolvableCount require professor contact, ${conflicts.size} other conflicts.$skippedNote")
+                onStatus("Synced ${outcome.successCount} events$localNote. $unresolvableCount require professor contact, ${conflicts.size} other conflicts.")
                 onGeneratedEvents(conflicts)
             }
         } catch (e: CalendarNotFoundException) {

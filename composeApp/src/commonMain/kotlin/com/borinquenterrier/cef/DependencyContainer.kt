@@ -142,7 +142,8 @@ class DependencyContainer(
             sourceRepository,
             fragmentRanker,
             contextBuilder,
-            logger
+            logger,
+            chatRepository
         )
     }
     val syllabusAuditor by lazy { SyllabusAuditor(aiService, logger) }

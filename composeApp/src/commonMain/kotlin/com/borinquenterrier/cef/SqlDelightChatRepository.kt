@@ -56,7 +56,8 @@ class SqlDelightChatRepository(
                 createdAt = entity.createdAt,
                 updatedAt = entity.updatedAt,
                 sourceScope = entity.sourceScope,
-                summary = entity.summary
+                summary = entity.summary,
+                summarizedThroughMessageId = entity.summarizedThroughMessageId
             )
             Unit
         }
@@ -76,6 +77,21 @@ class SqlDelightChatRepository(
             )
             Unit
         }
+
+    override suspend fun updateSummary(
+        id: String,
+        summary: String,
+        summarizedThroughMessageId: String,
+        updatedAt: Long
+    ) = withContext(dispatcher) {
+        queries.updateConversationSummary(
+            summary = summary,
+            summarizedThroughMessageId = summarizedThroughMessageId,
+            updatedAt = updatedAt,
+            id = id
+        )
+        Unit
+    }
 
     override suspend fun deleteConversation(id: String) =
         withContext(dispatcher) {
@@ -108,7 +124,8 @@ class SqlDelightChatRepository(
             createdAt = now,
             updatedAt = now,
             sourceScope = "ALL",
-            summary = null
+            summary = null,
+            summarizedThroughMessageId = null
         )
     }
 

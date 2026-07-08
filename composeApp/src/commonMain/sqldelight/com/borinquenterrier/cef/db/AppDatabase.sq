@@ -154,7 +154,8 @@ CREATE TABLE IF NOT EXISTS ConversationEntity (
     createdAt    INTEGER NOT NULL,            -- epoch millis
     updatedAt    INTEGER NOT NULL,
     sourceScope  TEXT NOT NULL DEFAULT 'ALL', -- 'ALL' | 'SOURCE:<sourceId>' (per-chat pin)
-    summary      TEXT                         -- rolling compaction summary (nullable, Part B)
+    summary      TEXT,                        -- rolling compaction summary (nullable, Part B)
+    summarizedThroughMessageId TEXT           -- id of the newest folded message (nullable, Part B)
 );
 
 CREATE TABLE IF NOT EXISTS ChatMessageEntity (
@@ -168,8 +169,8 @@ CREATE TABLE IF NOT EXISTS ChatMessageEntity (
 );
 
 insertConversation:
-INSERT OR REPLACE INTO ConversationEntity(id, title, createdAt, updatedAt, sourceScope, summary)
-VALUES (?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO ConversationEntity(id, title, createdAt, updatedAt, sourceScope, summary, summarizedThroughMessageId)
+VALUES (?, ?, ?, ?, ?, ?, ?);
 
 selectConversationById:
 SELECT * FROM ConversationEntity WHERE id = ?;
@@ -182,6 +183,9 @@ UPDATE ConversationEntity SET title = ?, updatedAt = ? WHERE id = ?;
 
 updateConversationScope:
 UPDATE ConversationEntity SET sourceScope = ?, updatedAt = ? WHERE id = ?;
+
+updateConversationSummary:
+UPDATE ConversationEntity SET summary = ?, summarizedThroughMessageId = ?, updatedAt = ? WHERE id = ?;
 
 deleteConversation:
 DELETE FROM ConversationEntity WHERE id = ?;

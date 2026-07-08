@@ -313,7 +313,7 @@ class AppController(
         // Persist off the UI update; a write failure must never lose the on-screen message.
         scope.launch {
             runCatching {
-                chatRepository.saveMessage(message)
+                chatRepository.saveMessage(message, TokenEstimator.estimate(message.content).toLong())
                 deriveTitleFromFirstUserMessage(message)
                 refreshConversations()
             }

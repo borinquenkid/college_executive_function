@@ -133,4 +133,32 @@ class ChatRepositoryTest : FunSpec({
     test("getConversation returns null for an unknown id") {
         repository.getConversation("nope") shouldBe null
     }
+
+    // --- Rolling summary (design 2.1, Part B) ---
+
+    test("updateSummary persists the summary and the folded-through boundary") {
+        val conversation = Conversation.create(createdAt = 10L, title = "long chat")
+        repository.createConversation(conversation)
+
+        repository.updateSummary(
+            conversation.id,
+            summary = "Student asked about grading and deadlines.",
+            summarizedThroughMessageId = "msg-500",
+            updatedAt = 600L
+        )
+
+        val reloaded = repository.getConversation(conversation.id).shouldNotBeNull()
+        reloaded.summary shouldBe "Student asked about grading and deadlines."
+        reloaded.summarizedThroughMessageId shouldBe "msg-500"
+        reloaded.updatedAt shouldBe 600L
+    }
+
+    test("a fresh conversation starts with no summary and no folded-through boundary") {
+        val conversation = Conversation.create(createdAt = 10L, title = "new chat")
+        repository.createConversation(conversation)
+
+        val reloaded = repository.getConversation(conversation.id).shouldNotBeNull()
+        reloaded.summary shouldBe null
+        reloaded.summarizedThroughMessageId shouldBe null
+    }
 })

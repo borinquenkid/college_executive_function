@@ -281,7 +281,13 @@ zero token accounting). Two halves:
 * **Full design + data model + phasing:** [docs/design-2.1-chat-history-and-compaction.md](docs/design-2.1-chat-history-and-compaction.md).
 * **Phase 1 (Persistence) ✅ DONE:** typed `ChatMessage`/`ChatRole`, `Conversation`/`ChatMessage`
   tables, `ChatRepository`, and startup hydration — chat now survives restart (single implicit
-  conversation). Next: Phase 2 (management UI: conversation list, new/rename/delete, per-chat scope).
+  conversation).
+* **Phase 2 (Management UI) ✅ DONE:** conversation drawer (list, switch, new/rename/delete),
+  per-chat source scope pin, first-message title derivation.
+* **Phase 3 (Compaction) ✅ DONE:** `TokenEstimator`, `ModelContextWindow`, per-turn budget
+  allocation, and a rolling summary that replaces the naive `takeLast(10)` cut — long chats now
+  stay in-window instead of silently dropping early context. Next: Phase 4 (Robustness —
+  oversized-request recovery, `maxOutputTokens`, critic-cost handling, `querySource` unification).
 * Also folds in the drop/withdrawal-deadline-as-`DEADLINE` thread (NormalizationService fix already
   on `main`).
 

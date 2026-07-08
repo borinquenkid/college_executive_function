@@ -6,6 +6,7 @@ import com.borinquenterrier.cef.db.AppDatabase
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
+import io.kotest.matchers.string.shouldNotContain
 import io.mockk.coEvery
 import io.mockk.coVerify
 import io.mockk.mockk
@@ -47,6 +48,16 @@ class ContextAgentMultiSourceTest : FunSpec({
     }
 
     // ── helpers ───────────────────────────────────────────────────────────────
+
+    fun sutWithCompaction(chatRepository: ChatRepository, contextWindow: Int) = ContextAgent(
+        aiService = mockAiService,
+        sourceRepository = SqlDelightSourceRepository(database),
+        fragmentRanker = fragmentRanker,
+        contextBuilder = SourceContextBuilder(),
+        logger = null,
+        chatRepository = chatRepository,
+        contextWindowProvider = { contextWindow }
+    )
 
     fun makeSource(title: String, category: SourceCategory, text: String) =
         SourceItem(
@@ -309,6 +320,176 @@ class ContextAgentMultiSourceTest : FunSpec({
         ranked[0].second.text shouldBe "Text fragment number 1"
         ranked[1].second.text shouldBe "Text fragment number 2"
         ranked[2].second.text shouldBe "Text fragment number 3"
+    }
+
+    // ── compaction (design 2.1, Part B) ─────────────────────────────────────────
+
+    test("queryAllSources does not summarize when history fits comfortably within the budget") {
+        val chatRepository = SqlDelightChatRepository(database)
+        val conversation = Conversation.create(createdAt = 1L, title = "small chat")
+        chatRepository.createConversation(conversation)
+        val sut = sutWithCompaction(chatRepository, contextWindow = 50_000)
+
+        coEvery { mockAiService.generateChatResponse(any()) } returns "Final answer"
+
+        val history = listOf(
+            ChatMessage.create("Hi", ChatRole.USER, 10L, conversation.id),
+            ChatMessage.create("Hello!", ChatRole.AI, 20L, conversation.id)
+        )
+
+        sut.queryAllSources(
+            sources = listOf(makeSource("Syllabus", SourceCategory.SYLLABUS, "Policies…")),
+            conversationHistory = history,
+            question = "Anything else?",
+            conversationId = conversation.id
+        )
+
+        coVerify(exactly = 1) { mockAiService.generateChatResponse(any()) }
+        chatRepository.getConversation(conversation.id)?.summary shouldBe null
+    }
+
+    test("queryAllSources folds the oldest turns into a persisted rolling summary once history exceeds the budget") {
+        val chatRepository = SqlDelightChatRepository(database)
+        val conversation = Conversation.create(createdAt = 1L, title = "long chat")
+        chatRepository.createConversation(conversation)
+        val sut = sutWithCompaction(chatRepository, contextWindow = 2_600)
+
+        val capturedPrompts = mutableListOf<String>()
+        coEvery { mockAiService.generateChatResponse(any()) } coAnswers {
+            val prompt = firstArg<String>()
+            capturedPrompts.add(prompt)
+            if (prompt.contains("CONVERSATION SUMMARY COMPACTION")) "Folded summary of early turns."
+            else "Final answer"
+        }
+
+        // Each message is ~52 tokens ("x".repeat(200) + " turnN"); a 144-token history budget
+        // (2600 window - 2448 reserved - ~8 for source/question) fits only the last 2 verbatim.
+        val longContent = "x".repeat(200)
+        val history = (1..8).map { i ->
+            ChatMessage.create("$longContent turn$i", ChatRole.USER, i.toLong(), conversation.id)
+        }
+
+        sut.queryAllSources(
+            sources = listOf(makeSource("Syllabus", SourceCategory.SYLLABUS, "Policies…")),
+            conversationHistory = history,
+            question = "Latest question?",
+            conversationId = conversation.id
+        )
+
+        coVerify(exactly = 2) { mockAiService.generateChatResponse(any()) }
+
+        val summaryPrompt = capturedPrompts.first { it.contains("CONVERSATION SUMMARY COMPACTION") }
+        val finalPrompt = capturedPrompts.first { !it.contains("CONVERSATION SUMMARY COMPACTION") }
+        summaryPrompt shouldContain "turn1"
+        finalPrompt shouldContain "Conversation summary so far: Folded summary of early turns."
+        finalPrompt shouldContain "turn8"
+        finalPrompt shouldNotContain "turn1"
+
+        val reloaded = chatRepository.getConversation(conversation.id)
+        reloaded?.summary shouldBe "Folded summary of early turns."
+        reloaded?.summarizedThroughMessageId shouldBe history[5].id
+    }
+
+    test("queryAllSources reuses a persisted summary without re-folding when the unsummarized tail already fits") {
+        val chatRepository = SqlDelightChatRepository(database)
+        val conversation = Conversation.create(createdAt = 1L, title = "resumed chat")
+        chatRepository.createConversation(conversation)
+
+        val earlierTurn = ChatMessage.create("earlier turn (already summarized)", ChatRole.USER, 3L, conversation.id)
+        val newestTurn = ChatMessage.create("newest turn", ChatRole.USER, 6L, conversation.id)
+        chatRepository.updateSummary(
+            conversation.id,
+            summary = "Earlier turns covered grading policy.",
+            summarizedThroughMessageId = earlierTurn.id,
+            updatedAt = 5L
+        )
+        val sut = sutWithCompaction(chatRepository, contextWindow = 50_000)
+
+        val promptSlot = slot<String>()
+        coEvery { mockAiService.generateChatResponse(capture(promptSlot)) } returns "Final answer"
+
+        // earlierTurn IS the folded boundary — only newestTurn (after it) is unsummarized.
+        val history = listOf(earlierTurn, newestTurn)
+
+        sut.queryAllSources(
+            sources = listOf(makeSource("Syllabus", SourceCategory.SYLLABUS, "Policies…")),
+            conversationHistory = history,
+            question = "Follow-up?",
+            conversationId = conversation.id
+        )
+
+        coVerify(exactly = 1) { mockAiService.generateChatResponse(any()) }
+        promptSlot.captured shouldContain "Conversation summary so far: Earlier turns covered grading policy."
+        promptSlot.captured shouldContain "newest turn"
+        promptSlot.captured shouldNotContain "already summarized"
+        chatRepository.getConversation(conversation.id)?.summarizedThroughMessageId shouldBe earlierTurn.id
+    }
+
+    test("queryAllSources keeps a long but under-budget history fully verbatim instead of re-truncating to MAX_HISTORY_TURNS") {
+        // Regression test: before the fix, ContextAgent passed summary=null whenever no fold had
+        // happened yet, which made ChatBuilder silently re-apply its legacy takeLast(10) cut even
+        // though the budget-aware plan had already decided all 15 turns fit comfortably.
+        val chatRepository = SqlDelightChatRepository(database)
+        val conversation = Conversation.create(createdAt = 1L, title = "long but small chat")
+        chatRepository.createConversation(conversation)
+        val sut = sutWithCompaction(chatRepository, contextWindow = 50_000)
+
+        val promptSlot = slot<String>()
+        coEvery { mockAiService.generateChatResponse(capture(promptSlot)) } returns "Final answer"
+
+        val history = (1..15).map { i ->
+            ChatMessage.create("turn$i", ChatRole.USER, i.toLong(), conversation.id)
+        }
+
+        sut.queryAllSources(
+            sources = listOf(makeSource("Syllabus", SourceCategory.SYLLABUS, "Policies…")),
+            conversationHistory = history,
+            question = "Latest?",
+            conversationId = conversation.id
+        )
+
+        coVerify(exactly = 1) { mockAiService.generateChatResponse(any()) }
+        promptSlot.captured shouldContain "turn1\n"
+        promptSlot.captured shouldContain "turn15"
+        chatRepository.getConversation(conversation.id)?.summary shouldBe null
+    }
+
+    test("queryAllSources keeps the prompt within budget when the summarization call itself fails") {
+        // Regression test: before the fix, a failed/errored summarization call fell back to the
+        // raw unsummarized list (over budget by definition) instead of the budget-sized tail,
+        // defeating the whole point of compaction on exactly the path meant to be the safety net.
+        val chatRepository = SqlDelightChatRepository(database)
+        val conversation = Conversation.create(createdAt = 1L, title = "flaky summarizer chat")
+        chatRepository.createConversation(conversation)
+        val sut = sutWithCompaction(chatRepository, contextWindow = 2_600)
+
+        val finalPromptSlot = slot<String>()
+        coEvery { mockAiService.generateChatResponse(any()) } coAnswers {
+            val prompt = firstArg<String>()
+            if (prompt.contains("CONVERSATION SUMMARY COMPACTION")) {
+                "Error: quota exceeded"
+            } else {
+                finalPromptSlot.captured = prompt
+                "Final answer"
+            }
+        }
+
+        val longContent = "x".repeat(200)
+        val history = (1..8).map { i ->
+            ChatMessage.create("$longContent turn$i", ChatRole.USER, i.toLong(), conversation.id)
+        }
+
+        sut.queryAllSources(
+            sources = listOf(makeSource("Syllabus", SourceCategory.SYLLABUS, "Policies…")),
+            conversationHistory = history,
+            question = "Latest question?",
+            conversationId = conversation.id
+        )
+
+        // The fallback must use the budget-sized tail (last 2 turns), not the full 8-turn history.
+        finalPromptSlot.captured shouldContain "turn8"
+        finalPromptSlot.captured shouldNotContain "turn1"
+        chatRepository.getConversation(conversation.id)?.summary shouldBe null
     }
 })
 

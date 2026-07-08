@@ -36,8 +36,17 @@ object AiPrompts {
         sourceBlocks: List<SourceContextBlock>,
         conversationHistory: List<Pair<String, String>>,
         question: String,
-        warnings: List<String> = emptyList()
-    ): String = ChatBuilder.getMultiSourceChatPrompt(sourceBlocks, conversationHistory, question, warnings)
+        warnings: List<String> = emptyList(),
+        summary: String? = null,
+        historyAlreadyBudgeted: Boolean = false
+    ): String = ChatBuilder.getMultiSourceChatPrompt(
+        sourceBlocks, conversationHistory, question, warnings, summary, historyAlreadyBudgeted
+    )
+
+    fun getConversationSummaryPrompt(
+        existingSummary: String?,
+        turnsToSummarize: List<Pair<String, String>>
+    ): String = ChatBuilder.getConversationSummaryPrompt(existingSummary, turnsToSummarize)
 
     fun getEventCritiquePrompt(sourceText: String, eventsJson: String): String =
         EventBuilder.getEventCritiquePrompt(sourceText, eventsJson)

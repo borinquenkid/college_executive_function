@@ -107,5 +107,14 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
     } catch (_: Exception) {
         // Table may already exist, ignore.
     }
+    try {
+        driver.execute(
+            null,
+            "ALTER TABLE ConversationEntity ADD COLUMN summarizedThroughMessageId TEXT",
+            0
+        )
+    } catch (_: Exception) {
+        // Column may already exist, or table might not have been created yet, ignore.
+    }
     return AppDatabase(driver)
 }

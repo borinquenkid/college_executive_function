@@ -12,7 +12,8 @@ object ConversationMapper {
             createdAt = conversation.createdAt,
             updatedAt = conversation.updatedAt,
             sourceScope = conversation.sourceScope.serialize(),
-            summary = conversation.summary
+            summary = conversation.summary,
+            summarizedThroughMessageId = conversation.summarizedThroughMessageId
         )
 
     fun toDomain(entity: ConversationEntity): Conversation =
@@ -22,6 +23,7 @@ object ConversationMapper {
             createdAt = entity.createdAt,
             updatedAt = entity.updatedAt,
             sourceScope = ChatSourceScope.parse(entity.sourceScope),
-            summary = entity.summary
+            summary = entity.summary,
+            summarizedThroughMessageId = entity.summarizedThroughMessageId
         )
 }

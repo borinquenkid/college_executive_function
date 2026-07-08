@@ -200,7 +200,27 @@ load pattern.
    Greeting became a true empty-state. Serder round-trip + repository CRUD + deterministic
    `AppController` + `ConversationsPanel` compose tests. Quality Gate OK (new coverage 89.4%,
    0 new violations), 3-target build green.
-3. **Compaction** — `TokenEstimator`, `ModelContextWindow`, budget allocation, rolling summary.
+3. **Compaction** ✅ **DONE** — `TokenEstimator` (chars/4 heuristic), `ModelContextWindow` (mirrors
+   `ModelRpm`, `conservativeChatWindow()` = min over the chat LIGHT tier since the exact negotiated
+   model isn't known until request time), `ChatBudgetAllocator` (reserves output + scaffolding,
+   subtracts source blocks/summary/question), `ChatCompactionPlanner` (packs the verbatim tail
+   backward from the newest turn; latest turn always kept). Wired into
+   `ContextAgent.queryAllSources`: reads `Conversation.summary` +
+   `summarizedThroughMessageId` (new column — an id, not a timestamp, so the fold boundary is an
+   exact positional lookup in the always-fully-ordered history rather than a value comparison two
+   same-millisecond messages could straddle), triggers one LIGHT summarization call only when the
+   unsummarized tail exceeds budget, persists the updated summary, and replaces the naive
+   `takeLast(10)` with the summary + verbatim-tail prompt shape (`ChatBuilder`'s new
+   `historyAlreadyBudgeted` flag decouples "don't re-truncate" from "a summary exists", so a
+   long-but-under-budget conversation isn't silently re-cut before its first fold). A failed or
+   blank summarization call falls back to the budget-sized tail, never the raw over-budget history.
+   `compactHistory` is serialized per `ContextAgent` instance (`compactionMutex`) so two rapid sends
+   in the same conversation can't race on the read-plan-summarize-persist sequence.
+   `AppController.addChatMessage` now persists `tokenEstimate` via `TokenEstimator`. Caught and fixed
+   in post-implementation review: a fallback bug that used the raw over-budget history instead of
+   the planned tail, a truncation-gating bug that re-applied `takeLast(10)` whenever no fold had
+   happened yet, and the createdAt-tie-break risk above. Quality Gate OK (new coverage 89.5%, 0 new
+   violations), 3-target build green.
 4. **Robustness** — oversized-error classification + recovery, `maxOutputTokens`, critic-cost
    handling, `querySource` unification.
 

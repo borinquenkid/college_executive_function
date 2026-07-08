@@ -195,7 +195,8 @@ fun ChatPanel(
                                 sources = sourceItems,
                                 conversationHistory = history,
                                 question = userText,
-                                warnings = ingestionWarnings
+                                warnings = ingestionWarnings,
+                                conversationId = currentConversationId
                             )
 
                             selectedSource != null -> contextAgent.querySource(

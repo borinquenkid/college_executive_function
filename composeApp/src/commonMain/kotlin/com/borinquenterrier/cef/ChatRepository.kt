@@ -23,6 +23,12 @@ interface ChatRepository {
     /** Repins a conversation's source scope and bumps its updatedAt. No-op if the id is unknown. */
     suspend fun setSourceScope(id: String, scope: ChatSourceScope, updatedAt: Long)
 
+    /**
+     * Persists an updated rolling summary and the id of the newest message it now covers, and
+     * bumps updatedAt. No-op if the id is unknown.
+     */
+    suspend fun updateSummary(id: String, summary: String, summarizedThroughMessageId: String, updatedAt: Long)
+
     /** Deletes a conversation and all of its messages. */
     suspend fun deleteConversation(id: String)
 

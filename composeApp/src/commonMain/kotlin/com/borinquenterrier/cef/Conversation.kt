@@ -45,7 +45,14 @@ data class Conversation(
     val createdAt: Long,
     val updatedAt: Long,
     val sourceScope: ChatSourceScope = ChatSourceScope.All,
-    val summary: String? = null
+    val summary: String? = null,
+    /**
+     * Id of the newest message already folded into [summary] (design 2.1, Part B), or null if
+     * nothing has been folded yet. An id — not a timestamp — so the boundary is a positional
+     * lookup in the always-fully-ordered message list rather than a value comparison that two
+     * same-millisecond messages could straddle incorrectly.
+     */
+    val summarizedThroughMessageId: String? = null
 ) {
     companion object {
         const val DEFAULT_TITLE = "New chat"

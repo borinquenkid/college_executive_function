@@ -1,0 +1,14 @@
+# See docs/adr/0003-contribution-validation-and-prompt-injection-hardening.md for the rationale.
+# These paths feed untrusted content into the LLM pipeline, gate what content is validated pre-merge,
+# or control CI itself — they get a required review from the project owner.
+
+/contributions/                                      @borinquenkid
+/scripts/validate_contributions.py                   @borinquenkid
+/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/AiPrompts.kt              @borinquenkid
+/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/EventBuilder.kt           @borinquenkid
+/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/ChatBuilder.kt            @borinquenkid
+/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/CategorizationBuilder.kt  @borinquenkid
+/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/StudyPlanBuilder.kt       @borinquenkid
+/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiResponseParser.kt   @borinquenkid
+/composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GroundingGuardAIService.kt @borinquenkid
+/.github/                                            @borinquenkid

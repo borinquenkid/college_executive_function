@@ -4,15 +4,24 @@ import re
 import sys
 
 # Regex pattern for contribution namespace validation:
-# contributions/{state}/{name_of_college}/{academic_year_YYYY-YYYY}/{period}/{course_or_calendar}.txt
+# contributions/{state}/{name_of_college}/{academic_year_YYYY-YYYY}/{period}/{course_or_calendar}.{ext}
 # - state: 2-letter state code, lowercase (e.g. 'mo')
 # - name_of_college: lowercase with underscores (e.g. 'st_louis_community_college')
 # - academic_year: YYYY-YYYY format starting in fall (e.g. '2025-2026')
 # - period: lowercase with underscores (e.g. 'fall', 'spring', 'summer')
-# - course_or_calendar: lowercase with underscores, ending in '.txt' (e.g. 'academic_calendar.txt')
+# - course_or_calendar: lowercase with underscores (e.g. 'academic_calendar')
+# - ext: 'txt' (plain text), 'ics' (iCalendar), or 'pdf' (scanned/exported syllabi & calendars —
+#   the actual corpus is 100% PDF; content is not locally text-scannable, see TEXT_SCANNABLE_EXTS)
 PATH_PATTERN = re.compile(
-    r'^contributions/([a-z]{2})/([a-z0-9_]+)/(\d{4}-\d{4})/([a-z0-9_]+)/([a-z0-9_]+)\.txt$'
+    r'^contributions/([a-z]{2})/([a-z0-9_]+)/(\d{4}-\d{4})/([a-z0-9_]+)/([A-Za-z0-9_ -]+)\.(txt|ics|pdf)$'
 )
+
+# Extensions whose content can be decoded as text and scanned against POISON_PATTERNS.
+# 'pdf' is intentionally excluded: it's binary, and this repo has no local PDF-text-extraction
+# tooling (the app itself sends raw PDF bytes to Gemini's file API rather than parsing locally).
+# Malicious/fabricated PDF content is defended against at runtime by the Confabulation Gate
+# Protocol (GroundingGuardAIService: year/date/anchor/fact grounding), not by this CI check.
+TEXT_SCANNABLE_EXTS = {'txt', 'ics'}
 
 # Regex patterns for detecting poison/dangerous content
 # Designed to block exploits, system/command injection, scripting, path traversal, and dangerous SQL statements
@@ -46,6 +55,14 @@ POISON_PATTERNS = [
     r'\bUNION\s+(ALL\s+)?SELECT\b',        # UNION SELECT query
     r'\bINSERT\s+INTO\b',                  # INSERT INTO command
     r'\bUPDATE\s+\w+\s+SET\b',             # UPDATE SET command
+
+    # 5. Natural-language instruction-injection phrasing (prompt injection targeting the
+    # downstream LLM extraction pipeline, rather than a technical exploit)
+    r'\bignore\s+(all\s+|the\s+)?(previous|prior|above)\s+instructions\b',
+    r'\bdisregard\s+(all\s+|the\s+)?(previous|prior|above)\b',
+    r'\b(system|developer)\s+prompt\b',
+    r'\byou\s+are\s+now\s+(a|an)\b',
+    r'\bnew\s+instructions?\s*:',
 ]
 
 def validate_file(filepath):
@@ -58,16 +75,16 @@ def validate_file(filepath):
     match = PATH_PATTERN.match(relative_path)
     if not match:
         print(f"Error: Path '{relative_path}' violates the contributions namespace scheme.")
-        print("Expected format: contributions/{state_code}/{name_of_college}/{academic_year}/{period}/{file_name}.txt")
+        print("Expected format: contributions/{state_code}/{name_of_college}/{academic_year}/{period}/{file_name}.{txt|ics|pdf}")
         print("Requirements:")
         print("  - state_code: 2-letter state code in lowercase (e.g., 'mo')")
         print("  - name_of_college: lowercase alphanumeric with underscores (e.g., 'st_louis_community_college')")
         print("  - academic_year: YYYY-YYYY format starting in fall (e.g., '2025-2026')")
         print("  - period: lowercase unique term (e.g., 'fall', 'spring')")
-        print("  - file_name: lowercase alphanumeric with underscores ending in '.txt' (e.g., 'academic_calendar.txt')")
+        print("  - file_name: alphanumeric with underscores/hyphens/spaces, extension one of .txt/.ics/.pdf (e.g., 'academic_calendar.txt')")
         return False
 
-    state_code, name_of_college, academic_year, period, file_name = match.groups()
+    state_code, name_of_college, academic_year, period, file_name, ext = match.groups()
 
     # 2. Verify Academic Year dates (starts in fall, end_year = start_year + 1)
     try:
@@ -84,7 +101,12 @@ def validate_file(filepath):
         print(f"Error: File '{relative_path}' is too large ({os.path.getsize(filepath)} bytes). Max allowed is 5MB.")
         return False
 
-    # 4. UTF-8 Plain text encoding validation
+    # 4. Content-level scanning only applies to text-decodable formats (see TEXT_SCANNABLE_EXTS).
+    # Binary formats (.pdf) are not scanned here; malicious/fabricated content in those files is
+    # guarded against at runtime by the Confabulation Gate Protocol, not by this CI check.
+    if ext not in TEXT_SCANNABLE_EXTS:
+        return True
+
     try:
         with open(filepath, 'r', encoding='utf-8') as f:
             content = f.read()

@@ -25,7 +25,7 @@ independently confirmed against this repo's real state, not assumed.
 | Frontend build tooling | `web/` is **Vite** (`vite.config.ts`, `eslint.config.js`) — not Next.js/Tailwind, the article's specific example. Same threat model, different filenames to watch. |
 | `main` branch protection | **None** — `gh api repos/borinquenkid/college_executive_function/branches/main/protection` returns 404 "Branch not protected." No required reviews, no required status checks, force-push and direct pushes to `main` are both currently possible. |
 | CODEOWNERS | Exists (`.github/CODEOWNERS`), but scoped to the LLM-prompt-injection surface (`AiPrompts.kt`, `EventBuilder.kt`, etc., per ADR `0003-contribution-validation-and-prompt-injection-hardening`) and `.github/` itself — **does not cover** `build.gradle.kts`, `web/vite.config.ts`, `web/eslint.config.js`, or any other build-tooling config. |
-| Dependency automation | No Dependabot or Renovate config anywhere in the repo. |
+| Dependency automation | ✅ 2026-07-09 — `.github/dependabot.yml` added (gradle + npm, weekly). Dependabot *security alerts* remain disabled repo-wide, separately. |
 | Gradle dependency verification | No `verification-metadata.xml` — Gradle's built-in checksum/signature verification isn't enabled. |
 | CI workflows | `eval-corpus.yml`, `pr-check.yml`, `release-desktop.yml`. `pr-check.yml` already runs Gradle build/test on every PR — the natural place to add a Detection grep step. |
 
@@ -167,10 +167,17 @@ Ordered to fix the biggest confirmed gap first, not the source material's origin
    local Gradle module cache to force re-download, and confirmed `:androidApp:assembleDebug`
    failed with `Dependency verification failed ... This can indicate that a dependency has been
    compromised` — then restored the correct file and confirmed the build passed clean again.
-4. **Dependabot or Renovate, with mandatory human review** — neither exists today. Given this is a
-   solo-maintainer project (per CODEOWNERS), "mandatory human review" already exists by
-   construction (every PR needs `@borinquenkid`'s review once Harden §1 lands) — this item is
-   really just "turn on automated dependency-update PRs," not a new review-process design.
+4. ✅ **DONE 2026-07-09** — **Dependabot version updates.** Added `.github/dependabot.yml` for
+   both `gradle` (directory `/`, walks the whole multi-module tree — root, `androidApp/`,
+   `composeApp/`, `iosApp/`, `server/`, `shared/`) and `npm` (directory `/web`), weekly schedule,
+   minor/patch grouped per ecosystem to bound PR volume for a solo maintainer, majors ungrouped.
+   "Mandatory human review" already exists by construction (every PR needs `@borinquenkid`'s
+   review once Harden §1's ruleset is in effect) — this item was purely "turn on automated
+   dependency-update PRs," not a new review-process design. **Found and not fixed here:**
+   Dependabot *security alerts* (vulnerability alerting — a separate GitHub feature from the
+   version-update PRs this item is about) are disabled repo-wide
+   (`security_and_analysis.dependabot_security_updates.status: "disabled"` via `gh api`) — logged
+   as a still-open gap, see ROADMAP.md Phase 11 Task 6.
 5. ✅ **DONE 2026-07-09** — **Restrict `npm install` lifecycle scripts** (`--ignore-scripts`) for
    `web/`'s build step. Correction to this item's original framing: `pr-check.yml` never actually
    ran `npm install` for `web/` at all — no GitHub Actions workflow builds the web client. The

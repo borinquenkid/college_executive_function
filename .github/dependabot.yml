@@ -1,0 +1,32 @@
+# Phase 11 Task 6 (docs/ops/supply-chain-hardening.md, Harden §4 item 4) — automated
+# dependency-update PRs. "Mandatory human review" is already satisfied by construction: every PR
+# needs @borinquenkid's review once the `main` ruleset (Task 1) is in effect, so this is just
+# "turn on the updates," not a new review process.
+#
+# Minor/patch bumps are grouped per ecosystem to keep PR volume manageable for a solo maintainer;
+# major bumps are left ungrouped so each gets its own PR and changelog review.
+version: 2
+updates:
+  # Root-directory scan covers every module's build.gradle.kts (root, androidApp, composeApp,
+  # iosApp, server, shared) — Dependabot's gradle ecosystem walks the tree from here.
+  - package-ecosystem: "gradle"
+    directory: "/"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      gradle-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"
+
+  - package-ecosystem: "npm"
+    directory: "/web"
+    schedule:
+      interval: "weekly"
+    open-pull-requests-limit: 10
+    groups:
+      npm-minor-patch:
+        update-types:
+          - "minor"
+          - "patch"

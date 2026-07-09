@@ -1943,17 +1943,30 @@ verification.
    warning, then restoring the correct file. See
    [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md) Harden §2 item 3 for
    full detail.
-**Priority order for remaining tasks (6, 7, 8, 10) — set 2026-07-09,** since the list below is
+**Priority order for remaining tasks (8, 10) — set 2026-07-09,** since the list below is
 numbered by when it was drafted, not by risk/cost. Ranked by directness against the original
 threat model (obfuscated build-config payloads + malicious npm lifecycle scripts beaconing to
-C2) versus effort: **7 → 6 → 10 → 8.** Task 7 is cheapest and closes the exact vector that
-triggered this phase. Task 6 is cheap, ongoing protection. Task 10 is more effort but is the
+C2) versus effort: **7 → 6 → 10 → 8** (7 and 6 now done). Task 7 was cheapest and closed the exact
+vector that triggered this phase. Task 6 was cheap, ongoing protection. Task 10 is more effort but is the
 "higher-leverage investment" per the reasoning already written into its own scope note below.
 Task 8 is explicitly lowest — the same reasoning that scoped task 10 concluded hardening local
 secret storage further has diminishing returns for a solo developer, and the Keychain stepping
 stone (task 9's prerequisite work) already covers the practical need.
 
-6. **Add Dependabot or Renovate** for both `web/`'s npm dependencies and Gradle dependencies.
+6. ✅ **DONE 2026-07-09** — **Added `.github/dependabot.yml`** covering both ecosystems named in
+   this task: `gradle` (directory `/`, which Dependabot's gradle parser walks recursively to pick
+   up every module's `build.gradle.kts` — root, `androidApp/`, `composeApp/`, `iosApp/`,
+   `server/`, `shared/` — no per-module entries needed) and `npm` (directory `/web`). Both on a
+   weekly schedule with minor/patch bumps grouped per ecosystem to keep PR volume manageable for a
+   solo maintainer; major-version bumps stay ungrouped so each gets its own PR and changelog
+   review. "Mandatory human review" (this task's original framing) is already satisfied by
+   construction once Task 1's `main` ruleset is in effect — every PR needs `@borinquenkid`'s
+   review — so this task was purely "turn on the updates," not a new review process. **Scope
+   note, not silently dropped:** while checking this, found **Dependabot security alerts are
+   disabled repo-wide** (`gh api repos/.../vulnerability-alerts` → 404,
+   `security_and_analysis.dependabot_security_updates.status: "disabled"`) — a distinct GitHub
+   feature (vulnerability *alerting*, not version-update PRs) that this task's wording didn't name
+   and wasn't turned on here; flagged as a separate, still-open gap.
 7. ✅ **DONE 2026-07-09** — **Restrict `web/`'s `npm install` lifecycle scripts** (`--ignore-scripts`).
    Turned out `pr-check.yml` doesn't build `web/` at all — the only `npm ci` in the pipeline is
    `web/Dockerfile`, the actual production build path via `docker-compose.yml`'s `web` service.

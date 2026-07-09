@@ -16,7 +16,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.)
+**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features).
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -1876,3 +1876,481 @@ Phase 4.1 (Test Syllabi)
     └── Phase 4.2 (Offline Evals) [requires test syllabi]
     └── Phase 4.3 (Production Telemetry) [builds on test observations]
 ```
+
+---
+
+## Phase 11 — Supply-Chain Hardening 🔴 PROPOSED — prioritized above Phase 12, not started
+
+**Full plan:** [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md). Proactive
+— written after reading a third-party report on obfuscated build-config payloads beaconing to a
+blockchain C2 endpoint, plus tampered git history. **No compromise detected in this repo or on any
+project developer machine** — this is prevention, not incident response. A twin plan exists for the
+sibling `oficio` repo.
+
+**Why this comes before Phase 12:** explicit priority call — hardening the application takes
+precedence over shipping a new feature (Outlook Calendar) until the cheap, load-bearing items land.
+
+**Confirmed gaps in this repo (checked 2026-07-09, not assumed):** `main` has **no branch
+protection at all** (direct pushes and force-pushes both currently possible — the single largest
+finding), `.github/CODEOWNERS` doesn't cover build-tooling config (`build.gradle.kts`,
+`web/vite.config.ts`, `web/eslint.config.js`), no Dependabot/Renovate, no Gradle dependency
+verification.
+
+### Tasks
+
+1. ✅ **DONE 2026-07-09** — **Enable a `main` ruleset — require PR + `pr-check.yml`'s
+   `build-and-test` status check, with the owner (`RepositoryRole: admin`) on the bypass list.**
+   Live: ruleset `Protect main` (id `18722247`), `enforcement: active`, targets `~DEFAULT_BRANCH`.
+   Rules: `deletion` (restrict), `non_fast_forward` (block force pushes), `pull_request` (required,
+   0 approvals — owner is sole reviewer via bypass), `required_status_checks` → `Build and run JVM
+   tests`. Bypass: `RepositoryRole` id 5 (Repository admin), `bypass_mode: always` — confirmed via
+   `gh api .../rulesets/18722247` returning `"current_user_can_bypass":"always"`. Use Repository
+   Rulesets, not classic
+   branch protection — confirmed available on this repo (`gh api repos/.../rulesets` → `[]`, not
+   403). CEF is OSS-intended with a permanent sole owner and no planned internal contributors
+   (external contributions only ever arrive as fork PRs, already naturally gated); `git log` shows
+   zero merge commits in this repo's history, including `release.sh`'s automated version-bump
+   commits, so a no-exceptions PR rule would break the existing workflow — the bypass list is what
+   makes this safe to turn on. Highest priority; fixes the single largest gap found, independent of
+   the supply-chain angle specifically. See the ops doc's Harden §1 for the explicit limitation
+   (doesn't protect against a compromised owner machine — that's Detection's job).
+2. ✅ **DONE 2026-07-09** — **Extended `.github/CODEOWNERS`** to cover all Gradle build files
+   (`build.gradle.kts` and `settings.gradle.kts` at root, plus `androidApp/`, `composeApp/`,
+   `iosApp/`, `server/`, `shared/` module-level `build.gradle.kts`), `web/vite.config.ts`,
+   `web/eslint.config.js`, and iOS build settings (`iosApp/Configuration/` — holds
+   `Config.xcconfig` — and `iosApp/iosApp.xcodeproj/`) — same required-review treatment the
+   existing LLM-pipeline entries get. Verified with `gh api repos/:owner/:repo/codeowners/errors`
+   returning `{"errors":[]}` (no syntax errors).
+3. ✅ **DONE 2026-07-09** — Detection grep step, built as part of Task 4's weekly local job rather
+   than a `pr-check.yml` step — flags `eval(`, `atob(`/`btoa(`, `new Function(`, and long
+   base64-shaped literals in build-tooling config files. (Anomalous `setInterval`/`setTimeout`
+   detection was scoped but not implemented — grep can't easily distinguish "anomalous" scheduling
+   from legitimate use; flagged as a known gap, not silently dropped.)
+4. ✅ **DONE 2026-07-09** — Scheduled re-scan, built as a **local `launchd` job**
+   (`scripts/supply-chain-audit.sh` + `~/Library/LaunchAgents/com.borinquenterrier.supplychainaudit.plist`,
+   weekly Monday 9am) instead of a GitHub Actions workflow — see the ops doc's Detection §5 for why
+   (the reflog-divergence and process-audit checks bundled into the same run need local-machine
+   access CI can't provide). Covers both this repo and the sibling `oficio` repo in one run. Does
+   **not** close the CI-blind-spot half of the original framing (a payload landing via direct push
+   still wouldn't trigger `pr-check.yml`) — that's now moot given Task 1's ruleset requires a PR
+   for anyone without bypass, but worth noting this task's shape changed from the original plan,
+   not just its status.
+5. **Enable Gradle dependency verification** (`gradle/verification-metadata.xml`).
+6. **Add Dependabot or Renovate** for both `web/`'s npm dependencies and Gradle dependencies.
+7. **Restrict `web/`'s `npm install` lifecycle scripts in CI** (`--ignore-scripts` where feasible).
+8. **Design and land the `devSecrets` Gradle task** (java-keyring-backed local secret storage) —
+   see the ops doc's §4 for the full design, including the explicit caveat that java-keyring is
+   functionally solid but not under active development, and that this is scoped to low-sensitivity
+   dev-only secrets, not a production vault. **Stepping stone DONE 2026-07-09:**
+   [`docs/ops/keychain-secrets-migration.md`](../docs/ops/keychain-secrets-migration.md) — the
+   smaller, verified-safe migration is complete for both CEF (6 secrets) and Oficio (13 secrets):
+   both `.env` files redacted, both verified against real integration tests, both projects now
+   read secrets from macOS Keychain with zero application code changes. This task's fuller
+   java-keyring/Gradle-task design (prompt-if-missing, cross-platform) remains open — not started.
+
+9. **Manual spot-check of secrets without automated live-call coverage.** Context for a fresh
+   session picking this up cold: on 2026-07-09, CEF's and Oficio's plaintext `.env` secrets were
+   migrated to macOS Keychain (`docs/ops/keychain-secrets-migration.md`). Each migration was
+   verified by re-running a real integration test after the move — but each project only has *one*
+   secret-dependent test that makes a real external API call (CEF: `CEF_GEMINI_API_KEY` via
+   `AiSchedulingIntegrationTest`; Oficio: `ANTHROPIC_API_KEY` via `ModelNegotiationIntegrationTest`).
+   Every other migrated secret was only proven correct via a byte-for-byte diff against the old
+   `.env` value (proving the migration mechanism didn't corrupt anything), never actually exercised
+   against its real external service post-migration. That's a real, not-yet-closed gap:
+
+   **CEF — not yet spot-checked:**
+   - `GOOGLE_CLIENT_SECRET` — no live OAuth round-trip currently possible;
+     `GoogleOAuthIntegrationTest` requires `GOOGLE_REFRESH_TOKEN`, which isn't set anywhere (a
+     separate, pre-existing gap, not caused by this migration — see that test's file for the exact
+     `error(...)` it throws). Spot-check by completing a real Google sign-in flow in the running
+     app and confirming sync works.
+   - `CEF_OTLP_PASSWORD` — spot-check by confirming a real OTEL trace export reaches OpenObserve
+     (see the `reference_openobserve_query` memory / `docs/ops/` for the query recipe: org id,
+     `_search?type=traces` endpoint).
+   - `OOC_TOKEN` — OpenObserve API token; a real API call against OpenObserve's API would cover
+     both this and the item above in one check.
+   - `SONAR_TOKEN` — spot-check via `./gradlew :composeApp:checkQualityGate` actually reaching the
+     local SonarQube instance (see `docs/ops/sonarqube-local.md`).
+
+   **Oficio — not yet spot-checked** (per the delta in Oficio's own
+   `docs/ops/keychain-secrets-migration.md`): Stripe (`STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`),
+   Twilio (`TWILIO_AUTH_TOKEN`/`TWILIO_WEBHOOK_SECRET`), `GOOGLE_CLIENT_SECRET`,
+   `CLOUDFLARE_API_TOKEN`, `WP_APP_PASSWORD`, `NGROK_AUTHTOKEN`, `ADMIN_SECRET`. No automated test
+   exercises any of these with a real call — spot-check each by actually exercising its real flow
+   (an actual booking/SMS round-trip for Twilio, a real webhook delivery for Stripe, etc.), not
+   just confirming the value loads.
+
+   **Acceptance criteria:**
+   - [ ] Every secret listed above exercised against its real service post-Keychain-migration,
+         with the result (pass/fail) recorded in the relevant `keychain-secrets-migration.md`
+   - [ ] Any failure investigated with the same rigor as the `ANTHROPIC_API_KEY`/`~/.zshrc`
+         shadowing bug found during the original migration (distinguish "migration broke it" from
+         "was already broken" — check shell profiles for stale exports first, per
+         `oficio/AGENTS.md`'s documented OPS-11 gotcha, before assuming the Keychain path is at
+         fault)
+   - [ ] `GOOGLE_REFRESH_TOKEN`'s missing-value gap either fixed (real token captured) or
+         explicitly logged as a separately-tracked pre-existing issue, not silently left conflated
+         with this task
+
+   **Files:** `docs/ops/keychain-secrets-migration.md` (CEF and Oficio — record results in both)
+
+10. **Secret rotation runbook.** Context for a fresh session: this was scoped out of the original
+    hardening plan after a 2026-07-09 conversation concluded that local secret storage (even
+    Keychain) cannot meaningfully defend against an attacker with interactive access past an
+    unlocked laptop — hardening local storage further has diminishing returns for a solo developer.
+    The higher-leverage investment is capping blast radius fast if a leak is ever suspected or
+    confirmed. Today, the incident runbook (`docs/ops/supply-chain-hardening.md` §2) lists "rotate
+    everything" as a bare checklist item — untested, with no known time-to-complete.
+
+    **What this task builds:** for every secret across both repos (6 in CEF, 13 in Oficio — full
+    list in each repo's `docs/ops/keychain-secrets-migration.md`), determine whether it can be
+    rotated via API/script (Stripe, Twilio, GitHub, GCP service accounts are likely candidates) or
+    requires manual dashboard action (Anthropic, Google OAuth client secret regeneration, SonarQube
+    token likely require this). Build what's automatable. Document exact, step-by-step manual
+    procedures (console URLs, required auth/MFA) for what isn't. Then **actually rehearse a full
+    dry run once**, timed end to end — the goal is a runbook with a known, proven completion time,
+    not an aspirational list that's never been tested under any conditions resembling real use.
+
+    **Acceptance criteria:**
+    - [ ] Per-secret table (both repos, all 19 migrated secrets) classifying API-rotatable vs.
+          manual-only, with the exact command or console URL for each
+    - [ ] Automatable rotations scripted (e.g. a `scripts/rotate-secret.sh <key>` per project, or
+          per-provider scripts)
+    - [ ] Manual-only rotations documented as exact, step-by-step procedures — not just "log into
+          the dashboard," the specific navigation path
+    - [ ] At least one full dry-run rehearsal completed and timed (do **not** actually rotate live
+          production secrets for the rehearsal unless explicitly directed to — dry-run means
+          confirming the mechanism/documentation works, e.g. generating a *new* key alongside the
+          old one where the provider supports it, not necessarily invalidating what's currently in
+          use)
+    - [ ] Runbook referenced from both repos' `docs/ops/supply-chain-hardening.md` §2, replacing
+          the current bare checklist with a link to the real thing
+
+    **Files:** new `docs/ops/secret-rotation-runbook.md` in CEF (covering both repos, per the
+    `keychain-secrets-migration.md` precedent), pointer file in Oficio's `docs/ops/`
+
+The incident-response runbook (kill processes, rebuild from clean history, rotate every credential,
+re-image workstations) lives in the ops doc's §2 as a **documented plan for if Detection ever finds
+something** — it is not a task list to execute now. Task 10 above is what turns its "rotate every
+credential" line from aspirational into tested.
+
+---
+
+## Phase 12 — Outlook/Microsoft 365 Calendar Provider 🔵 PROPOSED — not started
+
+**Design doc:** [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md). Read that
+first — this section is the task breakdown, not the rationale.
+
+> **Provenance:** ADR-004 reuses verified Microsoft Graph API research (`common` tenant
+> endpoint, `offline_access` scope requirement, no-admin-consent delegated permissions)
+> from a sibling project's ADR (Oficio, a separate Borinquen Terrier product, ADR-0023,
+> parked for its own audience) — research only, not code. The architecture below is
+> CEF-specific: a second `RemoteCalendarRepository` implementation mirroring
+> `GoogleRemoteCalendarRepository` class-for-class, not Oficio's multi-tenant
+> three-interface split. See ADR-004's Context section for why the two designs diverge.
+
+### What this closes
+
+CEF's own architecture doc (`AGENTS.md:271`) has named Microsoft Outlook as an intended
+external-calendar source since before this phase existed; it was never built. A student on
+a university-issued or personal Microsoft account cannot currently self-serve into CEF's
+calendar sync without creating a Gmail account. This phase closes that gap with full
+two-way sync — parity with what Google Calendar already gets, not a lesser read-only
+experience (see ADR-004's Alternatives Considered for why read-only-via-`.ics` was
+rejected).
+
+### Tasks
+
+#### MS-1 — Azure AD app registration + build-time secrets plumbing
+
+**What:** Register a multi-tenant Azure AD app (`common` tenant, delegated
+`Calendars.ReadWrite` + `offline_access` scopes). Full step-by-step runbook — tenant setup,
+redirect URIs per platform, client secret, and the optional/deferred publisher-verification
+path — lives in
+[`docs/ops/microsoft-azure-app-registration.md`](../docs/ops/microsoft-azure-app-registration.md)
+(Part A is required and free; Part B/publisher verification is optional polish, also free,
+and should not block MS-2 onward). Extend `generateBuildSecrets`
+(`composeApp/build.gradle.kts:29-116`) with `MICROSOFT_CLIENT_ID`/`MICROSOFT_CLIENT_SECRET`,
+following the exact same env → local.properties → `.env` → obfuscated `BuildSecrets.kt`
+priority chain already built for `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`.
+
+**Acceptance criteria:**
+- [ ] Azure AD app registration exists; client ID/secret captured
+- [ ] `generateBuildSecrets` emits `MICROSOFT_CLIENT_ID`/`MICROSOFT_CLIENT_SECRET` into
+      `BuildSecrets.kt` alongside the existing Google constants
+- [ ] `./gradlew :composeApp:jvmTest` green (no behavior change to existing secrets)
+
+**Files:** `composeApp/build.gradle.kts`, `androidApp/build.gradle.kts`
+
+---
+
+#### MS-2 — `MicrosoftCalendarSyncService` (Graph REST client)
+
+**What:** Hand-rolled `ktor-client-cio` REST client against
+`https://graph.microsoft.com/v1.0`, mirroring `GoogleCalendarSyncService.kt`'s structure —
+no Graph SDK, no MSAL (ADR-004 §1). List/create calendars (`GET/POST /me/calendars`),
+event CRUD (`GET/POST /me/calendars/{id}/events`, `PATCH/DELETE /me/events/{id}`), own
+`MicrosoftEvent`/`MicrosoftCalendarItem` `kotlinx.serialization` DTOs, own
+`toCalendarException` error mapping. Takes a raw bearer-token string for now — no
+dependency on MS-3..MS-5's auth work, testable standalone via Ktor `MockEngine` against
+fixed Graph JSON fixtures.
+
+**Acceptance criteria:**
+- [ ] Calendar list/create, event create/read/update/delete all covered against
+      `MockEngine` fixtures
+- [ ] Error mapping (401/403/404/429/5xx) produces the same domain exception shapes
+      `GoogleCalendarSyncService.kt:66-78` does for Google
+- [ ] `./gradlew :composeApp:jvmTest` green
+
+**Files:** `MicrosoftCalendarSyncService.kt` (new), matching test file
+
+---
+
+#### MS-3 — `MicrosoftAuthService` expect declaration + JVM actual (+ Android/iOS stubs)
+
+**What:** `expect class MicrosoftAuthService(settings, appEnv)` with the same
+`login()`/`refreshAccessToken()`/`logout()` shape as `GoogleAuthService`. JVM actual
+mirrors `GoogleAuthService.jvm.kt`'s `AuthorizationCodeInstalledApp`/`LocalServerReceiver`
+local-server flow, retargeted at Microsoft's `/authorize`/`/token` endpoints with
+`offline_access Calendars.ReadWrite` scopes. **Kotlin's expect/actual requires every
+target to have an actual before any target compiles** — Android and iOS get minimal
+stub actuals here (throw `NotImplementedError`) purely to keep the 3-target build green;
+MS-4/MS-5 replace the stubs with real implementations. `MicrosoftTokenRepository` mirrors
+`GoogleTokenRepository`, storing `MICROSOFT_ACCESS_TOKEN`/`MICROSOFT_REFRESH_TOKEN` in the
+same `Settings` store (not SQLDelight, not a file).
+
+**Acceptance criteria:**
+- [ ] `expect class MicrosoftAuthService` compiles for all three targets (JVM real, Android/iOS stub)
+- [ ] JVM local-server OAuth flow requests `offline_access` explicitly and fails distinctly
+      (not silently) when no refresh token comes back — different mechanics from Google's
+      `access_type=offline&prompt=consent`, per ADR-004
+- [ ] `MicrosoftTokenRepository` passes the same test shape as `GoogleTokenRepositoryTest`
+- [ ] `./gradlew :composeApp:jvmTest` green; Android and iOS build (not run) green per
+      the project's separate-build-per-platform discipline
+
+**Files:** `MicrosoftAuthService.kt` (new, `expect`), `MicrosoftAuthService.jvm.kt` (new),
+`MicrosoftAuthService.android.kt` (new, stub), `MicrosoftAuthService.ios.kt` (new, stub),
+`MicrosoftTokenRepository.kt` (new), matching tests
+
+---
+
+#### MS-4 — `MicrosoftAuthService` Android actual
+
+**What:** Replace MS-3's Android stub with a real implementation. No Microsoft-native SDK
+equivalent to `GoogleSignIn`/`GoogleAuthUtil` fits the no-SDK constraint, so this is a
+browser-based authorization-code + PKCE flow via `CustomTabsIntent` capturing the redirect
+URI — structurally closer to CEF's existing **iOS** Google implementation
+(`GoogleAuthService.ios.kt`'s PKCE + manual `OAuthExchange`) than to CEF's existing
+Android Google implementation. Flagged explicitly in ADR-004 so this isn't built by
+copy-pasting the wrong platform file.
+
+**Acceptance criteria:**
+- [ ] `CustomTabsIntent` launches Microsoft's consent screen; redirect URI captured and
+      exchanged for tokens via PKCE (no client secret on-device)
+- [ ] Manually verified end-to-end on a real Android device/emulator with a real Microsoft
+      account (per this project's manual-verification convention for OAuth flows, see
+      Phase 9's Drive-picker verification)
+- [ ] `./gradlew :androidApp:assembleDebug` green (run separately from iOS build per
+      `feedback_ios_build_separate`)
+
+**Files:** `MicrosoftAuthService.android.kt`
+
+---
+
+#### MS-5 — `MicrosoftAuthService` iOS actual
+
+**What:** Replace MS-3's iOS stub with a real implementation — direct port of
+`GoogleAuthService.ios.kt:46-130`'s `ASWebAuthenticationSession` + PKCE + manual
+`OAuthExchange` pattern, retargeted at Microsoft's endpoints.
+
+**Acceptance criteria:**
+- [ ] `ASWebAuthenticationSession` flow completes and exchanges the code for tokens via
+      PKCE
+- [ ] Manually verified end-to-end on a real iOS device/simulator with a real Microsoft
+      account
+- [ ] iOS build green (run separately from Android per `feedback_ios_build_separate`)
+
+**Files:** `MicrosoftAuthService.ios.kt`
+
+---
+
+#### MS-6 — `MicrosoftAccountFlow`
+
+**What:** Mirrors `GoogleAccountFlow.kt`'s FSA (Unlinked/Connecting/Linked/Error),
+constructor-injecting `MicrosoftAuthService`/`MicrosoftTokenRepository`/
+`MicrosoftCalendarSyncService` directly, same as Google's does. Depends on MS-2 (sync
+service) and MS-3..MS-5 (all three actuals must exist to compile).
+
+**Acceptance criteria:**
+- [ ] Same state transitions as `GoogleAccountFlow` (connect success/failure, refresh,
+      disconnect) covered by tests
+- [ ] `./gradlew :composeApp:jvmTest` green
+
+**Files:** `MicrosoftAccountFlow.kt` (new), matching test file
+
+---
+
+#### MS-7 — `MicrosoftCalendarIdResolver` + `StudyPreferences` fields
+
+**What:** Straight port of `CalendarIdResolver.kt`, retargeted at
+`MicrosoftCalendarSyncService`. Adds `microsoftCalendarId`/`microsoftCalendarName` fields
+to `StudyPreferences` following the existing `googleCalendarId`/`googleCalendarName`
+pattern (ADR-004 explicitly rejects generalizing into a provider map at two providers).
+
+**Acceptance criteria:**
+- [ ] Find-or-create "CEF Academic" calendar logic matches `CalendarIdResolver`'s
+      stale-ID self-healing behavior (re-resolve by name if the saved ID no longer exists)
+- [ ] `./gradlew :composeApp:jvmTest` green
+
+**Files:** `MicrosoftCalendarIdResolver.kt` (new), `StudyPreferences.kt`, matching test file
+
+---
+
+#### MS-8 — `MicrosoftRemoteCalendarRepository`
+
+**What:** Facade implementing `RemoteCalendarRepository` (`CalendarInterfaces.kt:104-114`),
+mirroring `GoogleRemoteCalendarRepository.kt`'s structure: delegates to
+`MicrosoftCalendarSyncService` (MS-2) and `MicrosoftCalendarIdResolver` (MS-7), reuses
+`EventQueryService`/`EventRangeFilter` unchanged (already provider-agnostic). **Does not**
+carry forward `GoogleRemoteCalendarRepository`'s unused `EventConflictDetector` injection
+(`GoogleRemoteCalendarRepository.kt:12`, confirmed dead — don't repeat it in new code; fixing
+the existing Google instance is out of scope here).
+
+**Acceptance criteria:**
+- [ ] Implements all of `RemoteCalendarRepository`/`StudentCalendarRepository`'s methods
+- [ ] `CalendarSyncTest`'s four mutation scenarios pass against the Microsoft
+      implementation (new parallel test class, not a modification of the existing one)
+- [ ] `./gradlew :composeApp:jvmTest` green
+
+**Files:** `MicrosoftRemoteCalendarRepository.kt` (new), matching test file
+
+---
+
+#### MS-9 — `CalendarProvider` enum + `DependencyContainer` wiring
+
+**What:** New `CalendarProvider` enum (`NONE`/`GOOGLE`/`MICROSOFT`), resolved once at
+startup by checking `GoogleTokenRepository`/`MicrosoftTokenRepository` for a stored token
+(single-install app — no per-request resolution needed, unlike Oficio's multi-tenant
+resolver). `DependencyContainer.kt:65-81` constructs and injects whichever
+`RemoteCalendarRepository` matches into `CalendarAgent`. `CalendarSyncManager`'s
+`isGoogleLinked: Boolean` (`CalendarSyncManager.kt:14`) retypes to
+`connectedProvider: CalendarProvider?` — mechanical rename/retype at its one call site.
+
+**Acceptance criteria:**
+- [ ] `CalendarProvider` resolved correctly for: Google-only connected, Microsoft-only
+      connected, neither connected
+- [ ] `CalendarSyncManager` and all call sites compile against the retyped parameter; no
+      behavior change to the Google-only path (existing tests pass unmodified)
+- [ ] `./gradlew :composeApp:jvmTest` green
+
+**Files:** `CalendarProvider.kt` (new), `DependencyContainer.kt`, `CalendarSyncManager.kt`,
+matching tests
+
+---
+
+#### MS-10 — Settings UI: provider picker + `MicrosoftCalendarPanel` / `MicrosoftCalendarSelector`
+
+**What:** Per ADR-004 §5, "not connected" becomes a state owned by a new parent-level picker,
+not by either provider panel — avoids showing two independent connect buttons simultaneously,
+which would visually imply both providers could be connected at once (they can't; see MS-9).
+
+- `connectedProvider == null`: one "Calendar & Drive" card shows both "Connect Google Account"
+  and "Connect Outlook Account" buttons, stacked. Neither panel renders.
+- `connectedProvider == GOOGLE`: only `GoogleCalendarPanel` renders (selector + disconnect,
+  unchanged behavior) — no Outlook button visible anywhere.
+- `connectedProvider == MICROSOFT`: only `MicrosoftCalendarPanel` renders (mirrored shape) — no
+  Google button visible anywhere.
+
+Trim `GoogleCalendarPanel.kt`'s existing "not linked" connect-button branch
+(`GoogleCalendarPanel.kt:92-109`) out into the new picker — a small, deliberate change to
+already-shipped code, not purely additive. New `MicrosoftCalendarPanel`/
+`MicrosoftCalendarSelector` mirror `GoogleCalendarPanel`/`GoogleCalendarSelector`'s *linked-state*
+shape only (they no longer need their own not-connected branch either).
+`CalendarDisplayName.kt` needs no change (already provider-agnostic).
+
+**Acceptance criteria:**
+- [ ] With nothing connected, both connect buttons render in one card; each starts its own
+      provider's OAuth flow
+- [ ] Once a provider connects, the *other* provider's connect button is gone from the screen —
+      not just disabled — until disconnect returns state to `null`
+- [ ] `GoogleCalendarPanel`'s trimmed not-linked branch removal doesn't regress any existing
+      Google-linked-state behavior (selector, disconnect confirmation, calendar creation)
+- [ ] Compose UI test covers all three `CalendarProvider` states plus the disconnect-returns-
+      to-picker transition, mirroring existing `SettingsScreen`/`GoogleCalendarPanelTest` coverage
+
+**Files:** `MicrosoftCalendarPanel.kt` (new), `MicrosoftCalendarSelector.kt` (new),
+`GoogleCalendarPanel.kt` (trim not-linked branch), `SettingsScreen.kt` (new picker), matching tests
+
+---
+
+#### MS-11 — Disconnect teardown parity (HARD-9 for Microsoft)
+
+**What:** HARD-9 (Phase 10) gave Google's "Disconnect Account" button a confirmation
+dialog with honest messaging ("only the connection is removed, events already in CEF stay
+on-device") and the explicit product decision that disconnect touches zero local event
+data. Apply the same policy and the same confirmation-dialog pattern to
+`MicrosoftCalendarPanel`'s disconnect button — this should not ship as a silent gap the
+way Google's disconnect flow was before HARD-9.
+
+**Acceptance criteria:**
+- [ ] `MicrosoftCalendarPanel`'s disconnect button opens the same style of confirmation
+      dialog as `GoogleCalendarPanel`'s (post-HARD-9)
+- [ ] `MicrosoftAccountFlow.disconnect()` touches zero local event data, matching HARD-9's
+      policy
+- [ ] Test mirrors `GoogleCalendarPanelTest`'s three paths (open without disconnecting,
+      cancel without disconnecting, confirm disconnects exactly once)
+
+**Files:** `MicrosoftCalendarPanel.kt`, `MicrosoftAccountFlow.kt`, matching test file
+
+---
+
+#### MS-12 — Integration test + regression check
+
+**What:** New `MicrosoftCalendarSyncIntegrationTest` (per the project's `IntegrationTest`
+naming convention — real OAuth/Graph calls, excluded from default `jvmTest` runs) covering
+a full connect → sync → disconnect round trip against a real Microsoft account. Re-runs
+existing Google-path tests as an explicit regression check that MS-1..MS-9's changes
+(`StudyPreferences` growth, `CalendarSyncManager` retype, `DependencyContainer` wiring)
+didn't change Google behavior.
+
+**Acceptance criteria:**
+- [ ] New `MicrosoftCalendarSyncIntegrationTest` green against a real Microsoft
+      Outlook.com or M365 account, following the `-PrunAITests`-equivalent opt-in gating
+      already used for `IntegrationTest`-suffixed classes
+- [ ] Existing Google-path `CalendarSyncTest` and `GoogleOAuthIntegrationTest` still green,
+      unmodified
+- [ ] `./gradlew :composeApp:jvmTest` (default, no real-API tests) and the full
+      integration run both green
+
+**Files:** `MicrosoftCalendarSyncIntegrationTest.kt` (new)
+
+### Build order
+
+```
+MS-1 (Azure AD + secrets)         standalone — start in parallel with MS-2, real lead time
+MS-2 (Graph REST client)          standalone — MockEngine-testable, no auth dependency
+MS-3 (auth: expect + JVM + stubs) needs MS-1 for live testing; compiles standalone
+    ├── MS-4 (auth: Android)      replaces MS-3's Android stub
+    └── MS-5 (auth: iOS)          replaces MS-3's iOS stub
+MS-6 (MicrosoftAccountFlow)       needs MS-2 + MS-3..MS-5 (all actuals must exist)
+MS-7 (CalendarIdResolver)         needs MS-2
+MS-8 (RemoteCalendarRepository)   needs MS-2 + MS-7
+MS-9 (provider enum + wiring)     needs MS-6 + MS-8
+MS-10 (Settings UI)               needs MS-9
+MS-11 (disconnect parity)         needs MS-10
+MS-12 (integration test)          needs MS-1 (real secrets) + MS-9 + MS-10, last
+```
+
+### Ruled out (this phase)
+
+Per ADR-004's Out of Scope — listed explicitly so this phase stays honest about what
+was considered and deliberately excluded, not silently dropped:
+
+- **Simultaneous dual-provider sync for one student** — one connected provider at a time;
+  switching is disconnect-then-reconnect, not built.
+- **Generalizing `RemoteCalendarRepository`'s auth/id-resolver dependencies into shared
+  interfaces** — deferred until a third provider makes the seam obvious; two mirrored
+  implementations is accepted duplication for now.
+- **iCloud/CalDAV** — no modern OAuth story, not requested.
+- **Token encryption at rest** — matches the existing (unencrypted, `Settings`-backed)
+  Google posture; not raised or lowered by this phase for either provider.

@@ -12,3 +12,17 @@
 /composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GeminiResponseParser.kt   @borinquenkid
 /composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/GroundingGuardAIService.kt @borinquenkid
 /.github/                                            @borinquenkid
+
+# Build-tooling config — a compromised build script/config is a supply-chain vector
+# (see docs/ops/supply-chain-hardening.md, Phase 11 Task 2).
+/build.gradle.kts                                    @borinquenkid
+/settings.gradle.kts                                 @borinquenkid
+/androidApp/build.gradle.kts                         @borinquenkid
+/composeApp/build.gradle.kts                         @borinquenkid
+/iosApp/build.gradle.kts                             @borinquenkid
+/server/build.gradle.kts                             @borinquenkid
+/shared/build.gradle.kts                             @borinquenkid
+/web/vite.config.ts                                  @borinquenkid
+/web/eslint.config.js                                @borinquenkid
+/iosApp/Configuration/                               @borinquenkid
+/iosApp/iosApp.xcodeproj/                             @borinquenkid

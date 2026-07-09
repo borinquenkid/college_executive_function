@@ -1935,7 +1935,14 @@ verification.
    still wouldn't trigger `pr-check.yml`) — that's now moot given Task 1's ruleset requires a PR
    for anyone without bypass, but worth noting this task's shape changed from the original plan,
    not just its status.
-5. **Enable Gradle dependency verification** (`gradle/verification-metadata.xml`).
+5. ✅ **DONE 2026-07-09** — **Enable Gradle dependency verification** (`gradle/verification-metadata.xml`).
+   Generated checksum-only (sha256) metadata for all Gradle modules across two passes (Android/JVM/
+   server, then iOS separately per the OOM-avoidance note) — 1297 components, including buildscript/
+   plugin dependencies. Verified it actually enforces (not just present) by corrupting one checksum,
+   forcing a re-download of that artifact, and confirming the build failed with Gradle's tamper
+   warning, then restoring the correct file. See
+   [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md) Harden §2 item 3 for
+   full detail.
 6. **Add Dependabot or Renovate** for both `web/`'s npm dependencies and Gradle dependencies.
 7. **Restrict `web/`'s `npm install` lifecycle scripts in CI** (`--ignore-scripts` where feasible).
 8. **Design and land the `devSecrets` Gradle task** (java-keyring-backed local secret storage) —

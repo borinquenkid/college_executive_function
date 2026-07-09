@@ -153,9 +153,20 @@ Ordered to fix the biggest confirmed gap first, not the source material's origin
    `.github/CODEOWNERS` — same required-review treatment the LLM-pipeline files already get, same
    rationale (files that control what code executes / what CI runs), one line each, no new
    pattern.
-3. **Gradle dependency verification.** Enable Gradle's built-in checksum/signature verification
-   (`gradle/verification-metadata.xml`) — nothing currently checks that a transitive Gradle
-   dependency hasn't changed out from under a pinned version.
+3. ✅ **DONE 2026-07-09 — Gradle dependency verification.** `gradle/verification-metadata.xml`
+   generated via `./gradlew --write-verification-metadata sha256 <tasks>`, checksum-only
+   (`verify-metadata: true`, `verify-signatures: false` — no PGP key management taken on).
+   Generated in two passes to avoid the iOS+Android combined-memory-exhaustion issue: first
+   `:composeApp:jvmTest :composeApp:testDebugUnitTest :androidApp:assembleDebug :server:assemble`
+   (covers everything `pr-check.yml` + `server:assemble` actually touch), then `:iosApp:assemble`
+   separately — Gradle merges both passes into the same file (1297 components total). Buildscript/
+   plugin classpath dependencies (AGP, Kotlin Gradle plugin, Compose plugin) are swept in too,
+   confirmed by grep. No SNAPSHOT/dynamic-version dependencies exist in this project, so no
+   `<trust>` exceptions were needed for checksum churn. **Verified as actually enforcing, not just
+   present:** corrupted one real sha256 in the file, deleted the corresponding artifact from the
+   local Gradle module cache to force re-download, and confirmed `:androidApp:assembleDebug`
+   failed with `Dependency verification failed ... This can indicate that a dependency has been
+   compromised` — then restored the correct file and confirmed the build passed clean again.
 4. **Dependabot or Renovate, with mandatory human review** — neither exists today. Given this is a
    solo-maintainer project (per CODEOWNERS), "mandatory human review" already exists by
    construction (every PR needs `@borinquenkid`'s review once Harden §1 lands) — this item is

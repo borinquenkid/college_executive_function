@@ -171,9 +171,19 @@ Ordered to fix the biggest confirmed gap first, not the source material's origin
    solo-maintainer project (per CODEOWNERS), "mandatory human review" already exists by
    construction (every PR needs `@borinquenkid`'s review once Harden §1 lands) — this item is
    really just "turn on automated dependency-update PRs," not a new review-process design.
-5. **Restrict `npm install` lifecycle scripts in CI where feasible** (`--ignore-scripts`) for
-   `web/`'s build step, and consider running that build in a network-restricted CI container —
-   neither is currently the case in `pr-check.yml`.
+5. ✅ **DONE 2026-07-09** — **Restrict `npm install` lifecycle scripts** (`--ignore-scripts`) for
+   `web/`'s build step. Correction to this item's original framing: `pr-check.yml` never actually
+   ran `npm install` for `web/` at all — no GitHub Actions workflow builds the web client. The
+   only place `npm ci` runs in the whole build/deploy pipeline is `web/Dockerfile`, which is what
+   `docker-compose.yml`'s `web` service builds for production. Added `--ignore-scripts` there.
+   Verified zero risk before applying: walked all 150 resolved packages (React 19, Vite 8,
+   TypeScript, ESLint) and confirmed none define `preinstall`/`install`/`postinstall` — this
+   dependency tree has no native-binary-download step that scripts would normally perform (modern
+   Vite/esbuild resolve platform binaries via `optionalDependencies`, not lifecycle scripts).
+   Re-built the image after the change (`docker build ./web`) and confirmed `npm ci
+   --ignore-scripts` plus `npm run build` both still succeed unchanged. Network-restricted CI
+   container remains an open idea, not implemented — there's no CI container for this build to
+   restrict yet since it doesn't run in GitHub Actions.
 6. **Scheduled process/git-integrity checks (Detection §3–4) should stay manual for now**, not a
    blind cron job — a scheduled script that kills processes or alerts on every Gradle daemon
    would generate constant false positives on a normal dev machine. If automated later, it should

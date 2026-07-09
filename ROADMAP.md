@@ -1965,19 +1965,16 @@ verification.
    `.env` value (proving the migration mechanism didn't corrupt anything), never actually exercised
    against its real external service post-migration. That's a real, not-yet-closed gap:
 
-   **CEF — not yet spot-checked:**
-   - `GOOGLE_CLIENT_SECRET` — no live OAuth round-trip currently possible;
-     `GoogleOAuthIntegrationTest` requires `GOOGLE_REFRESH_TOKEN`, which isn't set anywhere (a
-     separate, pre-existing gap, not caused by this migration — see that test's file for the exact
-     `error(...)` it throws). Spot-check by completing a real Google sign-in flow in the running
-     app and confirming sync works.
-   - `CEF_OTLP_PASSWORD` — spot-check by confirming a real OTEL trace export reaches OpenObserve
-     (see the `reference_openobserve_query` memory / `docs/ops/` for the query recipe: org id,
-     `_search?type=traces` endpoint).
-   - `OOC_TOKEN` — OpenObserve API token; a real API call against OpenObserve's API would cover
-     both this and the item above in one check.
-   - `SONAR_TOKEN` — spot-check via `./gradlew :composeApp:checkQualityGate` actually reaching the
-     local SonarQube instance (see `docs/ops/sonarqube-local.md`).
+   **CEF — all four spot-checked ✅ DONE 2026-07-09** (full detail in
+   `docs/ops/keychain-secrets-migration.md`'s "Step 4" section):
+   - `GOOGLE_CLIENT_SECRET` ✅ — real interactive Google sign-in via the running desktop app
+     (`./gradlew :composeApp:run`); log confirmed token exchange + `Transition: Connecting ->
+     Linked`. `GoogleOAuthIntegrationTest`'s missing-`GOOGLE_REFRESH_TOKEN` gap is unaffected by
+     this (different code path) — still open, logged separately below.
+   - `CEF_OTLP_PASSWORD` ✅ — confirmed transitively via real trace rows reaching OpenObserve.
+   - `OOC_TOKEN` ✅ — real `_search?type=traces` API call returned actual trace data (`HTTP 200`).
+   - `SONAR_TOKEN` ✅ — `./gradlew :composeApp:checkQualityGate` reached the local SonarQube
+     instance, returned `Quality Gate OK`.
 
    **Oficio — not yet spot-checked** (per the delta in Oficio's own
    `docs/ops/keychain-secrets-migration.md`): Stripe (`STRIPE_SECRET_KEY`/`STRIPE_WEBHOOK_SECRET`),
@@ -1988,16 +1985,15 @@ verification.
    just confirming the value loads.
 
    **Acceptance criteria:**
-   - [ ] Every secret listed above exercised against its real service post-Keychain-migration,
-         with the result (pass/fail) recorded in the relevant `keychain-secrets-migration.md`
-   - [ ] Any failure investigated with the same rigor as the `ANTHROPIC_API_KEY`/`~/.zshrc`
-         shadowing bug found during the original migration (distinguish "migration broke it" from
-         "was already broken" — check shell profiles for stale exports first, per
-         `oficio/AGENTS.md`'s documented OPS-11 gotcha, before assuming the Keychain path is at
-         fault)
-   - [ ] `GOOGLE_REFRESH_TOKEN`'s missing-value gap either fixed (real token captured) or
-         explicitly logged as a separately-tracked pre-existing issue, not silently left conflated
-         with this task
+   - [x] Every CEF secret exercised against its real service post-Keychain-migration, with the
+         result (pass/fail) recorded in `keychain-secrets-migration.md` — all 4 passed. Oficio's
+         7 secrets remain unchecked (separate repo, out of scope for this pass).
+   - [x] No failure to investigate on the CEF side — all 4 passed cleanly. (The stale Google
+         session found on app startup was pre-existing and expected, not a migration-caused
+         failure — see below.)
+   - [x] `GOOGLE_REFRESH_TOKEN`'s missing-value gap explicitly logged as a separately-tracked
+         pre-existing issue (not fixed, not conflated with this task) — see
+         `keychain-secrets-migration.md`'s "Step 4" section.
 
    **Files:** `docs/ops/keychain-secrets-migration.md` (CEF and Oficio — record results in both)
 

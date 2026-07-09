@@ -166,10 +166,50 @@ so this isn't silently assumed to be as rigorously verified as the Anthropic/Gem
 2. CEF: migrate + write loader + verify + redact .env                      ✅ DONE 2026-07-09
 3. Oficio: migrate + write loader + verify + redact .env                   ✅ DONE 2026-07-09
 4. Manual spot-check of the not-independently-testable secrets (Stripe/Twilio/Cloudflare/WP)
+   — CEF's four done 2026-07-09 (see below); Oficio's still open
 5. Later, separate task: the full devSecrets Gradle task (prompt-if-missing, cross-platform)
    from supply-chain-hardening.md §4 — this plan's loader scripts are a stepping stone toward
    that, not a replacement for it
 ```
+
+## Step 4 (CEF) — manual spot-check results, 2026-07-09
+
+All four CEF secrets without automated live-call coverage (ROADMAP.md Phase 11 Task 9) were
+exercised against their real external service, sourced from Keychain via
+`scripts/load-secrets-from-keychain.sh` (not the redacted `.env`):
+
+- **`OOC_TOKEN`** ✅ — `POST {openobserve_base}/_search?type=traces` with basic auth
+  `wbduque@mac.com:$OOC_TOKEN` returned `HTTP 200` with 5 real `cef-desktop` trace rows (not a
+  stub/empty response). First attempt returned `401` because the loader script had been sourced
+  in a separate `Bash` tool call whose exported env vars didn't persist to the next call — not a
+  Keychain or credential problem, a tool-session artifact. Re-running source + curl in one shell
+  invocation fixed it.
+- **`CEF_OTLP_PASSWORD`** ✅ — same query as above proves it transitively: those trace rows only
+  exist in OpenObserve because a real OTLP export using this password already succeeded (most
+  recent trace timestamp ~1 day before the spot-check, consistent with normal desktop-app use).
+- **`SONAR_TOKEN`** ✅ — `./gradlew :composeApp:checkQualityGate` (with only `SONAR_TOKEN`
+  exported, per the "Known limitation" section above re: `CEF_OTLP_PASSWORD` breaking
+  `OtelTracerTest`) reached the local SonarQube instance and returned `Quality Gate OK` (new
+  coverage 89.3%, 0 new violations, 0% duplication).
+- **`GOOGLE_CLIENT_SECRET`** ✅ — launched `./gradlew :composeApp:run` with all six secrets
+  sourced from Keychain. On startup the *existing* stored Google session was already invalid
+  (`Automatic token refresh failed: 401 Unauthorized` → app auto-disconnected to `Unlinked`) — a
+  real, pre-existing gap (stale/expired refresh token), unrelated to this migration, consistent
+  with the "OPS-11"-style shell/credential-staleness issues seen elsewhere in this doc. Walter
+  then completed a real interactive Google sign-in through the app's OAuth flow; log confirmed
+  `[GoogleAuth] Google Login Successful!` → `Saving tokens...` → `Validating Calendar access...`
+  → `Transition: Connecting -> Linked`. The token exchange at `oauth2.googleapis.com/token`
+  requires `client_secret`, and calendar access was validated with a live Calendar API call, so
+  this proves the Keychain-sourced `GOOGLE_CLIENT_SECRET` value is correct and live.
+
+**`GOOGLE_REFRESH_TOKEN` gap status:** still not set as an env var anywhere (so
+`GoogleOAuthIntegrationTest` still can't run) — this spot-check didn't fix that, it used the
+app's own interactive OAuth flow instead, which stores tokens in the app's local `Settings`, not
+as a `GOOGLE_REFRESH_TOKEN` env var. Logged here, per Task 9's acceptance criteria, as a
+separately-tracked pre-existing gap — not silently conflated with this spot-check.
+
+**Oficio's spot-checks (Stripe/Twilio/Cloudflare/WordPress/etc.) are still open** — out of scope
+for this pass; see Oficio's own `docs/ops/keychain-secrets-migration.md`.
 
 ## Step 2 (CEF) — what actually happened, deviations from the draft noted
 

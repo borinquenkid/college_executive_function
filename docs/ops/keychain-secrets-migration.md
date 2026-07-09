@@ -111,6 +111,20 @@ or the IDE's run configuration is manually set to source the same values. Comman
 `./gradlew` invocations are unaffected — this only matters for IDE-driven builds/runs/tests. Not
 solved by this plan; flagged so it isn't discovered as a surprise later.
 
+**Sourcing the loader script before running the full JVM test suite breaks two `OtelTracerTest`
+tests.** `AppEnv.get()` (`composeApp/src/jvmMain/kotlin/com/borinquenterrier/cef/AppEnv.kt`) falls
+back to real `System.getenv(key)` even when the test constructs `AppEnv(emptyMap())` — so
+`ReleaseTelemetryCheck.missingSecrets`/`failureMessage` tests, which assert `CEF_OTLP_PASSWORD` is
+*absent*, fail once that var is a real env var in the shell (discovered 2026-07-09 running
+`checkQualityGate` right after `source scripts/load-secrets-from-keychain.sh`). Not a bug in the
+migration or in `AppEnv` — it's a pre-existing test-isolation gap the migration surfaced by making
+`CEF_OTLP_PASSWORD` a real, commonly-present env var for the first time. Workaround: `unset
+CEF_OTLP_PASSWORD` after sourcing secrets and before running the full test suite/Quality Gate, or
+run `checkQualityGate` in a shell that hasn't sourced the loader script at all (only `SONAR_TOKEN`
+is actually needed for that task). Fixing `OtelTracerTest` to inject env instead of reading real
+`System.getenv()` is a small, separate cleanup — not done here, flagged so it isn't rediscovered as
+a mystery failure.
+
 ---
 
 ## Verification plan (per the explicit requirement: prove it with real integration tests)

@@ -1961,12 +1961,12 @@ stone (task 9's prerequisite work) already covers the practical need.
    solo maintainer; major-version bumps stay ungrouped so each gets its own PR and changelog
    review. "Mandatory human review" (this task's original framing) is already satisfied by
    construction once Task 1's `main` ruleset is in effect — every PR needs `@borinquenkid`'s
-   review — so this task was purely "turn on the updates," not a new review process. **Scope
-   note, not silently dropped:** while checking this, found **Dependabot security alerts are
-   disabled repo-wide** (`gh api repos/.../vulnerability-alerts` → 404,
-   `security_and_analysis.dependabot_security_updates.status: "disabled"`) — a distinct GitHub
-   feature (vulnerability *alerting*, not version-update PRs) that this task's wording didn't name
-   and wasn't turned on here; flagged as a separate, still-open gap.
+   review — so this task was purely "turn on the updates," not a new review process. **Follow-up,
+   same day:** also found (and then enabled) **Dependabot security alerts**, a distinct GitHub
+   feature (vulnerability *alerting* + automated security-fix PRs, not the version-update PRs
+   above) that had been disabled repo-wide — `gh api -X PUT repos/.../vulnerability-alerts` and
+   `gh api -X PUT repos/.../automated-security-fixes`, verified via `security_and_analysis.
+   dependabot_security_updates.status: "enabled"`.
 7. ✅ **DONE 2026-07-09** — **Restrict `web/`'s `npm install` lifecycle scripts** (`--ignore-scripts`).
    Turned out `pr-check.yml` doesn't build `web/` at all — the only `npm ci` in the pipeline is
    `web/Dockerfile`, the actual production build path via `docker-compose.yml`'s `web` service.

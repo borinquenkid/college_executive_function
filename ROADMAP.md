@@ -2075,8 +2075,14 @@ it's just no longer what determines order.
     - [ ] Runbook referenced from both repos' `docs/ops/supply-chain-hardening.md` §2, replacing
           the current bare checklist with a link to the real thing
 
-    **Files:** new `docs/ops/secret-rotation-runbook.md` in CEF (covering both repos, per the
-    `keychain-secrets-migration.md` precedent), pointer file in Oficio's `docs/ops/`
+    **Files:** superseded 2026-07-10 — per direct instruction, the runbook does **not** live in
+    either code repo. It lives in `~/second_brain/ops/runbooks/secret-rotation-runbook.md` (task
+    brief for the agent that writes it: `~/second_brain/ops/inbox/2026-07-10-secret-rotation-
+    runbook.md`). Both repos get a one-line pointer in their own `docs/ops/supply-chain-
+    hardening.md` §2, replacing the current bare "rotate everything" bullet — a link, not a copy.
+    Any automatable rotation scripts still belong in each repo's own `scripts/` (repo-specific
+    Keychain service name, `.env` shape, and live-deploy update path) — only the runbook document
+    itself moved out.
 
 The incident-response runbook (kill processes, rebuild from clean history, rotate every credential,
 re-image workstations) lives in the ops doc's §2 as a **documented plan for if Detection ever finds

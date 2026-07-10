@@ -261,6 +261,14 @@ Store-listing assets and questionnaire drafts live in `branding/play-store/`.
   `StandardTestDispatcher(testScheduler)` + `advanceUntilIdle()`, not `Dispatchers.Unconfined`
   + wall-clock `eventually()` (that raced under CI load — see `AppControllerTest`).
 
+### Cross-repo ops knowledge
+
+Operational knowledge that spans this repo *and* others (Oficio) — e.g. the secret-rotation
+runbook — does not live in a single code repo. It lives in `~/zed/second_brain`
+(`github.com/borinquenkid/second-brain`, private), which has cross-repo visibility that no single
+code repo has. Pending cross-repo ops tasks land in that repo's `ops/inbox/`; completed runbooks
+land in `ops/runbooks/`. Don't duplicate that content here — link to it instead.
+
 ---
 
 ## Core Architecture

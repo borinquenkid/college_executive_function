@@ -1943,15 +1943,16 @@ verification.
    warning, then restoring the correct file. See
    [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md) Harden §2 item 3 for
    full detail.
-**Priority order for remaining tasks (8, 10) — set 2026-07-09,** since the list below is
-numbered by when it was drafted, not by risk/cost. Ranked by directness against the original
-threat model (obfuscated build-config payloads + malicious npm lifecycle scripts beaconing to
-C2) versus effort: **7 → 6 → 10 → 8** (7 and 6 now done). Task 7 was cheapest and closed the exact
-vector that triggered this phase. Task 6 was cheap, ongoing protection. Task 10 is more effort but is the
-"higher-leverage investment" per the reasoning already written into its own scope note below.
-Task 8 is explicitly lowest — the same reasoning that scoped task 10 concluded hardening local
-secret storage further has diminishing returns for a solo developer, and the Keychain stepping
-stone (task 9's prerequisite work) already covers the practical need.
+**Priority order for remaining tasks (8, 10) — set 2026-07-09, re-ranked 2026-07-09.** The list
+below is numbered by when it was drafted, not by risk/cost. Original ranking by directness against
+the threat model (obfuscated build-config payloads + malicious npm lifecycle scripts beaconing to
+C2) versus effort was **7 → 6 → 10 → 8** (7 and 6 now done); Walter then explicitly reprioritized
+**Task 10 to the end of the stack — 8 → 10** — deferring the cross-repo secret-rotation-runbook
+effort (bigger scope: 19 secrets across two repos, scripting, a timed dry-run rehearsal) in favor
+of picking up equivalent-effort hardening elsewhere first, including Oficio's twin plan. Task 8
+(`devSecrets` Gradle task) is next up in CEF; Task 10 stays last regardless of its
+"higher-leverage investment" framing in its own scope note below — that reasoning is still true,
+it's just no longer what determines order.
 
 6. ✅ **DONE 2026-07-09** — **Added `.github/dependabot.yml`** covering both ecosystems named in
    this task: `gradle` (directory `/`, which Dependabot's gradle parser walks recursively to pick

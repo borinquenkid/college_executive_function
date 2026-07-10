@@ -9,6 +9,20 @@ application {
     mainClass.set("com.borinquenterrier.cef.ApplicationKt")
 }
 
+// See composeApp/build.gradle.kts for the full devSecrets rationale — same task, same secret
+// list (server depends on composeApp and shares its Google/Gemini/OTLP secret needs).
+val devSecrets = tasks.register<com.borinquenterrier.cef.buildsrc.DevSecretsTask>("devSecrets") {
+    serviceName.set(com.borinquenterrier.cef.buildsrc.CEF_KEYCHAIN_SERVICE)
+    secretKeys.set(com.borinquenterrier.cef.buildsrc.CEF_DEV_SECRET_KEYS)
+}
+
+tasks.named<JavaExec>("run") {
+    dependsOn(devSecrets)
+    doFirst {
+        devSecrets.get().resolvedSecrets.get().forEach { (key, value) -> environment(key, value) }
+    }
+}
+
 dependencies {
     implementation(project(":shared"))
     implementation(project(":composeApp"))

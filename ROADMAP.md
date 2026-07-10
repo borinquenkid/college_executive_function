@@ -1976,15 +1976,30 @@ it's just no longer what determines order.
    `optionalDependencies`, not scripts). Re-ran `docker build ./web`: `npm ci --ignore-scripts`
    and `npm run build` both succeed unchanged. Full detail in
    [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md) Harden §3 item 5.
-8. **Design and land the `devSecrets` Gradle task** (java-keyring-backed local secret storage) —
-   see the ops doc's §4 for the full design, including the explicit caveat that java-keyring is
-   functionally solid but not under active development, and that this is scoped to low-sensitivity
-   dev-only secrets, not a production vault. **Stepping stone DONE 2026-07-09:**
+8. ✅ **DONE 2026-07-10** — **`devSecrets` Gradle task.** **Stepping stone DONE 2026-07-09:**
    [`docs/ops/keychain-secrets-migration.md`](../docs/ops/keychain-secrets-migration.md) — the
    smaller, verified-safe migration is complete for both CEF (6 secrets) and Oficio (13 secrets):
    both `.env` files redacted, both verified against real integration tests, both projects now
-   read secrets from macOS Keychain with zero application code changes. This task's fuller
-   java-keyring/Gradle-task design (prompt-if-missing, cross-platform) remains open — not started.
+   read secrets from macOS Keychain with zero application code changes. **Full task landed
+   2026-07-10:** new `buildSrc` module (`DevSecretsResolver`, unit-tested with fakes, 6 Kotest
+   cases) resolves the same six secrets from the OS keychain and injects them as env vars into
+   `:composeApp:run`'s and `:server:run`'s child JVM process via a `devSecrets` task dependency +
+   `doFirst { environment(...) }` — no plaintext file ever written, resolved values stay in-memory
+   for the build's lifetime. Missing secrets prompt interactively when run from a real terminal
+   (`ConsoleSecretPrompter`, needs `System.console()`); fail fast with a clear message otherwise
+   (IDE-launched runs have no console). **Real-world deviation from the original java-keyring-only
+   design, confirmed empirically, not assumed:** java-keyring's macOS backend reads via
+   Security.framework under the Gradle daemon JVM's own process identity, which differs from the
+   `security` CLI identity that originally wrote these entries — triggers a blocking SecurityAgent
+   GUI prompt per secret with no non-interactive grant-all option, hangs forever in a headless
+   context. Fixed by adding `SecurityCliSecretStore` (shells out to `/usr/bin/security`, same
+   mechanism the already-proven-silent `scripts/load-secrets-from-keychain.sh` uses) and picking it
+   on macOS via `defaultSecretStoreForOs()`; java-keyring stays in use for Windows/Linux. Verified
+   against real Keychain: `:composeApp:devSecrets :server:devSecrets` resolved all 6 secrets
+   silently (no prompts), then `:server:run` started and served `HTTP 200` with `devSecrets` wired
+   as a real task dependency. Full 3-target build check green
+   (`:composeApp:assembleDebug`, `:server:assemble`, `:iosApp:assemble`, run separately per the
+   documented combined-build OOM issue).
 
 9. **Manual spot-check of secrets without automated live-call coverage.** Context for a fresh
    session picking this up cold: on 2026-07-09, CEF's and Oficio's plaintext `.env` secrets were

@@ -167,9 +167,9 @@ so this isn't silently assumed to be as rigorously verified as the Anthropic/Gem
 3. Oficio: migrate + write loader + verify + redact .env                   ✅ DONE 2026-07-09
 4. Manual spot-check of the not-independently-testable secrets (Stripe/Twilio/Cloudflare/WP)
    — CEF's four done 2026-07-09 (see below); Oficio's still open
-5. Later, separate task: the full devSecrets Gradle task (prompt-if-missing, cross-platform)
-   from supply-chain-hardening.md §4 — this plan's loader scripts are a stepping stone toward
-   that, not a replacement for it
+5. The full devSecrets Gradle task (prompt-if-missing, cross-platform)
+   from supply-chain-hardening.md §4 — this plan's loader scripts were the stepping stone toward
+   that                                                                    ✅ DONE 2026-07-10
 ```
 
 ## Step 4 (CEF) — manual spot-check results, 2026-07-09

@@ -205,6 +205,16 @@ Ordered to fix the biggest confirmed gap first, not the source material's origin
 
 ## 4. Local developer secrets via a cross-platform keychain
 
+✅ **DONE 2026-07-10 — `devSecrets` Gradle task landed.** New `buildSrc` module
+(`com.borinquenterrier.cef.buildsrc.DevSecrets.kt`) with a `DevSecretsResolver` (unit-tested with
+fakes, 6 Kotest cases covering already-present/missing/prompted/blank-treated-as-missing/OS
+selection) and a `DevSecretsTask` registered in both `composeApp/build.gradle.kts` and
+`server/build.gradle.kts`. Wired as a real task dependency of `run` (`tasks.matching { it.name ==
+"run" }.configureEach { dependsOn(devSecrets); doFirst { environment(...) } }` — `matching` used
+instead of `named` because Compose Desktop's plugin registers `run` lazily, after this script body
+runs) — resolved secrets are injected into the child JVM process's environment and never written to
+disk anywhere, in-memory only for the build's lifetime.
+
 **Verified before recommending, not taken on faith:** `com.github.javakeyring:java-keyring` is
 real, on Maven Central, currently at **1.0.4**, BSD-licensed, with working CI for macOS/Linux/
 Windows keystores. **Caveat worth being explicit about:** the GitHub repo's release history looks
@@ -213,6 +223,30 @@ development. That's an acceptable tradeoff for a small, focused API like this (a
 around three OS-native keychain APIs doesn't need frequent updates the way a larger dependency
 would), but it's a real data point, not nothing — re-check before adopting if this sits unused for
 another year or two.
+
+**Real-world deviation from the design below, confirmed empirically not assumed:** java-keyring's
+macOS backend (`pt.davidafsilva.apple:jkeychain`) reads via Security.framework under the Gradle
+daemon JVM's own process identity — different from the `security` CLI identity that originally
+wrote these entries (`scripts/migrate-secrets-to-keychain.sh`). macOS Keychain ACLs are per-item,
+per-requesting-identity, with no non-interactive grant-all API, so the *first* read of each secret
+under a new identity blocks on a native `SecurityAgent` GUI authorization prompt — fine
+interactively, but hangs forever in any headless/backgrounded context, and there's no way to
+pre-approve all six at once. Fixed with a macOS-specific `SecurityCliSecretStore` that shells out to
+`/usr/bin/security find-generic-password`/`add-generic-password` — the exact mechanism
+`scripts/load-secrets-from-keychain.sh` already uses successfully with zero prompts, since those
+entries are already trusted for reads by that CLI's identity. `defaultSecretStoreForOs()` picks
+`SecurityCliSecretStore` on macOS, `JavaKeyringSecretStore` (java-keyring) elsewhere. This doesn't
+weaken the security posture already accepted for this migration (see
+`docs/ops/keychain-secrets-migration.md`'s "What Keychain actually protects against" section) — it
+reuses the same already-reviewed trust boundary rather than requiring a stricter one that was never
+the actual goal.
+
+**Verified against real Keychain, not just unit tests:** `./gradlew :composeApp:devSecrets
+:server:devSecrets` resolved all 6 existing secrets silently (zero GUI prompts). `./gradlew
+:server:run` then started successfully with `devSecrets` as a real task dependency and served `HTTP
+200`. Full 3-target build check green: `:composeApp:assembleDebug`, `:server:assemble` (together),
+then `:iosApp:assemble` separately (per the documented combined-build memory issue) — all
+`BUILD SUCCESSFUL`.
 
 **Integration pattern:** a custom Gradle task (e.g. `devSecrets`) running before `bootRun`/the KMP
 dev target, checking `java-keyring` for each required secret (`GOOGLE_CLIENT_SECRET`,

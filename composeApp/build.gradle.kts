@@ -490,6 +490,26 @@ compose.desktop {
     }
 }
 
+// Resolves local dev secrets (Google OAuth, Gemini, OTLP, etc.) from the OS keychain and injects
+// them into `run`'s child JVM process — see docs/ops/supply-chain-hardening.md §4 and ROADMAP.md
+// Phase 11 Task 8. Prompting only works from a real terminal (`./gradlew run`); IDE-launched runs
+// fail fast with a message telling you to run `./gradlew devSecrets` from a terminal first.
+val devSecrets = tasks.register<com.borinquenterrier.cef.buildsrc.DevSecretsTask>("devSecrets") {
+    serviceName.set(com.borinquenterrier.cef.buildsrc.CEF_KEYCHAIN_SERVICE)
+    secretKeys.set(com.borinquenterrier.cef.buildsrc.CEF_DEV_SECRET_KEYS)
+}
+
+// Compose Desktop's plugin registers "run" lazily (later than this script body runs), so
+// tasks.named("run") can't find it yet here — tasks.matching(...) stays live against tasks
+// registered afterward and picks it up once it exists.
+tasks.matching { it.name == "run" }.configureEach {
+    dependsOn(devSecrets)
+    doFirst {
+        val exec = this as JavaExec
+        devSecrets.get().resolvedSecrets.get().forEach { (key, value) -> exec.environment(key, value) }
+    }
+}
+
 tasks.withType<Test>().configureEach {
     useJUnitPlatform()
     maxHeapSize = "8g"

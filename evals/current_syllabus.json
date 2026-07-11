@@ -14,5 +14,6 @@
             "expectedCount": 6,
             "matchedCount": 6
         }
-    }
+    },
+    "modelUsed": "gemini-2.5-flash"
 }

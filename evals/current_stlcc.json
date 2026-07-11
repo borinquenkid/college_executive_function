@@ -1,19 +1,22 @@
 {
     "perDocument": {
         "STLCC_ENG101_WEEKLY": {
-            "eventCount": 42,
+            "eventCount": 38,
             "duplicateCount": 0,
-            "modelStable": true
+            "modelStable": true,
+            "modelUsed": "gemini-2.5-flash"
         },
         "STLCC_ENG101_SYLLABUS": {
             "eventCount": 6,
             "duplicateCount": 0,
-            "modelStable": true
+            "modelStable": true,
+            "modelUsed": "gemini-2.5-flash"
         },
         "STLCC_CALENDAR": {
             "eventCount": 51,
             "duplicateCount": 0,
-            "modelStable": true
+            "modelStable": true,
+            "modelUsed": "gemini-2.5-flash"
         }
     }
 }

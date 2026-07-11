@@ -86,7 +86,13 @@ data class SyllabusFileMetric(
 data class SyllabusEvalMetrics(
     val overallRecallPercent: Double,
     val overallDateAccuracyPercent: Double,
-    val perFile: Map<String, SyllabusFileMetric>
+    val perFile: Map<String, SyllabusFileMetric>,
+    // Which Gemini model the HEAVY-tier negotiator (GeminiModelNegotiator) settled on for this
+    // run — read from the shared `preferred_gemini_model` DB cache after extraction, since that's
+    // the same cache the negotiator itself reads/writes. Nullable/defaulted so pre-existing
+    // baseline/current JSON recorded before this field existed still decodes (see
+    // EvalBaselineTest's backward-compat test).
+    val modelUsed: String? = null
 )
 
 @Serializable
@@ -100,14 +106,17 @@ data class ContributorFileMetric(
 data class ContributorPdfEvalMetrics(
     val totalFiles: Int,
     val failedCount: Int,
-    val perFile: Map<String, ContributorFileMetric>
+    val perFile: Map<String, ContributorFileMetric>,
+    val modelUsed: String? = null
 )
 
 @Serializable
 data class StlccDocMetric(
     val eventCount: Int,
     val duplicateCount: Int,
-    val modelStable: Boolean
+    val modelStable: Boolean,
+    // Per-document since each StlccIntegrationTest test function owns its own in-memory DB/model cache.
+    val modelUsed: String? = null
 )
 
 @Serializable

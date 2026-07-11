@@ -63,4 +63,57 @@ class EvalBaselineComparatorTest : FunSpec({
             dir.deleteRecursively()
         }
     }
+
+    test("a model change between baseline and current is flagged as a warning, not silently folded into the delta") {
+        val dir = tempEvalsDir()
+        try {
+            File(dir, "baseline_syllabus.json").writeText(
+                """{"overallRecallPercent":95.0,"overallDateAccuracyPercent":95.0,"perFile":{},"modelUsed":"gemini-2.5-flash"}"""
+            )
+            File(dir, "current_syllabus.json").writeText(
+                """{"overallRecallPercent":95.0,"overallDateAccuracyPercent":95.0,"perFile":{},"modelUsed":"gemini-2.5-pro"}"""
+            )
+
+            val report = EvalBaselineComparator.buildReport(dir)
+            report shouldContain "model changed since baseline"
+            report shouldContain "gemini-2.5-flash"
+            report shouldContain "gemini-2.5-pro"
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
+
+    test("missing modelUsed on either side (older baselines) is not flagged") {
+        val dir = tempEvalsDir()
+        try {
+            File(dir, "baseline_syllabus.json").writeText(
+                """{"overallRecallPercent":95.0,"overallDateAccuracyPercent":95.0,"perFile":{}}"""
+            )
+            File(dir, "current_syllabus.json").writeText(
+                """{"overallRecallPercent":95.0,"overallDateAccuracyPercent":95.0,"perFile":{},"modelUsed":"gemini-2.5-pro"}"""
+            )
+
+            val report = EvalBaselineComparator.buildReport(dir)
+            report.contains("model changed") shouldBe false
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
+
+    test("same model on both sides is not flagged") {
+        val dir = tempEvalsDir()
+        try {
+            File(dir, "baseline_syllabus.json").writeText(
+                """{"overallRecallPercent":95.0,"overallDateAccuracyPercent":95.0,"perFile":{},"modelUsed":"gemini-2.5-flash"}"""
+            )
+            File(dir, "current_syllabus.json").writeText(
+                """{"overallRecallPercent":95.0,"overallDateAccuracyPercent":95.0,"perFile":{},"modelUsed":"gemini-2.5-flash"}"""
+            )
+
+            val report = EvalBaselineComparator.buildReport(dir)
+            report.contains("model changed") shouldBe false
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
 })

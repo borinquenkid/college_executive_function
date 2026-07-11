@@ -22,7 +22,8 @@ class EvalBaselineTest : FunSpec({
                 "syllabus_bdan250.pdf" to SyllabusFileMetric(
                     recallPercent = 100.0, dateAccuracyPercent = 100.0, expectedCount = 4, matchedCount = 4
                 )
-            )
+            ),
+            modelUsed = "gemini-2.5-flash"
         )
         val encoded = json.encodeToString(SyllabusEvalMetrics.serializer(), metrics)
         val decoded = json.decodeFromString(SyllabusEvalMetrics.serializer(), encoded)
@@ -37,7 +38,8 @@ class EvalBaselineTest : FunSpec({
                 "tx/ut_austin/2025-2026/fall/BIO325_genetics.pdf" to ContributorFileMetric(
                     eventCount = 12, hasNonExam = true, passed = true
                 )
-            )
+            ),
+            modelUsed = "gemini-2.5-pro"
         )
         val encoded = json.encodeToString(ContributorPdfEvalMetrics.serializer(), metrics)
         val decoded = json.decodeFromString(ContributorPdfEvalMetrics.serializer(), encoded)
@@ -47,12 +49,36 @@ class EvalBaselineTest : FunSpec({
     test("StlccEvalMetrics round-trips through JSON") {
         val metrics = StlccEvalMetrics(
             perDocument = mapOf(
-                "STLCC_ENG101_WEEKLY" to StlccDocMetric(eventCount = 40, duplicateCount = 0, modelStable = true)
+                "STLCC_ENG101_WEEKLY" to StlccDocMetric(
+                    eventCount = 40, duplicateCount = 0, modelStable = true, modelUsed = "gemini-2.5-flash"
+                )
             )
         )
         val encoded = json.encodeToString(StlccEvalMetrics.serializer(), metrics)
         val decoded = json.decodeFromString(StlccEvalMetrics.serializer(), encoded)
         decoded shouldBe metrics
+    }
+
+    test("metric DTOs decode JSON recorded before modelUsed existed, defaulting it to null") {
+        // Real shape of the evals/baseline_*.json files committed in 9271731 — recorded before
+        // this field existed. Must keep decoding without a migration; see EvalBaseline.modelUsed.
+        val syllabus = json.decodeFromString(
+            SyllabusEvalMetrics.serializer(),
+            """{"overallRecallPercent":100.0,"overallDateAccuracyPercent":100.0,"perFile":{}}"""
+        )
+        syllabus.modelUsed shouldBe null
+
+        val contributorPdf = json.decodeFromString(
+            ContributorPdfEvalMetrics.serializer(),
+            """{"totalFiles":22,"failedCount":1,"perFile":{}}"""
+        )
+        contributorPdf.modelUsed shouldBe null
+
+        val stlccDoc = json.decodeFromString(
+            StlccDocMetric.serializer(),
+            """{"eventCount":42,"duplicateCount":0,"modelStable":true}"""
+        )
+        stlccDoc.modelUsed shouldBe null
     }
 
     test("isRecordingEnabled reflects the recordEvalBaseline system property") {

@@ -16,7 +16,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory)** is in progress — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-3/XM-1..5 implemented and tested, EB-2 (initial baseline recording, needs a human with a live Gemini key) and wiring `TermBoundaryTrigger` to a real invocation site are the remaining gaps.
+**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory)** is in progress — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested as of commit `9271731` (2026-07-10), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). Wiring `TermBoundaryTrigger` to a real invocation site (e.g. post-sync) and re-verifying the SonarQube quality gate (local `SONAR_TOKEN` expired) are the remaining gaps.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2412,7 +2412,7 @@ was considered and deliberately excluded, not silently dropped:
 
 ---
 
-## Phase 13 — Eval Baseline/Delta + Cross-Term Memory 🟡 IN PROGRESS — EB-1/EB-3/XM-1..5 implemented; EB-2 (initial baseline recording) still needs a human-run live-Gemini pass
+## Phase 13 — Eval Baseline/Delta + Cross-Term Memory 🟡 IN PROGRESS — EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`, 2026-07-10); remaining gaps are wiring `TermBoundaryTrigger` to a real invocation site and re-verifying the SonarQube quality gate
 
 **Design doc:** [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md). Read that
 first — this section is the task breakdown, not the rationale.
@@ -2477,7 +2477,7 @@ still always runs — this is additive, not a replacement.
 
 ---
 
-#### EB-2 — Record the initial baselines — NOT STARTED (needs a human with a live Gemini key)
+#### EB-2 — Record the initial baselines — DONE (commit `9271731`, 2026-07-10)
 
 **What:** Run each eval class once with `-PrecordEvalBaseline=true -PrunAITests=true` against live
 Gemini, review the output numbers by hand, and commit the resulting
@@ -2485,11 +2485,23 @@ Gemini, review the output numbers by hand, and commit the resulting
 in a standalone reviewed PR — never auto-generated by CI.
 
 **Acceptance criteria:**
-- [ ] All three baseline files committed, human-reviewed
-- [ ] PR description states the exact commit/model the baseline was recorded against
+- [x] All three baseline files committed, human-reviewed — 100% recall/date-accuracy on the
+      syllabus fixtures, 21/22 contributor PDFs passed depth assertions, 0 duplicates across all
+      3 STLCC docs
+- [x] PR description states the exact commit/model the baseline was recorded against — was
+      unchecked as of `9271731` (commit message confirmed a live-Gemini run but not the exact
+      model string). Fixed in a follow-up: all 3 eval classes now read the negotiated model back
+      from the shared `preferred_gemini_model` DB cache after extraction — scoped to the HEAVY
+      tier, since `generateEventsFromPrompt`/`analyzeDocument`/`extractTextFromDocument` are the
+      only tier these eval classes ever exercise (see `GeminiAIService.TaskTier` call sites) —
+      and record it as `modelUsed` in `evals/current_*.json` (`SyllabusEvalMetrics`,
+      `ContributorPdfEvalMetrics`, per-doc on `StlccDocMetric`). The 3 files already committed in
+      `9271731` still lack the field (nullable/defaulted, decodes fine) — the next
+      `-PrecordEvalBaseline=true` run will populate it.
 
 **Files:** `evals/baseline_syllabus.json`, `evals/baseline_contributor_pdf.json`,
-`evals/baseline_stlcc.json` (new)
+`evals/baseline_stlcc.json` (new); `EvalBaseline.kt`, `SyllabusEvaluationIntegrationTest.kt`,
+`ContributorPdfIntegrationTest.kt`, `StlccIntegrationTest.kt` (model-capture follow-up)
 
 ---
 
@@ -2505,6 +2517,10 @@ Does not fail the job on drift — that's still `maxAllowedFailures`'s job; this
 - [x] A no-op local run shows zero delta — `EvalBaselineComparatorTest.kt`
 - [x] Missing/malformed baseline file → step warns, does not fail the job — `EvalBaselineComparatorTest.kt`;
       workflow step also runs `if: always()`
+- [x] A model change between baseline and current (see EB-2's `modelUsed` follow-up) is surfaced
+      as its own warning line, separate from the metric delta table — a quality drop caused by
+      Google swapping the negotiated model shouldn't be misread as a code regression, or vice
+      versa — `EvalBaselineComparatorTest.kt`
 
 **Files:** `.github/workflows/eval-corpus.yml`, `EvalBaselineComparator.kt` (new) + test. Note: the
 delta step can't itself be exercised until EB-2 has run at least once (no baseline files exist yet)

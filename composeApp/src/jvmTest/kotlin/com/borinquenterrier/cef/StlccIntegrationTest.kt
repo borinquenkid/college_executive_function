@@ -236,7 +236,12 @@ class StlccIntegrationTest : FunSpec({
 
         recordStlccMetric(
             entry.name,
-            StlccDocMetric(eventCount = events.size, duplicateCount = duplicates.size, modelStable = modelAfter == seedModel)
+            StlccDocMetric(
+                eventCount = events.size,
+                duplicateCount = duplicates.size,
+                modelStable = modelAfter == seedModel,
+                modelUsed = modelAfter
+            )
         )
 
         driver.close()
@@ -302,9 +307,10 @@ class StlccIntegrationTest : FunSpec({
 
         // modelStable: true — this test doesn't seed/compare a model cascade the way the
         // weekly-schedule test does; recorded as N/A-stable rather than omitted.
+        val modelUsed = database.appDatabaseQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
         recordStlccMetric(
             entry.name,
-            StlccDocMetric(eventCount = events.size, duplicateCount = duplicates.size, modelStable = true)
+            StlccDocMetric(eventCount = events.size, duplicateCount = duplicates.size, modelStable = true, modelUsed = modelUsed)
         )
 
         driver.close()
@@ -365,9 +371,10 @@ class StlccIntegrationTest : FunSpec({
             events.size shouldBeGreaterThan 0
         }
 
+        val modelUsed = database.appDatabaseQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
         recordStlccMetric(
             entry.name,
-            StlccDocMetric(eventCount = events.size, duplicateCount = duplicates.size, modelStable = true)
+            StlccDocMetric(eventCount = events.size, duplicateCount = duplicates.size, modelStable = true, modelUsed = modelUsed)
         )
 
         driver.close()

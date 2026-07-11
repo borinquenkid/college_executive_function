@@ -61,6 +61,43 @@ object EvalBaselineComparator {
         }
     }
 
+    /**
+     * A metric delta is only interpretable as "did our code regress" when the underlying model
+     * held steady — GeminiModelNegotiator's HEAVY-tier negotiation (see ROADMAP Phase 13) can
+     * silently swap models between recording runs (deprecation, quota exhaustion, a new model
+     * entering the preference list), which would otherwise be misread as a quality regression.
+     * Absent on either side (older baselines recorded before [SyllabusEvalMetrics.modelUsed] et
+     * al. existed) is not flagged — there's nothing to compare.
+     */
+    private fun modelChangeWarning(name: String, baselineModel: String?, currentModel: String?): String? {
+        if (baselineModel == null || currentModel == null || baselineModel == currentModel) return null
+        return "⚠️ **$name**: model changed since baseline (`$baselineModel` → `$currentModel`) — " +
+            "treat the metric deltas above with caution; they may reflect the model swap, not a code regression."
+    }
+
+    private fun modelWarnings(dir: File): List<String> {
+        val warnings = mutableListOf<String>()
+
+        val syllabusBaseline = EvalBaseline.readBaseline("syllabus", SyllabusEvalMetrics.serializer(), dir)
+        val syllabusCurrent = EvalBaseline.readCurrent("syllabus", SyllabusEvalMetrics.serializer(), dir)
+        modelChangeWarning("syllabus", syllabusBaseline?.modelUsed, syllabusCurrent?.modelUsed)?.let(warnings::add)
+
+        val contributorBaseline = EvalBaseline.readBaseline("contributor_pdf", ContributorPdfEvalMetrics.serializer(), dir)
+        val contributorCurrent = EvalBaseline.readCurrent("contributor_pdf", ContributorPdfEvalMetrics.serializer(), dir)
+        modelChangeWarning("contributor_pdf", contributorBaseline?.modelUsed, contributorCurrent?.modelUsed)?.let(warnings::add)
+
+        val stlccBaseline = EvalBaseline.readBaseline("stlcc", StlccEvalMetrics.serializer(), dir)
+        val stlccCurrent = EvalBaseline.readCurrent("stlcc", StlccEvalMetrics.serializer(), dir)
+        if (stlccBaseline != null && stlccCurrent != null) {
+            (stlccBaseline.perDocument.keys intersect stlccCurrent.perDocument.keys).forEach { doc ->
+                modelChangeWarning(
+                    "stlcc:$doc", stlccBaseline.perDocument[doc]?.modelUsed, stlccCurrent.perDocument[doc]?.modelUsed
+                )?.let(warnings::add)
+            }
+        }
+        return warnings
+    }
+
     fun buildReport(dir: File = EvalBaseline.defaultEvalsDir()): String {
         val allSections = listOf("syllabus" to syllabusRows(dir), "contributor_pdf" to contributorPdfRows(dir), "stlcc" to stlccRows(dir))
         val sb = StringBuilder()
@@ -73,6 +110,12 @@ object EvalBaselineComparator {
                 "> No baseline and/or current metrics found for: ${missing.joinToString(", ")} " +
                     "— skipping (not a failure; run `-PrecordEvalBaseline=true` once to seed a baseline)."
             )
+            sb.appendLine()
+        }
+
+        val warnings = modelWarnings(dir)
+        if (warnings.isNotEmpty()) {
+            warnings.forEach { sb.appendLine("> $it") }
             sb.appendLine()
         }
 

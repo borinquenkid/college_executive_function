@@ -206,6 +206,8 @@ class ContributorPdfIntegrationTest : FunSpec({
             failures.forEach { println("  - $it") }
         }
 
+        val modelUsed = database.appDatabaseQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+
         // Additive metric capture (ADR 0004 / ROADMAP Phase 13 EB-1) — does not affect the
         // maxAllowedFailures gate below.
         EvalBaseline.writeCurrent(
@@ -214,7 +216,8 @@ class ContributorPdfIntegrationTest : FunSpec({
             ContributorPdfEvalMetrics(
                 totalFiles = pdfFiles.size,
                 failedCount = failures.size,
-                perFile = perFileMetrics
+                perFile = perFileMetrics,
+                modelUsed = modelUsed
             )
         )
 

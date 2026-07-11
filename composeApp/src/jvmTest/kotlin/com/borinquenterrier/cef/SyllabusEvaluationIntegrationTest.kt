@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.borinquenterrier.cef.db.AppDatabase
 import com.russhwolf.settings.MapSettings
 import io.kotest.assertions.withClue
 import io.kotest.core.spec.style.FunSpec
@@ -82,9 +84,15 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
         val apiKey = resolveApiKey("EVALUATION SUITE") ?: return@config
 
 
+        // In-memory DB (not null, unlike a bare AIService smoke test) so GeminiModelNegotiator
+        // caches its resolved model to `preferred_gemini_model` and we can read back which model
+        // this run actually used (ADR 0004 / ROADMAP Phase 13 — baseline is HEAVY-tier-scoped).
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        val database = AppDatabase(driver)
         val settings = MapSettings()
         settings.putString("CEF_GEMINI_API_KEY", apiKey)
-        val aiService = RealAIService(settings, Logger(settings), null)
+        val aiService = RealAIService(settings, Logger(settings), database)
 
         val testCases = listOf(
             Pair("syllabus_bdan250.pdf", "syllabus_bdan250_expected.json"),
@@ -192,13 +200,17 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
         val overallDateAccuracy =
             if (totalMatched > 0) (totalDateCorrect.toDouble() / totalMatched.toDouble()) * 100.0 else 100.0
 
+        val modelUsed = database.appDatabaseQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
+
         // Additive metric capture (ADR 0004 / ROADMAP Phase 13 EB-1) — does not affect the
         // threshold assertions below.
         EvalBaseline.writeCurrent(
             "syllabus",
             SyllabusEvalMetrics.serializer(),
-            SyllabusEvalMetrics(overallRecall, overallDateAccuracy, perFileMetrics)
+            SyllabusEvalMetrics(overallRecall, overallDateAccuracy, perFileMetrics, modelUsed)
         )
+
+        driver.close()
 
         withClue(
             "Overall recall $overallRecall% ($totalMatched/$totalExpected) is below the " +

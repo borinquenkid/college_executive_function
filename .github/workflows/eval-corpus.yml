@@ -65,4 +65,9 @@ jobs:
       # produce a skip note here, not a failure.
       - name: Report eval baseline delta
         if: always()
+        env:
+          # generateBuildSecrets (run as part of the JVM build) requires these; without them
+          # the build aborts during configuration before this task can even run.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: ./gradlew :composeApp:evalBaselineDelta

@@ -22,9 +22,19 @@ class ContextAgent(
     private val chatRepository: ChatRepository? = null,
     // Seam so tests can exercise the compaction trigger with a small window instead of Gemini's
     // real ~1M-token ceiling, which no reasonably-sized test conversation would ever exceed.
-    private val contextWindowProvider: () -> Int = { ModelContextWindow.conservativeChatWindow() }
+    private val contextWindowProvider: () -> Int = { ModelContextWindow.conservativeChatWindow() },
+    // Cross-term memory (ADR 0004 / ROADMAP Phase 13, XM-4). Nullable + defaulted for the same
+    // reason chatRepository is: existing call sites/tests built without one are unaffected and
+    // keep today's behavior (no student-profile block injected).
+    private val termProfileRepository: TermProfileRepository? = null
 ) {
     private val tag = "ContextAgent"
+
+    companion object {
+        // Below this many completed terms, no distilled profile is surfaced (ADR 0004's
+        // confabulation guardrail — a single term of sparse data is not "recurring" anything).
+        const val MIN_TERMS_FOR_PROFILE = 2
+    }
 
     // Serializes the read-plan-summarize-persist critical section in compactHistory per agent
     // instance. Without this, two rapid sends in the same conversation (the UI does not disable
@@ -108,7 +118,12 @@ class ContextAgent(
             getSourceMetadata(sourceId)
         }
 
-        val compaction = compactHistory(conversationId, conversationHistory, sourceBlocks, question)
+        val studentProfile = studentProfileSummary()
+
+        val compaction = compactHistory(
+            conversationId, conversationHistory, sourceBlocks, question,
+            profileTokens = studentProfile?.let { TokenEstimator.estimate(it) } ?: 0
+        )
 
         val historyPairs = compaction.verbatimTail
             .map { (if (it.role == ChatRole.USER) "User" else "AI") to it.content }
@@ -117,7 +132,8 @@ class ContextAgent(
             // Budgeting ran whenever a chatRepository is wired, whether or not this particular
             // turn actually folded anything — a long-but-under-budget history must not be
             // re-truncated to MAX_HISTORY_TURNS by ChatBuilder's legacy fallback.
-            historyAlreadyBudgeted = chatRepository != null
+            historyAlreadyBudgeted = chatRepository != null,
+            studentProfile = studentProfile
         )
 
         logger?.d(
@@ -126,6 +142,21 @@ class ContextAgent(
                 "using top ${topPairs.size} fragments" + (if (compaction.folded) ", folded older turns into summary" else "")
         )
         return aiService.generateChatResponse(prompt)
+    }
+
+    /**
+     * Cross-term memory read path (ADR 0004 / ROADMAP Phase 13, XM-4). Returns null whenever
+     * [termProfileRepository] isn't wired, or the student has fewer than [MIN_TERMS_FOR_PROFILE]
+     * completed terms recorded — the confabulation guardrail, enforced here rather than trusting
+     * callers to check it themselves. Not RAG-retrieved: one small distilled block, not a corpus
+     * to search, computed fresh each call from [TermProfileAggregator.summarize] (plain
+     * formatting, no LLM call).
+     */
+    private suspend fun studentProfileSummary(): String? {
+        val repository = termProfileRepository ?: return null
+        val profiles = repository.getAll()
+        if (profiles.size < MIN_TERMS_FOR_PROFILE) return null
+        return TermProfileAggregator.summarize(profiles).takeIf { it.isNotBlank() }
     }
 
     private data class CompactionOutcome(
@@ -147,7 +178,8 @@ class ContextAgent(
         conversationId: String,
         conversationHistory: List<ChatMessage>,
         sourceBlocks: List<SourceContextBlock>,
-        question: String
+        question: String,
+        profileTokens: Int = 0
     ): CompactionOutcome = compactionMutex.withLock {
         val repo = chatRepository
             ?: return@withLock CompactionOutcome(summary = null, verbatimTail = conversationHistory, folded = false)
@@ -176,7 +208,8 @@ class ContextAgent(
             contextWindow = contextWindowProvider(),
             sourceBlocksTokens = sourceBlocksTokens,
             summaryTokens = TokenEstimator.estimate(existingSummary.orEmpty()),
-            questionTokens = TokenEstimator.estimate(question)
+            questionTokens = TokenEstimator.estimate(question),
+            profileTokens = profileTokens
         )
 
         val plan = ChatCompactionPlanner.plan(unsummarized, budget)

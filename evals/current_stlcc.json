@@ -1,0 +1,19 @@
+{
+    "perDocument": {
+        "STLCC_ENG101_WEEKLY": {
+            "eventCount": 42,
+            "duplicateCount": 0,
+            "modelStable": true
+        },
+        "STLCC_ENG101_SYLLABUS": {
+            "eventCount": 6,
+            "duplicateCount": 0,
+            "modelStable": true
+        },
+        "STLCC_CALENDAR": {
+            "eventCount": 51,
+            "duplicateCount": 0,
+            "modelStable": true
+        }
+    }
+}

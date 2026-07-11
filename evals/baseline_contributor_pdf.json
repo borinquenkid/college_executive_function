@@ -1,0 +1,106 @@
+{
+    "totalFiles": 22,
+    "failedCount": 1,
+    "perFile": {
+        "mo/st_louis_community_college/2025-2026/summer/calendar.pdf": {
+            "eventCount": 63,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "mo/st_louis_community_college/2025-2026/summer/101 summer 2026.pdf": {
+            "eventCount": 34,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "mo/st_louis_community_college/2025-2026/summer/syllabi-202620-eng-101-601-20366.pdf": {
+            "eventCount": 11,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/BIO325_genetics.pdf": {
+            "eventCount": 48,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/BIO325L_genetics_lab.pdf": {
+            "eventCount": 85,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/BIO337_research_methods.pdf": {
+            "eventCount": 50,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/E373M_early_globalisms.pdf": {
+            "eventCount": 27,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/E375L_victorian_literature.pdf": {
+            "eventCount": 3,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/E376S_african_american_lit.pdf": {
+            "eventCount": 42,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/E379_american_literature.pdf": {
+            "eventCount": 0,
+            "hasNonExam": false,
+            "passed": false
+        },
+        "tx/ut_austin/2025-2026/fall/HIS368S_age_of_samurai.pdf": {
+            "eventCount": 4,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/HIS374C_race_migration.pdf": {
+            "eventCount": 19,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/HIS378W_capstone.pdf": {
+            "eventCount": 10,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/M408N_differential_calculus.pdf": {
+            "eventCount": 38,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/fall/M427J_differential_equations.pdf": {
+            "eventCount": 14,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/spring/M408N_differential_calculus.pdf": {
+            "eventCount": 13,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/spring/M427J_differential_equations.pdf": {
+            "eventCount": 84,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/spring/BIO325_genetics.pdf": {
+            "eventCount": 35,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/spring/BIO325L_genetics_lab.pdf": {
+            "eventCount": 86,
+            "hasNonExam": true,
+            "passed": true
+        },
+        "tx/ut_austin/2025-2026/spring/HIS378W_capstone.pdf": {
+            "eventCount": 26,
+            "hasNonExam": true,
+            "passed": true
+        }
+    }
+}

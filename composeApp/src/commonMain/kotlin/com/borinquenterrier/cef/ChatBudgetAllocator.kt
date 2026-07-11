@@ -16,15 +16,20 @@ object ChatBudgetAllocator {
      * Tokens available for verbatim history, given [contextWindow] and the other reserved/known
      * costs. Never negative — a pathological input still yields a valid (zero) budget rather than
      * a negative one.
+     *
+     * [profileTokens] (ADR 0004 / ROADMAP Phase 13, XM-4): the cross-term student-profile block's
+     * estimated size, or 0 when none is injected (below the min-2-terms floor). Small and fixed —
+     * unlike [summaryTokens], it doesn't grow with conversation length.
      */
     fun historyBudget(
         contextWindow: Int,
         sourceBlocksTokens: Int,
         summaryTokens: Int,
-        questionTokens: Int
+        questionTokens: Int,
+        profileTokens: Int = 0
     ): Int {
         val reserved = RESERVED_OUTPUT_TOKENS + SYSTEM_INSTRUCTIONS_TOKENS
-        val budget = contextWindow - reserved - sourceBlocksTokens - summaryTokens - questionTokens
+        val budget = contextWindow - reserved - sourceBlocksTokens - summaryTokens - questionTokens - profileTokens
         return budget.coerceAtLeast(0)
     }
 }

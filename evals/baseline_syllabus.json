@@ -1,0 +1,18 @@
+{
+    "overallRecallPercent": 100.0,
+    "overallDateAccuracyPercent": 100.0,
+    "perFile": {
+        "syllabus_bdan250.pdf": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 2,
+            "matchedCount": 2
+        },
+        "syllabus_hist152.pdf": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 6,
+            "matchedCount": 6
+        }
+    }
+}

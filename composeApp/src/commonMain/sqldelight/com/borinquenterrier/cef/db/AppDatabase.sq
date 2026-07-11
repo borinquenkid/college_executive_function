@@ -202,3 +202,33 @@ DELETE FROM ChatMessageEntity WHERE conversationId = ?;
 
 deleteAllChatMessages:
 DELETE FROM ChatMessageEntity;
+
+-- Cross-term memory (ADR 0004 / ROADMAP Phase 13, XM-1). This DB is already one-per-student
+-- (TenantDatabaseFactory / DriverFactory shard at the file level, ADR 0002) — no studentId
+-- column needed; termStart alone identifies a row within a given student's own database.
+-- Populated only at a detected term boundary (XM-3), never per-message.
+CREATE TABLE IF NOT EXISTS StudentTermProfileEntity (
+    termStart                    TEXT NOT NULL PRIMARY KEY, -- ISO date, e.g. "2025-08-01" (Fall 2025 start)
+    termEnd                      TEXT NOT NULL,
+    courseLoad                   INTEGER NOT NULL,          -- distinct course identities seen this term
+    categoryDistributionJson     TEXT NOT NULL,             -- JSON map: AcademicCategory name -> count
+    deadlineCadenceByWeekdayJson TEXT NOT NULL,              -- JSON map: DayOfWeek name -> count
+    studyPlanConstraintsJson     TEXT,                       -- JSON, nullable (constraints actually exercised)
+    computedAt                   INTEGER NOT NULL           -- epoch millis
+);
+
+insertTermProfile:
+INSERT OR REPLACE INTO StudentTermProfileEntity(termStart, termEnd, courseLoad, categoryDistributionJson, deadlineCadenceByWeekdayJson, studyPlanConstraintsJson, computedAt)
+VALUES (?, ?, ?, ?, ?, ?, ?);
+
+selectAllTermProfiles:
+SELECT * FROM StudentTermProfileEntity ORDER BY termStart ASC;
+
+selectTermProfileCount:
+SELECT COUNT(*) FROM StudentTermProfileEntity;
+
+deleteTermProfile:
+DELETE FROM StudentTermProfileEntity WHERE termStart = ?;
+
+deleteAllTermProfiles:
+DELETE FROM StudentTermProfileEntity;

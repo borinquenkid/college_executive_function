@@ -16,7 +16,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features).
+**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory)** is in progress — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-3/XM-1..5 implemented and tested, EB-2 (initial baseline recording, needs a human with a live Gemini key) and wiring `TermBoundaryTrigger` to a real invocation site are the remaining gaps.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2409,3 +2409,235 @@ was considered and deliberately excluded, not silently dropped:
 - **iCloud/CalDAV** — no modern OAuth story, not requested.
 - **Token encryption at rest** — matches the existing (unencrypted, `Settings`-backed)
   Google posture; not raised or lowered by this phase for either provider.
+
+---
+
+## Phase 13 — Eval Baseline/Delta + Cross-Term Memory 🟡 IN PROGRESS — EB-1/EB-3/XM-1..5 implemented; EB-2 (initial baseline recording) still needs a human-run live-Gemini pass
+
+**Design doc:** [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md). Read that
+first — this section is the task breakdown, not the rationale.
+
+### Clarify Protocol answers
+
+**EB (eval baseline/delta):**
+1. *Verification* — Automated: each of the 3 eval-shaped Kotest classes has a unit-testable
+   metric-computation path independent of the assert step; `evals/baseline_*.json` round-trips
+   through a plain serializer test with no live Gemini call.
+2. *Edge cases* — (a) baseline file missing/malformed on a fresh checkout → delta step must skip
+   with a warning, not fail the job; (b) live metric equals baseline exactly → zero delta, still
+   reported (not suppressed) so the summary always shows current state.
+3. *Quality Gate impact* — touches `SyllabusEvaluationIntegrationTest.kt`,
+   `ContributorPdfIntegrationTest.kt`, `StlccIntegrationTest.kt` (adding a metric-capture branch,
+   not new complexity in the assertion logic itself) and adds one new small class
+   (`EvalBaselineComparator` or similar) kept under the 15-per-file / 5-per-method complexity
+   budget by design — it's a pure diff, no branching beyond the tolerance-band check.
+4. *Dependencies* — none; independent of Phase 13's XM- tasks and everything else in-flight.
+
+**XM (cross-term memory):**
+1. *Verification* — Automated: `TermProfileAggregator` is pure aggregation code, fully unit-testable
+   against fixture `Event` lists with no live Gemini call. The min-2-terms floor and course-identity
+   (category, not code) guardrails are each asserted by a dedicated test using the real
+   `contributions/tx/ut_austin/2025-2026/{fall,spring}` two-term fixture.
+2. *Edge cases* — (a) student with exactly 1 completed term → no profile block injected, verified by
+   a test; (b) a course code that recurs across terms with an unrelated subject (the real `BIO337`
+   case) → must not be merged into one course's aggregate; (c) concurrent term-boundary detection
+   racing a live `compactHistory` call → both are serialized per-student the same way
+   `compactionMutex` already serializes `compactHistory`.
+3. *Quality Gate impact* — one new SQLDelight table (schema-only, no complexity budget), one new
+   class `TermProfileAggregator` (new, budgeted under 15/file, 5/method), `ChatBudgetAllocator` gets
+   one new parameter/field (small, additive), `ContextAgent` gets one new call site in
+   `queryAllSources` (additive, not a new branch in `compactHistory`).
+4. *Dependencies* — needs the real two-term fixture (done: `contributions/tx/ut_austin/2025-2026/spring/`,
+   landed ahead of this phase) to write XM-2/XM-5's tests against real data rather than synthetic.
+
+### Tasks
+
+#### EB-1 — Metric-capture + baseline-record flag in the 3 eval classes
+
+**What:** Add a `-PrecordEvalBaseline=true` Gradle system property, read via
+`System.getProperty`/`System.getenv` the same way `-PrunAITests` already is. Each eval class
+computes its metrics (recall/date-accuracy for `SyllabusEvaluationIntegrationTest`, per-file depth
+scores for `ContributorPdfIntegrationTest`, per-doc dedup/stability for `StlccIntegrationTest`) into
+a small `@Serializable` data class, and when the flag is set, writes it to
+`evals/baseline_<name>.json` via `kotlinx.serialization.json.Json`. The existing threshold assertion
+still always runs — this is additive, not a replacement.
+
+**Acceptance criteria:**
+- [x] Metric data classes have round-trip serder tests (per this repo's serder-tests-for-DTO-conversion
+      convention) with no live API call — `EvalBaselineTest.kt`
+- [x] Running with the flag unset behaves byte-for-byte as today — metric capture writes
+      `evals/current_*.json` unconditionally (cheap, already-computed numbers) but never touches
+      the threshold assertions; only `evals/baseline_*.json` is gated by the flag
+- [x] `./gradlew :composeApp:jvmTest` green (flag-off path only; flag-on path requires
+      `-PrunAITests=true` and is exercised manually / in the nightly workflow) — full suite green,
+      2625 tests, 0 failures
+
+**Files:** `SyllabusEvaluationIntegrationTest.kt`, `ContributorPdfIntegrationTest.kt`,
+`StlccIntegrationTest.kt`, `EvalBaseline.kt` (new, holds the metric data classes + recorder)
+
+---
+
+#### EB-2 — Record the initial baselines — NOT STARTED (needs a human with a live Gemini key)
+
+**What:** Run each eval class once with `-PrecordEvalBaseline=true -PrunAITests=true` against live
+Gemini, review the output numbers by hand, and commit the resulting
+`evals/baseline_syllabus.json`, `evals/baseline_contributor_pdf.json`, `evals/baseline_stlcc.json`
+in a standalone reviewed PR — never auto-generated by CI.
+
+**Acceptance criteria:**
+- [ ] All three baseline files committed, human-reviewed
+- [ ] PR description states the exact commit/model the baseline was recorded against
+
+**Files:** `evals/baseline_syllabus.json`, `evals/baseline_contributor_pdf.json`,
+`evals/baseline_stlcc.json` (new)
+
+---
+
+#### EB-3 — Delta reporting in the nightly workflow
+
+**What:** After the existing test run in `eval-corpus.yml`, a small step (or Gradle task,
+`EvalBaselineComparator`) reads the freshly-computed metrics alongside the checked-in baseline and
+writes a delta table to `$GITHUB_STEP_SUMMARY`, using a tolerance band (not exact-match) per metric.
+Does not fail the job on drift — that's still `maxAllowedFailures`'s job; this is visibility only.
+
+**Acceptance criteria:**
+- [x] A deliberately-regressed local run shows a non-zero delta in the summary — `EvalBaselineComparatorTest.kt`
+- [x] A no-op local run shows zero delta — `EvalBaselineComparatorTest.kt`
+- [x] Missing/malformed baseline file → step warns, does not fail the job — `EvalBaselineComparatorTest.kt`;
+      workflow step also runs `if: always()`
+
+**Files:** `.github/workflows/eval-corpus.yml`, `EvalBaselineComparator.kt` (new) + test. Note: the
+delta step can't itself be exercised until EB-2 has run at least once (no baseline files exist yet)
+— it correctly no-ops with a skip note in that state, verified by test rather than a live CI run.
+
+---
+
+#### XM-1 — `student_term_profile` table in the shared schema
+
+**What:** Add a table to `AppDatabase.sq` (`commonMain`) — one row per student per completed term:
+course load, `AcademicCategory` distribution, deadline cadence by weekday, study-plan constraints
+exercised. Schema-only change; `IF NOT EXISTS`-guarded per this repo's existing migration
+convention (`TenantDatabaseFactory`'s `AppDatabase.Schema.create` retry-on-exists pattern).
+
+**Acceptance criteria:**
+- [x] `DriverFactoryTest` and any `TenantDatabaseFactory` test still green — new table doesn't break
+      fresh-create or existing-DB-open paths
+- [x] `./gradlew :composeApp:jvmTest` green — full suite, 2625 tests, 0 failures
+
+**Files:** `composeApp/src/commonMain/sqldelight/com/borinquenterrier/cef/db/AppDatabase.sq`.
+No `studentId` column — this DB is already one-per-student (ADR 0002), so `termStart` alone is
+the key within a given student's own database.
+
+---
+
+#### XM-2 — `TermProfileAggregator`
+
+**What:** Pure aggregation class: takes a student's `Event` history for a completed term, produces
+the structured record XM-1's table stores. No LLM call. **Implementation refinement over the
+original plan:** course identity within a single term's aggregation uses `Event.sourceId` (the
+source document an event was generated from — this app's existing notion of "a course") rather
+than parsing course codes/categories from titles. This sidesteps the `BIO337` cross-term-identity
+problem entirely for `courseLoad`, since `aggregate()` only ever sees one term's events at a time
+— there is no code path that compares course identity across terms, so nothing can conflate two
+different terms' same-numbered-different-subject courses (see `TermProfileAggregator.kt`'s
+docstring and its dedicated `BIO337`-style test).
+
+**Acceptance criteria:**
+- [x] Unit tests using hand-authored fixtures modeled on the real
+      `contributions/tx/ut_austin/2025-2026/{fall,spring}` two-term corpus (not the live
+      extraction pipeline — that's what `ContributorPdfIntegrationTest` already covers, at the
+      cost of a real Gemini call; this aggregator only needs representative `Event` shapes),
+      asserting courseLoad/category/cadence aggregation logic — `TermProfileAggregatorTest.kt`
+- [x] A dedicated `BIO337`-style test asserting fall and spring are aggregated independently and
+      never merged into one course's count despite the shared course code
+- [x] Unit test asserting an empty term produces no profile (the min-2-terms floor itself is
+      enforced at the read side, XM-4 — this is the aggregator's own "nothing to summarize" contract)
+
+**Files:** `TermProfileAggregator.kt` (new) + `TermProfileAggregatorTest.kt`, `TermProfileRepository.kt`
+(new, persistence mapping to/from XM-1's table)
+
+---
+
+#### XM-3 — Term-boundary trigger
+
+**What:** Apply the existing pure `SemesterResolver.getSemesterRange(date)` to a student's event
+*max-date* (not `today` — that's `WarningClassifier.activeSemesterFrom`'s wall-clock usage, which
+suits its own UI-warning purpose but is the wrong primitive for a data-driven batch trigger; see
+ADR 0004's Alternatives Considered) to detect when the newest stored event has moved into a later
+semester than the student's last-processed `student_term_profile` row. That crossing is the trigger
+for running `TermProfileAggregator` and persisting its output via
+`TenantDatabaseFactory`/`DriverFactory`'s shared schema. No new scheduler.
+
+**Acceptance criteria:**
+- [x] Test: crossing a detected term boundary triggers exactly one aggregation write, not one per
+      event — `TermBoundaryTriggerTest.kt`
+- [x] Test: re-processing the same term boundary is idempotent (no duplicate rows) — `TermBoundaryTriggerTest.kt`
+
+**Files:** `TermBoundaryTrigger.kt` (new — `TermBoundaryTrigger.detectNewlyCompletedTerms` +
+`processNewlyCompletedTerms`), using `SemesterResolver` directly (not `WarningClassifier`). Not yet
+wired to a real invocation site (e.g. after a sync/ingestion pass) — that plumbing is follow-up work.
+
+---
+
+#### XM-4 — `ChatBudgetAllocator` + `ContextAgent` read path
+
+**What:** Add a small fixed `profileTokens` budget line to `ChatBudgetAllocator.historyBudget`.
+`ContextAgent.queryAllSources` reads the student's `student_term_profile` rows (if the min-2-terms
+floor is met) and folds a summary into the prompt the same way the existing rolling summary is
+folded in — not RAG-retrieved. **Implementation refinement over the original plan:** it's recomputed
+every turn (like the existing rolling summary already is) rather than cached/injected only on a
+conversation's first turn — the profile is small and fixed-size, so the per-turn cost is
+negligible, and detecting "is this a brand-new conversation" would have needed extra session-state
+tracking for no real benefit.
+
+**Acceptance criteria:**
+- [x] Test: profile block present in the prompt when ≥2 terms exist, absent below that floor
+      (existing behavior unchanged), and absent when no repository is wired at all — `ContextAgentTest.kt`
+- [x] Test: `ChatBudgetAllocator.historyBudget` correctly subtracts `profileTokens` (defaults to 0,
+      unchanged for existing callers) and the existing "never negative" test still covers the
+      pathological-budget case with the new line item included — `ChatBudgetAllocatorTest.kt`
+- [x] `ContextAgentTest` (existing) still green — all 13 tests pass, including 3 new ones
+
+**Files:** `ChatBudgetAllocator.kt`, `ContextAgent.kt`, `ChatBuilder.kt`/`AiPrompts.kt` (new
+`studentProfile` prompt parameter) + tests
+
+---
+
+#### XM-5 — Key-source guardrail test
+
+**What:** Explicit regression test asserting the aggregation/distillation path never references
+`CEF_GEMINI_API_KEY` / any CI-only key — only the per-tenant/per-device `AIService` resolution
+already used by `generateChatResponse` elsewhere in `ContextAgent`.
+
+**Acceptance criteria:**
+- [x] Test fails if `TermProfileAggregator`, `TermBoundaryTrigger`, or `TermProfileRepository` is
+      changed to reference `CEF_GEMINI_API_KEY` or `AIService` at all — a structural source-text
+      scan, since none of these files make any LLM call today (ADR 0004: pure aggregation only) —
+      `TermProfileKeySourceGuardrailTest.kt`
+
+**Files:** `TermProfileKeySourceGuardrailTest.kt` (new)
+
+### Build order
+
+```
+EB-1 (metric capture + flag)      standalone
+EB-2 (record baselines)           needs EB-1
+EB-3 (CI delta reporting)         needs EB-1 + EB-2
+
+XM-1 (schema)                     standalone
+XM-2 (aggregator)                 needs XM-1; testable against tx/ut_austin fixture now
+XM-3 (term-boundary trigger)      needs XM-1 + XM-2
+XM-4 (budget + read path)         needs XM-1 (reads the table); independent of XM-3 for testing
+                                   (can seed rows directly in tests)
+XM-5 (key-source guardrail)       needs XM-2 + XM-4
+```
+
+### Ruled out (this phase)
+
+- **LLM-based qualitative distillation** — deferred; XM-2 is pure aggregation only. An LLM
+  distillation pass (the closer analogue to the workshop's "Dreaming") is explicitly future work,
+  gated behind the same key-source guardrail (XM-5) whenever it lands.
+- **Auto-committed CI baseline updates** — rejected in ADR 0004; baseline recording (EB-2) stays a
+  manual, reviewed action.
+- **A separate long-running memory-agent process** — rejected in ADR 0004; this phase's XM- tasks
+  are a batch trigger (XM-3) + read path (XM-4), not a new agent architecture.

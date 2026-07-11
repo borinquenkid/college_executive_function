@@ -108,6 +108,7 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
         var totalExpected = 0
         var totalMatched = 0
         var totalDateCorrect = 0
+        val perFileMetrics = mutableMapOf<String, SyllabusFileMetric>()
 
         testCases.forEach { (pdfName, expectedJsonName) ->
             val pdfFile = listOf(
@@ -177,6 +178,12 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
             totalExpected += expectedEvents.size
             totalMatched += matchedCount
             totalDateCorrect += dateCorrectCount
+            perFileMetrics[pdfName] = SyllabusFileMetric(
+                recallPercent = recall,
+                dateAccuracyPercent = dateAccuracy,
+                expectedCount = expectedEvents.size,
+                matchedCount = matchedCount
+            )
         }
         println("=======================================================\n")
 
@@ -184,6 +191,14 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
             if (totalExpected > 0) (totalMatched.toDouble() / totalExpected.toDouble()) * 100.0 else 100.0
         val overallDateAccuracy =
             if (totalMatched > 0) (totalDateCorrect.toDouble() / totalMatched.toDouble()) * 100.0 else 100.0
+
+        // Additive metric capture (ADR 0004 / ROADMAP Phase 13 EB-1) — does not affect the
+        // threshold assertions below.
+        EvalBaseline.writeCurrent(
+            "syllabus",
+            SyllabusEvalMetrics.serializer(),
+            SyllabusEvalMetrics(overallRecall, overallDateAccuracy, perFileMetrics)
+        )
 
         withClue(
             "Overall recall $overallRecall% ($totalMatched/$totalExpected) is below the " +

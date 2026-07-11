@@ -154,6 +154,84 @@ class ContextAgentTest : FunSpec({
         coVerify { aiService.generateChatResponse(any()) }
     }
 
+    // ── cross-term memory (student profile) — ADR 0004 / ROADMAP Phase 13, XM-4 ──────────────
+
+    fun termProfile(termStart: kotlinx.datetime.LocalDate) = StudentTermProfile(
+        termStart = termStart,
+        termEnd = termStart,
+        courseLoad = 4,
+        categoryDistribution = mapOf(AcademicCategory.DEADLINE to 5),
+        deadlineCadenceByWeekday = mapOf(kotlinx.datetime.DayOfWeek.WEDNESDAY to 3)
+    )
+
+    test("queryAllSources injects no student profile block when no repository is wired") {
+        val aiService = mockk<AIService>(relaxed = true)
+        val sourceRepo = mockk<SourceRepository>(relaxed = true)
+        val ranker = mockk<FragmentRanker>(relaxed = true)
+        val builder = mockk<SourceContextBuilder>(relaxed = true)
+        val src = source("PSYCH 101", fragment())
+        coEvery { ranker.rankFragments(any(), any(), any()) } returns listOf(Pair(src, fragment()))
+        coEvery { builder.buildContextBlocks(any(), any()) } returns emptyList()
+        coEvery { sourceRepo.getSourceMetadata(any()) } returns null
+        coEvery { aiService.generateChatResponse(any()) } returns "Answer"
+
+        val agent = ContextAgent(aiService, sourceRepo, ranker, builder) // termProfileRepository omitted
+        agent.queryAllSources(listOf(src), emptyList(), "Question?")
+
+        coVerify { aiService.generateChatResponse(match { !it.contains("<student_profile>") }) }
+    }
+
+    test("queryAllSources injects no student profile block below the min-2-terms floor") {
+        val aiService = mockk<AIService>(relaxed = true)
+        val sourceRepo = mockk<SourceRepository>(relaxed = true)
+        val ranker = mockk<FragmentRanker>(relaxed = true)
+        val builder = mockk<SourceContextBuilder>(relaxed = true)
+        val profileRepo = mockk<TermProfileRepository>()
+        val src = source("PSYCH 101", fragment())
+        coEvery { ranker.rankFragments(any(), any(), any()) } returns listOf(Pair(src, fragment()))
+        coEvery { builder.buildContextBlocks(any(), any()) } returns emptyList()
+        coEvery { sourceRepo.getSourceMetadata(any()) } returns null
+        coEvery { aiService.generateChatResponse(any()) } returns "Answer"
+        coEvery { profileRepo.getAll() } returns listOf(termProfile(kotlinx.datetime.LocalDate(2025, 8, 1))) // only 1 term
+
+        val agent = ContextAgent(
+            aiService, sourceRepo, ranker, builder,
+            termProfileRepository = profileRepo
+        )
+        agent.queryAllSources(listOf(src), emptyList(), "Question?")
+
+        coVerify { aiService.generateChatResponse(match { !it.contains("<student_profile>") }) }
+    }
+
+    test("queryAllSources injects the student profile block once the min-2-terms floor is met") {
+        val aiService = mockk<AIService>(relaxed = true)
+        val sourceRepo = mockk<SourceRepository>(relaxed = true)
+        val ranker = mockk<FragmentRanker>(relaxed = true)
+        val builder = mockk<SourceContextBuilder>(relaxed = true)
+        val profileRepo = mockk<TermProfileRepository>()
+        val src = source("PSYCH 101", fragment())
+        coEvery { ranker.rankFragments(any(), any(), any()) } returns listOf(Pair(src, fragment()))
+        coEvery { builder.buildContextBlocks(any(), any()) } returns emptyList()
+        coEvery { sourceRepo.getSourceMetadata(any()) } returns null
+        coEvery { aiService.generateChatResponse(any()) } returns "Answer"
+        coEvery { profileRepo.getAll() } returns listOf(
+            termProfile(kotlinx.datetime.LocalDate(2025, 8, 1)),
+            termProfile(kotlinx.datetime.LocalDate(2026, 1, 1))
+        )
+
+        val agent = ContextAgent(
+            aiService, sourceRepo, ranker, builder,
+            termProfileRepository = profileRepo
+        )
+        agent.queryAllSources(listOf(src), emptyList(), "Question?")
+
+        coVerify {
+            aiService.generateChatResponse(
+                match { it.contains("<student_profile>") && it.contains("Across 2 prior terms") }
+            )
+        }
+    }
+
     // ── isAnalyzing state ───────────────────────────────────────────────────
 
     test("isAnalyzing is false initially") {

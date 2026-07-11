@@ -60,7 +60,11 @@ object ChatBuilder {
         // budget — independent of whether a summary exists yet (a long-but-not-yet-folded
         // conversation is still budget-sized and must NOT be re-truncated to MAX_HISTORY_TURNS).
         // False (the legacy default) applies the naive takeLast cut below.
-        historyAlreadyBudgeted: Boolean = false
+        historyAlreadyBudgeted: Boolean = false,
+        // Cross-term memory (ADR 0004 / ROADMAP Phase 13, XM-4): a small, fixed-size distilled
+        // summary across a student's prior completed terms, or null below the min-2-terms floor.
+        // Plain text, not RAG-retrieved — there's one profile per student, not a corpus to search.
+        studentProfile: String? = null
     ): String {
         val sourcesSection = if (sourceBlocks.isEmpty()) {
             "No course materials are loaded yet. Ask the student to add a source first."
@@ -106,6 +110,9 @@ object ChatBuilder {
             warnings.forEach { appendLine("- $it") }
         }
 
+        val profileSection = if (studentProfile.isNullOrBlank()) "" else
+            "\n<student_profile>\n$studentProfile\n</student_profile>\n"
+
         return """
             # MEMORANDUM BRIEF: MULTI-SOURCE CHAT CONTEXT
 
@@ -117,6 +124,7 @@ object ChatBuilder {
             $sourcesSection
             </course_materials>
             ${if (warningsSection.isNotBlank()) "\n<source_warnings>\n$warningsSection\n</source_warnings>\n" else ""}
+            ${if (profileSection.isNotBlank()) profileSection else ""}
             <conversation_history>
             $historySection
             </conversation_history>

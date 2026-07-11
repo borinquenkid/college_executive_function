@@ -56,3 +56,13 @@ jobs:
             --tests "com.borinquenterrier.cef.SyllabusEvaluationIntegrationTest" \
             --tests "com.borinquenterrier.cef.ContributorPdfIntegrationTest" \
             --tests "com.borinquenterrier.cef.StlccIntegrationTest"
+
+      # ADR 0004 / ROADMAP Phase 13 EB-3. Visibility only — deliberately does NOT set
+      # -PrecordEvalBaseline, so evals/baseline_*.json is never written by this workflow; that
+      # promotion stays a human-run, separately-reviewed step (EB-2). Diffs the run above's
+      # evals/current_*.json against whatever baseline is checked into the repo and appends the
+      # delta table to the job summary. Missing baseline files (before EB-2 has ever been run)
+      # produce a skip note here, not a failure.
+      - name: Report eval baseline delta
+        if: always()
+        run: ./gradlew :composeApp:evalBaselineDelta

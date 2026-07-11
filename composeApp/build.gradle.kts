@@ -262,6 +262,23 @@ tasks.named("sonar") {
 // Replaces the old generateCrapReport/refreshCrap entry point. Chains
 // jvmTest → koverXmlReportJvm → sonar → the Quality Gate check in one command.
 // Requires `docker compose up -d sonarqube` running locally (see docs/ops/sonarqube-local.md).
+// ADR 0004 / ROADMAP Phase 13 EB-3. Run after `jvmTest -PrunAITests=true` so evals/current_*.json
+// is fresh. Prints (and, in CI, appends to $GITHUB_STEP_SUMMARY) a delta table against the
+// checked-in evals/baseline_*.json files. Visibility only — never fails the build.
+tasks.register<JavaExec>("evalBaselineDelta") {
+    group = "verification"
+    description = "Diffs evals/current_*.json against evals/baseline_*.json and prints a delta summary."
+    mainClass.set("com.borinquenterrier.cef.EvalBaselineComparator")
+
+    val jvmTarget = kotlin.targets.getByName("jvm")
+    val jvmTestCompilation = jvmTarget.compilations.getByName("test")
+    classpath = files(
+        jvmTestCompilation.output.classesDirs,
+        jvmTestCompilation.compileDependencyFiles,
+        jvmTestCompilation.runtimeDependencyFiles
+    )
+}
+
 tasks.register<JavaExec>("checkQualityGate") {
     group = "verification"
     description = "Polls the last Sonar analysis and hard-fails if the Quality Gate is not OK."
@@ -525,6 +542,12 @@ tasks.withType<Test>().configureEach {
     // e.g. ./gradlew :composeApp:jvmTest -PcontributionFilter=STLCC_ENG101_WEEKLY
     project.findProperty("contributionFilter")?.let {
         systemProperty("contributionFilter", it)
+    }
+    // Pass -PrecordEvalBaseline=true (alongside -PrunAITests=true) to promote the 3 eval-shaped
+    // classes' freshly-computed metrics into the checked-in evals/baseline_*.json files (ADR 0004
+    // / ROADMAP Phase 13 EB-1/EB-2). Human-run-and-review only — never set by the nightly workflow.
+    project.findProperty("recordEvalBaseline")?.let {
+        systemProperty("recordEvalBaseline", it)
     }
 }
 

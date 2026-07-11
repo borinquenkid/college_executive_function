@@ -85,5 +85,33 @@ enum class ContributionIndex(
     UT_M427L_ADVANCED_CALCULUS(
         "tx/ut_austin/2025-2026/fall/M427L_advanced_calculus.pdf",
         "UT Austin M 427L Advanced Calculus"
+    ),
+
+    // ── Texas: UT Austin, spring 2026 — genuine cross-term pairs with the fall entries
+    //    above (same course number AND same subject; see ADR 0004 for the BIO337
+    //    counter-example that was deliberately excluded as a false pair).
+    UT_M408N_DIFFERENTIAL_CALCULUS_SPRING(
+        "tx/ut_austin/2025-2026/spring/M408N_differential_calculus.pdf",
+        "UT Austin M 408N Differential Calculus (Spring 2026)"
+    ),
+    UT_M427L_ADVANCED_CALCULUS_SPRING(
+        "tx/ut_austin/2025-2026/spring/M427L_advanced_calculus.pdf",
+        "UT Austin M 427L Advanced Calculus (Spring 2026)"
+    ),
+    UT_M427J_DIFFERENTIAL_EQUATIONS_SPRING(
+        "tx/ut_austin/2025-2026/spring/M427J_differential_equations.pdf",
+        "UT Austin M 427J Differential Equations (Spring 2026)"
+    ),
+    UT_BIO325_GENETICS_SPRING(
+        "tx/ut_austin/2025-2026/spring/BIO325_genetics.pdf",
+        "UT Austin BIO 325 Genetics (Spring 2026)"
+    ),
+    UT_BIO325L_GENETICS_LAB_SPRING(
+        "tx/ut_austin/2025-2026/spring/BIO325L_genetics_lab.pdf",
+        "UT Austin BIO 325L Genetics Lab (Spring 2026)"
+    ),
+    UT_HIS378W_CAPSTONE_SPRING(
+        "tx/ut_austin/2025-2026/spring/HIS378W_capstone.pdf",
+        "UT Austin HIS 378W History Capstone (Spring 2026)"
     );
 }

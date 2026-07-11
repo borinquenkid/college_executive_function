@@ -35,4 +35,18 @@ class ChatBudgetAllocatorTest : FunSpec({
 
         (large > small) shouldBe true
     }
+
+    test("historyBudget defaults profileTokens to 0 — omitting it changes nothing") {
+        val withDefault = ChatBudgetAllocator.historyBudget(10_000, 1_000, 500, 100)
+        val explicitZero = ChatBudgetAllocator.historyBudget(10_000, 1_000, 500, 100, profileTokens = 0)
+
+        withDefault shouldBe explicitZero
+    }
+
+    test("historyBudget subtracts profileTokens when a student profile block is injected") {
+        val withoutProfile = ChatBudgetAllocator.historyBudget(10_000, 1_000, 500, 100)
+        val withProfile = ChatBudgetAllocator.historyBudget(10_000, 1_000, 500, 100, profileTokens = 200)
+
+        withProfile shouldBe (withoutProfile - 200)
+    }
 })

@@ -48,6 +48,16 @@ class StlccIntegrationTest : FunSpec({
         File("../composeApp/src/commonTest/resources/contributions"),
     ).firstOrNull { it.exists() && it.isDirectory }
 
+    // Additive metric capture (ADR 0004 / ROADMAP Phase 13 EB-1). Three tests below each cover
+    // one document, so each call merges its entry into the shared perDocument map rather than
+    // overwriting the other two documents' already-recorded metrics.
+    fun recordStlccMetric(docName: String, metric: StlccDocMetric) {
+        val existing = EvalBaseline.readCurrent("stlcc", StlccEvalMetrics.serializer())
+            ?: StlccEvalMetrics(perDocument = emptyMap())
+        val merged = existing.copy(perDocument = existing.perDocument + (docName to metric))
+        EvalBaseline.writeCurrent("stlcc", StlccEvalMetrics.serializer(), merged)
+    }
+
     fun eventFingerprint(event: Event): String {
         val dateStr = when (event) {
             is DayEvent -> event.date.toString()
@@ -224,6 +234,11 @@ class StlccIntegrationTest : FunSpec({
             events.size shouldBeLessThan 56
         }
 
+        recordStlccMetric(
+            entry.name,
+            StlccDocMetric(eventCount = events.size, duplicateCount = duplicates.size, modelStable = modelAfter == seedModel)
+        )
+
         driver.close()
     }
 
@@ -285,6 +300,13 @@ class StlccIntegrationTest : FunSpec({
             events.size shouldBeLessThan 16
         }
 
+        // modelStable: true — this test doesn't seed/compare a model cascade the way the
+        // weekly-schedule test does; recorded as N/A-stable rather than omitted.
+        recordStlccMetric(
+            entry.name,
+            StlccDocMetric(eventCount = events.size, duplicateCount = duplicates.size, modelStable = true)
+        )
+
         driver.close()
     }
 
@@ -342,6 +364,11 @@ class StlccIntegrationTest : FunSpec({
         withClue("Calendar extracted zero events") {
             events.size shouldBeGreaterThan 0
         }
+
+        recordStlccMetric(
+            entry.name,
+            StlccDocMetric(eventCount = events.size, duplicateCount = duplicates.size, modelStable = true)
+        )
 
         driver.close()
     }

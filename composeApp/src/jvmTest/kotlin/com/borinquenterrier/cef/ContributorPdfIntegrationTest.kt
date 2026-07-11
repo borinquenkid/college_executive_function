@@ -125,6 +125,7 @@ class ContributorPdfIntegrationTest : FunSpec({
         println("Found ${pdfFiles.size} PDF(s) in ${contributionsDir.canonicalPath}\n")
 
         val failures = mutableListOf<String>()
+        val perFileMetrics = mutableMapOf<String, ContributorFileMetric>()
 
         for (pdfFile in pdfFiles) {
             val relativePath = pdfFile.relativeTo(contributionsDir)
@@ -159,14 +160,16 @@ class ContributorPdfIntegrationTest : FunSpec({
 
             // Only apply depth assertions to syllabi — calendars and generic documents
             // may legitimately contain fewer structured events
+            val hasNonExam = events.any {
+                it.category == AcademicCategory.DEADLINE
+                    || it.category == AcademicCategory.REGULAR
+                    || it.category == AcademicCategory.HOLIDAY
+                    || it.category == AcademicCategory.SEMESTER_BOUND
+            }
+            val passed: Boolean
             if (source.category == SourceCategory.SYLLABUS) {
-                val hasNonExam = events.any {
-                    it.category == AcademicCategory.DEADLINE
-                        || it.category == AcademicCategory.REGULAR
-                        || it.category == AcademicCategory.HOLIDAY
-                        || it.category == AcademicCategory.SEMESTER_BOUND
-                }
                 if (events.size < 3 || !hasNonExam) {
+                    passed = false
                     val reason = when {
                         events.isEmpty() -> "0 events extracted (document may have no calendar dates)"
                         events.size < 3 -> "${events.size} events — only exams found, missed assignments/deadlines"
@@ -175,16 +178,22 @@ class ContributorPdfIntegrationTest : FunSpec({
                     failures.add("$relativePath: $reason")
                     println("  FAIL: $reason")
                 } else {
+                    passed = true
                     println("  PASS: ${events.size} events, non-exam events present")
                 }
             } else {
                 if (events.isEmpty()) {
+                    passed = false
                     failures.add("$relativePath: 0 events extracted from ${source.category} document")
                     println("  FAIL: 0 events extracted")
                 } else {
+                    passed = true
                     println("  PASS: ${events.size} events")
                 }
             }
+            perFileMetrics[relativePath.toString()] = ContributorFileMetric(
+                eventCount = events.size, hasNonExam = hasNonExam, passed = passed
+            )
 
             eventAgent.pushToCalendar()
         }
@@ -196,6 +205,18 @@ class ContributorPdfIntegrationTest : FunSpec({
             println("${failures.size} file(s) failed depth assertions:")
             failures.forEach { println("  - $it") }
         }
+
+        // Additive metric capture (ADR 0004 / ROADMAP Phase 13 EB-1) — does not affect the
+        // maxAllowedFailures gate below.
+        EvalBaseline.writeCurrent(
+            "contributor_pdf",
+            ContributorPdfEvalMetrics.serializer(),
+            ContributorPdfEvalMetrics(
+                totalFiles = pdfFiles.size,
+                failedCount = failures.size,
+                perFile = perFileMetrics
+            )
+        )
 
         // Allow up to 2 failures (≈12% of 17 PDFs) — free-tier Gemini occasionally
         // returns sparse results for complex multi-column syllabi; this is API variance,

@@ -69,6 +69,10 @@ class DependencyContainer(
             conflictDetector
         )
     }
+    // Cross-term memory (ADR 0004 / ROADMAP Phase 13, XM-1..5) — read side is contextAgent below,
+    // write side is calendarAgent's post-sync term-boundary check.
+    val termProfileRepository by lazy { TermProfileRepository(database) }
+
     val calendarAgent by lazy {
         CalendarAgent(
             localRepository,
@@ -76,7 +80,8 @@ class DependencyContainer(
             logger,
             userPreferenceMemoryRepository,
             preferencesRepository,
-            sourceRepository
+            sourceRepository,
+            termProfileRepository = termProfileRepository
         )
     }
 
@@ -143,7 +148,8 @@ class DependencyContainer(
             fragmentRanker,
             contextBuilder,
             logger,
-            chatRepository
+            chatRepository,
+            termProfileRepository = termProfileRepository
         )
     }
     val syllabusAuditor by lazy { SyllabusAuditor(aiService, logger) }

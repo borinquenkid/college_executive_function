@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import app.cash.sqldelight.driver.jdbc.sqlite.JdbcSqliteDriver
+import com.borinquenterrier.cef.db.AppDatabase
 import com.russhwolf.settings.MapSettings
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
@@ -555,5 +557,77 @@ class CalendarAgentTest : FunSpec({
         val result = calendarAgent.getIncompleteEventsBefore(date)
         result shouldBe emptyList()
         coVerify(exactly = 1) { localRepo.getIncompleteEventsBefore(date, "default") }
+    }
+
+    // ── Cross-term memory wiring (ADR 0004 / ROADMAP Phase 13, XM-3) ──────────────────────────
+
+    fun deadline(id: String, eventDate: LocalDate) = DayEvent(
+        id = id,
+        title = "Assignment",
+        source = EventSource.AI_GENERATED,
+        category = AcademicCategory.DEADLINE,
+        date = eventDate,
+        sourceId = "syllabus.pdf"
+    )
+
+    fun newTermProfileRepository(): TermProfileRepository {
+        val driver = JdbcSqliteDriver(JdbcSqliteDriver.IN_MEMORY)
+        AppDatabase.Schema.create(driver)
+        return TermProfileRepository(AppDatabase(driver))
+    }
+
+    // Fall 2025 range: Aug 1 - Dec 31 2025. Spring 2026 range: Jan 1 - May 31 2026 (ongoing).
+    val fallEvent = deadline("fall-1", LocalDate(2025, 10, 6))
+    val springEvent = deadline("spring-1", LocalDate(2026, 3, 4))
+
+    test("synchronize with a termProfileRepository records the newly-completed term") {
+        val termProfileRepository = newTermProfileRepository()
+        val agent = CalendarAgent(
+            localRepo = localRepo,
+            remoteRepo = remoteRepo,
+            logger = logger,
+            userPreferenceMemoryRepository = userPreferenceMemoryRepository,
+            preferencesRepository = preferencesRepository,
+            termProfileRepository = termProfileRepository
+        )
+        coEvery { localRepo.getEventsBySyncStatus(any(), any()) } returns emptyList()
+        coEvery { localRepo.getAllEvents(any()) } returns listOf(fallEvent, springEvent)
+        coEvery { remoteRepo.getAllEvents(any()) } returns listOf(fallEvent, springEvent)
+
+        agent.synchronize("default")
+
+        termProfileRepository.count() shouldBe 1L
+        termProfileRepository.getAll().single().termStart shouldBe LocalDate(2025, 8, 1)
+    }
+
+    test("synchronize without a termProfileRepository (default null) never touches term profiles — unaffected") {
+        coEvery { localRepo.getEventsBySyncStatus(any(), any()) } returns emptyList()
+        coEvery { localRepo.getAllEvents(any()) } returns listOf(fallEvent, springEvent)
+        coEvery { remoteRepo.getAllEvents(any()) } returns listOf(fallEvent, springEvent)
+
+        // calendarAgent (the shared instance) was built with no termProfileRepository — this must
+        // not throw, matching every other synchronize() test's default construction.
+        calendarAgent.synchronize("default")
+    }
+
+    test("a term-boundary failure after sync is non-fatal, mirroring self-heal's failure handling") {
+        val brokenRepository = mockk<TermProfileRepository>()
+        coEvery { brokenRepository.getAll() } throws RuntimeException("DB unavailable")
+        val agent = CalendarAgent(
+            localRepo = localRepo,
+            remoteRepo = remoteRepo,
+            logger = logger,
+            userPreferenceMemoryRepository = userPreferenceMemoryRepository,
+            preferencesRepository = preferencesRepository,
+            termProfileRepository = brokenRepository
+        )
+        coEvery { localRepo.getEventsBySyncStatus(any(), any()) } returns emptyList()
+        coEvery { localRepo.getAllEvents(any()) } returns listOf(fallEvent, springEvent)
+        coEvery { remoteRepo.getAllEvents(any()) } returns listOf(fallEvent, springEvent)
+
+        // Must complete without throwing, and still refresh the unsynced count (proves sync
+        // itself finished normally despite the term-boundary check failing).
+        agent.synchronize("default")
+        coVerify { localRepo.getEventsBySyncStatus(SyncStatus.LOCAL_ONLY, "default") }
     }
 })

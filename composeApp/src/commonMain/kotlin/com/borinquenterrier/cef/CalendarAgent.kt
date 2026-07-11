@@ -16,7 +16,11 @@ class CalendarAgent(
     private val sourceRepository: SourceRepository? = null,
     // Backoff between rate-limited remote deletes during a reset; tests inject a no-op for speed.
     private val remoteClearDelayFn: suspend (Long) -> Unit = { kotlinx.coroutines.delay(it) },
-    private val clock: Clock = Clock.System
+    private val clock: Clock = Clock.System,
+    // Cross-term memory's write side (ADR 0004 / ROADMAP Phase 13, XM-3). Nullable + defaulted so
+    // existing call sites/tests built without one are unaffected. Non-null in production
+    // (DependencyContainer) — checked post-sync the same way selfHeal is.
+    private val termProfileRepository: TermProfileRepository? = null
 ) {
     private val _resetVersion = MutableStateFlow(0)
     val resetVersion: StateFlow<Int> = _resetVersion.asStateFlow()
@@ -109,6 +113,16 @@ class CalendarAgent(
             selfHeal(calendarId)
         } catch (e: Exception) {
             logger?.e("CalendarAgent", "Self-heal after sync failed (non-fatal): ${e.message}", e)
+        }
+        // Cross-term memory (ADR 0004 / ROADMAP Phase 13, XM-3): detect and record any term that
+        // just completed, now that this sync has the latest events. Wrapped for the same reason
+        // self-heal is — a boundary-detection failure must never break the sync itself.
+        termProfileRepository?.let { repository ->
+            try {
+                processNewlyCompletedTerms(getEvents(calendarId), repository)
+            } catch (e: Exception) {
+                logger?.e("CalendarAgent", "Term-boundary check after sync failed (non-fatal): ${e.message}", e)
+            }
         }
         refreshUnsyncedCount(calendarId)
     }

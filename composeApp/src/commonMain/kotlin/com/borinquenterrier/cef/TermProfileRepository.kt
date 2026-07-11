@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import com.borinquenterrier.cef.db.AppDatabase
+import kotlinx.coroutines.CoroutineDispatcher
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.datetime.DayOfWeek
@@ -16,11 +17,14 @@ import kotlin.time.Clock
  * output for that term) is an idempotent upsert — safe to call more than once for the same
  * boundary crossing.
  */
-class TermProfileRepository(private val database: AppDatabase) {
+class TermProfileRepository(
+    private val database: AppDatabase,
+    private val dispatcher: CoroutineDispatcher = Dispatchers.Default
+) {
 
     private val json = Json { ignoreUnknownKeys = true }
 
-    suspend fun save(profile: StudentTermProfile) = withContext(Dispatchers.Default) {
+    suspend fun save(profile: StudentTermProfile) = withContext(dispatcher) {
         database.appDatabaseQueries.insertTermProfile(
             termStart = profile.termStart.toString(),
             termEnd = profile.termEnd.toString(),
@@ -33,7 +37,7 @@ class TermProfileRepository(private val database: AppDatabase) {
         Unit
     }
 
-    suspend fun getAll(): List<StudentTermProfile> = withContext(Dispatchers.Default) {
+    suspend fun getAll(): List<StudentTermProfile> = withContext(dispatcher) {
         database.appDatabaseQueries.selectAllTermProfiles().executeAsList().map { row ->
             StudentTermProfile(
                 termStart = LocalDate.parse(row.termStart),
@@ -48,7 +52,7 @@ class TermProfileRepository(private val database: AppDatabase) {
     }
 
     /** Number of completed terms recorded so far — the min-2-terms confabulation floor (ADR 0004) reads this. */
-    suspend fun count(): Long = withContext(Dispatchers.Default) {
+    suspend fun count(): Long = withContext(dispatcher) {
         database.appDatabaseQueries.selectTermProfileCount().executeAsOne()
     }
 }

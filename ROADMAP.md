@@ -16,7 +16,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory)** is in progress — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested as of commit `9271731` (2026-07-10), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). Wiring `TermBoundaryTrigger` to a real invocation site (e.g. post-sync) and re-verifying the SonarQube quality gate (local `SONAR_TOKEN` expired) are the remaining gaps.
+**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory) is DONE as of 2026-07-10** — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). `TermBoundaryTrigger` is wired to a real invocation site (`CalendarAgent.synchronize()` — see XM-3). SonarQube quality gate re-verified and passing (`new_coverage: 90.2 ≥ 80`, `new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`) — the earlier "expired `SONAR_TOKEN`" note was actually a Keychain-sourcing issue, not a dead token (see `docs/ops/keychain-secrets-migration.md`'s 2026-07-10 OOC section); the real gate run caught one genuine pre-existing `kotlin:S6310` (hardcoded dispatcher) violation in `TermProfileRepository.kt`, fixed to match the already-established `SqlDelightChatRepository` convention (injected `CoroutineDispatcher` param, defaulted to `Dispatchers.Default`).
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2412,7 +2412,7 @@ was considered and deliberately excluded, not silently dropped:
 
 ---
 
-## Phase 13 — Eval Baseline/Delta + Cross-Term Memory 🟡 IN PROGRESS — EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`, 2026-07-10); remaining gaps are wiring `TermBoundaryTrigger` to a real invocation site and re-verifying the SonarQube quality gate
+## Phase 13 — Eval Baseline/Delta + Cross-Term Memory ✅ DONE 2026-07-10 — EB-1/EB-2/EB-3/XM-1..5 implemented, tested, fully wired end-to-end, and SonarQube Quality Gate passing
 
 **Design doc:** [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md). Read that
 first — this section is the task breakdown, not the rationale.
@@ -2589,9 +2589,23 @@ for running `TermProfileAggregator` and persisting its output via
       event — `TermBoundaryTriggerTest.kt`
 - [x] Test: re-processing the same term boundary is idempotent (no duplicate rows) — `TermBoundaryTriggerTest.kt`
 
+- [x] Wired to a real invocation site (2026-07-10): `CalendarAgent.synchronize()` — the app's one
+      actual "sync" concept, reached from `AgentHarness`'s poll loop, `EventAgent` post-push, and
+      `SourceDeleter` alike — takes an optional `termProfileRepository`, and after `selfHeal()`
+      calls `processNewlyCompletedTerms(getEvents(calendarId), repository)` with the same
+      never-break-the-sync try/catch pattern `selfHeal` itself already used. `DependencyContainer`
+      now constructs one shared `termProfileRepository` and wires it into both `calendarAgent`
+      (write side) and `contextAgent` (read side, XM-4's already-built consumer, previously
+      instantiated with the default `null` and therefore dead) — the read side was equally
+      unwired and needed the same fix to make the feature actually do anything end-to-end.
+      Tests: `CalendarAgentTest.kt` — records the completed term on a real in-memory
+      `TermProfileRepository`, confirms `null` (the old default) still no-ops exactly as before,
+      and confirms a term-boundary failure doesn't break sync (mirrors self-heal's own failure
+      test).
+
 **Files:** `TermBoundaryTrigger.kt` (new — `TermBoundaryTrigger.detectNewlyCompletedTerms` +
-`processNewlyCompletedTerms`), using `SemesterResolver` directly (not `WarningClassifier`). Not yet
-wired to a real invocation site (e.g. after a sync/ingestion pass) — that plumbing is follow-up work.
+`processNewlyCompletedTerms`), using `SemesterResolver` directly (not `WarningClassifier`).
+`CalendarAgent.kt`, `DependencyContainer.kt`, `CalendarAgentTest.kt` (wiring, 2026-07-10).
 
 ---
 

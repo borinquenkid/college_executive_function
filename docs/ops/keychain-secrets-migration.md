@@ -211,6 +211,72 @@ separately-tracked pre-existing gap — not silently conflated with this spot-ch
 **Oficio's spot-checks (Stripe/Twilio/Cloudflare/WordPress/etc.) are still open** — out of scope
 for this pass; see Oficio's own `docs/ops/keychain-secrets-migration.md`.
 
+## OOC credential rotation, 2026-07-10 — service account swap, and a new search-scope gap
+
+The `wbduque@mac.com` / `OOC_TOKEN` pair verified in Step 4 above (2026-07-09) had gone stale by
+the very next day — `POST {base}/default/traces/latest` returned `401` even after re-sourcing
+`load-secrets-from-keychain.sh` fresh (ruling out the same "env didn't persist across tool calls"
+artifact noted in Step 4). Walter provided a replacement credential as a raw HTTP `Authorization:
+Basic <base64>` header value; decoding it (`base64 -d`, split on the first `:`) yielded a new
+**service account** — `admin@borinquenterrier.com` — paired with a new token, not just a rotated
+token for the same `wbduque@mac.com` login.
+
+**Applied correctly per this doc's own established split** (line ~229 above: `OOC_USERNAME` is
+deliberately plain config, not a secret):
+- `.env`'s `OOC_USERNAME` updated `wbduque@mac.com` → `admin@borinquenterrier.com` directly (plain
+  text, in place).
+- Keychain's `OOC_TOKEN` (service `college_executive_function`, account `OOC_TOKEN`) updated via
+  `security add-generic-password ... -U` to the new token.
+- **A stray `OOC_USERNAME` Keychain entry was created and then deleted during this process** —
+  `load-secrets-from-keychain.sh`'s `SECRET_KEYS` array never included `OOC_USERNAME` (by design),
+  so writing it there was inert at best, confusing at worst. Removed via `security
+  delete-generic-password -a OOC_USERNAME -s college_executive_function`. If a future session finds
+  that entry again, it's a repeat of this same mistake, not an intentional addition.
+
+**Verified working:** `GET {base}/default/traces/latest` → `200`, real trace rows returned, using
+`admin@borinquenterrier.com` (from `.env`) + the new `OOC_TOKEN` (from Keychain), Basic auth,
+identical mechanism to `OpenObserveQueryCli.kt`.
+
+**Dead end, documented so it isn't repeated:** `admin@borinquenterrier.com` turned out to be a
+human SSO **User** (role: Admin), not a **Service Account** — those are two distinct IAM entity
+types in OpenObserve Cloud (`IAM → Users` vs `IAM → Service Accounts`, the latter literally
+labeled "Programmatic access tokens for APIs"). A new Service Account can't reuse an existing
+User's email either (`"User already exists"` on attempted creation), and a Service Account's
+`Identifier` field is immutable after creation (its "Update" dialog only exposes `Description`).
+Whatever the `o2oi_...` token paired with `admin@borinquenterrier.com` actually was, it authenticated
+successfully against `/traces/latest` (200) but `403`'d on `_search` even after creating a **new**
+Service Account (`developer@borinquenterrier.com`) and explicitly granting it a custom role
+(`READ_STUFF`: `Logs`/`Traces`/`Metrics`/`Streams`, List+Get on all four, confirmed saved via a
+fresh page reload showing 8/8 permissions checked) — still `403` on both endpoints. Root cause
+unresolved; parked, not chased further. `developer@borinquenterrier.com` Service Account + its
+`READ_STUFF` role are left in place in OpenObserve Cloud for whenever someone wants to pick this
+back up.
+
+**What actually fixed it:** rotating the *existing*, already-correctly-permissioned
+`wbduque@mac.com` Service Account's token (`IAM → Service Accounts → 🔄 Rotate Service Token`) —
+same identity that worked in Step 4 above, just a fresh secret. `.env`'s `OOC_USERNAME` reverted
+`admin@borinquenterrier.com` → `wbduque@mac.com`; Keychain's `OOC_TOKEN` updated to the rotated
+value. **Verified end-to-end, live:**
+- `GET {base}/default/traces/latest` → `200`.
+- `POST {base}/_search?type=traces` (body: `{"query":{"sql":"SELECT * FROM default WHERE
+  operation_name='gemini.http_request' LIMIT 3", ...}}`) → `200`, real span rows, including
+  `model: "gemini-2.5-flash"`, `operation_name: "gemini.http_request"`, `service_name:
+  "cef-desktop"`, `attempt`, `http_status`, `response_bytes` — an exact match to
+  `GeminiRequestExecutor.kt`'s actual span attributes. The eval-baseline model-capture work
+  earlier this session (`EvalBaseline.modelUsed`) and any future OpenObserve alert on model drift
+  can now both be verified against real production data, not guessed column names.
+
+**Correction to this doc's own "Correction" above (2026-07-10, same day) and to the `~/.claude`
+memory `reference-openobserve-query`:** that earlier edit removed `?type=traces` as "not a real
+parameter," based on the official generic Search API reference page not mentioning it. That was
+itself wrong — empirically, `POST {base}/_search` **without** `?type=traces` returns `400
+{"code":20002,"message":"Search stream not found: default"}`, because this org has a stream
+literally named `default` under *both* the Logs and Traces categories, and the endpoint defaults
+to Logs when the type is unspecified. **`?type=traces` is required here and the original
+memory/doc note was right all along** — the official docs page is just incomplete for this
+same-name-different-category case, not authoritative-over-empirical-testing. Trust a live 200
+response over doc-reading when they conflict; re-verify by testing, not by reading harder.
+
 ## Step 2 (CEF) — what actually happened, deviations from the draft noted
 
 - **Verification test changed from the draft's `GoogleOAuthIntegrationTest`** — confirmed

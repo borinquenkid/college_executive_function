@@ -1,5 +1,6 @@
 import org.jetbrains.compose.desktop.application.dsl.TargetFormat
 import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.gradle.api.tasks.testing.logging.TestExceptionFormat
 import java.util.Properties
 import java.util.prefs.Preferences as JPrefs
 
@@ -536,6 +537,17 @@ tasks.withType<Test>().configureEach {
         filter {
             excludeTestsMatching("*IntegrationTest*")
             excludeTestsMatching("*ContributorPdf*")
+        }
+    } else {
+        // Eval-corpus failures (e.g. StlccIntegrationTest) previously surfaced in CI as a bare
+        // "AssertionFailedError at Foo.kt:N" with none of the test's println diagnostics (actual
+        // extracted events, model-cascade warnings) — undiagnosable without re-spending real
+        // Gemini API cost to reproduce. Scoped to -PrunAITests=true only, so ordinary PR-check
+        // runs (which exclude these tests anyway) stay quiet.
+        testLogging {
+            events("failed")
+            showStandardStreams = true
+            exceptionFormat = TestExceptionFormat.FULL
         }
     }
     // Pass -PcontributionFilter=<ContributionIndex name> to run a single PDF entry.

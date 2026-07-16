@@ -68,6 +68,21 @@ fun isTestProfile(): Boolean {
 }
 
 /**
+ * Points [AppTracer.current] at a real [OtelTracer] (service name "cef-eval-ci") the first
+ * time a real API key is resolved, so GeminiRequestExecutor's spans/events — previously
+ * silent no-ops via [NoopTracer] in every integration test run — actually reach OpenObserve.
+ * Idempotent: only the first caller in the JVM pays the SDK-init cost; later calls no-op.
+ * Safe when OTLP secrets aren't set (e.g. local dev) — [OtelTracer.create] falls back to null.
+ */
+private val tracerInitialized = java.util.concurrent.atomic.AtomicBoolean(false)
+
+private fun ensureTracerInitialized() {
+    if (tracerInitialized.compareAndSet(false, true)) {
+        AppTracer.current = OtelTracer.create(AppEnv(), serviceName = "cef-eval-ci") ?: NoopTracer
+    }
+}
+
+/**
  * Reads the Gemini API key from OS env vars or the local `.env` file.
  * Returns null (and prints a skip message) if no key is found.
  */
@@ -77,7 +92,11 @@ fun resolveApiKey(testName: String): String? {
         return null
     }
     val apiKey = resolveSecret("CEF_GEMINI_API_KEY") ?: resolveSecret("GEMINI_API_KEY")
-    if (apiKey == null) println("SKIPPING $testName: No Gemini API Key found in env or .env")
+    if (apiKey == null) {
+        println("SKIPPING $testName: No Gemini API Key found in env or .env")
+    } else {
+        ensureTracerInitialized()
+    }
     return apiKey
 }
 

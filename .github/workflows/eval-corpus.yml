@@ -6,12 +6,13 @@ name: Eval Corpus (Real Gemini API)
 #
 # Cadence: nightly, NOT on every PR. This corpus makes ~20-60 real Gemini calls
 # across 3 test classes (16-file contributions/ corpus + 3 STLCC-specific docs +
-# 2 syllabus fixtures). CEF's Gemini key is free-tier, where all models share one
-# RPM/RPD quota (see ROADMAP.md's "Observed failure mode (June 2026)" — ~20 calls
-# in under a minute already exhausted every fallback model). Running this on every
-# PR would burn that shared quota against concurrent PRs and the app's own runtime
-# usage, and would risk cascading rate-limit failures unrelated to the PR's actual
-# change. Nightly gives same-day regression detection without that contention.
+# 2 syllabus fixtures). CEF_GEMINI_API_KEY here is the BorinquenTerrier paid
+# (Tier 1) key (see AGENTS.md "Ops gotchas") — the free-tier shared RPM/RPD quota
+# problem (see ROADMAP.md's "Observed failure mode (June 2026)") applies to
+# students' own per-user runtime keys, not this CI secret. Running this on every
+# PR would still contend for this key's quota against concurrent PRs and risk
+# rate-limit failures unrelated to the PR's actual change. Nightly gives same-day
+# regression detection without that contention.
 # See AGENTS.md's Integration Test Naming Convention section for the full tradeoff.
 on:
   schedule:
@@ -51,6 +52,13 @@ jobs:
           # the build aborts during configuration before any eval test runs.
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          # Lets IntegrationTestHelpers.ensureTracerInitialized() point AppTracer.current at a
+          # real OtelTracer (service name "cef-eval-ci") instead of the silent NoopTracer
+          # default, so a failed eval run's spans (model attempts, retries, HTTP responses) are
+          # queryable in OpenObserve instead of lost.
+          CEF_OTLP_ENDPOINT: ${{ secrets.CEF_OTLP_ENDPOINT }}
+          CEF_OTLP_USER: ${{ secrets.CEF_OTLP_USER }}
+          CEF_OTLP_PASSWORD: ${{ secrets.CEF_OTLP_PASSWORD }}
         run: |
           ./gradlew :composeApp:jvmTest -PrunAITests=true \
             --tests "com.borinquenterrier.cef.SyllabusEvaluationIntegrationTest" \

@@ -77,7 +77,7 @@ class OtelTracer(
         // CEF_OTLP_ENDPOINT must be the full traces URL, e.g.:
         // http://localhost:5428/api/default/v1/traces
         // OtlpHttpSpanExporter 1.40+ uses the endpoint string as-is (no auto-append).
-        fun create(appEnv: AppEnv): OtelTracer? {
+        fun create(appEnv: AppEnv, serviceName: String = "cef-desktop"): OtelTracer? {
             fun missing(key: String): OtelTracer? {
                 println("[OTEL] Tracing DISABLED — missing env var: $key")
                 println("[OTEL] Set CEF_OTLP_ENDPOINT, CEF_OTLP_USER, CEF_OTLP_PASSWORD in .env or env to enable tracing.")
@@ -87,8 +87,8 @@ class OtelTracer(
             val user     = appEnv.get("CEF_OTLP_USER")     ?: return missing("CEF_OTLP_USER")
             val password = appEnv.get("CEF_OTLP_PASSWORD") ?: return missing("CEF_OTLP_PASSWORD")
             val authBase64 = Base64.getEncoder().encodeToString("$user:$password".toByteArray())
-            println("[OTEL] Tracing ENABLED → POST $endpoint (user=$user)")
-            return OtelTracer(endpoint, "Basic $authBase64")
+            println("[OTEL] Tracing ENABLED → POST $endpoint (user=$user, service=$serviceName)")
+            return OtelTracer(endpoint, "Basic $authBase64", serviceName)
         }
     }
 }

@@ -48,6 +48,15 @@ class OtelTracerTest : FunSpec({
         tracer!!.shutdown() // clean up SDK
     }
 
+    test("create() accepts a custom serviceName without falling back to the cef-desktop default") {
+        System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
+        System.setProperty(USER_KEY, "testuser")
+        System.setProperty(PASS_KEY, "testpass")
+        val tracer = OtelTracer.create(AppEnv(emptyMap()), serviceName = "cef-eval-ci")
+        tracer shouldNotBe null
+        tracer!!.shutdown()
+    }
+
     // ── AppEnv ────────────────────────────────────────────────────────────────
 
     test("AppEnv.get returns null for unknown key") {

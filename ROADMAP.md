@@ -1579,11 +1579,12 @@ cheaper cadence (nightly/pre-release only), the same cost-vs-signal tradeoff
 rather than adding these tests to `pr-check.yml`. Cadence chosen: **nightly**
 (`cron: '0 8 * * *'`) plus manual `workflow_dispatch`, not every PR — a full run
 makes ~20-60 real Gemini calls across the 16-file `contributions/` corpus + 3
-STLCC-specific docs + 2 syllabus fixtures, and CEF's free-tier Gemini key shares
-one RPM/RPD quota across all models (see this file's own "Observed failure mode
-(June 2026)" note, where ~20 calls in under a minute already cascaded through
-every fallback model). Gating on every PR would contend for that same quota
-against concurrent PRs and the app's own runtime usage. The workflow runs exactly
+STLCC-specific docs + 2 syllabus fixtures, using the BorinquenTerrier paid
+(Tier 1) `CEF_GEMINI_API_KEY`, not a free-tier key — the free-tier "all models
+share one RPM/RPD quota" failure mode described in this file's own "Observed
+failure mode (June 2026)" note is about students' own per-user runtime keys,
+not this CI secret. Gating on every PR would still contend for this key's
+quota against concurrent PRs and the app's own runtime usage. The workflow runs exactly
 the 3 eval-shaped classes via `--tests` (not a blanket `-PrunAITests=true` run,
 which would also pull in `GoogleOAuthIntegrationTest`). `CEF_GEMINI_API_KEY` was
 added as a GitHub Actions repo secret, used only by this workflow — confirmed it

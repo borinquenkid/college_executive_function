@@ -1,0 +1,5 @@
+What's new in 2.3.1:
+
+• Fixed a display issue on some devices where content could appear behind the status bar or navigation bar.
+• Improved crash reporting so issues get caught and fixed faster.
+• Under-the-hood stability improvements.

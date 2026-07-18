@@ -364,6 +364,12 @@ android {
         release {
             signingConfig = signingConfigs.getByName("release")
             isMinifyEnabled = false
+            // Bundles a symbol table for prebuilt native libs (e.g. androidx.graphics-path's
+            // libandroidx.graphics.path.so) so Play Console can symbolicate native crashes.
+            // We don't compile any native code ourselves — no NDK/CMake setup exists here.
+            ndk {
+                debugSymbolLevel = "SYMBOL_TABLE"
+            }
         }
     }
 

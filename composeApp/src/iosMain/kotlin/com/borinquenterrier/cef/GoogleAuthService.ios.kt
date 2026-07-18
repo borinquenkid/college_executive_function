@@ -126,7 +126,21 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                 session.cancel()
                 activeSession = null
             }
-            session.start()
+            // start() returns false if the session failed to actually present (more likely on
+            // iPad, where scene/window presentation timing is less predictable than on iPhone)
+            // — when that happens, completionHandler never fires, so without this check the
+            // continuation (and the app's "Connecting" state) would hang indefinitely with no
+            // error surfaced. This was the root cause of an App Review rejection (Guideline
+            // 2.1(a), iPad Air 11" M3 / iPadOS 26.5.2): "app loaded indefinitely" linking Google.
+            val started = session.start()
+            if (!started) {
+                activeSession = null
+                if (continuation.isActive) {
+                    continuation.resumeWithException(
+                        Exception("Failed to present the Google sign-in screen. Please try again.")
+                    )
+                }
+            }
         }
 
     private fun extractCode(url: String): String? {

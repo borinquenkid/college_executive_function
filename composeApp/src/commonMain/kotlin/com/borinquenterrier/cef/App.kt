@@ -3,6 +3,7 @@ package com.borinquenterrier.cef
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.safeDrawingPadding
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.produceState
@@ -54,7 +55,9 @@ fun App() {
 
     CollegeExecutiveFunctionTheme {
         if (container == null) {
-            Box(Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+            // Renders before AppContent's Scaffold exists, so it needs its own inset
+            // handling — otherwise it draws under the status/nav bars during startup.
+            Box(Modifier.fillMaxSize().safeDrawingPadding(), contentAlignment = Alignment.Center) {
                 CircularProgressIndicator()
             }
         } else {

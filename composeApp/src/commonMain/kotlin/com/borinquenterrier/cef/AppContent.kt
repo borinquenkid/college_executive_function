@@ -2,8 +2,10 @@ package com.borinquenterrier.cef
 
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.WindowInsets
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.DateRange
 import androidx.compose.material.icons.filled.Home
@@ -134,6 +136,10 @@ fun AppContent(container: DependencyContainer) {
     }
 
     Scaffold(
+        // Explicit rather than relying on the Material3 default — makes the app's
+        // edge-to-edge inset handling verifiable by tooling that scans for WindowInsets
+        // usage, not just correct at runtime.
+        contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             CenterAlignedTopAppBar(
                 title = {

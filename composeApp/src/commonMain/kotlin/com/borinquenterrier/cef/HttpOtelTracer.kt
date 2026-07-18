@@ -76,7 +76,46 @@ class HttpOtelTracer(
         }
     }
 
+    override fun recordFatal(throwable: Throwable, attributes: Map<String, String>) {
+        val traceId = randomHexId(16)
+        val spanId = randomHexId(8)
+        val now = nowNanos()
+        val scope = HttpSpanScope()
+        attributes.forEach { (k, v) -> scope.setAttribute(k, v) }
+        val json = buildJson(traceId, spanId, null, "app.crash", now, now, scope, 2, throwable)
+        // Deliberately NOT exportScope.launch — the process may die before that coroutine is
+        // ever scheduled. Block the crashing thread instead, bounded so a crash can never turn
+        // into an ANR/watchdog kill in its own right.
+        try {
+            runBlocking {
+                withTimeoutOrNull(FATAL_EXPORT_TIMEOUT_MS) {
+                    client.post(endpoint) {
+                        header(HttpHeaders.Authorization, authHeader)
+                        contentType(ContentType.Application.Json)
+                        setBody(json)
+                    }
+                }
+            }
+        } catch (_: Exception) {
+            // Best-effort — the crash-reporting path must never itself throw during a crash.
+        }
+    }
+
+    override fun flush(timeoutMillis: Long) {
+        val job = exportScope.coroutineContext[Job] ?: return
+        try {
+            runBlocking {
+                withTimeoutOrNull(timeoutMillis) {
+                    job.children.toList().joinAll()
+                }
+            }
+        } catch (_: Exception) {
+            // Best-effort.
+        }
+    }
+
     override fun shutdown() {
+        flush()
         exportScope.cancel()
         client.close()
     }
@@ -154,6 +193,8 @@ class HttpOtelTracer(
     }
 
     companion object {
+        private const val FATAL_EXPORT_TIMEOUT_MS = 1_500L
+
         fun create(serviceName: String): HttpOtelTracer? {
             val endpoint = BuildSecrets.OTLP_ENDPOINT ?: return null
             val user     = BuildSecrets.OTLP_USER     ?: return null

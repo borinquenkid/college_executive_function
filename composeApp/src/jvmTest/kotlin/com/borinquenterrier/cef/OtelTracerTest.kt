@@ -137,4 +137,29 @@ class OtelTracerTest : FunSpec({
         message shouldContain "CEF_OTLP_PASSWORD"
         message shouldNotContain "CEF_OTLP_ENDPOINT"
     }
+
+    // ── recordFatal / flush ──────────────────────────────────────────────────
+
+    test("recordFatal does not throw even when the collector is unreachable") {
+        System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
+        System.setProperty(USER_KEY, "u")
+        System.setProperty(PASS_KEY, "p")
+        val tracer = OtelTracer.create(AppEnv(emptyMap()))!!
+        tracer.recordFatal(RuntimeException("boom"), mapOf("os" to "desktop"))
+        tracer.shutdown()
+    }
+
+    test("flush does not throw and returns within its timeout") {
+        System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
+        System.setProperty(USER_KEY, "u")
+        System.setProperty(PASS_KEY, "p")
+        val tracer = OtelTracer.create(AppEnv(emptyMap()))!!
+        tracer.flush(timeoutMillis = 500)
+        tracer.shutdown()
+    }
+
+    test("NoopTracer.recordFatal and flush never throw") {
+        NoopTracer.recordFatal(RuntimeException("boom"))
+        NoopTracer.flush(500)
+    }
 })

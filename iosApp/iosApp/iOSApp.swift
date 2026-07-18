@@ -1,4 +1,5 @@
 import SwiftUI
+import ComposeApp
 
 @main
 struct iOSApp: App {
@@ -13,6 +14,7 @@ struct iOSApp: App {
 
 class AppDelegate: NSObject, UIApplicationDelegate {
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey : Any]? = nil) -> Bool {
+        CrashHandler_iosKt.installGlobalCrashHandler()
         return true
     }
 
@@ -20,5 +22,10 @@ class AppDelegate: NSObject, UIApplicationDelegate {
         let configuration = UISceneConfiguration(name: "Default Configuration", sessionRole: connectingSceneSession.role)
         configuration.delegateClass = SceneDelegate.self
         return configuration
+    }
+
+    func applicationWillTerminate(_ application: UIApplication) {
+        // Rarely called by the OS, but cheap insurance alongside sceneDidEnterBackground.
+        TracerLifecycle.shared.flush(timeoutMillis: 2000)
     }
 }

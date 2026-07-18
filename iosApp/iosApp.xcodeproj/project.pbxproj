@@ -152,7 +152,7 @@
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 			shellPath = /bin/sh;
-			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\nexport SDKMAN_DIR=\"$HOME/.sdkman\"\n[[ -s \"$SDKMAN_DIR/bin/sdkman-init.sh\" ]] && source \"$SDKMAN_DIR/bin/sdkman-init.sh\"\ncd \"$SRCROOT/..\"\nsdk env\n./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\n";
+			shellScript = "if [ \"YES\" = \"$OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED\" ]; then\n  echo \"Skipping Gradle build task invocation due to OVERRIDE_KOTLIN_BUILD_IDE_SUPPORTED environment variable set to \\\"YES\\\"\"\n  exit 0\nfi\nexport SDKMAN_DIR=\"$HOME/.sdkman\"\n[[ -s \"$SDKMAN_DIR/bin/sdkman-init.sh\" ]] && source \"$SDKMAN_DIR/bin/sdkman-init.sh\"\ncd \"$SRCROOT/..\"\nsdk env\nif [ \"$CONFIGURATION\" = \"Release\" ]; then\n  ./gradlew :composeApp:verifyReleaseTelemetrySecrets :composeApp:embedAndSignAppleFrameworkForXcode\nelse\n  ./gradlew :composeApp:embedAndSignAppleFrameworkForXcode\nfi\n";
 		};
 /* End PBXShellScriptBuildPhase section */
 

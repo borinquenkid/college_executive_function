@@ -5,6 +5,16 @@ import com.russhwolf.settings.Settings
 interface Tracer {
     suspend fun <T> span(name: String, attributes: Map<String, String> = emptyMap(), block: suspend SpanScope.() -> T): T
     fun event(name: String, attributes: Map<String, String> = emptyMap())
+
+    /**
+     * Synchronous, timeout-bounded exception report for the case span()/event() can't cover:
+     * the process may not survive long enough for their fire-and-forget export to ever run.
+     */
+    fun recordFatal(throwable: Throwable, attributes: Map<String, String> = emptyMap())
+
+    /** Waits (bounded) for exports already in flight to finish, without cancelling them. */
+    fun flush(timeoutMillis: Long = 3_000)
+
     fun shutdown()
 }
 
@@ -21,6 +31,9 @@ object NoopTracer : Tracer {
         NoopSpanScope.block()
     @Suppress("UNUSED_PARAMETER")
     override fun event(name: String, attributes: Map<String, String>) = Unit
+    @Suppress("UNUSED_PARAMETER")
+    override fun recordFatal(throwable: Throwable, attributes: Map<String, String>) = Unit
+    override fun flush(timeoutMillis: Long) = Unit
     override fun shutdown() = Unit
 }
 

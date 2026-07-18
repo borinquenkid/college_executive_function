@@ -212,4 +212,87 @@ class HttpOtelTracerTest : StringSpec({
 
         delay(50) // Allow async export task to execute
     }
+
+    "recordFatal exports synchronously — the request has already arrived when the call returns" {
+        val requests = mutableListOf<String>()
+        val mutex = Mutex()
+
+        val mockEngine = MockEngine { request ->
+            mutex.withLock {
+                val bodyText = (request.body as? TextContent)?.text.orEmpty()
+                requests.add(bodyText)
+            }
+            respond("OK", HttpStatusCode.OK)
+        }
+        val client = HttpClient(mockEngine)
+        val tracer = HttpOtelTracer(
+            endpoint = "https://otel-collector/v1/traces",
+            authHeader = "Basic dXNlcjpwYXNz",
+            serviceName = "test-service",
+            client = client
+        )
+
+        tracer.recordFatal(IllegalStateException("boom"), mapOf("os" to "android"))
+
+        // No polling loop here on purpose: recordFatal is synchronous, so the request
+        // must already be present the instant the call returns.
+        requests.size shouldBe 1
+        val body = requests[0]
+        body.shouldContain("app.crash")
+        body.shouldContain("exception")
+        body.shouldContain("IllegalStateException")
+        body.shouldContain("boom")
+        body.shouldContain("os")
+        body.shouldContain("android")
+        body.shouldContain("\"code\":2")
+    }
+
+    "recordFatal returns without throwing when the export exceeds its timeout" {
+        val mockEngine = MockEngine {
+            delay(5_000)
+            respond("OK", HttpStatusCode.OK)
+        }
+        val client = HttpClient(mockEngine)
+        val tracer = HttpOtelTracer(
+            endpoint = "https://otel-collector/v1/traces",
+            authHeader = "Basic dXNlcjpwYXNz",
+            serviceName = "test-service",
+            client = client
+        )
+
+        // Must not hang for 5s and must not throw — the crash-reporting path is best-effort.
+        tracer.recordFatal(RuntimeException("slow"))
+    }
+
+    "flush waits for a genuinely in-flight span export rather than cancelling it" {
+        val requests = mutableListOf<String>()
+        val mutex = Mutex()
+
+        val mockEngine = MockEngine { request ->
+            delay(200)
+            mutex.withLock {
+                val bodyText = (request.body as? TextContent)?.text.orEmpty()
+                requests.add(bodyText)
+            }
+            respond("OK", HttpStatusCode.OK)
+        }
+        val client = HttpClient(mockEngine)
+        val tracer = HttpOtelTracer(
+            endpoint = "https://otel-collector/v1/traces",
+            authHeader = "Basic dXNlcjpwYXNz",
+            serviceName = "test-service",
+            client = client
+        )
+
+        tracer.span("slow-span") {}
+        tracer.flush(timeoutMillis = 2_000)
+
+        // If flush() only cancelled instead of joining, this would be 0.
+        requests.size shouldBe 1
+    }
+
+    "NoopTracer.recordFatal and flush never throw" {
+        NoopTracer.recordFatal(RuntimeException("boom"))
+        NoopTracer.flush(500)
+    }
 })

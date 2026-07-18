@@ -39,10 +39,12 @@ fun App() {
                 docxReader,
                 pdfReader
             )
-            // Pre-trigger database initialization to ensure it happens off-thread
-            c.database
+            // Tracer must be live before anything else that could crash — otherwise a
+            // DB-init failure happens while AppTracer.current is still NoopTracer.
             AppTracer.current = createTracer(settings, c.appEnv)
             AppTracer.current.span("app.startup") {}
+            // Pre-trigger database initialization to ensure it happens off-thread
+            c.database
             println("[App] Core services initialized off-thread.")
             c
         }

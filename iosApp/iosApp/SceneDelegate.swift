@@ -1,5 +1,6 @@
 import UIKit
 import SwiftUI
+import ComposeApp
 
 class SceneDelegate: UIResponder, UIWindowSceneDelegate {
     var window: UIWindow?
@@ -11,5 +12,9 @@ class SceneDelegate: UIResponder, UIWindowSceneDelegate {
             self.window = window
             window.makeKeyAndVisible()
         }
+    }
+
+    func sceneDidEnterBackground(_ scene: UIScene) {
+        TracerLifecycle.shared.flush(timeoutMillis: 2000)
     }
 }

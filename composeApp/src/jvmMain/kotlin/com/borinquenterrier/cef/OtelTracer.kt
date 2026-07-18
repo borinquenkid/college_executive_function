@@ -68,6 +68,18 @@ class OtelTracer(
         Span.current().addEvent(name, attrs.build())
     }
 
+    override fun recordFatal(throwable: Throwable, attributes: Map<String, String>) {
+        val span = otelTracer.spanBuilder("app.crash").startSpan()
+        attributes.forEach { (k, v) -> span.setAttribute(k, v) }
+        span.recordException(throwable)
+        span.setStatus(StatusCode.ERROR, throwable.message ?: "fatal")
+        span.end() // SimpleSpanProcessor exports synchronously here, no flush needed.
+    }
+
+    override fun flush(timeoutMillis: Long) {
+        sdk.sdkTracerProvider.forceFlush().join(timeoutMillis, java.util.concurrent.TimeUnit.MILLISECONDS)
+    }
+
     override fun shutdown() {
         sdk.shutdown()
     }

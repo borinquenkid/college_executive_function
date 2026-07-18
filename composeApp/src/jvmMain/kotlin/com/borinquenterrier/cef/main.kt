@@ -8,6 +8,7 @@ import collegeexecutivefunction.composeapp.generated.resources.cef_icon
 import org.jetbrains.compose.resources.painterResource
 
 fun main() {
+    installGlobalCrashHandler()
     Runtime.getRuntime().addShutdownHook(Thread { AppTracer.current.shutdown() })
     application {
     Window(

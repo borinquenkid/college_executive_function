@@ -391,6 +391,14 @@ android {
     }
 }
 
+// Mirrors composeApp's verifyReleaseTelemetrySecrets (HARD-1, composeApp/build.gradle.kts) rather
+// than re-implementing secret resolution here — single source of truth for "are CEF_OTLP_*
+// configured." Without this, assembleRelease/bundleRelease shipped silently blind even though
+// composeApp's own packageRelease* (desktop) tasks are already gated.
+tasks.matching { it.name == "assembleRelease" || it.name == "bundleRelease" }.configureEach {
+    dependsOn(":composeApp:verifyReleaseTelemetrySecrets")
+}
+
 // ── Task registrations ────────────────────────────────────────────────────────
 
 val localProps = project.rootProject.layout.projectDirectory.file("local.properties")

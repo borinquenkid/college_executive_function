@@ -30,6 +30,13 @@ class MainActivity : ComponentActivity() {
             App()
         }
     }
+
+    override fun onPause() {
+        super.onPause()
+        // onPause() is the reliable pre-backgrounding guarantee — onStop()/onDestroy() are
+        // not guaranteed to run before a low-memory kill.
+        TracerLifecycle.flush()
+    }
 }
 
 @Preview

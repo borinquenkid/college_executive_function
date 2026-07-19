@@ -9,7 +9,12 @@ set -e
 export SDKMAN_DIR="$HOME/.sdkman"
 
 if [ ! -s "$SDKMAN_DIR/bin/sdkman-init.sh" ]; then
-  curl -s "https://get.sdkman.io" | bash
+  # SDKMAN's installer (unlike the `sdk` command itself) hard-requires bash 4+
+  # and refuses to run under Apple's stock bash 3.2. Xcode Cloud images ship
+  # Homebrew preinstalled, so borrow its bash just for this one-time install.
+  brew install bash
+  BREW_BASH="$(brew --prefix)/bin/bash"
+  curl -s "https://get.sdkman.io" | "$BREW_BASH"
 fi
 # shellcheck disable=SC1091
 source "$SDKMAN_DIR/bin/sdkman-init.sh"

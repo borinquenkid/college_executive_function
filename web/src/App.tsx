@@ -74,6 +74,11 @@ export default function App() {
     semesterEnd: null
   });
 
+  // Session bootstrap — every route requires a session cookie now (see Application.kt's
+  // resolveStudentId), so this must succeed before any other /api/* call is made.
+  const [sessionReady, setSessionReady] = useState(false);
+  const [sessionError, setSessionError] = useState<string | null>(null);
+
   // Action/Loading States
   const [isSyncing, setIsSyncing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
@@ -129,13 +134,30 @@ export default function App() {
     }
   }, [isStreaming, streamReasoning, streamToolCalls, streamResponseText]);
 
-  // Fetch initial data
+  const startSession = async () => {
+    setSessionError(null);
+    try {
+      const res = await fetch('/api/auth/start', { method: 'POST', credentials: 'same-origin' });
+      if (!res.ok) throw new Error(`Session start failed: ${res.status}`);
+      setSessionReady(true);
+    } catch (e) {
+      console.error('Failed to start session:', e);
+      setSessionError('Could not connect. Check your connection and try again.');
+    }
+  };
+
+  // Establish a session before anything else, then fetch initial data
   useEffect(() => {
+    startSession();
+  }, []);
+
+  useEffect(() => {
+    if (!sessionReady) return;
     fetchSources();
     fetchEvents();
     fetchSettings();
     fetchGoogleAuthStatus();
-  }, []);
+  }, [sessionReady]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -366,6 +388,21 @@ export default function App() {
   }, {} as Record<string, Event[]>);
 
   const sortedDates = Object.keys(eventsByDate).sort();
+
+  if (!sessionReady) {
+    return (
+      <div className="app-container" style={{ alignItems: 'center', justifyContent: 'center' }}>
+        {sessionError ? (
+          <div style={{ textAlign: 'center' }}>
+            <p>{sessionError}</p>
+            <button onClick={startSession}>Retry</button>
+          </div>
+        ) : (
+          <p>Connecting…</p>
+        )}
+      </div>
+    );
+  }
 
   return (
     <div className="app-container">

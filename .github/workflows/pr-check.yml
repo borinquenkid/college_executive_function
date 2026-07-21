@@ -48,6 +48,13 @@ jobs:
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET || '' }}
         run: ./gradlew :composeApp:testDebugUnitTest :androidApp:assembleDebug
 
+      - name: Run server tests
+        # Previously nothing ran :server:test in CI at all — the mocked route tests, the
+        # tenant-routing/session tests, and the multipart upload-size guard all went
+        # unverified before merge. *LiveIntegrationTest (real Gemini calls) stays excluded
+        # by default, matching the composeApp AI-test gating below.
+        run: ./gradlew :server:test
+
       - name: Verify Google OAuth Credentials (Integration Test)
         env:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
@@ -60,4 +67,20 @@ jobs:
             echo "Skipping integration test: GOOGLE_REFRESH_TOKEN secret is not set."
           fi
 
+  build-web:
+    name: Build web client
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+      - name: Type-check and build
+        working-directory: web
+        run: npm run build
 

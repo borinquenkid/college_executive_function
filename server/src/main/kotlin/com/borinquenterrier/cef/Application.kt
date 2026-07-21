@@ -5,8 +5,13 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.server.application.*
 import io.ktor.server.engine.*
 import io.ktor.server.netty.*
+import io.ktor.server.request.*
 import io.ktor.server.response.*
 import io.ktor.server.routing.*
+import io.ktor.server.sessions.*
+import io.ktor.server.plugins.forwardedheaders.*
+import io.ktor.server.plugins.origin
+import io.ktor.server.plugins.ratelimit.*
 import io.ktor.utils.io.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
@@ -15,7 +20,10 @@ import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
+import kotlin.time.Duration.Companion.seconds
 import java.io.File
+import java.security.SecureRandom
+import java.util.Base64
 
 fun main() {
     startScheduledBackupIfConfigured()
@@ -27,14 +35,20 @@ fun main() {
  *  See DEPLOYMENT.md. */
 private fun startScheduledBackupIfConfigured() {
     val backupDir = System.getenv("CEF_BACKUP_DIR") ?: return
-    val tenantBaseDir = System.getenv("CEF_TENANT_BASE_DIR")
-        ?: File(System.getProperty("user.home"), ".cef/tenants").absolutePath
+    val tenantBaseDir = resolveTenantBaseDir()
     val intervalHours = System.getenv("CEF_BACKUP_INTERVAL_HOURS")?.toLongOrNull() ?: 24L
 
     val scope = CoroutineScope(SupervisorJob() + Dispatchers.IO)
     ScheduledBackupJob(tenantBaseDir, backupDir, intervalHours).start(scope)
     println("[main] Scheduled backups enabled: every ${intervalHours}h to $backupDir")
 }
+
+/** Same resolution ServerContainer.kt uses for the tenant-data mount; duplicated here (and in
+ *  BackupCli.kt) rather than shared, matching this codebase's existing pattern for these small
+ *  env-var lookups. */
+private fun resolveTenantBaseDir(): String =
+    System.getenv("CEF_TENANT_BASE_DIR")
+        ?: File(System.getProperty("user.home"), ".cef/tenants").absolutePath
 
 suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> {
     val entities = try {
@@ -67,17 +81,32 @@ suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> 
 
 /** Matches the tenant-directory naming TenantDatabaseFactory/TenantConnectionCache build file
  *  paths from. Rejecting anything else here — before a studentId ever reaches those factories —
- *  is what stops a crafted X-Student-ID header (e.g. "../../../etc/passwd") from escaping the
- *  tenant data mount via path traversal. */
+ *  is what stops a crafted session studentId from escaping the tenant data mount via path
+ *  traversal. A signed session cookie can't be forged without the session secret, so this is a
+ *  defensive backstop, not the primary access control. */
 private val studentIdPattern = Regex("^[A-Za-z0-9_-]{1,128}$")
 
+private const val SESSION_COOKIE_NAME = "CEF_SESSION"
+
+@kotlinx.serialization.Serializable
+data class UserSession(val studentId: String)
+
+/** Random, unguessable per-student identity — this is the "obscurity" credential: knowing it is
+ *  the only thing that grants access, there's no separate password. Base64 URL-safe alphabet
+ *  (A-Za-z0-9-_) is a strict subset of studentIdPattern, so it always validates. */
+private fun generateStudentId(): String {
+    val bytes = ByteArray(24)
+    SecureRandom().nextBytes(bytes)
+    return "u-" + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+}
+
 private suspend fun ApplicationCall.resolveStudentId(): String? {
-    val header = request.headers["X-Student-ID"]?.takeIf { it.isNotBlank() } ?: return "default"
-    if (!studentIdPattern.matches(header)) {
-        respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid X-Student-ID header"))
+    val studentId = sessions.get<UserSession>()?.studentId
+    if (studentId == null || !studentIdPattern.matches(studentId)) {
+        respond(HttpStatusCode.Unauthorized, mapOf("error" to "No active session. Call POST /api/auth/start first."))
         return null
     }
-    return header
+    return studentId
 }
 
 fun Application.module(
@@ -94,9 +123,57 @@ fun Application.module(
         json()
     }
 
+    // Skipped for the mocked-container test path (resolveContainer never touches sessions there),
+    // which avoids installing a real signing secret / rate limiter for route-level unit tests.
+    if (testContainer == null) {
+        install(XForwardedHeaders)
+
+        install(Sessions) {
+            cookie<UserSession>(SESSION_COOKIE_NAME) {
+                cookie.httpOnly = true
+                cookie.path = "/"
+                cookie.maxAgeInSeconds = 60L * 60 * 24 * 180
+                cookie.extensions["SameSite"] = "Lax"
+                // Plain HTTP is DEPLOYMENT.md's documented default (docker compose up, port 80,
+                // no TLS) — forcing Secure=true there would silently break login. Operators who've
+                // put TLS in front opt in explicitly.
+                if (System.getenv("CEF_FORCE_SECURE_COOKIES") == "true") {
+                    cookie.secure = true
+                }
+                transform(SessionTransportTransformerMessageAuthentication(SessionSecret.resolve(resolveTenantBaseDir())))
+            }
+        }
+
+        install(RateLimit) {
+            register(RateLimitName("auth-start")) {
+                rateLimiter(limit = 5, refillPeriod = 60.seconds)
+                requestKey { call -> call.request.origin.remoteHost }
+            }
+        }
+    }
+
     routing {
         get("/") {
             call.respondText("Ktor: ${Greeting().greet()}")
+        }
+
+        if (testContainer == null) {
+            rateLimit(RateLimitName("auth-start")) {
+                post("/api/auth/start") {
+                    val existing = call.sessions.get<UserSession>()
+                    if (existing != null) {
+                        call.respond(HttpStatusCode.OK, mapOf("status" to "ok"))
+                        return@post
+                    }
+                    call.sessions.set(UserSession(generateStudentId()))
+                    call.respond(HttpStatusCode.OK, mapOf("status" to "created"))
+                }
+            }
+
+            post("/api/auth/logout") {
+                call.sessions.clear<UserSession>()
+                call.respond(HttpStatusCode.OK, mapOf("status" to "ok"))
+            }
         }
 
         get("/api/sources") {

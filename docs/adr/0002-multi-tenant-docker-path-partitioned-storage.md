@@ -1,7 +1,10 @@
 # ADR 0002: Multi-Tenant Deployment via Docker with Path-Partitioned Storage
 
 ## Status
-Accepted
+Accepted. The tenant-*resolution* mechanism described below (a client-supplied `X-Student-ID`
+header) has been superseded by [ADR 0005](0005-session-based-student-auth.md) — the header is no
+longer trusted, tenant identity now comes from a signed session cookie. The storage design here
+(path-partitioned per-student SQLite, one Docker volume) is unchanged.
 
 See [DEPLOYMENT.md](../../DEPLOYMENT.md) for the practical how-to (local dev, Docker production, backups/maintenance) — this document covers the design decision and alternatives considered.
 

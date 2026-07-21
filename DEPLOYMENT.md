@@ -47,8 +47,14 @@ lazily creates a per-tenant SQLite database on first request. Set the Gemini API
 **Settings** page (`POST /api/settings`) once it's running; it is never read from `.env` in production
 (see `ServerContainerFactory`).
 
-Requests are routed to a tenant by an `X-Student-ID` header (defaults to `"default"` when absent — that's
-what the dev Vite proxy and a plain `curl` without the header will hit).
+Requests are routed to a tenant by a signed session cookie, not a client-supplied header — visiting the
+app calls `POST /api/auth/start` once to establish one (no signup, no password; see
+[docs/adr/0005-session-based-student-auth.md](docs/adr/0005-session-based-student-auth.md)). A plain
+`curl` without first calling `/api/auth/start` (and carrying its cookie) gets `401 Unauthorized`:
+```shell
+curl -c cookies.txt -X POST http://localhost:8080/api/auth/start
+curl -b cookies.txt http://localhost:8080/api/sources
+```
 
 ## Production Deployment (Docker)
 
@@ -68,7 +74,11 @@ Cloud Console setup in README.md). As in local dev, **no Gemini key is baked int
 into any tenant** — each tenant sets their own via the Settings page after the stack is up.
 
 For a real production rollout, put a TLS-terminating reverse proxy (Caddy, Traefik, or your cloud load
-balancer) in front of the `web` container — this compose file does not set up HTTPS itself.
+balancer) in front of the `web` container — this compose file does not set up HTTPS itself. Once you do,
+set `CEF_FORCE_SECURE_COOKIES=true` in your `.env` so session cookies get the `Secure` flag — it's off by
+default because the plain-HTTP quick start above wouldn't work otherwise. The key used to sign session
+cookies is auto-generated on first boot and persisted to `.session-secret` inside the tenant volume (a
+restart won't log everyone out); set `CEF_SESSION_SECRET` yourself if you'd rather pin it explicitly.
 
 ## Maintenance
 
@@ -135,3 +145,8 @@ it's a small addition following the same pattern as `BackupCli.kt`.
   desktop app to authenticate via OAuth, then refresh this page" — this deployment currently assumes a
   tenant's Google account was already linked elsewhere. A self-serve OAuth flow for web-only tenants is
   future work.
+* **No session recovery.** Clearing cookies or switching devices loses access to a tenant permanently —
+  there's no username/password to log back in with (see ADR 0005). A "copy/email yourself your access
+  link" affordance is a planned fast-follow, not yet built.
+* **No LMS-embedded login (LTI).** Auth today is a standalone session cookie, not a Canvas/Blackboard/Moodle
+  launch — see ADR 0005's "Alternatives Considered" for why this was deferred rather than built first.

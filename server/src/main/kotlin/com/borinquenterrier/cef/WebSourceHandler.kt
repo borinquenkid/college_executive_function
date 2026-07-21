@@ -13,7 +13,15 @@ object WebSourceHandler {
     }
 
     suspend fun handlePostSource(call: ApplicationCall, container: DependencyContainer) {
-        val payload = extractMultipartData(call)
+        val payload = try {
+            extractMultipartData(call)
+        } catch (e: MultipartTooLargeException) {
+            call.respond(
+                HttpStatusCode.PayloadTooLarge,
+                mapOf("error" to "File exceeds the ${e.maxBytes / (1024 * 1024)}MB upload limit")
+            )
+            return
+        }
         val url = payload.url
         val fileBytes = payload.fileBytes
         val fileName = payload.fileName

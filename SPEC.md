@@ -97,6 +97,8 @@ All events use a generic wrapper structure:
 ### 4.3 REST API Endpoints
 To support sources management, settings persistence, and calendar synchronization, the server exposes the following REST endpoints:
 
+* **`POST /api/auth/start`**: Establishes a session — no credentials required. If the caller already has a valid session cookie, no-ops and returns it; otherwise generates a new random studentId and sets it as a signed session cookie. The web client calls this once on mount before any other `/api/*` request. Rate-limited to 5 requests/min per IP (see 4.4).
+* **`POST /api/auth/logout`**: Clears the session cookie.
 * **`GET /api/sources`**: Returns the list of `SourceItem`s currently stored in the database.
 * **`POST /api/sources`**: Ingests new content. Supports two formats in `multipart/form-data`:
   * `url`: A string URL to be ingested.
@@ -107,6 +109,6 @@ To support sources management, settings persistence, and calendar synchronizatio
 * **`GET /api/settings`**: Returns the active system settings: `{ "apiKey": null, "hasApiKey": boolean, "studyPreferences": { ... } }`. The stored Gemini key never round-trips back to the client — `apiKey` is always `null` in the response; `hasApiKey` just tells the UI whether one is configured.
 * **`POST /api/settings`**: Saves the Gemini API Key (if `apiKey` is present in the body — omit it to leave an existing key untouched) and/or study preferences.
 
-### 4.4 Multi-Tenancy
-Every endpoint above resolves to a per-student `DependencyContainer` based on an `X-Student-ID` request header (defaults to `"default"` when absent). The header is validated against `^[A-Za-z0-9_-]{1,128}$`; anything else returns `400 Bad Request`. Each student's data lives in an isolated, hash-partitioned SQLite database — see [docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md](docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md) for the storage design and Docker deployment shape.
+### 4.4 Multi-Tenancy & Auth
+Every endpoint except `POST /api/auth/start` resolves to a per-student `DependencyContainer` based on a signed, `HttpOnly` session cookie established by `POST /api/auth/start` — requests without a valid session get `401 Unauthorized`. There is no username/password; the session's random studentId is itself the credential (see [docs/adr/0005-session-based-student-auth.md](docs/adr/0005-session-based-student-auth.md) for the full rationale, including the deliberate "ease of adoption over defense-in-depth" trade-off). An `X-Student-ID` header, if sent, is ignored entirely. Each student's data lives in an isolated, hash-partitioned SQLite database — see [docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md](docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md) for the storage design and Docker deployment shape.
 

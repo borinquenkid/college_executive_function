@@ -1,5 +1,6 @@
 package com.borinquenterrier.cef
 
+import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
@@ -24,7 +25,9 @@ class AgentStreamTest {
         application {
             module()
         }
-        
+        val client = createClient { install(HttpCookies) }
+        client.post("/api/auth/start")
+
         val response = client.get("/api/agent/stream?query=hello") {
             header(HttpHeaders.Accept, "text/event-stream")
         }
@@ -78,6 +81,8 @@ class AgentStreamTest {
         application {
             module()
         }
+        val client = createClient { install(HttpCookies) }
+        client.post("/api/auth/start")
 
         val response = client.get("/api/agent/stream?query=hello") {
             header(HttpHeaders.Accept, "text/event-stream")
@@ -120,6 +125,8 @@ class AgentStreamTest {
         application {
             module()
         }
+        val client = createClient { install(HttpCookies) }
+        client.post("/api/auth/start")
 
         fun runIdOf(body: String): String {
             val runStarted = body.lineSequence().first { it.startsWith("data: ") && it.contains("RUN_STARTED") }

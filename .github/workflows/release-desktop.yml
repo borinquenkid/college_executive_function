@@ -32,6 +32,9 @@ jobs:
         # :server:test never ran on the release path before — pr-check.yml's copy of this step
         # only runs on pull requests, so a direct-to-main push (bypassing branch protection) or
         # a tag push skipped it entirely. *LiveIntegrationTest stays excluded by default.
+        env:
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
         run: ./gradlew :server:test
 
       - name: Verify Google OAuth Credentials (Integration Test)

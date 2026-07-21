@@ -9,7 +9,9 @@ import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.Job
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancelAndJoin
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
@@ -95,6 +97,16 @@ class DependencyContainer(
         globalScope.launch {
             googleAccountFlow.checkConnectionOnStartup()
         }
+    }
+
+    /**
+     * Cancels the startup-check coroutine and anything else launched on [globalScope], and
+     * suspends until it has actually finished — a bare `cancel()` only marks the job cancelling;
+     * a blocking JDBC call already in flight keeps running and can still throw uncaught after the
+     * caller has moved on (e.g. deleted the temp dir backing it in a test).
+     */
+    suspend fun close() {
+        globalScope.coroutineContext[Job]?.cancelAndJoin()
     }
 
     val telemetryManager by lazy { TelemetryManager(settings) }

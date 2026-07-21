@@ -36,5 +36,8 @@ class ServerContainerFactory(
         return container
     }
 
-    suspend fun closeAll() = connectionCache.closeAll()
+    suspend fun closeAll() {
+        synchronized(lock) { containerCache.values.toList() }.forEach { it.close() }
+        connectionCache.closeAll()
+    }
 }

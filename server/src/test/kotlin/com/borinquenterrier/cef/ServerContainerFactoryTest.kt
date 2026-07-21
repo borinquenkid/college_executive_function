@@ -126,22 +126,26 @@ class StudentIdRoutingTest {
     @Test
     fun `GET settings uses default container when X-Student-ID header is absent`() = testApplication {
         val container = buildTestContainer()
-        container.settings.putString("CEF_GEMINI_API_KEY", "default-key")
+        try {
+            container.settings.putString("CEF_GEMINI_API_KEY", "default-key")
 
-        application { module(testContainer = container) }
+            application { module(testContainer = container) }
 
-        val response = client.get("/api/settings")
-        assertEquals(HttpStatusCode.OK, response.status)
-        val body = response.bodyAsText()
-        assertFalse(body.contains("default-key"), "the stored API key must never be sent to the client")
-        assertTrue(body.contains("\"hasApiKey\":true"))
+            val response = client.get("/api/settings")
+            assertEquals(HttpStatusCode.OK, response.status)
+            val body = response.bodyAsText()
+            assertFalse(body.contains("default-key"), "the stored API key must never be sent to the client")
+            assertTrue(body.contains("\"hasApiKey\":true"))
+        } finally {
+            container.close()
+        }
     }
 
     @Test
     fun `spoofing X-Student-ID with a stranger's studentId does not switch tenants`() = runBlocking {
         val baseDir = Files.createTempDirectory("cef-route-isolation-test").toFile()
+        val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
         try {
-            val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
             factory.containerFor("bob").settings.putString("CEF_GEMINI_API_KEY", "bob-key")
 
             testApplication {
@@ -156,6 +160,7 @@ class StudentIdRoutingTest {
                 assertFalse(response.bodyAsText().contains("\"hasApiKey\":true"), "spoofed header must not grant access to bob's tenant")
             }
         } finally {
+            factory.closeAll()
             baseDir.deleteRecursively()
         }
     }
@@ -163,8 +168,8 @@ class StudentIdRoutingTest {
     @Test
     fun `X-Student-ID header alone, without a session, is not sufficient to route anywhere`() = runBlocking {
         val baseDir = Files.createTempDirectory("cef-route-default-test").toFile()
+        val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
         try {
-            val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
             factory.containerFor("default").settings.putString("CEF_GEMINI_API_KEY", "default-key")
 
             testApplication {
@@ -174,6 +179,7 @@ class StudentIdRoutingTest {
                 assertEquals(HttpStatusCode.Unauthorized, response.status, "no session cookie means no access, regardless of the header")
             }
         } finally {
+            factory.closeAll()
             baseDir.deleteRecursively()
         }
     }
@@ -181,9 +187,8 @@ class StudentIdRoutingTest {
     @Test
     fun `X-Student-ID header with path-traversal characters has no effect once a session exists`() = runBlocking {
         val baseDir = Files.createTempDirectory("cef-route-traversal-test").toFile()
+        val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
         try {
-            val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
-
             testApplication {
                 application { module(containerFactory = { studentId -> factory.containerFor(studentId) }) }
                 val client = createClient { install(HttpCookies) }
@@ -193,6 +198,7 @@ class StudentIdRoutingTest {
                 assertEquals(HttpStatusCode.OK, response.status, "the header is ignored entirely, so a malicious value can't even trigger a 400 anymore")
             }
         } finally {
+            factory.closeAll()
             baseDir.deleteRecursively()
         }
     }

@@ -10,9 +10,11 @@ import io.ktor.http.HttpStatusCode
 import io.ktor.http.contentType
 import io.ktor.server.testing.testApplication
 import java.nio.file.Files
+import kotlin.test.AfterTest
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertTrue
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 
@@ -24,9 +26,17 @@ import kotlinx.serialization.json.Json
  */
 class AuthSessionIntegrationTest {
 
+    private val createdFactories = mutableListOf<ServerContainerFactory>()
+
     private fun newFactory(): ServerContainerFactory {
         val baseDir = Files.createTempDirectory("cef-auth-session-test").toFile()
-        return ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
+        return ServerContainerFactory(tenantBaseDir = baseDir.absolutePath).also { createdFactories += it }
+    }
+
+    @AfterTest
+    fun tearDown() = runBlocking {
+        createdFactories.forEach { it.closeAll() }
+        createdFactories.clear()
     }
 
     @Test

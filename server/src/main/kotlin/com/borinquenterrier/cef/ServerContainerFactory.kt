@@ -7,13 +7,16 @@ class ServerContainerFactory(
     private val tenantBaseDir: String,
     private val modelBasePath: String = File(System.getProperty("user.home"), ".cef/models").absolutePath
 ) {
-    private val dbFactory = TenantDatabaseFactory(tenantBaseDir)
+    // Not private: WebStaffHandler needs it to stat a tenant's db/-wal/-shm files for
+    // "last active" (see DirectoryDatabase's comment on why that isn't a DB column).
+    val dbFactory = TenantDatabaseFactory(tenantBaseDir)
     private val connectionCache = TenantConnectionCache(
         capacity = 1000,
         baseDir = tenantBaseDir,
         driverFactory = { path -> dbFactory.openDriver(File(path).nameWithoutExtension) }
     )
     val settingsFactory = TenantSettingsFactory(connectionCache)
+    val directoryDatabase = DirectoryDatabase(tenantBaseDir)
 
     private val lock = Any()
     private val containerCache = linkedMapOf<String, DependencyContainer>()

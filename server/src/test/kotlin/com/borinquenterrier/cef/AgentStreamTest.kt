@@ -1,12 +1,16 @@
 package com.borinquenterrier.cef
 
+import com.borinquenterrier.cef.lti.LtiTestSupport
+import com.borinquenterrier.cef.lti.loginViaLti
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
+import java.nio.file.Files
 import kotlin.test.*
+import kotlinx.coroutines.runBlocking
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.jsonObject
 import kotlinx.serialization.json.jsonPrimitive
@@ -20,13 +24,34 @@ class AgentStreamTest {
             .map { Json.parseToJsonElement(it.removePrefix("data: ")).jsonObject["type"]!!.jsonPrimitive.content }
             .toList()
 
+    private val createdFactories = mutableListOf<ServerContainerFactory>()
+
+    private fun newFactory(): ServerContainerFactory {
+        val baseDir = Files.createTempDirectory("cef-agent-stream-test").toFile()
+        return ServerContainerFactory(tenantBaseDir = baseDir.absolutePath).also { createdFactories += it }
+    }
+
+    @AfterTest
+    fun tearDown() = runBlocking {
+        createdFactories.forEach { it.closeAll() }
+        createdFactories.clear()
+    }
+
     @Test
     fun testAgentStreamEndpointExistsAndStreamsLifecycle() = testApplication {
+        val factory = newFactory()
         application {
-            module()
+            module(
+                containerFactory = { studentId -> factory.containerFor(studentId) },
+                ltiPlatformConfig = LtiTestSupport.config,
+                ltiVerifier = LtiTestSupport.verifier(),
+                directoryDatabase = factory.directoryDatabase,
+                dbFactory = factory.dbFactory,
+                appBaseUrl = "https://test.example.edu"
+            )
         }
         val client = createClient { install(HttpCookies) }
-        client.post("/api/auth/start")
+        client.loginViaLti()
 
         val response = client.get("/api/agent/stream?query=hello") {
             header(HttpHeaders.Accept, "text/event-stream")
@@ -78,11 +103,19 @@ class AgentStreamTest {
 
     @Test
     fun testAgentStreamEmitsOnlyValidJsonDataLines() = testApplication {
+        val factory = newFactory()
         application {
-            module()
+            module(
+                containerFactory = { studentId -> factory.containerFor(studentId) },
+                ltiPlatformConfig = LtiTestSupport.config,
+                ltiVerifier = LtiTestSupport.verifier(),
+                directoryDatabase = factory.directoryDatabase,
+                dbFactory = factory.dbFactory,
+                appBaseUrl = "https://test.example.edu"
+            )
         }
         val client = createClient { install(HttpCookies) }
-        client.post("/api/auth/start")
+        client.loginViaLti()
 
         val response = client.get("/api/agent/stream?query=hello") {
             header(HttpHeaders.Accept, "text/event-stream")
@@ -122,11 +155,19 @@ class AgentStreamTest {
 
     @Test
     fun testAgentStreamRunIdIsUniquePerRequest() = testApplication {
+        val factory = newFactory()
         application {
-            module()
+            module(
+                containerFactory = { studentId -> factory.containerFor(studentId) },
+                ltiPlatformConfig = LtiTestSupport.config,
+                ltiVerifier = LtiTestSupport.verifier(),
+                directoryDatabase = factory.directoryDatabase,
+                dbFactory = factory.dbFactory,
+                appBaseUrl = "https://test.example.edu"
+            )
         }
         val client = createClient { install(HttpCookies) }
-        client.post("/api/auth/start")
+        client.loginViaLti()
 
         fun runIdOf(body: String): String {
             val runStarted = body.lineSequence().first { it.startsWith("data: ") && it.contains("RUN_STARTED") }

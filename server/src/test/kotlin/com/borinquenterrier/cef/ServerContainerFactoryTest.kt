@@ -1,5 +1,7 @@
 package com.borinquenterrier.cef
 
+import com.borinquenterrier.cef.lti.LtiTestSupport
+import com.borinquenterrier.cef.lti.loginViaLti
 import io.ktor.client.plugins.cookies.HttpCookies
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
@@ -149,12 +151,22 @@ class StudentIdRoutingTest {
             factory.containerFor("bob").settings.putString("CEF_GEMINI_API_KEY", "bob-key")
 
             testApplication {
-                application { module(containerFactory = { studentId -> factory.containerFor(studentId) }) }
+                application {
+                    module(
+                        containerFactory = { studentId -> factory.containerFor(studentId) },
+                        ltiPlatformConfig = LtiTestSupport.config,
+                        ltiVerifier = LtiTestSupport.verifier(),
+                        directoryDatabase = factory.directoryDatabase,
+                        dbFactory = factory.dbFactory,
+                        appBaseUrl = "https://test.example.edu"
+                    )
+                }
                 val client = createClient { install(HttpCookies) }
-                client.post("/api/auth/start")
+                client.loginViaLti(subject = "not-bob")
 
                 // Claiming to be "bob" via the old header no longer has any effect — the session
-                // cookie alone decides the tenant, so this must NOT see bob's settings.
+                // cookie (now minted only from a verified LTI launch) alone decides the tenant, so
+                // this must NOT see bob's settings.
                 val response = client.get("/api/settings") { header("X-Student-ID", "bob") }
                 assertEquals(HttpStatusCode.OK, response.status)
                 assertFalse(response.bodyAsText().contains("\"hasApiKey\":true"), "spoofed header must not grant access to bob's tenant")
@@ -173,7 +185,16 @@ class StudentIdRoutingTest {
             factory.containerFor("default").settings.putString("CEF_GEMINI_API_KEY", "default-key")
 
             testApplication {
-                application { module(containerFactory = { studentId -> factory.containerFor(studentId) }) }
+                application {
+                    module(
+                        containerFactory = { studentId -> factory.containerFor(studentId) },
+                        ltiPlatformConfig = LtiTestSupport.config,
+                        ltiVerifier = LtiTestSupport.verifier(),
+                        directoryDatabase = factory.directoryDatabase,
+                        dbFactory = factory.dbFactory,
+                        appBaseUrl = "https://test.example.edu"
+                    )
+                }
 
                 val response = client.get("/api/settings") { header("X-Student-ID", "default") }
                 assertEquals(HttpStatusCode.Unauthorized, response.status, "no session cookie means no access, regardless of the header")
@@ -190,9 +211,18 @@ class StudentIdRoutingTest {
         val factory = ServerContainerFactory(tenantBaseDir = baseDir.absolutePath)
         try {
             testApplication {
-                application { module(containerFactory = { studentId -> factory.containerFor(studentId) }) }
+                application {
+                    module(
+                        containerFactory = { studentId -> factory.containerFor(studentId) },
+                        ltiPlatformConfig = LtiTestSupport.config,
+                        ltiVerifier = LtiTestSupport.verifier(),
+                        directoryDatabase = factory.directoryDatabase,
+                        dbFactory = factory.dbFactory,
+                        appBaseUrl = "https://test.example.edu"
+                    )
+                }
                 val client = createClient { install(HttpCookies) }
-                client.post("/api/auth/start")
+                client.loginViaLti()
 
                 val response = client.get("/api/settings") { header("X-Student-ID", "../../../etc/passwd") }
                 assertEquals(HttpStatusCode.OK, response.status, "the header is ignored entirely, so a malicious value can't even trigger a 400 anymore")

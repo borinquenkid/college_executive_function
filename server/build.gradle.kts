@@ -32,6 +32,13 @@ dependencies {
     implementation(libs.ktor.server.sessions)
     implementation(libs.ktor.server.rate.limit)
     implementation(libs.ktor.server.forwarded.header)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.server.auth.jwt)
+    // For GoogleWebOAuthService — composeApp declares these as `implementation`, which Gradle
+    // does NOT expose transitively to server even though server depends on project(":composeApp"),
+    // so they need to be declared here directly too.
+    implementation(libs.google.api.client)
+    implementation(libs.google.http.client.gson)
     implementation(libs.ktor.serialization.kotlinx.json)
     implementation(libs.multiplatform.settings)
     implementation(libs.kotlinx.datetime)

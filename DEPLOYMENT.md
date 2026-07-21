@@ -10,23 +10,60 @@ for the multi-tenancy architecture this deployment shape is built around.
 
 ## Quick Start (IT Staff — No Programming Required)
 
+Students and staff log in by launching CEF from a link inside your LMS (Canvas, Blackboard, Moodle,
+etc.) — there's no separate signup or password (see
+[docs/adr/0006-lti-1.3-only-auth.md](docs/adr/0006-lti-1.3-only-auth.md)). That means two things need
+to be true before this is usable: the deployment needs to be reachable over HTTPS, and it needs to be
+registered as an LTI 1.3 tool in your LMS. Both are one-time setup steps, done once per institution.
+
 1. Install [Docker Desktop](https://www.docker.com/products/docker-desktop/) if you don't have it, and make sure it's running.
 2. Download or `git clone` this repository.
-3. Open a terminal in the repository folder and run:
+3. Put a TLS-terminating reverse proxy in front of where this will run (see "Production Deployment" below) — you'll need its public HTTPS address for the next step.
+4. Register CEF as an LTI 1.3 external tool in your LMS — see "Registering CEF as an LTI tool" below for exactly what to enter on both sides. Your LMS admin console will hand you back the values this deployment needs.
+5. Open a terminal in the repository folder and run:
    ```shell
    ./scripts/setup-college-server.sh
    ```
 
-That's it. The script checks that Docker is installed, creates a `.env` file if you don't have one (Google
-Calendar sync fields are optional — leave them blank to skip that feature for now), builds and starts the
-server and web client, and waits until the server responds before printing a "done" message with the web
-address to open.
+The first run creates a `.env` file and stops, asking you to fill in the `CEF_APP_BASE_URL`/`CEF_LTI_*`
+values from step 4 (Google Calendar sync fields are optional — leave them blank to skip that feature for
+now). Re-run the script once `.env` is filled in: it checks Docker, builds and starts the server and web
+client, and waits until the server responds before printing a "done" message with the web address to open.
 
 Backups run automatically every 24 hours — nothing to configure. To update to a newer version later, run
 `git pull` then re-run the same script; it rebuilds and restarts in place without touching student data.
 
 The rest of this document explains what that script does under the hood, and covers maintenance
 (backups/restore) and things that aren't set up yet (Litestream, per-tenant Google OAuth).
+
+## Registering CEF as an LTI tool
+
+Every LMS's exact screen names differ, but registering an LTI 1.3 "external tool" or "developer key"
+asks for the same handful of things, in both directions:
+
+**What you give your LMS admin console (CEF's side):**
+| Field | Value |
+|---|---|
+| OIDC login initiation URL | `<CEF_APP_BASE_URL>/lti/login` |
+| Target link / launch URL | `<CEF_APP_BASE_URL>/lti/launch` |
+| Redirect URI | `<CEF_APP_BASE_URL>/lti/launch` |
+
+**What your LMS gives back — put these in `.env` (see the template `setup-college-server.sh` creates):**
+| `.env` variable | Where it comes from |
+|---|---|
+| `CEF_LTI_ISSUER` | The platform's issuer URL (e.g. `https://canvas.yourschool.edu`) |
+| `CEF_LTI_CLIENT_ID` | The client ID assigned to this tool registration |
+| `CEF_LTI_DEPLOYMENT_IDS` | The deployment ID(s) — comma-separated if there's more than one |
+| `CEF_LTI_AUTH_LOGIN_URL` | The platform's OIDC authorization endpoint |
+| `CEF_LTI_JWKS_URL` | The platform's public keys (JWKS) endpoint |
+
+**Launch placement — use a new window/tab, not an iframe.** Modern browsers (Safari, and Chrome's
+third-party-cookie phase-out) block the session cookie inside an iframe launch. Every major LMS
+offers a "open in new window" placement option — use it, or the tool will appear broken specifically
+in Safari while looking fine elsewhere.
+
+An instructor or admin who launches the tool automatically gets the staff console (see "Staff
+console" below) — no separate setup for that.
 
 ## Local Development
 
@@ -42,19 +79,25 @@ npm install                    # first run only
 npm run dev                    # Vite dev server on :5173, proxies /api to :8080
 ```
 
-Open the URL Vite prints (typically `http://localhost:5173`). No env vars are required to boot — the server
-lazily creates a per-tenant SQLite database on first request. Set the Gemini API key through the app's
-**Settings** page (`POST /api/settings`) once it's running; it is never read from `.env` in production
-(see `ServerContainerFactory`).
+Open the URL Vite prints (typically `http://localhost:5173`). The server lazily creates a per-tenant
+SQLite database on first request. Set the Gemini API key through the app's **Settings** page
+(`POST /api/settings`) once it's running; it is never read from `.env` in production (see
+`ServerContainerFactory`).
 
-Requests are routed to a tenant by a signed session cookie, not a client-supplied header — visiting the
-app calls `POST /api/auth/start` once to establish one (no signup, no password; see
-[docs/adr/0005-session-based-student-auth.md](docs/adr/0005-session-based-student-auth.md)). A plain
-`curl` without first calling `/api/auth/start` (and carrying its cookie) gets `401 Unauthorized`:
-```shell
-curl -c cookies.txt -X POST http://localhost:8080/api/auth/start
-curl -b cookies.txt http://localhost:8080/api/sources
-```
+`:server:run` now requires `CEF_APP_BASE_URL` and the `CEF_LTI_*` variables (see "Registering CEF as
+an LTI tool" above) — it fails fast at startup without them, same as production. Requests are routed
+to a tenant by a signed session cookie, minted only by a verified LTI launch (see
+[docs/adr/0006-lti-1.3-only-auth.md](docs/adr/0006-lti-1.3-only-auth.md)) — there is no
+`curl`-friendly way to create a session by hand, since that would mean accepting an unsigned launch.
+Two practical options for exercising this locally:
+- **Point at a real LMS sandbox.** Canvas, Blackboard, and Moodle all offer free developer/test
+  instances where you can register a tool against `http://localhost:5173` (or an `ngrok`-style
+  tunnel, since LTI requires HTTPS) and launch it for real.
+- **Use the automated test suite instead of manual curl.** `LtiTestSupport`
+  (`server/src/test/kotlin/com/borinquenterrier/cef/lti/LtiTestSupport.kt`) generates a local RSA
+  keypair and signs real launch JWTs against it, so `./gradlew :server:test` exercises the entire
+  `/lti/login` → `/lti/launch` flow end-to-end without any external LMS at all — this is the fast
+  loop for iterating on server-side auth logic.
 
 ## Production Deployment (Docker)
 
@@ -73,12 +116,25 @@ are read from the root `.env` if present (needed only to refresh already-linked 
 Cloud Console setup in README.md). As in local dev, **no Gemini key is baked into the image or auto-imported
 into any tenant** — each tenant sets their own via the Settings page after the stack is up.
 
-For a real production rollout, put a TLS-terminating reverse proxy (Caddy, Traefik, or your cloud load
-balancer) in front of the `web` container — this compose file does not set up HTTPS itself. Once you do,
-set `CEF_FORCE_SECURE_COOKIES=true` in your `.env` so session cookies get the `Secure` flag — it's off by
-default because the plain-HTTP quick start above wouldn't work otherwise. The key used to sign session
-cookies is auto-generated on first boot and persisted to `.session-secret` inside the tenant volume (a
-restart won't log everyone out); set `CEF_SESSION_SECRET` yourself if you'd rather pin it explicitly.
+**HTTPS is required, not optional, for a real deployment.** LTI 1.3 mandates HTTPS launch URLs — an
+LMS will refuse to complete a launch against a plain-HTTP `CEF_APP_BASE_URL`. Put a TLS-terminating
+reverse proxy (Caddy and Traefik both provision Let's Encrypt certificates automatically; a cloud
+load balancer works too) in front of the `web` container — this compose file does not set up HTTPS
+itself. Once you do, set `CEF_FORCE_SECURE_COOKIES=true` in your `.env` so session cookies get the
+`Secure` flag — it's off by default only so the bare `docker compose up` in Local Development above
+still works without one. The key used to sign session cookies is auto-generated on first boot and
+persisted to `.session-secret` inside the tenant volume (a restart won't log everyone out); set
+`CEF_SESSION_SECRET` yourself if you'd rather pin it explicitly.
+
+## Staff console
+
+Anyone who launches CEF via LTI with an Instructor or Administrator role lands directly on
+`/staff/` instead of the student app — no separate setup, invite, or password (see
+[docs/adr/0007](docs/adr/0007-staff-console-via-lti-roles.md)). It shows, per student who has ever
+launched the tool: when they first launched and when they were last active — nothing about their
+calendar, uploaded sources, or chat history. A "Reset session" button forces that student to
+relaunch from your course to get back in — useful if a student's access looks stuck or you suspect
+a shared/lost device. There is currently no roster of students who *haven't* launched the tool yet.
 
 ## Maintenance
 
@@ -141,12 +197,14 @@ it's a small addition following the same pattern as `BackupCli.kt`.
 
 ## Known Gaps
 
-* **Per-tenant Google Calendar linking isn't solved.** The web client's Settings page still says "Run the
-  desktop app to authenticate via OAuth, then refresh this page" — this deployment currently assumes a
-  tenant's Google account was already linked elsewhere. A self-serve OAuth flow for web-only tenants is
-  future work.
-* **No session recovery.** Clearing cookies or switching devices loses access to a tenant permanently —
-  there's no username/password to log back in with (see ADR 0005). A "copy/email yourself your access
-  link" affordance is a planned fast-follow, not yet built.
-* **No LMS-embedded login (LTI).** Auth today is a standalone session cookie, not a Canvas/Blackboard/Moodle
-  launch — see ADR 0005's "Alternatives Considered" for why this was deferred rather than built first.
+* **No full class roster.** The staff console (see "Staff console" above) only lists students who
+  have already launched the tool at least once — there's no way to see students who are enrolled
+  but haven't used it yet. Would need LTI's Names and Role Provisioning Service (NRPS), deferred —
+  see [docs/adr/0007](docs/adr/0007-staff-console-via-lti-roles.md)'s "Alternatives Considered".
+* **No LTI Deep Linking.** Adding CEF to a course today means an LMS admin/instructor manually
+  pastes the launch URL as an external tool link; there's no "search and insert" content-picker
+  experience. A small, additive enhancement if wanted later.
+* **Recovery is re-launching via the LMS, not a standalone flow.** This is by design (see
+  [docs/adr/0006](docs/adr/0006-lti-1.3-only-auth.md) point 6) — there's no direct, non-LMS-embedded
+  way to access the app at all, so "lost my session" and "how do I even get in" are the same
+  question with the same answer: go back to the course link.

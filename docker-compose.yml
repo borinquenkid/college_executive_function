@@ -15,9 +15,12 @@ services:
   # Production deployment of the Ktor server + React web client.
   # See docs/adr/0002-multi-tenant-docker-path-partitioned-storage.md for the design.
   #
-  # GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET come from the root .env (Compose auto-loads
-  # it for ${...} substitution) — the same values the desktop app's OAuth flow uses,
-  # needed here only to refresh already-linked Google tokens.
+  # CEF_APP_BASE_URL / CEF_LTI_* are REQUIRED (see docs/adr/0006-lti-1.3-only-auth.md) — the
+  # server refuses to start without them, sourced from the root .env (Compose auto-loads it for
+  # ${...} substitution). setup-college-server.sh checks these are filled in before this ever runs.
+  #
+  # GOOGLE_CLIENT_ID / GOOGLE_CLIENT_SECRET are optional — the same values the desktop app's OAuth
+  # flow uses, needed here only to refresh already-linked Google tokens.
   #
   # Deliberately NOT set here: CEF_GEMINI_API_KEY. Each tenant configures their own
   # Gemini key via POST /api/settings after the stack is up — the server never
@@ -33,8 +36,16 @@ services:
       - CEF_TENANT_BASE_DIR=/data/tenants
       - CEF_BACKUP_DIR=/data/backups
       - CEF_BACKUP_INTERVAL_HOURS=${CEF_BACKUP_INTERVAL_HOURS:-24}
+      - CEF_APP_BASE_URL=${CEF_APP_BASE_URL:-}
+      - CEF_LTI_ISSUER=${CEF_LTI_ISSUER:-}
+      - CEF_LTI_CLIENT_ID=${CEF_LTI_CLIENT_ID:-}
+      - CEF_LTI_DEPLOYMENT_IDS=${CEF_LTI_DEPLOYMENT_IDS:-}
+      - CEF_LTI_AUTH_LOGIN_URL=${CEF_LTI_AUTH_LOGIN_URL:-}
+      - CEF_LTI_JWKS_URL=${CEF_LTI_JWKS_URL:-}
       - GOOGLE_CLIENT_ID=${GOOGLE_CLIENT_ID:-}
       - GOOGLE_CLIENT_SECRET=${GOOGLE_CLIENT_SECRET:-}
+      - CEF_GOOGLE_WEB_CLIENT_ID=${CEF_GOOGLE_WEB_CLIENT_ID:-}
+      - CEF_GOOGLE_WEB_CLIENT_SECRET=${CEF_GOOGLE_WEB_CLIENT_SECRET:-}
     volumes:
       - tenant-data:/data/tenants
       - tenant-backups:/data/backups

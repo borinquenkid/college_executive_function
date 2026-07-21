@@ -24,6 +24,7 @@ internal fun generateTypescriptTypes(): String = buildString {
         serializer<StudyPreferences>().descriptor,
         serializer<RemoteCalendarMetadata>().descriptor,
         serializer<WebSettings>().descriptor,
+        serializer<StudentSummary>().descriptor,
     )
 
     for (desc in descriptors) {

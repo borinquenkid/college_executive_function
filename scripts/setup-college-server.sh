@@ -43,23 +43,51 @@ fi
 
 info "Docker is installed and running."
 
-# ── 2. Google Calendar credentials (optional) ────────────────────────────────
+# ── 2. .env file: required LTI registration + optional Google Calendar creds ───
 #
-# Only needed to refresh already-linked Google Calendar accounts. Students can use
-# the app fully without this — Calendar sync just won't be available until it's set.
+# Unlike Google Calendar (optional — students can use the app fully without it), the
+# CEF_APP_BASE_URL/CEF_LTI_* fields are REQUIRED: this deployment only accepts logins via a
+# verified LTI 1.3 launch from your LMS (see docs/adr/0006-lti-1.3-only-auth.md), and the server
+# refuses to start at all without them. See DEPLOYMENT.md's "Registering CEF as an LTI tool"
+# section for where these values come from — your LMS admin screen provides them.
 
 if [ ! -f .env ]; then
     cat > .env <<'EOF'
-# Optional — only needed for Google Calendar sync. Leave blank to skip for now;
-# you can add these and re-run this script at any time.
-# See README.md's "Google Cloud Console & API Setup" section for how to get these.
+# REQUIRED — this deployment's externally-reachable HTTPS origin (e.g. https://cef.yourschool.edu,
+# no trailing slash). LTI 1.3 requires HTTPS; put a TLS-terminating reverse proxy in front first.
+CEF_APP_BASE_URL=
+
+# REQUIRED — from your LMS's "add external tool" / developer key screen. See DEPLOYMENT.md's
+# "Registering CEF as an LTI tool" section.
+CEF_LTI_ISSUER=
+CEF_LTI_CLIENT_ID=
+CEF_LTI_DEPLOYMENT_IDS=
+CEF_LTI_AUTH_LOGIN_URL=
+CEF_LTI_JWKS_URL=
+
+# Optional — only needed to refresh an ALREADY-linked Google account (e.g. one linked via the
+# desktop app). Leave blank to skip for now; you can add these and re-run this script at any time.
+# See README.md's "Google Cloud Console & API Setup" section, step 3, for how to get these.
 GOOGLE_CLIENT_ID=
 GOOGLE_CLIENT_SECRET=
+
+# Optional — lets students link Google Calendar themselves from the web app (no desktop app
+# needed). A DIFFERENT OAuth client than the one above — see README.md step 3b and
+# docs/adr/0008-self-serve-google-oauth-web-flow.md.
+CEF_GOOGLE_WEB_CLIENT_ID=
+CEF_GOOGLE_WEB_CLIENT_SECRET=
 EOF
-    warn "Created .env with blank Google Calendar credentials (Calendar sync will be unavailable until you fill these in — everything else works fine without them)."
-else
-    info "Found existing .env file — leaving it as-is."
+    fail "Created .env — fill in the REQUIRED CEF_APP_BASE_URL/CEF_LTI_* fields (see DEPLOYMENT.md's \"Registering CEF as an LTI tool\" section), then re-run this script. Google Calendar fields can stay blank for now."
 fi
+
+# shellcheck disable=SC1091
+set -a; source .env; set +a
+for var in CEF_APP_BASE_URL CEF_LTI_ISSUER CEF_LTI_CLIENT_ID CEF_LTI_DEPLOYMENT_IDS CEF_LTI_AUTH_LOGIN_URL CEF_LTI_JWKS_URL; do
+    if [ -z "${!var:-}" ]; then
+        fail "$var is blank in .env — this is required (LTI is the only login path). See DEPLOYMENT.md's \"Registering CEF as an LTI tool\" section, fill it in, and re-run this script."
+    fi
+done
+info "Found .env with LTI registration filled in."
 
 # ── 3. Build and start ───────────────────────────────────────────────────────
 

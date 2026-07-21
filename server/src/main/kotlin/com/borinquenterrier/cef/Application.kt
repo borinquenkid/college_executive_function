@@ -15,6 +15,10 @@ import io.ktor.server.plugins.ratelimit.*
 import io.ktor.utils.io.*
 import io.ktor.server.plugins.contentnegotiation.*
 import io.ktor.serialization.kotlinx.json.*
+import com.borinquenterrier.cef.lti.LtiLaunchHandler
+import com.borinquenterrier.cef.lti.LtiLaunchVerifier
+import com.borinquenterrier.cef.lti.LtiLoginHandler
+import com.borinquenterrier.cef.lti.LtiPlatformConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
@@ -22,8 +26,6 @@ import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
 import java.io.File
-import java.security.SecureRandom
-import java.util.Base64
 
 fun main() {
     startScheduledBackupIfConfigured()
@@ -49,6 +51,14 @@ private fun startScheduledBackupIfConfigured() {
 private fun resolveTenantBaseDir(): String =
     System.getenv("CEF_TENANT_BASE_DIR")
         ?: File(System.getProperty("user.home"), ".cef/tenants").absolutePath
+
+/** This deployment's externally-reachable HTTPS origin (e.g. https://cef.university.edu, no
+ *  trailing slash) — needed to build the LTI launch redirect_uri and, later, the Google web OAuth
+ *  callback URL. LTI 1.3 requires HTTPS launch URIs, so unlike CEF_FORCE_SECURE_COOKIES this one
+ *  isn't optional once LTI is the only login path (see DEPLOYMENT.md). */
+private fun resolveAppBaseUrl(): String =
+    System.getenv("CEF_APP_BASE_URL")?.takeIf { it.isNotBlank() }?.trimEnd('/')
+        ?: error("CEF_APP_BASE_URL is required — see DEPLOYMENT.md's LTI registration section.")
 
 suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> {
     val entities = try {
@@ -87,23 +97,39 @@ suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> 
 private val studentIdPattern = Regex("^[A-Za-z0-9_-]{1,128}$")
 
 private const val SESSION_COOKIE_NAME = "CEF_SESSION"
+private const val STAFF_SESSION_COOKIE_NAME = "CEF_STAFF_SESSION"
 
+/** Minted only by LtiLaunchHandler on a verified LTI launch — see docs/adr/0006-lti-1.3-only-auth.md.
+ *  studentId is "lti-" + sha256("iss|deployment_id|sub"), not a random secret: the cookie itself
+ *  (HMAC-signed, see SessionSecret) is what grants access, same as the old model, but now nothing
+ *  can mint one without a platform's signature backing it. epoch pins this session to
+ *  DirectoryDatabase's session_epoch at mint time — resolveStudentId() rejects a mismatch, which
+ *  is how the staff console's "reset a student's session" (docs/adr/0007) actually revokes access
+ *  despite the cookie itself being a self-contained, stateless signed token. */
 @kotlinx.serialization.Serializable
-data class UserSession(val studentId: String)
+data class UserSession(val studentId: String, val epoch: Int = 0)
 
-/** Random, unguessable per-student identity — this is the "obscurity" credential: knowing it is
- *  the only thing that grants access, there's no separate password. Base64 URL-safe alphabet
- *  (A-Za-z0-9-_) is a strict subset of studentIdPattern, so it always validates. */
-private fun generateStudentId(): String {
-    val bytes = ByteArray(24)
-    SecureRandom().nextBytes(bytes)
-    return "u-" + Base64.getUrlEncoder().withoutPadding().encodeToString(bytes)
+/** Minted alongside UserSession when an LTI launch's roles claim includes Instructor/Administrator
+ *  (see lti/LtiRoles.kt) — grants access to the /staff console (docs/adr/0007). */
+@kotlinx.serialization.Serializable
+data class StaffSession(val studentId: String)
+
+private suspend fun ApplicationCall.resolveStudentId(directoryDatabase: DirectoryDatabase): String? {
+    val session = sessions.get<UserSession>()
+    val studentId = session?.studentId
+    if (studentId == null || !studentIdPattern.matches(studentId) ||
+        directoryDatabase.currentEpoch(studentId) != session.epoch
+    ) {
+        respond(HttpStatusCode.Unauthorized, mapOf("error" to "No active session. Access this tool from your course in your institution's LMS."))
+        return null
+    }
+    return studentId
 }
 
-private suspend fun ApplicationCall.resolveStudentId(): String? {
-    val studentId = sessions.get<UserSession>()?.studentId
+private suspend fun ApplicationCall.resolveStaffStudentId(): String? {
+    val studentId = sessions.get<StaffSession>()?.studentId
     if (studentId == null || !studentIdPattern.matches(studentId)) {
-        respond(HttpStatusCode.Unauthorized, mapOf("error" to "No active session. Call POST /api/auth/start first."))
+        respond(HttpStatusCode.Forbidden, mapOf("error" to "Staff access required."))
         return null
     }
     return studentId
@@ -111,14 +137,22 @@ private suspend fun ApplicationCall.resolveStudentId(): String? {
 
 fun Application.module(
     testContainer: DependencyContainer? = null,
-    containerFactory: suspend (String) -> DependencyContainer = { studentId -> ServerContainer.containerFor(studentId) }
+    containerFactory: suspend (String) -> DependencyContainer = { studentId -> ServerContainer.containerFor(studentId) },
+    // Overridable so tests can point LTI at a local fake platform/JWKS instead of requiring
+    // CEF_LTI_* env vars and a real IdP — see LtiLaunchIntegrationTest. ltiVerifier is separate
+    // from ltiPlatformConfig because the default verifier construction reaches out to a real
+    // JWKS URL over HTTPS; tests need to inject one backed by a fake JwkProvider instead.
+    ltiPlatformConfig: LtiPlatformConfig? = null,
+    ltiVerifier: LtiLaunchVerifier? = null,
+    directoryDatabase: DirectoryDatabase? = null,
+    dbFactory: TenantDatabaseFactory? = null,
+    appBaseUrl: String? = null,
+    // Unlike the LTI params above, an unresolved (null) value here is a legitimate outcome, not
+    // just an unset-override marker — Google Calendar sync is optional (see GoogleWebOAuthConfig).
+    // Tests that want it configured pass a service explicitly; tests that don't just naturally
+    // get null, since CEF_GOOGLE_WEB_CLIENT_ID/SECRET are never set in the test process.
+    googleWebOAuthService: GoogleWebOAuthService? = null
 ) {
-    suspend fun resolveContainer(call: ApplicationCall): DependencyContainer? {
-        testContainer?.let { return it }
-        val studentId = call.resolveStudentId() ?: return null
-        return containerFactory(studentId)
-    }
-
     install(ContentNegotiation) {
         json()
     }
@@ -142,14 +176,41 @@ fun Application.module(
                 }
                 transform(SessionTransportTransformerMessageAuthentication(SessionSecret.resolve(resolveTenantBaseDir())))
             }
+            cookie<StaffSession>(STAFF_SESSION_COOKIE_NAME) {
+                cookie.httpOnly = true
+                cookie.path = "/"
+                cookie.maxAgeInSeconds = 60L * 60 * 24 * 180
+                cookie.extensions["SameSite"] = "Lax"
+                if (System.getenv("CEF_FORCE_SECURE_COOKIES") == "true") {
+                    cookie.secure = true
+                }
+                transform(SessionTransportTransformerMessageAuthentication(SessionSecret.resolve(resolveTenantBaseDir())))
+            }
         }
 
         install(RateLimit) {
-            register(RateLimitName("auth-start")) {
+            register(RateLimitName("lti-login")) {
                 rateLimiter(limit = 5, refillPeriod = 60.seconds)
                 requestKey { call -> call.request.origin.remoteHost }
             }
         }
+    }
+
+    val resolvedLtiConfig = if (testContainer == null) ltiPlatformConfig ?: LtiPlatformConfig.resolveFromEnv() else null
+    val resolvedLtiVerifier = if (testContainer == null) ltiVerifier ?: resolvedLtiConfig?.let { LtiLaunchVerifier(it) } else null
+    val resolvedDirectoryDatabase = if (testContainer == null) directoryDatabase ?: ServerContainer.directoryDatabase else null
+    val resolvedDbFactory = if (testContainer == null) dbFactory ?: ServerContainer.dbFactory else null
+    val resolvedAppBaseUrl = if (testContainer == null) appBaseUrl ?: resolveAppBaseUrl() else null
+    val resolvedGoogleWebOAuthService = if (testContainer == null) {
+        googleWebOAuthService ?: GoogleWebOAuthConfig.resolveFromEnv()?.let {
+            GoogleWebOAuthService(it, "$resolvedAppBaseUrl/api/auth/google/callback")
+        }
+    } else null
+
+    suspend fun resolveContainer(call: ApplicationCall): DependencyContainer? {
+        testContainer?.let { return it }
+        val studentId = call.resolveStudentId(resolvedDirectoryDatabase!!) ?: return null
+        return containerFactory(studentId)
     }
 
     routing {
@@ -158,21 +219,49 @@ fun Application.module(
         }
 
         if (testContainer == null) {
-            rateLimit(RateLimitName("auth-start")) {
-                post("/api/auth/start") {
-                    val existing = call.sessions.get<UserSession>()
-                    if (existing != null) {
-                        call.respond(HttpStatusCode.OK, mapOf("status" to "ok"))
-                        return@post
-                    }
-                    call.sessions.set(UserSession(generateStudentId()))
-                    call.respond(HttpStatusCode.OK, mapOf("status" to "created"))
+            rateLimit(RateLimitName("lti-login")) {
+                get("/lti/login") {
+                    LtiLoginHandler.handleLogin(call, resolvedLtiConfig!!, resolvedAppBaseUrl!!)
                 }
+                post("/lti/login") {
+                    LtiLoginHandler.handleLogin(call, resolvedLtiConfig!!, resolvedAppBaseUrl!!)
+                }
+            }
+
+            post("/lti/launch") {
+                LtiLaunchHandler.handleLaunch(call, resolvedLtiVerifier!!, resolvedDirectoryDatabase!!)
             }
 
             post("/api/auth/logout") {
                 call.sessions.clear<UserSession>()
+                call.sessions.clear<StaffSession>()
                 call.respond(HttpStatusCode.OK, mapOf("status" to "ok"))
+            }
+
+            get("/api/staff/students") {
+                call.resolveStaffStudentId() ?: return@get
+                WebStaffHandler.handleListStudents(call, resolvedDirectoryDatabase!!, resolvedDbFactory!!)
+            }
+
+            post("/api/staff/students/{id}/reset-session") {
+                call.resolveStaffStudentId() ?: return@post
+                val targetStudentId = call.parameters["id"] ?: ""
+                if (!studentIdPattern.matches(targetStudentId)) {
+                    call.respond(HttpStatusCode.BadRequest, mapOf("error" to "Invalid studentId"))
+                    return@post
+                }
+                WebStaffHandler.handleResetSession(call, resolvedDirectoryDatabase!!, targetStudentId)
+            }
+
+            get("/api/auth/google/start") {
+                val studentId = call.resolveStudentId(resolvedDirectoryDatabase!!) ?: return@get
+                GoogleWebOAuthHandler.handleStart(call, studentId, resolvedGoogleWebOAuthService)
+            }
+
+            get("/api/auth/google/callback") {
+                val studentId = call.resolveStudentId(resolvedDirectoryDatabase!!) ?: return@get
+                val container = containerFactory(studentId)
+                GoogleWebOAuthHandler.handleCallback(call, studentId, resolvedGoogleWebOAuthService, container)
             }
         }
 

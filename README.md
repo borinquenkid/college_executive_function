@@ -68,6 +68,17 @@ To enable Calendar sync and file import capabilities:
    - Select application type **Desktop app**.
    - Copy the generated Client ID and Client Secret.
 
+3b. **Second client, for the self-hosted web deployment only** (skip this if you're only building
+    the Android/iOS/Desktop apps): Google restricts a Desktop-app client's redirect URIs to
+    loopback/OOB addresses, so it can't be reused for a browser redirect flow. Create a *second*
+    OAuth client ID in the same project:
+    - Application type **Web application**.
+    - Under **Authorized redirect URIs**, add `<CEF_APP_BASE_URL>/api/auth/google/callback` (the
+      same HTTPS origin the server is deployed at — see DEPLOYMENT.md).
+    - Copy this Client ID/Secret separately — they go into `.env` as `CEF_GOOGLE_WEB_CLIENT_ID`/
+      `CEF_GOOGLE_WEB_CLIENT_SECRET`, not the Desktop app's `GOOGLE_CLIENT_ID`/`SECRET`. See
+      [docs/adr/0008-self-serve-google-oauth-web-flow.md](docs/adr/0008-self-serve-google-oauth-web-flow.md).
+
 4. **Add to `.env`**:
    Create a `.env` file at the root of the project (copying from `.env_template`) and populate it:
    ```env

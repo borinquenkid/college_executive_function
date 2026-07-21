@@ -13,4 +13,7 @@ object ServerContainer {
 
     suspend fun containerFor(studentId: String): DependencyContainer =
         factory.containerFor(studentId)
+
+    val directoryDatabase: DirectoryDatabase get() = factory.directoryDatabase
+    val dbFactory: TenantDatabaseFactory get() = factory.dbFactory
 }

@@ -223,6 +223,27 @@ The application supports two distinct run profiles to manage different execution
 commits, pushes the branch, then tags `vX.Y.Z` and pushes the tag (which triggers the
 **Release Desktop (JVM)** workflow). Run it from the branch you intend to release.
 
+### Choosing X.Y.Z (semver)
+
+One version number covers the whole monorepo (Android/iOS/Desktop apps *and* the self-hosted
+`/server` + `/web` deployment), so pick the bump based on the most severe change across
+everything shipped since the last tag, not just the apps:
+
+- **MAJOR** — anything that breaks an existing self-hosted deployment or an app user without
+  action on their part: removed/incompatible API routes, new *required* server env vars (the
+  server now fails to boot without them), an auth/data model change existing deployments must
+  reconfigure for. Example: the LTI 1.3 auth rewrite (`docs/adr/0006`) removed
+  `POST /api/auth/start` entirely and made `CEF_APP_BASE_URL`/`CEF_LTI_*` required — existing
+  deployments crash-loop until reconfigured. That's MAJOR (2.4.2 → 3.0.0), even though the
+  Android/iOS/Desktop apps themselves were untouched.
+- **MINOR** — new functionality that doesn't break existing usage: new optional env vars, new
+  endpoints/features, UI additions, a new app capability.
+- **PATCH** — bug fixes, CI/workflow fixes, dependency bumps, docs, refactors with no behavior
+  change for any existing user or deployment.
+
+When in doubt, check whether a deployment that was working on the previous version keeps working,
+unmodified, on the new one. If not, it's MAJOR regardless of how small the code diff looks.
+
 - **Caveat:** the branch push only happens when the script actually creates a version-bump
   commit. If `gradle.properties` is already at that version, it pushes *only* the tag — any
   unpushed code commits are left behind. So bump to a new version each release.

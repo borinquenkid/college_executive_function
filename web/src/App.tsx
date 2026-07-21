@@ -1,5 +1,6 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAgentStream } from './useAgentStream';
+import { useFocusTrap } from './useFocusTrap';
 import type { StudyPreferences, RemoteCalendarMetadata } from './cef-types';
 export type { StudyPreferences, RemoteCalendarMetadata } from './cef-types';
 
@@ -75,9 +76,12 @@ export default function App() {
   });
 
   // Session bootstrap — every route requires a session cookie now (see Application.kt's
-  // resolveStudentId), so this must succeed before any other /api/* call is made.
+  // resolveStudentId). A session can only be minted by a verified LTI launch (docs/adr/0006), so
+  // unlike the old model there's nothing this client can POST to create one — it can only check
+  // whether a launch already happened and, if not, tell the student to go relaunch via their LMS.
   const [sessionReady, setSessionReady] = useState(false);
   const [sessionError, setSessionError] = useState<string | null>(null);
+  const [needsLtiLaunch, setNeedsLtiLaunch] = useState(false);
 
   // Action/Loading States
   const [isSyncing, setIsSyncing] = useState(false);
@@ -88,7 +92,6 @@ export default function App() {
   const [googleLinked, setGoogleLinked] = useState(false);
   const [availableCalendars, setAvailableCalendars] = useState<RemoteCalendarMetadata[]>([]);
   const [isLoadingCalendars, setIsLoadingCalendars] = useState(false);
-  const [calendarDropdownOpen, setCalendarDropdownOpen] = useState(false);
   const [showCreateCalendarModal, setShowCreateCalendarModal] = useState(false);
   const [newCalendarName, setNewCalendarName] = useState('');
   const [isCreatingCalendar, setIsCreatingCalendar] = useState(false);
@@ -100,8 +103,17 @@ export default function App() {
   const [chatQuery, setChatQuery] = useState('');
   const [selectedEventForDecompose, setSelectedEventForDecompose] = useState<Event | null>(null);
   const [decomposedTasks, setDecomposedTasks] = useState<DecomposedTask[]>([]);
-  
-  const fileInputRef = useRef<HTMLInputElement>(null);
+
+  const closeDecomposeModal = useCallback(() => setSelectedEventForDecompose(null), []);
+  const decomposeModalRef = useFocusTrap<HTMLDivElement>(!!selectedEventForDecompose, closeDecomposeModal);
+
+  const closeCreateCalendarModal = useCallback(() => {
+    setShowCreateCalendarModal(false);
+    setNewCalendarName('');
+    setCreateCalendarError(null);
+  }, []);
+  const createCalendarModalRef = useFocusTrap<HTMLDivElement>(showCreateCalendarModal, closeCreateCalendarModal);
+
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const {
@@ -134,30 +146,28 @@ export default function App() {
     }
   }, [isStreaming, streamReasoning, streamToolCalls, streamResponseText]);
 
-  const startSession = async () => {
+  const checkSession = async () => {
     setSessionError(null);
+    setNeedsLtiLaunch(false);
     try {
-      const res = await fetch('/api/auth/start', { method: 'POST', credentials: 'same-origin' });
-      if (!res.ok) throw new Error(`Session start failed: ${res.status}`);
+      const res = await fetch('/api/settings', { credentials: 'same-origin' });
+      if (res.status === 401) {
+        setNeedsLtiLaunch(true);
+        return;
+      }
+      if (!res.ok) throw new Error(`Session check failed: ${res.status}`);
       setSessionReady(true);
     } catch (e) {
-      console.error('Failed to start session:', e);
+      console.error('Failed to check session:', e);
       setSessionError('Could not connect. Check your connection and try again.');
     }
   };
 
-  // Establish a session before anything else, then fetch initial data
+  // Check for an existing session (from an earlier LTI launch) before anything else, then fetch
+  // initial data.
   useEffect(() => {
-    startSession();
+    checkSession();
   }, []);
-
-  useEffect(() => {
-    if (!sessionReady) return;
-    fetchSources();
-    fetchEvents();
-    fetchSettings();
-    fetchGoogleAuthStatus();
-  }, [sessionReady]);
 
   useEffect(() => {
     chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
@@ -194,18 +204,6 @@ export default function App() {
     }
   };
 
-  const fetchGoogleAuthStatus = async () => {
-    try {
-      const res = await fetch('/api/auth/google/status');
-      const data = await res.json();
-      const linked = !!data.linked;
-      setGoogleLinked(linked);
-      if (linked) fetchCalendars();
-    } catch (e) {
-      console.error('Failed to fetch Google auth status:', e);
-    }
-  };
-
   const fetchCalendars = async () => {
     setIsLoadingCalendars(true);
     setCalendarLoadError(null);
@@ -218,12 +216,32 @@ export default function App() {
       }
       const data = await res.json();
       if (Array.isArray(data)) setAvailableCalendars(data);
-    } catch (e) {
+    } catch {
       setCalendarLoadError('Could not reach calendar service');
     } finally {
       setIsLoadingCalendars(false);
     }
   };
+
+  const fetchGoogleAuthStatus = async () => {
+    try {
+      const res = await fetch('/api/auth/google/status');
+      const data = await res.json();
+      const linked = !!data.linked;
+      setGoogleLinked(linked);
+      if (linked) fetchCalendars();
+    } catch (e) {
+      console.error('Failed to fetch Google auth status:', e);
+    }
+  };
+
+  useEffect(() => {
+    if (!sessionReady) return;
+    fetchSources();
+    fetchEvents();
+    fetchSettings();
+    fetchGoogleAuthStatus();
+  }, [sessionReady]);
 
   const createCalendar = async () => {
     if (!newCalendarName.trim()) return;
@@ -245,7 +263,7 @@ export default function App() {
       setShowCreateCalendarModal(false);
       setNewCalendarName('');
       await fetchCalendars();
-    } catch (e) {
+    } catch {
       setCreateCalendarError('Network error — could not create calendar');
     } finally {
       setIsCreatingCalendar(false);
@@ -392,10 +410,14 @@ export default function App() {
   if (!sessionReady) {
     return (
       <div className="app-container" style={{ alignItems: 'center', justifyContent: 'center' }}>
-        {sessionError ? (
+        {needsLtiLaunch ? (
+          <div style={{ textAlign: 'center', maxWidth: '28rem' }}>
+            <p>Access this tool from your course in your institution's learning management system (Canvas, Blackboard, etc.) — there's no direct sign-in here.</p>
+          </div>
+        ) : sessionError ? (
           <div style={{ textAlign: 'center' }}>
             <p>{sessionError}</p>
-            <button onClick={startSession}>Retry</button>
+            <button onClick={checkSession}>Retry</button>
           </div>
         ) : (
           <p>Connecting…</p>
@@ -412,23 +434,23 @@ export default function App() {
           <div className="logo-icon">C</div>
           <span className="logo-text">CEF Planner</span>
         </div>
-        <nav className="nav-links">
-          <div className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => setActiveTab('calendar')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
+        <nav className="nav-links" aria-label="Primary">
+          <button type="button" className={`nav-item ${activeTab === 'calendar' ? 'active' : ''}`} onClick={() => setActiveTab('calendar')} aria-current={activeTab === 'calendar' ? 'page' : undefined}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><rect x="3" y="4" width="18" height="18" rx="2" ry="2"></rect><line x1="16" y1="2" x2="16" y2="6"></line><line x1="8" y1="2" x2="8" y2="6"></line><line x1="3" y1="10" x2="21" y2="10"></line></svg>
             Calendar
-          </div>
-          <div className={`nav-item ${activeTab === 'sources' ? 'active' : ''}`} onClick={() => setActiveTab('sources')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
+          </button>
+          <button type="button" className={`nav-item ${activeTab === 'sources' ? 'active' : ''}`} onClick={() => setActiveTab('sources')} aria-current={activeTab === 'sources' ? 'page' : undefined}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M4 19.5A2.5 2.5 0 0 1 6.5 17H20"></path><path d="M6.5 2H20v20H6.5A2.5 2.5 0 0 1 4 19.5v-15A2.5 2.5 0 0 1 6.5 2z"></path></svg>
             Sources
-          </div>
-          <div className={`nav-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
+          </button>
+          <button type="button" className={`nav-item ${activeTab === 'chat' ? 'active' : ''}`} onClick={() => setActiveTab('chat')} aria-current={activeTab === 'chat' ? 'page' : undefined}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"></path></svg>
             Studio Panel
-          </div>
-          <div className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')}>
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
+          </button>
+          <button type="button" className={`nav-item ${activeTab === 'settings' ? 'active' : ''}`} onClick={() => setActiveTab('settings')} aria-current={activeTab === 'settings' ? 'page' : undefined}>
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true"><circle cx="12" cy="12" r="3"></circle><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path></svg>
             Settings
-          </div>
+          </button>
         </nav>
       </aside>
 
@@ -528,30 +550,31 @@ export default function App() {
             <div className="grid-2">
               <div className="card">
                 <h2>Add New Source</h2>
-                <div 
-                  className="dropzone" 
-                  onClick={() => fileInputRef.current?.click()}
+                <label
+                  htmlFor="sourceFileInput"
+                  className="dropzone"
                   style={{ marginBottom: '24px' }}
                 >
-                  <input 
-                    type="file" 
-                    ref={fileInputRef} 
-                    onChange={uploadFile} 
+                  <input
+                    type="file"
+                    id="sourceFileInput"
+                    onChange={uploadFile}
                     style={{ display: 'none' }}
                     accept=".pdf,.docx,.ics,.txt"
                   />
-                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" style={{ marginBottom: '12px', color: 'var(--color-primary)' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
+                  <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" style={{ marginBottom: '12px', color: 'var(--color-primary)' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                   <p style={{ fontWeight: 600 }}>{isUploading ? 'Uploading and parsing...' : 'Click or Drag File Here'}</p>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Supports PDF, DOCX, and ICS calendar files</p>
-                </div>
+                </label>
 
                 <form onSubmit={addSourceUrl}>
                   <div className="form-group">
-                    <label>Or Ingest URL / Calendar Feed</label>
+                    <label htmlFor="sourceUrl">Or Ingest URL / Calendar Feed</label>
                     <div style={{ display: 'flex', gap: '8px' }}>
-                      <input 
-                        type="url" 
-                        className="form-control" 
+                      <input
+                        type="url"
+                        id="sourceUrl"
+                        className="form-control"
                         placeholder="https://example.com/syllabus.pdf or webcal://feed.ics"
                         value={sourceUrl}
                         onChange={e => setSourceUrl(e.target.value)}
@@ -584,8 +607,8 @@ export default function App() {
                             </span>
                           </div>
                         </div>
-                        <button onClick={() => deleteSource(src.title)} className="btn" style={{ background: 'transparent', padding: '4px' }}>
-                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" strokeWidth="2"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
+                        <button onClick={() => deleteSource(src.title)} aria-label={`Delete ${src.title}`} className="btn" style={{ background: 'transparent', padding: '4px' }}>
+                          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="var(--color-danger)" strokeWidth="2" aria-hidden="true"><polyline points="3 6 5 6 21 6"></polyline><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"></path><line x1="10" y1="11" x2="10" y2="17"></line><line x1="14" y1="11" x2="14" y2="17"></line></svg>
                         </button>
                       </div>
                     ))
@@ -675,9 +698,10 @@ export default function App() {
                 </div>
 
                 <form onSubmit={sendChatMessage} className="chat-input-bar">
-                  <input 
-                    type="text" 
-                    className="form-control" 
+                  <input
+                    type="text"
+                    className="form-control"
+                    aria-label="Ask a question"
                     placeholder="Ask a question about grading weights, homework policies, or deadlines..."
                     value={chatQuery}
                     onChange={e => setChatQuery(e.target.value)}
@@ -708,9 +732,10 @@ export default function App() {
 
             <div className="card" style={{ maxWidth: '600px' }}>
               <div className="form-group">
-                <label>Gemini API Key</label>
+                <label htmlFor="geminiApiKey">Gemini API Key</label>
                 <input
                   type="password"
+                  id="geminiApiKey"
                   className="form-control"
                   placeholder={hasApiKey ? '•••••••• (key configured — enter a new one to replace it)' : 'AI Studio API Key'}
                   value={apiKey}
@@ -726,45 +751,45 @@ export default function App() {
               <h3>Study Hour Allocation Constraints</h3>
               <div className="grid-2" style={{ marginTop: '16px' }}>
                 <div className="form-group">
-                  <label>Study Hours start</label>
-                  <input type="number" className="form-control" value={preferences.studyStartHour} onChange={e => setPreferences({...preferences, studyStartHour: parseInt(e.target.value)})} />
+                  <label htmlFor="studyStartHour">Study Hours start</label>
+                  <input id="studyStartHour" type="number" className="form-control" value={preferences.studyStartHour} onChange={e => setPreferences({...preferences, studyStartHour: parseInt(e.target.value)})} />
                 </div>
                 <div className="form-group">
-                  <label>Study Hours end</label>
-                  <input type="number" className="form-control" value={preferences.studyEndHour} onChange={e => setPreferences({...preferences, studyEndHour: parseInt(e.target.value)})} />
-                </div>
-              </div>
-
-              <div className="grid-2">
-                <div className="form-group">
-                  <label>Lunch Start</label>
-                  <input type="number" className="form-control" value={preferences.lunchStartHour} onChange={e => setPreferences({...preferences, lunchStartHour: parseInt(e.target.value)})} />
-                </div>
-                <div className="form-group">
-                  <label>Lunch End</label>
-                  <input type="number" className="form-control" value={preferences.lunchEndHour} onChange={e => setPreferences({...preferences, lunchEndHour: parseInt(e.target.value)})} />
+                  <label htmlFor="studyEndHour">Study Hours end</label>
+                  <input id="studyEndHour" type="number" className="form-control" value={preferences.studyEndHour} onChange={e => setPreferences({...preferences, studyEndHour: parseInt(e.target.value)})} />
                 </div>
               </div>
 
               <div className="grid-2">
                 <div className="form-group">
-                  <label>Dinner Start</label>
-                  <input type="number" className="form-control" value={preferences.dinnerStartHour} onChange={e => setPreferences({...preferences, dinnerStartHour: parseInt(e.target.value)})} />
+                  <label htmlFor="lunchStartHour">Lunch Start</label>
+                  <input id="lunchStartHour" type="number" className="form-control" value={preferences.lunchStartHour} onChange={e => setPreferences({...preferences, lunchStartHour: parseInt(e.target.value)})} />
                 </div>
                 <div className="form-group">
-                  <label>Dinner End</label>
-                  <input type="number" className="form-control" value={preferences.dinnerEndHour} onChange={e => setPreferences({...preferences, dinnerEndHour: parseInt(e.target.value)})} />
+                  <label htmlFor="lunchEndHour">Lunch End</label>
+                  <input id="lunchEndHour" type="number" className="form-control" value={preferences.lunchEndHour} onChange={e => setPreferences({...preferences, lunchEndHour: parseInt(e.target.value)})} />
                 </div>
               </div>
 
               <div className="grid-2">
                 <div className="form-group">
-                  <label>Max Study Block Hours</label>
-                  <input type="number" className="form-control" value={preferences.maxStudyBlockHours} onChange={e => setPreferences({...preferences, maxStudyBlockHours: parseInt(e.target.value)})} />
+                  <label htmlFor="dinnerStartHour">Dinner Start</label>
+                  <input id="dinnerStartHour" type="number" className="form-control" value={preferences.dinnerStartHour} onChange={e => setPreferences({...preferences, dinnerStartHour: parseInt(e.target.value)})} />
                 </div>
                 <div className="form-group">
-                  <label>Preferred Break Minutes</label>
-                  <input type="number" className="form-control" value={preferences.preferredBreakMinutes} onChange={e => setPreferences({...preferences, preferredBreakMinutes: parseInt(e.target.value)})} />
+                  <label htmlFor="dinnerEndHour">Dinner End</label>
+                  <input id="dinnerEndHour" type="number" className="form-control" value={preferences.dinnerEndHour} onChange={e => setPreferences({...preferences, dinnerEndHour: parseInt(e.target.value)})} />
+                </div>
+              </div>
+
+              <div className="grid-2">
+                <div className="form-group">
+                  <label htmlFor="maxStudyBlockHours">Max Study Block Hours</label>
+                  <input id="maxStudyBlockHours" type="number" className="form-control" value={preferences.maxStudyBlockHours} onChange={e => setPreferences({...preferences, maxStudyBlockHours: parseInt(e.target.value)})} />
+                </div>
+                <div className="form-group">
+                  <label htmlFor="preferredBreakMinutes">Preferred Break Minutes</label>
+                  <input id="preferredBreakMinutes" type="number" className="form-control" value={preferences.preferredBreakMinutes} onChange={e => setPreferences({...preferences, preferredBreakMinutes: parseInt(e.target.value)})} />
                 </div>
               </div>
 
@@ -778,48 +803,51 @@ export default function App() {
                   <div>
                     <p style={{ fontWeight: 600, fontSize: '14px' }}>{googleLinked ? 'Google Account Connected' : 'Google Account Not Linked'}</p>
                     <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '2px' }}>
-                      {googleLinked ? 'Calendars are available for sync.' : 'Run the desktop app to authenticate via OAuth, then refresh this page.'}
+                      {googleLinked ? 'Calendars are available for sync.' : 'Connect your Google account to sync events to your calendar.'}
                     </p>
                   </div>
-                  {googleLinked && (
+                  {googleLinked ? (
                     <button onClick={fetchCalendars} disabled={isLoadingCalendars} className="btn btn-secondary" style={{ marginLeft: 'auto', padding: '4px 10px', fontSize: '12px' }}>
                       {isLoadingCalendars ? 'Refreshing...' : 'Refresh'}
+                    </button>
+                  ) : (
+                    <button
+                      onClick={() => { window.location.href = '/api/auth/google/start'; }}
+                      className="btn btn-primary"
+                      style={{ marginLeft: 'auto', padding: '6px 12px', fontSize: '12px' }}
+                    >
+                      Connect Google Calendar
                     </button>
                   )}
                 </div>
 
                 {googleLinked && (
                   <div>
-                    <label style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)' }}>Target Google Calendar</label>
+                    <label htmlFor="targetCalendar" style={{ fontSize: '13px', fontWeight: 600, color: 'var(--color-primary)' }}>Target Google Calendar</label>
                     {isLoadingCalendars ? (
                       <p style={{ fontSize: '12px', color: 'var(--text-secondary)', marginTop: '8px' }}>Loading available calendars…</p>
                     ) : calendarLoadError ? (
                       <p style={{ fontSize: '12px', color: 'var(--color-danger)', marginTop: '8px' }}>{calendarLoadError}</p>
                     ) : (
-                      <div style={{ position: 'relative', marginTop: '8px' }}>
-                        <div
-                          onClick={() => setCalendarDropdownOpen(v => !v)}
-                          style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', cursor: 'pointer', background: 'var(--bg-input, rgba(255,255,255,0.05))', fontSize: '14px' }}
-                        >
-                          <span>{preferences.googleCalendarId === 'default' ? 'CEF Academic (Default)' : preferences.googleCalendarName}</span>
-                          <span style={{ opacity: 0.6 }}>▾</span>
-                        </div>
-                        {calendarDropdownOpen && (
-                          <div style={{ position: 'absolute', top: 'calc(100% + 4px)', left: 0, right: 0, zIndex: 50, background: 'var(--bg-card, #1a1d2e)', border: '1px solid var(--border-color)', borderRadius: '8px', overflow: 'hidden' }}>
-                            <div
-                              onClick={() => { setPreferences(p => ({...p, googleCalendarId: 'default', googleCalendarName: 'CEF Academic'})); setCalendarDropdownOpen(false); }}
-                              style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid var(--border-color)' }}
-                            >CEF Academic (Default)</div>
-                            {availableCalendars.map(cal => (
-                              <div
-                                key={cal.id}
-                                onClick={() => { setPreferences(p => ({...p, googleCalendarId: cal.id, googleCalendarName: cal.name})); setCalendarDropdownOpen(false); }}
-                                style={{ padding: '10px 14px', cursor: 'pointer', fontSize: '14px', borderBottom: '1px solid var(--border-color)', background: preferences.googleCalendarId === cal.id ? 'rgba(99,102,241,0.15)' : 'transparent' }}
-                              >{cal.name}</div>
-                            ))}
-                          </div>
-                        )}
-                      </div>
+                      <select
+                        id="targetCalendar"
+                        value={preferences.googleCalendarId === 'default' ? 'default' : preferences.googleCalendarId}
+                        onChange={e => {
+                          const id = e.target.value;
+                          if (id === 'default') {
+                            setPreferences(p => ({ ...p, googleCalendarId: 'default', googleCalendarName: 'CEF Academic' }));
+                          } else {
+                            const cal = availableCalendars.find(c => c.id === id);
+                            setPreferences(p => ({ ...p, googleCalendarId: id, googleCalendarName: cal?.name ?? p.googleCalendarName }));
+                          }
+                        }}
+                        style={{ marginTop: '8px', width: '100%', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)', background: 'var(--bg-input, rgba(255,255,255,0.05))', fontSize: '14px', color: 'inherit' }}
+                      >
+                        <option value="default">CEF Academic (Default)</option>
+                        {availableCalendars.map(cal => (
+                          <option key={cal.id} value={cal.id}>{cal.name}</option>
+                        ))}
+                      </select>
                     )}
                     <button
                       onClick={() => { setShowCreateCalendarModal(true); setCreateCalendarError(null); }}
@@ -851,12 +879,19 @@ export default function App() {
       {/* Decomposition Modal / Dialog */}
       {selectedEventForDecompose && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000 }}>
-          <div className="card" style={{ width: '90%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto', background: '#131520' }}>
+          <div
+            ref={decomposeModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="decomposeModalTitle"
+            className="card"
+            style={{ width: '90%', maxWidth: '600px', maxHeight: '80vh', overflowY: 'auto', background: '#131520' }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2>Break Down: {selectedEventForDecompose.title}</h2>
-              <button onClick={() => setSelectedEventForDecompose(null)} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+              <h2 id="decomposeModalTitle">Break Down: {selectedEventForDecompose.title}</h2>
+              <button onClick={closeDecomposeModal} aria-label="Close" style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
             </div>
-            
+
             {isDecomposing ? (
               <div style={{ textAlign: 'center', padding: '40px 0' }}>
                 <div style={{ width: '40px', height: '40px', border: '4px solid var(--color-primary-glow)', borderTopColor: 'var(--color-primary)', borderRadius: '50%', animation: 'spin 1s linear infinite', margin: '0 auto 16px' }} />
@@ -879,7 +914,7 @@ export default function App() {
             )}
             
             <div style={{ marginTop: '24px', textAlign: 'right' }}>
-              <button onClick={() => setSelectedEventForDecompose(null)} className="btn btn-secondary">
+              <button onClick={closeDecomposeModal} className="btn btn-secondary">
                 Close
               </button>
             </div>
@@ -890,28 +925,35 @@ export default function App() {
       {/* Create New Calendar Modal */}
       {showCreateCalendarModal && (
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, background: 'rgba(0,0,0,0.65)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1001 }}>
-          <div className="card" style={{ width: '90%', maxWidth: '460px', background: '#131520' }}>
+          <div
+            ref={createCalendarModalRef}
+            role="dialog"
+            aria-modal="true"
+            aria-labelledby="createCalendarModalTitle"
+            className="card"
+            style={{ width: '90%', maxWidth: '460px', background: '#131520' }}
+          >
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
-              <h2>Create New Google Calendar</h2>
-              <button onClick={() => { setShowCreateCalendarModal(false); setNewCalendarName(''); setCreateCalendarError(null); }} style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
+              <h2 id="createCalendarModalTitle">Create New Google Calendar</h2>
+              <button onClick={closeCreateCalendarModal} aria-label="Close" style={{ background: 'transparent', border: 'none', color: 'var(--text-secondary)', cursor: 'pointer', fontSize: '18px' }}>✕</button>
             </div>
             <div className="form-group">
-              <label>Calendar Name</label>
+              <label htmlFor="newCalendarName">Calendar Name</label>
               <input
                 type="text"
+                id="newCalendarName"
                 className="form-control"
                 placeholder="e.g., Study Calendar"
                 value={newCalendarName}
                 onChange={e => setNewCalendarName(e.target.value)}
                 disabled={isCreatingCalendar}
-                autoFocus
               />
             </div>
             {createCalendarError && (
               <p style={{ fontSize: '12px', color: 'var(--color-danger)', marginBottom: '12px' }}>{createCalendarError}</p>
             )}
             <div style={{ display: 'flex', gap: '10px', justifyContent: 'flex-end', marginTop: '16px' }}>
-              <button onClick={() => { setShowCreateCalendarModal(false); setNewCalendarName(''); setCreateCalendarError(null); }} className="btn btn-secondary" disabled={isCreatingCalendar}>
+              <button onClick={closeCreateCalendarModal} className="btn btn-secondary" disabled={isCreatingCalendar}>
                 Cancel
               </button>
               <button onClick={createCalendar} className="btn btn-primary" disabled={!newCalendarName.trim() || isCreatingCalendar}>

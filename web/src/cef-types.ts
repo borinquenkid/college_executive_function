@@ -29,3 +29,9 @@ export interface WebSettings {
   studyPreferences: StudyPreferences | null;
 }
 
+export interface StudentSummary {
+  studentId: string;
+  createdAtMillis: number;
+  lastActiveMillis: number | null;
+}
+

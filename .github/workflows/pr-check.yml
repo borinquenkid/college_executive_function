@@ -80,6 +80,11 @@ jobs:
       - name: Install dependencies
         working-directory: web
         run: npm ci
+      - name: Lint
+        # First time lint runs in CI at all — includes eslint-plugin-jsx-a11y as the automated
+        # accessibility regression guardrail (see docs/adr/0009-web-accessibility-remediation.md).
+        working-directory: web
+        run: npm run lint
       - name: Type-check and build
         working-directory: web
         run: npm run build

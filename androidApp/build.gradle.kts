@@ -10,6 +10,7 @@ plugins {
     alias(libs.plugins.androidApplication)
     alias(libs.plugins.kotlin.android)
     alias(libs.plugins.composeCompiler)
+    alias(libs.plugins.playPublisher)
 }
 
 // ── KillEmulatorTask ──────────────────────────────────────────────────────────
@@ -395,6 +396,14 @@ android {
             excludes += "META-INF/INDEX.LIST"
         }
     }
+}
+
+play {
+    // No service-account JSON key file/secret: CI authenticates via Workload Identity
+    // Federation (google-github-actions/auth in .github/workflows/deploy.yml), which drops
+    // Application Default Credentials in place for the Play Developer API client to pick up.
+    useApplicationDefaultCredentials.set(true)
+    track.set("production")
 }
 
 // Mirrors composeApp's verifyReleaseTelemetrySecrets (HARD-1, composeApp/build.gradle.kts) rather

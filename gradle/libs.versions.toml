@@ -35,6 +35,7 @@ kover = "0.9.8"
 sonarqube = "7.3.1.8318"
 
 play-services-auth = "21.6.0"
+play-publisher = "4.0.0"
 
 [libraries]
 opentelemetry-sdk = { module = "io.opentelemetry:opentelemetry-sdk", version.ref = "opentelemetry" }
@@ -107,3 +108,4 @@ kotlinJvm = { id = "org.jetbrains.kotlin.jvm", version.ref = "kotlin" }
 ktor = { id = "io.ktor.plugin", version.ref = "ktor" }
 kover = { id = "org.jetbrains.kotlinx.kover", version.ref = "kover" }
 sonarqube = { id = "org.sonarqube", version.ref = "sonarqube" }
+playPublisher = { id = "com.github.triplet.play", version.ref = "play-publisher" }

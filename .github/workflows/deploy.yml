@@ -98,6 +98,17 @@ jobs:
           CEF_KEYSTORE_PASSWORD: ${{ secrets.CEF_KEYSTORE_PASSWORD }}
           CEF_KEYSTORE_ALIAS: ${{ secrets.CEF_KEYSTORE_ALIAS }}
           CEF_KEYSTORE_KEY_PASSWORD: ${{ secrets.CEF_KEYSTORE_KEY_PASSWORD }}
+          # commonMain's generateBuildSecrets task compiles into every target, Android release
+          # included, and hard-errors when GITHUB_ACTIONS=true (always true here) if these are
+          # blank — never wired into this workflow before now.
+          GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
+          GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
+          # androidApp's assembleRelease/bundleRelease depends on composeApp's
+          # verifyReleaseTelemetrySecrets (HARD-1) — without these, the build fails fast rather
+          # than shipping with tracing silently downgraded to NoopTracer (v3.0.7 hit this).
+          CEF_OTLP_ENDPOINT: ${{ secrets.CEF_OTLP_ENDPOINT }}
+          CEF_OTLP_USER: ${{ secrets.CEF_OTLP_USER }}
+          CEF_OTLP_PASSWORD: ${{ secrets.CEF_OTLP_PASSWORD }}
         run: |
           VERSION="${GITHUB_REF_NAME#v}"
           ./gradlew :androidApp:publishReleaseBundle -Pcef.versionName="$VERSION"

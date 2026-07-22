@@ -78,6 +78,15 @@ tasks.register<JavaExec>("generateTypescript") {
     args(rootProject.projectDir.resolve("web/src").absolutePath)
 }
 
+tasks.register<JavaExec>("runDemoLtiPlatform") {
+    group = "application"
+    description = "Runs a mock LTI platform on :9099 so :server:run can be exercised in a " +
+        "browser without a real LMS. See DEPLOYMENT.md's \"Local Development\" section."
+    classpath = sourceSets["main"].runtimeClasspath
+    mainClass.set("com.borinquenterrier.cef.tools.DemoLtiPlatformKt")
+    standardInput = System.`in`
+}
+
 tasks.register<JavaExec>("vacuumBackup") {
     group = "maintenance"
     description = "VACUUM INTO snapshot backup of every tenant SQLite database. " +

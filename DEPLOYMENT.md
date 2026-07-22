@@ -89,7 +89,29 @@ an LTI tool" above) — it fails fast at startup without them, same as productio
 to a tenant by a signed session cookie, minted only by a verified LTI launch (see
 [docs/adr/0006-lti-1.3-only-auth.md](docs/adr/0006-lti-1.3-only-auth.md)) — there is no
 `curl`-friendly way to create a session by hand, since that would mean accepting an unsigned launch.
-Two practical options for exercising this locally:
+Three practical options for exercising this locally:
+- **Use the built-in mock LTI platform — fastest way to get a live, browser-drivable demo.**
+  `./gradlew :server:runDemoLtiPlatform` starts a standalone mock LMS on `:9099` (source:
+  `server/src/main/kotlin/com/borinquenterrier/cef/tools/DemoLtiPlatform.kt`) that plays the
+  platform side of a real LTI 1.3 launch — it mints its own RSA keypair, serves it as a JWKS, and
+  signs+auto-POSTs a launch id_token back to `/lti/launch` exactly like a real LMS's
+  `response_mode=form_post` would. Point a separately-running `:server:run` at it (never at a real
+  deployment's `.env`):
+  ```shell
+  CEF_APP_BASE_URL=http://localhost:8080 \
+  CEF_LTI_ISSUER=https://demo-lms.local \
+  CEF_LTI_CLIENT_ID=demo-client \
+  CEF_LTI_DEPLOYMENT_IDS=demo-deployment \
+  CEF_LTI_AUTH_LOGIN_URL=http://localhost:9099/auth \
+  CEF_LTI_JWKS_URL=http://localhost:9099/jwks \
+  ./gradlew :server:run
+  ```
+  Then, with Vite also running (see below), open
+  `http://localhost:8080/lti/login?iss=https://demo-lms.local&login_hint=demo-student` (add
+  `&role=instructor` to land on the staff console instead). The session cookie it mints is a real
+  `CEF_SESSION` scoped to the bare `localhost` domain, so it's sent on any `localhost` port —
+  switch the browser tab to `http://localhost:5173` once login redirects to the server's bare `/`
+  placeholder page, and the actual app loads authenticated.
 - **Point at a real LMS sandbox.** Canvas, Blackboard, and Moodle all offer free developer/test
   instances where you can register a tool against `http://localhost:5173` (or an `ngrok`-style
   tunnel, since LTI requires HTTPS) and launch it for real.
@@ -98,6 +120,11 @@ Two practical options for exercising this locally:
   keypair and signs real launch JWTs against it, so `./gradlew :server:test` exercises the entire
   `/lti/login` → `/lti/launch` flow end-to-end without any external LMS at all — this is the fast
   loop for iterating on server-side auth logic.
+
+**`web/node_modules` gotcha:** if `npm run dev` fails with `Cannot find native binding` /
+`rolldown-binding.darwin-*.node` errors, it's a corrupted optional-dependency install (a known npm
+bug, not a repo issue) — `rm -rf web/node_modules && (cd web && npm ci)` fixes it without touching
+the tracked `package-lock.json`.
 
 ## Production Deployment (Docker)
 

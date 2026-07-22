@@ -58,11 +58,25 @@ class GeminiFileUploader(
         if (initialState == "ACTIVE") return uri
         repeat(maxPollAttempts) {
             delayFn(1000)
-            val state = try {
-                val body = client.get("$base/v1beta/$name${key()}").bodyAsText()
-                json.parseToJsonElement(body).jsonObject["state"]?.jsonPrimitive?.content
+            // A transient network error or a non-2xx poll response (e.g. a 5xx blip) shouldn't
+            // permanently fail an upload that has maxPollAttempts left to give — treat it the
+            // same as "still PROCESSING" and let the bounded retry loop keep going, instead of
+            // aborting on the first hiccup.
+            val response = try {
+                client.get("$base/v1beta/$name${key()}")
             } catch (e: Exception) {
-                logger?.e(tag, "Files API poll failed: ${e.message}"); return null
+                logger?.e(tag, "Files API poll failed: ${e.message} — retrying")
+                return@repeat
+            }
+            if (!response.status.isSuccess()) {
+                logger?.e(tag, "Files API poll returned ${response.status} for $name — retrying")
+                return@repeat
+            }
+            val state = try {
+                json.parseToJsonElement(response.bodyAsText()).jsonObject["state"]?.jsonPrimitive?.content
+            } catch (e: Exception) {
+                logger?.e(tag, "Files API poll response unparsable: ${e.message} — retrying")
+                return@repeat
             }
             when (state) {
                 "ACTIVE" -> return uri

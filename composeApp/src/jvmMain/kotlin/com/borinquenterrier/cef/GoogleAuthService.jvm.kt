@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import com.google.api.client.auth.oauth2.Credential
+import com.google.api.client.auth.oauth2.TokenResponseException
 import com.google.api.client.extensions.java6.auth.oauth2.AuthorizationCodeInstalledApp
 import com.google.api.client.extensions.jetty.auth.oauth2.LocalServerReceiver
 import com.google.api.client.googleapis.auth.oauth2.GoogleAuthorizationCodeFlow
@@ -121,9 +122,17 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                 } else {
                     null
                 }
-            } catch (e: Exception) {
-                println("[$tag] Automatic token refresh failed: ${e.message}")
-                null
+            } catch (e: TokenResponseException) {
+                // credential.refreshToken() rethrows this on any server-side error response —
+                // only "invalid_grant" (the refresh token itself is dead) should mean
+                // "disconnect the account"; anything else (rate limit, 5xx) is transient and
+                // must propagate so the caller doesn't treat a server hiccup as a revoked grant.
+                if (e.details?.error == "invalid_grant") {
+                    println("[$tag] Refresh token invalid/revoked: ${e.details?.error}")
+                    null
+                } else {
+                    throw e
+                }
             }
         }
 

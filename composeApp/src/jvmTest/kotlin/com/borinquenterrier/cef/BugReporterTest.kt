@@ -12,6 +12,7 @@ import io.ktor.serialization.kotlinx.json.json
 import io.mockk.coEvery
 import io.mockk.every
 import io.mockk.mockk
+import io.mockk.verify
 import kotlinx.coroutines.delay
 import kotlin.time.Duration.Companion.seconds
 
@@ -75,5 +76,34 @@ class BugReporterTest : FunSpec({
         }
         val request = mockEngine.requestHistory.first()
         request.url.toString() shouldBe "https://api.web3forms.com/submit"
+    }
+
+    test("logs an error instead of claiming success when the submission returns a non-2xx status") {
+        val mockEngine = MockEngine { request ->
+            respond("rate limited", HttpStatusCode.TooManyRequests)
+        }
+        val httpClient = HttpClient(mockEngine) {
+            install(ContentNegotiation) { json() }
+        }
+
+        val mockPreferencesRepository = mockk<PreferencesRepository>()
+        coEvery { mockPreferencesRepository.getPreferences() } returns StudyPreferences(
+            shareAnonymousBugReports = true
+        )
+
+        val telemetryManager = mockk<TelemetryManager>(relaxed = true)
+        val logger = mockk<Logger>(relaxed = true)
+
+        val bugReporter =
+            BugReporter(httpClient, mockPreferencesRepository, telemetryManager, logger)
+        bugReporter.reportError(Exception("Test Exception"), "Test Context")
+
+        eventually(10.seconds) {
+            mockEngine.requestHistory.size shouldBe 1
+        }
+        // Give the post-response logging branch a chance to run after the request completes.
+        eventually(10.seconds) {
+            verify(exactly = 1) { logger.e("BugReporter", any<String>()) }
+        }
     }
 })

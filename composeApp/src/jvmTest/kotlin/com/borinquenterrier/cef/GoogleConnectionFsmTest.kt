@@ -215,6 +215,28 @@ class GoogleConnectionFsmTest : FunSpec({
         err1.hashCode() shouldBe err2.hashCode()
     }
 
+    test("Startup Connection: should keep Linked if the refresh attempt itself throws transiently") {
+        val settings = MapSettings()
+        val tokenRepo = GoogleTokenRepository(settings)
+        tokenRepo.saveTokens("expired-token", "refresh-token")
+
+        val authService = mockk<GoogleAuthService>(relaxed = true)
+        val calendarSyncService = mockk<GoogleCalendarSyncService>(relaxed = true)
+        coEvery { calendarSyncService.listCalendars() } throws GoogleApiException(401, "Unauthorized")
+        // Unlike `returns null` (genuinely invalid/revoked grant), a thrown exception here means
+        // the refresh call itself failed transiently (timeout, no connection) — must not be
+        // treated the same as a dead refresh token.
+        coEvery { authService.refreshAccessToken("refresh-token") } throws Exception("Connection timed out")
+
+        val fsm = GoogleAccountFlow(authService, tokenRepo, calendarSyncService)
+
+        fsm.checkConnectionOnStartup()
+
+        fsm.state.value shouldBe GoogleConnectionState.Linked
+        tokenRepo.getAccessToken() shouldBe "expired-token"
+        tokenRepo.hasTokens() shouldBe true
+    }
+
     test("Startup Connection: should keep Linked if access token is invalid, refresh fails, but offline") {
         val settings = MapSettings()
         val tokenRepo = GoogleTokenRepository(settings)

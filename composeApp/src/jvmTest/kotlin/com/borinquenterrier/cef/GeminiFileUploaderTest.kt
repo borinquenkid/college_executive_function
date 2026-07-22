@@ -50,6 +50,27 @@ class GeminiFileUploaderTest : FunSpec({
         runBlocking { uploader(engine).uploadAndAwait(ByteArray(10), "application/pdf") } shouldBe null
     }
 
+    test("retries past a transient non-2xx poll response instead of aborting immediately") {
+        var pollCount = 0
+        val engine = MockEngine { req ->
+            when {
+                req.method == HttpMethod.Post -> respond(fileJson("PROCESSING"), HttpStatusCode.OK, jsonHeader)
+                else -> {
+                    pollCount++
+                    if (pollCount == 1) {
+                        // A transient 5xx blip on the first poll must not permanently fail the
+                        // upload — plenty of poll attempts remain.
+                        respond("server error", HttpStatusCode.InternalServerError, jsonHeader)
+                    } else {
+                        respond("""{"state":"ACTIVE"}""", HttpStatusCode.OK, jsonHeader)
+                    }
+                }
+            }
+        }
+        runBlocking { uploader(engine).uploadAndAwait(ByteArray(10), "application/pdf") } shouldBe uri
+        pollCount shouldBe 2
+    }
+
     test("returns null when the upload request errors") {
         val engine = MockEngine { respond("nope", HttpStatusCode.InternalServerError, jsonHeader) }
         runBlocking { uploader(engine).uploadAndAwait(ByteArray(10), "application/pdf") } shouldBe null

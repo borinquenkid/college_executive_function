@@ -319,6 +319,24 @@ class GeminiRequestExecutorTest : FunSpec({
         ex.message shouldContain "Empty response"
     }
 
+    test("200 with genuinely malformed JSON fails fast instead of burning all retry attempts") {
+        var callCount = 0
+        val engine = MockEngine { request ->
+            if (request.url.encodedPath.contains("/models") && !request.url.encodedPath.contains(":generateContent")) {
+                respond(singleModel, HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            } else {
+                callCount++
+                // "candidates" as a string instead of an array — a genuine type mismatch, not a
+                // network/timeout issue, so kotlinx.serialization throws regardless of
+                // ignoreUnknownKeys/default values, and retrying the identical request can't help.
+                respond("""{"candidates": "not-an-array"}""", HttpStatusCode.OK, headersOf(HttpHeaders.ContentType, "application/json"))
+            }
+        }
+        val ex = shouldThrow<Exception> { makeService(engine).generateCalendarEventsFromPrompt("x") }
+        ex.message shouldContain "candidates"
+        callCount shouldBe 1 // fails on the first attempt, not retried 3 times like a transient error
+    }
+
     // ── Non-null logger paths ─────────────────────────────────────────────────
 
     test("401 Unauthorized logs error message when logger is non-null") {

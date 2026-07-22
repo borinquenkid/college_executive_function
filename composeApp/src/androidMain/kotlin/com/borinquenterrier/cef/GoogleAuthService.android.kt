@@ -1,6 +1,7 @@
 package com.borinquenterrier.cef
 
 import android.content.Intent
+import com.google.android.gms.auth.GoogleAuthException
 import com.google.android.gms.auth.GoogleAuthUtil
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -44,12 +45,13 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                     GoogleSignIn.getLastSignedInAccount(context)?.account ?: return@withContext null
                 val scopes = "oauth2:https://www.googleapis.com/auth/calendar"
                 GoogleAuthUtil.getToken(context, account, scopes)
-            } catch (e: Exception) {
+            } catch (e: GoogleAuthException) {
                 // Includes UserRecoverableAuthException (e.g. revoked/expired consent) — there's
                 // no Activity here to launch its recovery intent, so this still just fails to
                 // null, forcing a full interactive re-login rather than in-place recovery. That's
-                // a UX gap, not a crash: catching Exception (not Throwable, as before) at least
-                // stops real Errors (OutOfMemoryError, etc.) from being silently swallowed too.
+                // a UX gap, not a crash. GoogleAuthException specifically means the auth grant
+                // itself is the problem (vs IOException below, a plain network failure) — only
+                // this case should mean "disconnect the account" to the caller.
                 null
             }
         }

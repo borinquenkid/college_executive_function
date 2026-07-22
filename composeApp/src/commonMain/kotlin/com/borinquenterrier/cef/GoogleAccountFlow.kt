@@ -113,7 +113,15 @@ class GoogleAccountFlow(
         val newAccessToken = try {
             authService.refreshAccessToken(refreshToken)
         } catch (e: Exception) {
-            null
+            // A thrown exception here means the refresh attempt itself failed for a transient
+            // reason (timeout, no connection, 5xx) — the refresh token may still be perfectly
+            // valid. Only an explicit null return (see GoogleAuthService's platform actuals,
+            // which now only swallow a genuinely-invalid/revoked grant to null) means the grant
+            // is actually dead. Disconnecting the account over a dropped connection would be
+            // the same class of bug as the offline case validateConnection() already guards
+            // against above — don't repeat it one level down.
+            println("[GoogleAccountFlow] Startup validation: refresh attempt failed transiently (${e.message}). Retaining Linked state.")
+            return
         }
 
         if (newAccessToken != null) {

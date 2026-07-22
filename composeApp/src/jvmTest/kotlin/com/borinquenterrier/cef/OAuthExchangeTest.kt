@@ -104,6 +104,35 @@ class OAuthExchangeBranchTest : FunSpec({
         ex.message shouldContain "Failed to exchange"
     }
 
+    test("refreshAccessToken throws InvalidGrantException on a 400 invalid_grant response") {
+        val engine = MockEngine { _ ->
+            respond("""{"error":"invalid_grant","error_description":"Token has been expired or revoked."}""", HttpStatusCode.BadRequest, jsonHeader)
+        }
+        val ex = shouldThrow<InvalidGrantException> {
+            OAuthExchange(makeClient(engine)).refreshAccessToken(
+                refreshToken = "revoked-token",
+                clientId = "client-id",
+                clientSecret = null
+            )
+        }
+        ex.message shouldContain "Failed to exchange"
+        ex.message shouldContain "invalid_grant"
+    }
+
+    test("refreshAccessToken throws a plain Exception (not InvalidGrantException) on a 5xx response") {
+        val engine = MockEngine { _ ->
+            respond("""{"error":"internal_error"}""", HttpStatusCode.InternalServerError, jsonHeader)
+        }
+        val ex = shouldThrow<Exception> {
+            OAuthExchange(makeClient(engine)).refreshAccessToken(
+                refreshToken = "ref-token",
+                clientId = "client-id",
+                clientSecret = null
+            )
+        }
+        (ex is InvalidGrantException) shouldBe false
+    }
+
     // ── TokenResponse: null refresh_token field ───────────────────────────────
 
     test("TokenResponse with absent refresh_token deserializes to null") {

@@ -130,6 +130,23 @@ class GoogleTokenServiceTest : FunSpec({
             callbackMessages[0] shouldContain "session expired"
         }
 
+        test("rethrows original 401 without invoking onAuthExpired when refresh attempt throws transiently") {
+            val callbackMessages = mutableListOf<String>()
+            val svc = serviceWithCallback(callbackMessages)
+            coEvery { tokenRepository.getAccessToken() } returns "expired-tok"
+            coEvery { tokenRepository.getRefreshToken() } returns "refresh-tok"
+            // A thrown exception (network/timeout) is not the same as refreshAccessToken
+            // returning null (genuinely invalid grant) — must not show the misleading
+            // "session expired" message for what might just be a dropped connection.
+            coEvery { authService.refreshAccessToken("refresh-tok") } throws Exception("Connection timed out")
+
+            val ex = shouldThrow<GoogleApiException> {
+                svc.withToken<Unit> { throw GoogleApiException(401, "Unauthorized") }
+            }
+            ex.statusCode shouldBe 401
+            callbackMessages.shouldBe(emptyList())
+        }
+
         test("does not invoke onAuthExpired when no callback provided") {
             // Regression guard: default constructor must not NPE
             coEvery { tokenRepository.getAccessToken() } returns "expired-tok"

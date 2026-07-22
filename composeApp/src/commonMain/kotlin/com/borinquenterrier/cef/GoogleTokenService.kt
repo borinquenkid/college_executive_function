@@ -19,7 +19,17 @@ class GoogleTokenService(
                     onAuthExpired?.invoke(sessionExpiredMessage)
                     throw e
                 }
-                val newToken = authService.refreshAccessToken(refreshToken)
+                val newToken = try {
+                    authService.refreshAccessToken(refreshToken)
+                } catch (refreshError: Exception) {
+                    // A thrown exception means the refresh attempt itself failed transiently
+                    // (timeout/no connection/5xx) — the refresh token may still be fine. Surface
+                    // the original 401 (so this sync attempt still fails, correctly) without the
+                    // misleading "session expired, please reconnect" message, which should only
+                    // fire when the grant is genuinely dead (see GoogleAccountFlow for the same
+                    // distinction on the startup-check path).
+                    throw e
+                }
                 if (newToken == null) {
                     onAuthExpired?.invoke(sessionExpiredMessage)
                     throw e

@@ -5,6 +5,7 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
+import io.ktor.http.isSuccess
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
@@ -52,7 +53,7 @@ class BugReporter(
 
                 logger.d(tag, "Sending anonymous bug report for: $errorName")
 
-                httpClient.post("https://api.web3forms.com/submit") {
+                val response = httpClient.post("https://api.web3forms.com/submit") {
                     contentType(ContentType.Application.Json)
                     setBody(buildJsonObject {
                         put("access_key", BuildSecrets.WEB3FORMS_ACCESS_KEY)
@@ -62,14 +63,18 @@ class BugReporter(
                             Error: $errorMessage
                             Platform: $platform
                             Telemetry: JSON Errors: ${stats.jsonErrors}, Rate Limit Errors: ${stats.rateLimitErrors}, Critic Passes: ${stats.criticModifiedPasses}/${stats.criticTotalPasses}
-                            
+
                             Stack Trace:
                             $stackTrace
                         """.trimIndent()
                         )
                     })
                 }
-                logger.d(tag, "Bug report sent successfully.")
+                if (response.status.isSuccess()) {
+                    logger.d(tag, "Bug report sent successfully.")
+                } else {
+                    logger.e(tag, "Bug report submission returned ${response.status}")
+                }
             } catch (e: Exception) {
                 logger.e(tag, "Failed to send bug report", e)
             }

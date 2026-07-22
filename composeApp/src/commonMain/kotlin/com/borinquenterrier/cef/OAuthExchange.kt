@@ -4,6 +4,7 @@ import io.ktor.client.HttpClient
 import io.ktor.client.call.body
 import io.ktor.client.request.forms.submitForm
 import io.ktor.client.statement.bodyAsText
+import io.ktor.http.HttpStatusCode
 import io.ktor.http.Parameters
 import io.ktor.http.isSuccess
 import io.ktor.http.parameters
@@ -16,6 +17,11 @@ data class TokenResponse(
     val refresh_token: String? = null,
     val expires_in: Int
 )
+
+/** Google's token endpoint returns this specifically when the refresh token itself is dead
+ *  (revoked/expired) — distinct from a timeout or 5xx, which just means "try again later" and
+ *  should never be treated as "disconnect the account" by callers (see GoogleAccountFlow). */
+class InvalidGrantException(message: String) : Exception(message)
 
 class OAuthExchange(private val httpClient: HttpClient) {
     private val json = Json { ignoreUnknownKeys = true }
@@ -67,7 +73,12 @@ class OAuthExchange(private val httpClient: HttpClient) {
         )
 
         if (!response.status.isSuccess()) {
-            throw Exception("Failed to exchange code/refresh token: ${response.bodyAsText()}")
+            val body = response.bodyAsText()
+            val message = "Failed to exchange code/refresh token: $body"
+            if (response.status == HttpStatusCode.BadRequest && body.contains("invalid_grant")) {
+                throw InvalidGrantException(message)
+            }
+            throw Exception(message)
         }
 
         return response.body<TokenResponse>()

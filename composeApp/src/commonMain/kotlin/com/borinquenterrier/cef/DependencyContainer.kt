@@ -5,6 +5,7 @@ import com.borinquenterrier.cef.db.DriverFactory
 import com.borinquenterrier.cef.db.createDatabase
 import com.russhwolf.settings.Settings
 import io.ktor.client.HttpClient
+import io.ktor.client.plugins.HttpTimeout
 import io.ktor.client.plugins.contentnegotiation.ContentNegotiation
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.coroutines.CoroutineScope
@@ -44,6 +45,14 @@ class DependencyContainer(
                     ignoreUnknownKeys = true
                     coerceInputValues = true
                 })
+            }
+            // Without this, a hung connection (captive portal, stalled TLS handshake) never
+            // throws — the coroutine just suspends forever, so "Connecting…"/sync-in-progress
+            // UI states can hang indefinitely with no error ever surfacing to catch.
+            install(HttpTimeout) {
+                requestTimeoutMillis = 30_000
+                connectTimeoutMillis = 15_000
+                socketTimeoutMillis = 30_000
             }
         }
     }

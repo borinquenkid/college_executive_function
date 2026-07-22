@@ -1,11 +1,41 @@
 package com.borinquenterrier.cef
 
+import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotContain
+import io.ktor.client.HttpClient
+import io.ktor.client.engine.mock.MockEngine
+import io.ktor.client.engine.mock.respond
+import io.ktor.http.HttpStatusCode
+import io.ktor.http.headersOf
+import kotlinx.coroutines.runBlocking
 
 class WebSourceReaderTest : FunSpec({
+
+    fun readerWith(engine: MockEngine) = WebSourceReader(HttpClient(engine))
+
+    test("readBytesFromUrl throws on a non-2xx response instead of returning the error page as content") {
+        val engine = MockEngine { respond("<html>404 Not Found</html>", HttpStatusCode.NotFound, headersOf("Content-Type", "text/html")) }
+        shouldThrow<Exception> {
+            runBlocking { readerWith(engine).readBytesFromUrl("https://example.com/missing.pdf") }
+        }
+    }
+
+    test("readBytesFromUrl returns the body bytes on a 2xx response") {
+        val engine = MockEngine { respond(byteArrayOf(1, 2, 3, 4), HttpStatusCode.OK, headersOf("Content-Type", "application/octet-stream")) }
+        val bytes = runBlocking { readerWith(engine).readBytesFromUrl("https://example.com/file.pdf") }
+        bytes shouldBe byteArrayOf(1, 2, 3, 4)
+    }
+
+    test("readTextFromUrl returns an error message (not the error page body) on a non-2xx response") {
+        val errorPageMarker = "<html>the actual 500 page body, should never leak into the result</html>"
+        val engine = MockEngine { respond(errorPageMarker, HttpStatusCode.InternalServerError, headersOf("Content-Type", "text/html")) }
+        val result = runBlocking { readerWith(engine).readTextFromUrl("https://example.com/page") }
+        result shouldContain "Error loading content from URL"
+        result shouldNotContain errorPageMarker
+    }
 
     test("cleanHtml should remove tags and scripts but keep text") {
         val reader = WebSourceReader()

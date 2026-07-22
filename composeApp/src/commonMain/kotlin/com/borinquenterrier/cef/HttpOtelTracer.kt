@@ -88,12 +88,21 @@ class HttpOtelTracer(
         // into an ANR/watchdog kill in its own right.
         try {
             runBlocking {
-                withTimeoutOrNull(FATAL_EXPORT_TIMEOUT_MS) {
+                val response = withTimeoutOrNull(FATAL_EXPORT_TIMEOUT_MS) {
                     client.post(endpoint) {
                         header(HttpHeaders.Authorization, authHeader)
                         contentType(ContentType.Application.Json)
                         setBody(json)
                     }
+                }
+                // Crash reports are this class's highest-value telemetry — a non-2xx (e.g.
+                // expired collector auth) is otherwise indistinguishable from a real send, and a
+                // crash report is the one export that's never retried. Best-effort logging only:
+                // this must never throw or block longer than the timeout above already allows.
+                if (response == null) {
+                    println("[HttpOtelTracer] recordFatal export timed out after ${FATAL_EXPORT_TIMEOUT_MS}ms")
+                } else if (!response.status.isSuccess()) {
+                    println("[HttpOtelTracer] recordFatal export failed: HTTP ${response.status}")
                 }
             }
         } catch (_: Exception) {
@@ -133,10 +142,20 @@ class HttpOtelTracer(
     ) {
         try {
             val json = buildJson(traceId, spanId, parentSpanId, name, startNs, endNs, scope, statusCode, error)
-            client.post(endpoint) {
-                header(HttpHeaders.Authorization, authHeader)
-                contentType(ContentType.Application.Json)
-                setBody(json)
+            // Bounded so a hung collector connection can't leave export coroutines piling up
+            // indefinitely in exportScope — same reasoning as recordFatal's timeout, just longer
+            // since this isn't on the crash path.
+            val response = withTimeoutOrNull(EXPORT_TIMEOUT_MS) {
+                client.post(endpoint) {
+                    header(HttpHeaders.Authorization, authHeader)
+                    contentType(ContentType.Application.Json)
+                    setBody(json)
+                }
+            }
+            if (response == null) {
+                println("[HttpOtelTracer] export timed out after ${EXPORT_TIMEOUT_MS}ms for span $name")
+            } else if (!response.status.isSuccess()) {
+                println("[HttpOtelTracer] export failed for span $name: HTTP ${response.status}")
             }
         } catch (_: Exception) {
             // Never let export failures surface to the app.
@@ -194,6 +213,7 @@ class HttpOtelTracer(
 
     companion object {
         private const val FATAL_EXPORT_TIMEOUT_MS = 1_500L
+        private const val EXPORT_TIMEOUT_MS = 10_000L
 
         fun create(serviceName: String): HttpOtelTracer? {
             val endpoint = BuildSecrets.OTLP_ENDPOINT ?: return null

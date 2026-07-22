@@ -3,6 +3,7 @@ package com.borinquenterrier.cef
 import io.ktor.client.HttpClient
 import io.ktor.client.statement.bodyAsText
 import io.ktor.http.isSuccess
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonObject
 
@@ -210,6 +211,17 @@ class GeminiRequestExecutor(
 
             } catch (e: Exception) {
                 if (e is kotlinx.coroutines.CancellationException) throw e
+                // bodyAsText() above already fully buffers the response before decodeFromString
+                // runs, so a SerializationException here is never a truncated-stream artifact —
+                // it means the response genuinely doesn't match GeminiResponse's shape (API
+                // schema drift). Retrying the identical request can't fix that; failing fast
+                // avoids burning the full exponential-backoff budget (~31s across maxAttempts)
+                // on a request that will never succeed, and reports the real cause distinctly
+                // instead of a generic "Attempt N failed".
+                if (e is SerializationException) {
+                    logger?.e(tag, "Response did not match expected schema: ${e.message}")
+                    throw e
+                }
                 val msg = e.message.orEmpty()
                 if (msg.contains("Unauthorized") || msg.contains("Forbidden") || msg.contains("QuotaExhausted")) throw e
 

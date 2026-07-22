@@ -125,6 +125,55 @@ class WebIngestionIntegrationTest {
     }
 
     @Test
+    fun testDeleteSourceRemovesEventsBySourceId() = testApplication {
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockSourceRepo = mockk<SqlDelightSourceRepository>(relaxed = true)
+        val mockLocalRepo = mockk<SqlDelightLocalCalendarRepository>(relaxed = true)
+        val mockCalendarAgent = mockk<CalendarAgent>(relaxed = true)
+        every { mockContainer.sourceRepository } returns mockSourceRepo
+        every { mockContainer.localRepository } returns mockLocalRepo
+        every { mockContainer.calendarAgent } returns mockCalendarAgent
+
+        val mockSourceEntity = mockk<SourceEntity>(relaxed = true) {
+            every { id } returns "calculus-id"
+            every { title } returns "Calculus Syllabus"
+            every { category } returns "SYLLABUS"
+        }
+        coEvery { mockSourceRepo.getAllSources() } returns listOf(mockSourceEntity)
+
+        // A modern event: its id is a content hash unrelated to the source title, but its
+        // sourceId correctly links it back — this is the case the legacy id-prefix/warning
+        // heuristic alone cannot catch (see EventGenerationService.generateDeterministicId).
+        val linkedEvent = DayEvent(
+            id = "a1b2c3d4e5f6",
+            title = "Midterm Exam",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2026, 6, 15),
+            sourceId = "Calculus Syllabus"
+        )
+        val unrelatedEvent = DayEvent(
+            id = "f6e5d4c3b2a1",
+            title = "Unrelated Event",
+            source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE,
+            date = LocalDate(2026, 6, 20),
+            sourceId = "Other Source"
+        )
+        coEvery { mockLocalRepo.getAllEvents("default") } returns listOf(linkedEvent, unrelatedEvent)
+
+        application {
+            module(mockContainer)
+        }
+
+        val response = client.delete("/api/sources/Calculus%20Syllabus")
+        assertEquals(HttpStatusCode.OK, response.status)
+
+        coVerify(exactly = 1) { mockLocalRepo.hardDeleteEvent("a1b2c3d4e5f6", "default") }
+        coVerify(exactly = 0) { mockLocalRepo.hardDeleteEvent("f6e5d4c3b2a1", "default") }
+    }
+
+    @Test
     fun testDeleteSourceNotFound() = testApplication {
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockSourceRepo = mockk<SqlDelightSourceRepository>(relaxed = true)

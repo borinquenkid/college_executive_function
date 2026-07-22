@@ -28,7 +28,12 @@ object WebSourceDeletion {
     }
 
     private fun shouldDeleteEvent(event: Event, eventId: String, sourceTitle: String): Boolean {
-        return eventId.startsWith(sourceTitle) || event.warning?.contains(sourceTitle) == true
+        // Prefer the reliable sourceId link; fall back to the legacy id-prefix/warning
+        // heuristic for events generated before tagging existed (see SourceDeleter, the
+        // desktop/mobile equivalent of this deletion path).
+        val bySourceId = event.sourceId == sourceTitle
+        val byLegacyHeuristic = eventId.startsWith(sourceTitle) || event.warning?.contains(sourceTitle) == true
+        return bySourceId || byLegacyHeuristic
     }
 }
 

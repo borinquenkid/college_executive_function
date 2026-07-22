@@ -73,9 +73,19 @@ jobs:
           fi
           EDIT_ID=$(python3 -c 'import json; print(json.load(open("/tmp/open-edit-response.json"))["id"])')
           echo "Opened edit $EDIT_ID — service account has Play Console access to com.borinquenterrier.cef."
-          curl -sf -X POST \
+
+          # Best-effort cleanup only: the access check above already proved what this step
+          # exists to prove. A stray draft edit auto-expires on Google's side regardless, so a
+          # failure here (v3.0.5 hit one — exit 22 under `curl -sf` with the body discarded,
+          # which silently failed the whole job under this step's implicit `bash -e`) must not
+          # fail the job.
+          DELETE_HTTP_CODE=$(curl -sS -o /tmp/delete-edit-response.json -w '%{http_code}' -X POST \
             -H "Authorization: Bearer $ACCESS_TOKEN" \
-            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.borinquenterrier.cef/edits/$EDIT_ID:delete"
+            "https://androidpublisher.googleapis.com/androidpublisher/v3/applications/com.borinquenterrier.cef/edits/$EDIT_ID:delete" || true)
+          if [ "$DELETE_HTTP_CODE" -ge 400 ] 2>/dev/null; then
+            echo "::warning::Failed to delete verification edit $EDIT_ID (HTTP $DELETE_HTTP_CODE, non-fatal):"
+            cat /tmp/delete-edit-response.json
+          fi
 
       - name: Decode release keystore
         env:

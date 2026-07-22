@@ -321,6 +321,29 @@ Store-listing assets and questionnaire drafts live in `branding/play-store/`.
 - **Flaky async tests:** verify StateFlow-collector invocation counts with `runTest` +
   `StandardTestDispatcher(testScheduler)` + `advanceUntilIdle()`, not `Dispatchers.Unconfined`
   + wall-clock `eventually()` (that raced under CI load — see `AppControllerTest`).
+- **Deploy Android (Play Store) took 5 releases (v3.0.4→v3.0.8, 2026-07-22) to actually go green,
+  one root cause per attempt** — `deploy.yml` only triggers on a real `v*.*.*` tag push, so each
+  fix required a full release cycle to even observe the next failure:
+  1. `curl -sf -X POST ... | python3` with no `set -o pipefail` masked every real HTTP failure as
+     a generic downstream `JSONDecodeError` on empty input.
+  2. `gcloud auth application-default print-access-token` mints its **own** token from the ADC
+     file using gcloud's default `cloud-platform` scope — it silently ignores the
+     `google-github-actions/auth@v2` step's `access_token_scopes` input, which only ever applies
+     to that step's own `outputs.access_token`. Read `steps.auth.outputs.access_token` directly
+     instead of shelling out to `gcloud`.
+  3. The best-effort cleanup call (deleting the verification draft edit) ran under this step's
+     implicit `bash -e`, so its failure took the whole job down even after the real access check
+     had already passed. Made non-fatal (`::warning::`, not `exit 1`).
+  4. `gradle/verification-metadata.xml` only had `aapt2-<ver>-osx.jar` (dev machines here are
+     macOS); `ubuntu-latest` needs `-linux`. **`release.sh`'s local 4-target gate cannot catch
+     this class of gap** — it only ever resolves the developer's own OS's classifier of a native
+     dependency. Check for both `-osx` and `-linux` entries whenever bumping a native Android
+     build tool (aapt2, d8, r8, etc.).
+  5. `deploy.yml`'s publish step never forwarded `CEF_OTLP_ENDPOINT`/`CEF_OTLP_USER`/
+     `CEF_OTLP_PASSWORD` (required by composeApp's `verifyReleaseTelemetrySecrets`, HARD-1) or
+     `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` (required by `generateBuildSecrets`, which compiles
+     into every target and hard-errors under `GITHUB_ACTIONS=true`) — unlike
+     `release-desktop.yml`'s build step, which already had all five.
 
 ### Cross-repo ops knowledge
 

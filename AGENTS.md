@@ -242,8 +242,16 @@ The application supports two distinct run profiles to manage different execution
 
 `./release.sh X.Y.Z` bumps `cef.versionName` in `gradle.properties`, auto-increments
 `cef.versionCode`, syncs iOS `MARKETING_VERSION` in `iosApp/Configuration/Config.xcconfig`,
-commits, pushes the branch, then tags `vX.Y.Z` and pushes the tag (which triggers the
-**Release Desktop (JVM)** workflow). Run it from the branch you intend to release.
+commits, pushes the branch, then tags `vX.Y.Z` and pushes the tag. Run it from the branch you
+intend to release.
+
+**Pushing the `vX.Y.Z` tag is a live trigger, not a no-op.** `release-desktop.yml` (**Release
+Desktop (JVM)**, whose `verify` job also runs `:server:test`) and `deploy.yml` (**Deploy Android
+(Play Store)**) both fire on any `v*.*.*` tag push, and Xcode Cloud watches the same tag for its
+iOS archive/build — the same 4 targets (composeApp/Desktop, server, androidApp, iosApp) covered
+by `release.sh`'s pre-tag verification gate. So running `release.sh` — or the tag-push step
+inside it — kicks off real CI/CD on all 4 platforms immediately; there's no separate
+confirmation step before those builds start.
 
 ### Choosing X.Y.Z (semver)
 

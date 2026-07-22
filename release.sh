@@ -47,6 +47,23 @@ if git rev-parse "$TAG" >/dev/null 2>&1; then
     exit 1
 fi
 
+# A warm local Gradle cache already has every dependency resolved+verified, so it can pass
+# clean while CI's fresh checkout (Xcode Cloud, Release Desktop, Deploy Android) fails
+# dependency verification on an artifact this machine happened to have cached already — hit
+# twice now (v3.0.0: commit 86dd62c, v3.0.3: commit ca196f4), both times only discovered
+# after the tag was already pushed. --refresh-dependencies forces real verification against
+# every one of the 4 build targets before the tag goes out, not just the 3
+# assembleDebug/iosApp/server set the Build Verification Protocol checked before — that set
+# never touched :androidApp at all, which is exactly what both prior failures needed.
+echo "--------------------------------------------------"
+echo "Verifying dependencies across all 4 build targets (fresh-checkout simulation)..."
+echo "--------------------------------------------------"
+if ! ./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble :androidApp:assembleDebug --refresh-dependencies; then
+    echo -e "${RED}✗ Dependency verification or build failed — fix before releasing (see gradle/verification-metadata.xml).${NC}"
+    exit 1
+fi
+echo -e "${GREEN}✓ All 4 build targets verified${NC}"
+
 echo "--------------------------------------------------"
 echo "Releasing $TAG"
 echo "--------------------------------------------------"

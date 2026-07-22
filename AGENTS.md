@@ -46,11 +46,18 @@ If any item above is unresolved, document it as a named gap in ROADMAP.md under 
 ---
 
 ### Build Verification Protocol
-Whenever a task or feature is reported as "done" (except when specifically running unit tests or Quality Gate checks), verify that all three primary build targets compile successfully:
+Whenever a task or feature is reported as "done" (except when specifically running unit tests or Quality Gate checks), verify that all four primary build targets compile successfully:
 ```bash
-./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble
+./gradlew :composeApp:assembleDebug :iosApp:assemble :server:assemble :androidApp:assembleDebug
 ```
-Confirm these three builds pass before confirming completion.
+Confirm these four builds pass before confirming completion. `:androidApp:assembleDebug` was
+missing from this command until 2026-07-22 — its absence is exactly why a dependency-verification
+gap (guava-parent, missing from `gradle/verification-metadata.xml`) passed local checks twice
+(v3.0.0, v3.0.3) but failed on every CI/Xcode Cloud pipeline that actually configures
+`:androidApp`, which is all of them. A warm local Gradle cache also won't reliably catch a stale
+`verification-metadata.xml` — see `release.sh`'s pre-tag gate (`--refresh-dependencies` across all
+four targets) for the check that actually simulates a fresh CI checkout; this everyday protocol
+is for regular compile-error verification, not a substitute for that gate before tagging a release.
 
 ### Static Analysis Quality Gate Protocol
 

@@ -138,7 +138,11 @@ class GeminiAIService private constructor(
         responseMimeType: String? = "application/json"
     ): JsonObject = GeminiBodyBuilder.buildJsonRequestBody(prompt, temperature, responseMimeType)
 
-    suspend fun postToModel(modelName: String, body: JsonObject): HttpResponse =
+    // internal: this is executeWithRetry's internal duplication-elimination helper (see commit
+    // 8252b43), not a designed public API — it bypasses every timeout/non-2xx/retry/error-
+    // handling behavior executeWithRetry provides. A public caller reaching this by mistake
+    // gets an unvalidated HttpResponse with none of that safety net.
+    internal suspend fun postToModel(modelName: String, body: JsonObject): HttpResponse =
         requestExecutor.postToModel(modelName, body)
 
     private suspend fun <T> executeWithRetry(

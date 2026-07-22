@@ -52,6 +52,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
                 // a UX gap, not a crash. GoogleAuthException specifically means the auth grant
                 // itself is the problem (vs IOException below, a plain network failure) — only
                 // this case should mean "disconnect the account" to the caller.
+                println("[GoogleAuth] Refresh token invalid/revoked: ${e.message}")
                 null
             }
         }

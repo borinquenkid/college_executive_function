@@ -70,6 +70,7 @@ object GeminiResponseParser {
         val category = try {
             AcademicCategory.valueOf(raw.category)
         } catch (e: Exception) {
+            telemetry?.logJsonError()
             AcademicCategory.REGULAR
         }
         val date = try {

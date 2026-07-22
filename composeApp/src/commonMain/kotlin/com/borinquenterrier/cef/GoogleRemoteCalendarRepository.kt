@@ -19,6 +19,7 @@ class GoogleRemoteCalendarRepository(
         try {
             syncService.listCalendars()
         } catch (e: GoogleApiException) {
+            println("[GoogleRemoteCalendarRepository] getAvailableCalendars failed: ${e.message}")
             throw e.toCalendarException("calendarList")
         }
 
@@ -27,6 +28,7 @@ class GoogleRemoteCalendarRepository(
         try {
             return syncService.getEvents(targetId)
         } catch (e: GoogleApiException) {
+            println("[GoogleRemoteCalendarRepository] getAllEvents failed for calendar '$targetId': ${e.message}")
             throw e.toCalendarException(targetId)
         }
     }
@@ -36,6 +38,7 @@ class GoogleRemoteCalendarRepository(
         try {
             syncService.syncEvent(event, targetId)
         } catch (e: GoogleApiException) {
+            println("[GoogleRemoteCalendarRepository] saveEvent failed for calendar '$targetId': ${e.message}")
             throw e.toCalendarException(targetId)
         }
     }
@@ -45,6 +48,7 @@ class GoogleRemoteCalendarRepository(
         try {
             syncService.syncEvent(event, targetId)
         } catch (e: GoogleApiException) {
+            println("[GoogleRemoteCalendarRepository] updateEvent failed for calendar '$targetId': ${e.message}")
             throw e.toCalendarException(targetId)
         }
     }
@@ -54,6 +58,7 @@ class GoogleRemoteCalendarRepository(
         try {
             syncService.deleteEvent(targetId, eventId)
         } catch (e: GoogleApiException) {
+            println("[GoogleRemoteCalendarRepository] deleteEvent failed for calendar '$targetId', event '$eventId': ${e.message}")
             if (e.statusCode != 410) throw e
         }
     }
@@ -70,6 +75,7 @@ class GoogleRemoteCalendarRepository(
             try {
                 syncService.deleteEvent(targetId, id)
             } catch (e: GoogleApiException) {
+                println("[GoogleRemoteCalendarRepository] clearCalendar deleteEvent failed for calendar '$targetId', event '$id': ${e.message}")
                 if (e.statusCode != 410) throw e
             }
         }

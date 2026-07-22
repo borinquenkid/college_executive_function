@@ -139,6 +139,7 @@ fun GoogleCalendarPanel(
                             try {
                                 onCalendarsRefresh()
                             } catch (e: Exception) {
+                                println("[GoogleCalendarPanel] onRetryLoad failed: ${e.message}")
                                 onCalendarLoadError(CalendarErrorFormatter.format(e))
                             }
                         }
@@ -177,12 +178,14 @@ fun GoogleCalendarPanel(
                             try {
                                 onCalendarsRefresh()
                             } catch (e: Exception) {
+                                println("[GoogleCalendarPanel] post-create calendar refresh failed: ${e.message}")
                                 onCalendarLoadError(CalendarErrorFormatter.format(e))
                             }
 
                             showCreateCalendarDialog = false
                             newCalendarNameInput = ""
                         } catch (e: Exception) {
+                            println("[GoogleCalendarPanel] createCalendar failed: ${e.message}")
                             createCalendarError = CalendarErrorFormatter.format(e)
                         } finally {
                             isCreatingCalendar = false

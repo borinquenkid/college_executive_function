@@ -14,6 +14,7 @@ class RoutineRepository(private val settings: Settings) {
         try {
             Json.decodeFromString(jsonString)
         } catch (e: Exception) {
+            println("[RoutineRepository] Failed to decode stored routine events, returning empty list: $e")
             emptyList()
         }
     }

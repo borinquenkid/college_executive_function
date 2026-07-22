@@ -35,6 +35,7 @@ actual class DocxReader(private val context: Context) {
                 }
                 fromDocumentXml(content)
             } catch (e: Exception) {
+                println("[DocxReader] Failed to read DOCX source at $path: ${e.message}")
                 docxError(e)
             } finally {
                 tempFile?.delete()
@@ -51,6 +52,7 @@ actual class DocxReader(private val context: Context) {
                 }
                 fromDocumentXml(content)
             } catch (e: Exception) {
+                println("[DocxReader] Failed to read DOCX source from bytes: ${e.message}")
                 docxError(e)
             }
         }

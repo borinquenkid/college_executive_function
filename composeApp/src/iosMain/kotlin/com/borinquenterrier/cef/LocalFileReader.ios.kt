@@ -32,6 +32,7 @@ actual class LocalFileReader {
                 if (success) url.stopAccessingSecurityScopedResource()
             }
         } catch (e: Exception) {
+            println("[LocalFileReader] readText failed for $path: ${e.message}")
             "Error reading file: ${e.message}"
         }
     }
@@ -49,6 +50,7 @@ actual class LocalFileReader {
         } catch (e: Exception) {
             // Matches readText()'s failure contract: never throw, fail to an empty/safe result
             // instead of crashing the caller (e.g. IngestionAgent.readBytes -> normalizer.normalize).
+            println("[LocalFileReader] readBytes failed for $path: ${e.message}")
             ByteArray(0)
         }
     }
@@ -60,6 +62,7 @@ actual class LocalFileReader {
             val contents = fileManager.contentsOfDirectoryAtPath(dirPath, error = null)
             contents?.map { "$dirPath/$it" } ?: emptyList()
         } catch (e: Exception) {
+            println("[LocalFileReader] listFiles failed for $dirPath: ${e.message}")
             emptyList()
         }
     }

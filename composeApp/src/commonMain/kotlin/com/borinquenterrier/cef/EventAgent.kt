@@ -238,6 +238,7 @@ class EventAgent(
             try {
                 repository.synchronize("default")
             } catch (e: Exception) {
+                logger?.e(tag, "Error synchronizing after completion status update", e)
                 // Ignore sync errors
             }
         }

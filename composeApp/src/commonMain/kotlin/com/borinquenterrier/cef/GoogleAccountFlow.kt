@@ -26,9 +26,11 @@ class GoogleAccountFlow(
             calendarSyncService.listCalendars()
             ValidationResult.Success
         } catch (e: GoogleApiException) {
+            println("[GoogleAccountFlow] validateConnection failed: ${e.message}")
             if (e.statusCode == 401) ValidationResult.InvalidCredentials
             else ValidationResult.NetworkError(e.message ?: "Network error")
         } catch (e: Exception) {
+            println("[GoogleAccountFlow] validateConnection failed: ${e.message}")
             ValidationResult.NetworkError(e.message ?: "Network error")
         }
     }

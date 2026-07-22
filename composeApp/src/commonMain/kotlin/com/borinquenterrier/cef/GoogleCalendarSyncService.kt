@@ -95,7 +95,20 @@ class GoogleCalendarSyncService(
     }
 
     private suspend fun <T> withToken(block: suspend (String) -> T): T =
-        tokenService.withToken(block)
+        try {
+            tokenService.withToken(block)
+        } catch (e: GoogleApiException) {
+            throw e
+        } catch (e: kotlinx.coroutines.CancellationException) {
+            throw e
+        } catch (e: Exception) {
+            // Anything else here (timeout, connection failure, response.body<T>() deserialization
+            // failure) would otherwise surface to the caller as a raw exception message — still
+            // caught further up (AgentHarness/GoogleAccountFlow.connect), just as an unhelpful
+            // low-level string instead of a message that names what actually happened.
+            println("[GoogleCalendarSyncService] Request failed: ${e.message}")
+            throw Exception("Google Calendar request failed: ${e.message}", e)
+        }
 
     /**
      * Creates a new calendar for the user.
@@ -235,6 +248,7 @@ class GoogleCalendarSyncService(
                     try {
                         Instant.parse(it).toEpochMilliseconds()
                     } catch (e: Exception) {
+                        println("[GoogleCalendarSyncService] Failed to parse 'updated' timestamp '$it': ${e.message}")
                         0L
                     }
                 } ?: 0L
@@ -249,6 +263,7 @@ class GoogleCalendarSyncService(
                     fun parseDateTime(raw: String): LocalDateTime = try {
                         Instant.parse(raw).toLocalDateTime(tz)
                     } catch (e: Exception) {
+                        println("[GoogleCalendarSyncService] Failed to parse '$raw' as Instant, falling back to naive parse: ${e.message}")
                         val clean = raw.take(16)
                         LocalDateTime(
                             LocalDate.parse(clean.substringBefore("T")),

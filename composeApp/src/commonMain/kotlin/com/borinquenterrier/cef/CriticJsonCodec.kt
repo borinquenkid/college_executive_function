@@ -78,11 +78,13 @@ object CriticJsonCodec {
             val category = try {
                 AcademicCategory.valueOf(raw.category)
             } catch (e: Exception) {
+                logger?.e("CriticActor", "Failed to parse category '${raw.category}', defaulting to REGULAR: ${e.message}")
                 AcademicCategory.REGULAR
             }
             val date = try {
                 kotlinx.datetime.LocalDate.parse(raw.date)
             } catch (e: Exception) {
+                logger?.e("CriticActor", "Failed to parse date '${raw.date}', defaulting to 2024-01-01: ${e.message}")
                 kotlinx.datetime.LocalDate(2024, 1, 1)
             }
 
@@ -90,11 +92,13 @@ object CriticJsonCodec {
                 val start = try {
                     kotlinx.datetime.LocalTime.parse(raw.startTime)
                 } catch (e: Exception) {
+                    logger?.e("CriticActor", "Failed to parse startTime '${raw.startTime}', defaulting to 09:00: ${e.message}")
                     kotlinx.datetime.LocalTime(9, 0)
                 }
                 val rawEnd = try {
                     kotlinx.datetime.LocalTime.parse(raw.endTime)
                 } catch (e: Exception) {
+                    logger?.e("CriticActor", "Failed to parse endTime '${raw.endTime}', defaulting to 10:00: ${e.message}")
                     kotlinx.datetime.LocalTime(10, 0)
                 }
                 val end = if (rawEnd > start) rawEnd else {

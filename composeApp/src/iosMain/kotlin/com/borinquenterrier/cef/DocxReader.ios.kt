@@ -21,6 +21,7 @@ actual class DocxReader {
                 val data = NSData.create(contentsOfURL = url) ?: return@withContext docxError("Could not read DOCX file")
                 extractFragments(data.toByteArray())
             } catch (e: Exception) {
+                println("[DocxReader.ios] Failed to read DOCX from path $path: ${e.message}")
                 docxError(e.message ?: "Unknown error")
             }
         }
@@ -30,6 +31,7 @@ actual class DocxReader {
             try {
                 extractFragments(bytes)
             } catch (e: Exception) {
+                println("[DocxReader.ios] Failed to read DOCX from bytes: ${e.message}")
                 docxError(e.message ?: "Unknown error")
             }
         }

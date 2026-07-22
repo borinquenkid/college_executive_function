@@ -51,6 +51,7 @@ class TaskDecompositionService(
                 count++
             } catch (e: OverlapException) {
                 // Skip conflicting steps and continue
+                println("[TaskDecompositionService] Skipping conflicting study block step '${task.title}': ${e.message}")
             }
         }
         return count

@@ -33,6 +33,7 @@ class ModelManager(
         return try {
             getFileSystem().exists(getModelFile())
         } catch (e: Exception) {
+            logger?.e(tag, "Failed to check if model file exists", e)
             false
         }
     }

@@ -23,6 +23,10 @@ data class TokenResponse(
  *  should never be treated as "disconnect the account" by callers (see GoogleAccountFlow). */
 class InvalidGrantException(message: String) : Exception(message)
 
+/** 429 Too Many Requests — also transient/retry-later like a 5xx, but worth its own type since a
+ *  caller may one day want to back off differently for a rate limit than for a server error. */
+class OAuthRateLimitedException(message: String) : Exception(message)
+
 class OAuthExchange(private val httpClient: HttpClient) {
     private val json = Json { ignoreUnknownKeys = true }
 
@@ -77,6 +81,9 @@ class OAuthExchange(private val httpClient: HttpClient) {
             val message = "Failed to exchange code/refresh token: $body"
             if (response.status == HttpStatusCode.BadRequest && body.contains("invalid_grant")) {
                 throw InvalidGrantException(message)
+            }
+            if (response.status == HttpStatusCode.TooManyRequests) {
+                throw OAuthRateLimitedException(message)
             }
             throw Exception(message)
         }

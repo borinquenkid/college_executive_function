@@ -28,6 +28,7 @@ class GoogleTokenService(
                     // misleading "session expired, please reconnect" message, which should only
                     // fire when the grant is genuinely dead (see GoogleAccountFlow for the same
                     // distinction on the startup-check path).
+                    println("[GoogleTokenService] Token refresh attempt failed transiently: ${refreshError.message}")
                     throw e
                 }
                 if (newToken == null) {
@@ -39,6 +40,7 @@ class GoogleTokenService(
                     block(newToken)
                 } catch (retryEx: GoogleApiException) {
                     if (retryEx.statusCode == 401) {
+                        println("[GoogleTokenService] Retry after token refresh still got 401, session expired: ${retryEx.message}")
                         onAuthExpired?.invoke(sessionExpiredMessage)
                         throw Exception(sessionExpiredMessage, retryEx)
                     }

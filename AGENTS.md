@@ -191,6 +191,21 @@ Every method on `AIService` that returns **structured output** (events, metadata
 
 2. ~~`analyzeDocument` / `generateChatResponse` — defer until the corpus has factual anchors.~~ ✅ Closed via `SourceFactGrounder`. Gate extracts date and grade-weight claims from free-text AI output and cross-checks each against the source text provided to the model. Ungrounded claims trigger a structured warning appended to the response; the response is not dropped (sentence-level surgery is out of scope). Corpus: 13 real UT Austin Fall 2025 syllabi in `contributions/tx/ut_austin/2025-2026/fall/` provided the factual-anchor readiness condition.
 
+### Exception Handling: No Silent Catch-and-Rethrow
+A `catch` block that rethrows (even wrapped in a clearer exception/message) is not a fix if nothing
+ever observes that it fired. Every catch that doesn't let the original exception propagate
+unchanged must also log or record it through this codebase's existing tooling (`Logger` in
+`composeApp`, `println("[Tag] ...")` in `server`, `AppTracer`/telemetry where a span already exists)
+— not just construct a new exception and throw it. Without that, a real production failure looks
+identical to "working as intended" in every log and dashboard; the only difference is a slightly
+better message the one caller who happens to catch it will see, if any caller catches it at all.
+
+This came out of the ADR 0010 exception-path audit (2026-07): several fixes there wrapped a caught
+exception in a clearer message before rethrowing, with no log/telemetry call alongside it — better
+for whichever caller eventually sees the message, but invisible to anyone watching logs/telemetry
+in the meantime. Applies equally to a `catch` that swallows to a sentinel value (`null`, empty
+list, default) — same rule, log before returning the fallback.
+
 ### Native Dependency Management
 Manual modification of Xcode project files (`.pbxproj`) and adding external Swift packages is strictly prohibited due to their brittleness in KMP builds. All native features MUST be implemented using platform-native APIs already available in the system frameworks, accessible via pure Kotlin/Native interop, to ensure build stability.
 

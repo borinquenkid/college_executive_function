@@ -119,6 +119,19 @@ class OAuthExchangeBranchTest : FunSpec({
         ex.message shouldContain "invalid_grant"
     }
 
+    test("refreshAccessToken throws OAuthRateLimitedException on a 429 response") {
+        val engine = MockEngine { _ ->
+            respond("""{"error":"rate_limited"}""", HttpStatusCode.TooManyRequests, jsonHeader)
+        }
+        shouldThrow<OAuthRateLimitedException> {
+            OAuthExchange(makeClient(engine)).refreshAccessToken(
+                refreshToken = "ref-token",
+                clientId = "client-id",
+                clientSecret = null
+            )
+        }
+    }
+
     test("refreshAccessToken throws a plain Exception (not InvalidGrantException) on a 5xx response") {
         val engine = MockEngine { _ ->
             respond("""{"error":"internal_error"}""", HttpStatusCode.InternalServerError, jsonHeader)

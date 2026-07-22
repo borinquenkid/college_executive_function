@@ -40,7 +40,7 @@ class GeminiRequestExecutor(
         }
     }
 
-    suspend fun postToModel(modelName: String, body: JsonObject) =
+    internal suspend fun postToModel(modelName: String, body: JsonObject) =
         requestBuilder.postToModel(modelName, body)
 
     /**

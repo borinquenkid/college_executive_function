@@ -9,8 +9,9 @@ actual fun installGlobalCrashHandler() {
     setUnhandledExceptionHook { throwable ->
         try {
             AppTracer.current.recordFatal(throwable, mapOf("os" to "ios"))
-        } catch (_: Throwable) {
+        } catch (e: Throwable) {
             // Never mask the original crash.
+            println("[CrashHandler.ios] AppTracer.recordFatal failed while handling crash: ${e.message}")
         }
         // terminateWithUnhandledException keeps the runtime's default terminate behaviour
         // (stderr dump + abort) so symbolicated crash logs / Xcode Organizer still work —

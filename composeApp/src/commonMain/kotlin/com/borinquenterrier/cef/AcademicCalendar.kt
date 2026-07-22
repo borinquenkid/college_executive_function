@@ -71,7 +71,8 @@ fun AcademicCalendar(
                     ) {
                         displayedEvents = it
                     }
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    logger.e("AcademicCalendar", "Initial calendar sync failed", e)
                     // Auth errors already handled by GoogleTokenService.onAuthExpired;
                     // other transient errors are silently dropped so the app stays alive.
                 } finally {
@@ -130,7 +131,8 @@ fun AcademicCalendar(
             scope.launch {
                 try {
                     displayedEvents = syncManager.refreshEvents()
-                } catch (_: Exception) {
+                } catch (e: Exception) {
+                    logger.e("AcademicCalendar", "Refresh after sync negotiation applied failed", e)
                     // Auth errors already handled by GoogleTokenService.onAuthExpired.
                 }
             }
@@ -172,7 +174,8 @@ fun AcademicCalendar(
                                 ) {
                                     displayedEvents = it
                                 }
-                            } catch (_: Exception) {
+                            } catch (e: Exception) {
+                                logger.e("AcademicCalendar", "Manual calendar sync failed", e)
                                 // Auth errors already handled by GoogleTokenService.onAuthExpired.
                             } finally {
                                 if (isSyncing) isSyncing = false
@@ -186,6 +189,7 @@ fun AcademicCalendar(
                                 val filePath = writeIcsFile(icsContent)
                                 eventAgent.updateStatus("Exported calendar: $filePath")
                             } catch (e: Exception) {
+                                logger.e("AcademicCalendar", "ICS export failed", e)
                                 eventAgent.updateStatus("Export failed: ${e.message}")
                             }
                         }

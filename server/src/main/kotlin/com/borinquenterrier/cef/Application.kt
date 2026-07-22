@@ -64,6 +64,7 @@ suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> 
     val entities = try {
         container.sourceRepository.getAllSources()
     } catch (e: Exception) {
+        println("[getAllSourceItems] Failed to load sources: ${e.message}")
         emptyList()
     }
     
@@ -78,9 +79,10 @@ suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> 
                 )
             }
         } catch (e: Exception) {
+            println("[getAllSourceItems] Failed to load fragments for source ${entity.id}: ${e.message}")
             emptyList()
         }
-        
+
         SourceItem(
             title = entity.title,
             fragments = fragments,
@@ -369,6 +371,7 @@ fun Application.module(
                             container.contextAgent.queryAllSources(sources, emptyList(), query)
                         }
                     } catch (e: Throwable) {
+                        println("[queryAllSources] Context agent query failed: ${e.message}")
                         "Error querying context agent: ${e.message}"
                     }
 

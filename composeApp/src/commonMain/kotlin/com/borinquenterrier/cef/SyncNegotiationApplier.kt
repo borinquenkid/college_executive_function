@@ -97,6 +97,7 @@ class SyncNegotiationApplier(
                     } catch (e: CalendarNotFoundException) {
                         throw e
                     } catch (e: Exception) {
+                        logger?.e("SyncNegotiationApplier", "Failed to save shifted study block ${shifted.id} to remote, falling back to LOCAL_ONLY: ${e.message}")
                         localRepo.updateEvent(
                             shifted.withSyncStatus(SyncStatus.LOCAL_ONLY),
                             calendarId

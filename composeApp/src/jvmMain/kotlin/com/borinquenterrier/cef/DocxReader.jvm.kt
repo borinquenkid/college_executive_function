@@ -40,6 +40,7 @@ actual class DocxReader {
                 if (text.isNotEmpty()) parts.add(SourceFragment(text = text, type = SourceType.TEXT))
             }
         } catch (e: Exception) {
+            println("[DocxReader] fromDocumentXml failed: ${e.message}")
             parts.add(SourceFragment(text = "Error: ${e.message}", type = SourceType.TEXT))
         }
         return parts

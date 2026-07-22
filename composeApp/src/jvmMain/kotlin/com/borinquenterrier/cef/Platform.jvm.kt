@@ -55,5 +55,6 @@ actual fun writeLogToFile(message: String) {
         capLogFile(file)
     } catch (e: Exception) {
         // Fallback to console if file writing fails
+        println("[writeLogToFile] Failed to persist log line: ${e.message}")
     }
 }

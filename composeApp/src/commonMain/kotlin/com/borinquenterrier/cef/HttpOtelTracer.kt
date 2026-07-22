@@ -105,8 +105,9 @@ class HttpOtelTracer(
                     println("[HttpOtelTracer] recordFatal export failed: HTTP ${response.status}")
                 }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             // Best-effort — the crash-reporting path must never itself throw during a crash.
+            println("[HttpOtelTracer] recordFatal export threw: ${e.message}")
         }
     }
 
@@ -118,8 +119,9 @@ class HttpOtelTracer(
                     job.children.toList().joinAll()
                 }
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             // Best-effort.
+            println("[HttpOtelTracer] flush threw: ${e.message}")
         }
     }
 
@@ -157,8 +159,9 @@ class HttpOtelTracer(
             } else if (!response.status.isSuccess()) {
                 println("[HttpOtelTracer] export failed for span $name: HTTP ${response.status}")
             }
-        } catch (_: Exception) {
+        } catch (e: Exception) {
             // Never let export failures surface to the app.
+            println("[HttpOtelTracer] export threw for span $name: ${e.message}")
         }
     }
 

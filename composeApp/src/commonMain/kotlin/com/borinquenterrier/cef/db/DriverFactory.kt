@@ -21,18 +21,21 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
             "ALTER TABLE SourceEntity ADD COLUMN category TEXT NOT NULL DEFAULT 'OTHER'",
             0
         )
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     try {
         driver.execute(null, "ALTER TABLE EventEntity ADD COLUMN studyPlanStart TEXT", 0)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     try {
         driver.execute(null, "ALTER TABLE EventEntity ADD COLUMN gradeWeight REAL", 0)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     try {
         driver.execute(
@@ -40,18 +43,21 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
             "ALTER TABLE EventEntity ADD COLUMN completionStatus TEXT NOT NULL DEFAULT 'INCOMPLETE'",
             0
         )
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     try {
         driver.execute(null, "ALTER TABLE SourceEntity ADD COLUMN contentHash TEXT", 0)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     try {
         driver.execute(null, "ALTER TABLE EventEntity ADD COLUMN sourceId TEXT", 0)
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     try {
         driver.execute(
@@ -66,8 +72,9 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
             """.trimIndent(),
             0
         )
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Table may already exist, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     // Chat History & Compaction (design 2.1) — additive tables reach existing installs here.
     try {
@@ -85,8 +92,9 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
             """.trimIndent(),
             0
         )
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Table may already exist, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     try {
         driver.execute(
@@ -104,8 +112,9 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
             """.trimIndent(),
             0
         )
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Table may already exist, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     try {
         driver.execute(
@@ -113,8 +122,9 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
             "ALTER TABLE ConversationEntity ADD COLUMN summarizedThroughMessageId TEXT",
             0
         )
-    } catch (_: Exception) {
+    } catch (e: Exception) {
         // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
     return AppDatabase(driver)
 }

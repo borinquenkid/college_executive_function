@@ -260,6 +260,17 @@ class GoogleCalendarSyncServiceBranchTest : FunSpec({
         calendars[1].name shouldBe "Untitled Calendar"
     }
 
+    test("listCalendars wraps a deserialization failure with a clearer message instead of a raw exception") {
+        val engine = MockEngine { _ ->
+            // "items" as a string instead of an array — a genuine 200-response schema mismatch,
+            // not a GoogleApiException (non-2xx) case.
+            respond("""{"items":"not-an-array"}""", HttpStatusCode.OK, jsonHeader)
+        }
+        val ex = shouldThrow<Exception> { makeService(engine).listCalendars() }
+        (ex is GoogleApiException) shouldBe false
+        ex.message shouldContain "Google Calendar request failed"
+    }
+
     test("deleteEvent succeeds on 200") {
         val engine = MockEngine { _ -> respond("", HttpStatusCode.OK, jsonHeader) }
         makeService(engine).deleteEvent("cal-id", "event-id")

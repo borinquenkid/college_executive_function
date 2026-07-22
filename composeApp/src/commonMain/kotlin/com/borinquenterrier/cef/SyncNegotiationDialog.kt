@@ -137,9 +137,10 @@ fun SyncNegotiationDialog(
                             coroutineScope.launch {
                                 try {
                                     calendarAgent.applySyncNegotiation(negotiation)
-                                } catch (_: Exception) {
+                                } catch (e: Exception) {
                                     // Sync failed (e.g. offline); local changes may be partial
                                     // but we always dismiss so the user is not stuck.
+                                    println("[SyncNegotiationDialog] Failed to apply sync negotiation: ${e.message}")
                                 } finally {
                                     onApplied()
                                 }

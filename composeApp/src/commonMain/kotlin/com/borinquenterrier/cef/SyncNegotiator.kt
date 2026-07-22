@@ -30,6 +30,7 @@ class SyncNegotiator(
         } catch (e: CalendarNotFoundException) {
             throw e
         } catch (e: Exception) {
+            logger?.e(tag, "Failed to fetch remote events for calendar $calendarId, returning empty negotiation", e)
             return SyncNegotiation(emptyList(), emptyList(), emptyList())
         }
 

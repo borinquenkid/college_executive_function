@@ -32,6 +32,7 @@ class WebSourceReader(
             }
             cleanHtml(response.body<String>())
         } catch (e: Exception) {
+            println("[WebSourceReader] Failed to load content from URL $url: ${e.message}")
             "Error loading content from URL: ${e.message}"
         }
     }

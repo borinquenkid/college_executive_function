@@ -109,6 +109,7 @@ class DecompositionOrchestrator(
                     msg.contains("Unauthorized", ignoreCase = true)
                 ) throw e
 
+                println("[DecompositionOrchestrator] Decomposition failed for '${current.title}', falling back to sentinel leaf: ${e.message}")
                 val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
                 finalLeaves.add(
                     DecomposedTask(

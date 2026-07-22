@@ -36,6 +36,7 @@ actual class PdfReader(private val context: Context) {
                 PDFBoxResourceLoader.init(context)
                 extract(PDDocument.load(fileToRead))
             } catch (e: Exception) {
+                println("[PdfReader] Failed to read PDF source at $path: ${e.message}")
                 listOf(
                     SourceFragment(
                         text = "Error extracting text from PDF: ${e.message}",
@@ -54,6 +55,7 @@ actual class PdfReader(private val context: Context) {
                 PDFBoxResourceLoader.init(context)
                 extract(PDDocument.load(bytes))
             } catch (e: Exception) {
+                println("[PdfReader] Failed to read PDF source from bytes: ${e.message}")
                 listOf(SourceFragment(text = "Error extracting text from PDF: ${e.message}", pageNumber = 0, type = SourceType.TEXT))
             }
         }

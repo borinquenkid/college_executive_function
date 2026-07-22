@@ -46,6 +46,7 @@ actual fun writeIcsFile(content: String): String {
         file.writeText(content)
         file.absolutePath
     } catch (e: Exception) {
+        println("[IcsExport] Failed to write ICS file: ${e.message}")
         "Export failed: ${e.message}"
     }
 }

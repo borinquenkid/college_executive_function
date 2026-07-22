@@ -43,6 +43,7 @@ actual class PdfReader {
             }
             if (fragments.isEmpty()) listOf(SourceFragment("No text content found in PDF")) else fragments
         } catch (e: Exception) {
+            println("[PdfReader] extract failed: ${e.message}")
             listOf(SourceFragment("Error extracting PDF text: ${e.message}"))
         }
     }

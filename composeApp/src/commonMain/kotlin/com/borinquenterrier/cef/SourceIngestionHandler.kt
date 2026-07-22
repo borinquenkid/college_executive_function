@@ -20,6 +20,7 @@ class SourceIngestionHandler(
                 val source = ingestionAgent.addLocalFile(path)
                 onSuccess(source)
             } catch (e: Exception) {
+                println("[SourceIngestionHandler] Failed to ingest local file '$path': $e")
                 onFailure()
             } finally {
                 onFinish()
@@ -39,7 +40,9 @@ class SourceIngestionHandler(
                 try {
                     val source = ingestionAgent.addLocalFile(path)
                     onEachSuccess(source)
-                } catch (_: Exception) { }
+                } catch (e: Exception) {
+                    println("[SourceIngestionHandler] Failed to ingest local file '$path', skipping: $e")
+                }
             }
             onFinish()
         }
@@ -57,7 +60,9 @@ class SourceIngestionHandler(
                 try {
                     val source = ingestionAgent.addUrl(url)
                     onEachSuccess(source)
-                } catch (_: Exception) { }
+                } catch (e: Exception) {
+                    println("[SourceIngestionHandler] Failed to ingest url '$url', skipping: $e")
+                }
             }
             onFinish()
         }
@@ -80,6 +85,7 @@ class SourceIngestionHandler(
                 val source = ingestionAgent.addUrl(url)
                 onSuccess(source)
             } catch (e: Exception) {
+                println("[SourceIngestionHandler] Failed to ingest url '$url': $e")
                 onFailure()
             } finally {
                 onFinish()

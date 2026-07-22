@@ -179,6 +179,7 @@ fun Event.studyProgress(
         try {
             LocalDate.parse(it)
         } catch (e: IllegalArgumentException) {
+            println("[Event] Failed to parse studyPlanStart '$it': ${e.message}")
             null
         }
     } ?: date.minus(7, DateTimeUnit.DAY)

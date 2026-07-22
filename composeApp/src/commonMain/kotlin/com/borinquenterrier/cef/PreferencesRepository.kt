@@ -12,7 +12,10 @@ class PreferencesRepository(private val settings: Settings) : PreferencesPort {
     fun readSync(): StudyPreferences {
         val json = settings.getString(preferencesKey, "")
         return if (json.isBlank()) StudyPreferences()
-        else try { Json.decodeFromString(json) } catch (e: Exception) { StudyPreferences() }
+        else try { Json.decodeFromString(json) } catch (e: Exception) {
+            println("[PreferencesRepository] Failed to decode stored preferences, using defaults: $e")
+            StudyPreferences()
+        }
     }
 
     val flow: kotlinx.coroutines.flow.MutableStateFlow<StudyPreferences> by lazy {

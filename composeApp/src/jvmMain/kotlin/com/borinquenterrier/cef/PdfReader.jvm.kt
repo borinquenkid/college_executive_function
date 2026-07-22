@@ -32,6 +32,7 @@ actual class PdfReader {
                 }
             }
         } catch (e: Exception) {
+            println("[PdfReader] extract failed: ${e.message}")
             parts.add(SourceFragment(text = "Error: ${e.message}", type = SourceType.TEXT))
         }
         return parts

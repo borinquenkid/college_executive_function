@@ -46,6 +46,7 @@ class LtiLaunchVerifier(
         val unverified = try {
             JWT.decode(idToken)
         } catch (e: Exception) {
+            println("[LtiLaunchVerifier] malformed id_token: ${e.message}")
             throw LtiLaunchVerificationException("malformed id_token: ${e.message}")
         }
 
@@ -54,6 +55,7 @@ class LtiLaunchVerifier(
         val jwk = try {
             jwkProvider.get(keyId)
         } catch (e: Exception) {
+            println("[LtiLaunchVerifier] no matching JWKS key for kid=$keyId: ${e.message}")
             throw LtiLaunchVerificationException("no matching JWKS key for kid=$keyId: ${e.message}")
         }
         val algorithm = Algorithm.RSA256(jwk.publicKey as RSAPublicKey, null)
@@ -65,6 +67,7 @@ class LtiLaunchVerifier(
                 .build()
                 .verify(idToken)
         } catch (e: JWTVerificationException) {
+            println("[LtiLaunchVerifier] signature/claim verification failed: ${e.message}")
             throw LtiLaunchVerificationException("signature/claim verification failed: ${e.message}")
         }
 

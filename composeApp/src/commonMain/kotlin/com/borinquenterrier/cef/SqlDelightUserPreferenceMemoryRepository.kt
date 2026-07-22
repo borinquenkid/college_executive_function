@@ -62,6 +62,7 @@ class SqlDelightUserPreferenceMemoryRepository(
                 val day = try {
                     DayOfWeek.valueOf(log.dayOfWeek)
                 } catch (e: Exception) {
+                    println("[SqlDelightUserPreferenceMemoryRepository] Skipping corrupt override log with invalid dayOfWeek '${log.dayOfWeek}': ${e.message}")
                     continue
                 }
                 val start = log.startHour.toInt().coerceIn(0, 23)

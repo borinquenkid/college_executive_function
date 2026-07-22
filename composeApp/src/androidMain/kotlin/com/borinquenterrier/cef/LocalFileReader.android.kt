@@ -25,6 +25,7 @@ actual class LocalFileReader(
                 File(path).readText()
             }
         } catch (e: Exception) {
+            println("[LocalFileReader] Failed to read text from $path: ${e.message}")
             "Error reading file: ${e.message}"
         }
     }
@@ -40,6 +41,7 @@ actual class LocalFileReader(
                 File(path).readBytes()
             }
         } catch (e: Exception) {
+            println("[LocalFileReader] Failed to read bytes from $path: ${e.message}")
             ByteArray(0)
         }
     }
@@ -66,6 +68,7 @@ actual class LocalFileReader(
                     if (nameIndex >= 0 && cursor.moveToFirst()) cursor.getString(nameIndex) else null
                 } ?: ""
         } catch (e: Exception) {
+            println("[LocalFileReader] Failed to resolve display name for $path: ${e.message}")
             ""
         }
     }

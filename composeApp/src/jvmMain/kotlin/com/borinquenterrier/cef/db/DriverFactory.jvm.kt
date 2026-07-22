@@ -21,8 +21,9 @@ actual open class DriverFactory(val dbFile: File? = null) {
         } else {
             try {
                 AppDatabase.Schema.migrate(driver, 1, AppDatabase.Schema.version)
-            } catch (_: SQLException) {
+            } catch (e: SQLException) {
                 // Migration already applied or not needed — safe to ignore
+                println("[DriverFactory] Schema migrate skipped/failed for ${databaseFile.absolutePath}: ${e.message}")
             }
         }
 

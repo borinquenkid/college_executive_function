@@ -31,7 +31,9 @@ class TenantDatabaseFactory(private val baseDir: String) {
             if (isNew) {
                 AppDatabase.Schema.create(driver)
             } else {
-                try { AppDatabase.Schema.create(driver) } catch (_: Exception) { }
+                try { AppDatabase.Schema.create(driver) } catch (e: Exception) {
+                    println("[TenantDatabaseFactory] Schema re-create on existing db skipped: ${e.message}")
+                }
             }
 
             driver.execute(null, "PRAGMA journal_mode=WAL", 0, null)

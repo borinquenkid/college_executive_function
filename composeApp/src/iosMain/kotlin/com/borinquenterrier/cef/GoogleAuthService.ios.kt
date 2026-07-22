@@ -169,6 +169,7 @@ actual class GoogleAuthService actual constructor(private val settings: Settings
             // "disconnect the account" to a caller. Anything else (timeout, no connection,
             // 5xx) propagates instead of being swallowed here, so GoogleAccountFlow can tell
             // a transient network blip apart from a genuinely revoked grant.
+            println("[GoogleAuth] Refresh token invalid/revoked: ${e.message}")
             null
         }
     }

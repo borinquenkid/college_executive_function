@@ -224,6 +224,7 @@ fun StudioPanel(
                                         val filePath = writeIcsFile(icsContent)
                                         eventAgent.updateStatus("Exported study plan: $filePath")
                                     } catch (e: Exception) {
+                                        println("[StudioPanel] ICS export failed: ${e.message}")
                                         eventAgent.updateStatus("Export failed: ${e.message}")
                                     }
                                 }

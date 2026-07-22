@@ -110,6 +110,7 @@ class SqlDelightLocalCalendarRepository(
         val completionStatus = try {
             CompletionStatus.valueOf(entity.completionStatus)
         } catch (e: IllegalArgumentException) {
+            println("[SqlDelightLocalCalendarRepository] Invalid completionStatus '${entity.completionStatus}' for event ${entity.id}, defaulting to INCOMPLETE: ${e.message}")
             CompletionStatus.INCOMPLETE
         }
 

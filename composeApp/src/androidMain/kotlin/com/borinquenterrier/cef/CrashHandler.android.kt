@@ -12,7 +12,8 @@ actual fun installGlobalCrashHandler() {
                     "os.version" to android.os.Build.VERSION.SDK_INT.toString()
                 )
             )
-        } catch (_: Throwable) {
+        } catch (t: Throwable) {
+            println("[CrashHandler] Failed to record fatal crash telemetry: ${t.message}")
             // Telemetry must never make a crash worse or mask the original exception.
         }
         // Preserve default platform behaviour (Logcat dump, "App has stopped", Play Vitals

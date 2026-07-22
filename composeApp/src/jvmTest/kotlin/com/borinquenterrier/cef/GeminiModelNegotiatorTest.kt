@@ -55,7 +55,9 @@ class GeminiModelNegotiatorTest : FunSpec({
             logger = null
         )
 
-        // HEAVY prefers: gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite, gemini-3.5-flash
+        // HEAVY prefers: gemini-3.6-flash, gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite,
+        // gemini-3.5-flash — none of the 3.6/3.5-lite additions are in availableModelsList, so
+        // this still lands on gemini-2.5-flash (the first entry actually offered).
         val selected =
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.HEAVY)
         selected shouldBe "gemini-2.5-flash"
@@ -74,13 +76,53 @@ class GeminiModelNegotiatorTest : FunSpec({
             logger = null
         )
 
-        // LIGHT prefers: gemini-2.5-flash-lite, gemini-flash-lite-latest, gemini-2.5-flash, gemini-flash-latest
+        // LIGHT prefers: gemini-3.5-flash-lite, gemini-2.5-flash-lite, gemini-flash-lite-latest,
+        // gemini-2.5-flash, gemini-flash-latest — gemini-3.5-flash-lite isn't in
+        // availableModelsList, so this still lands on gemini-2.5-flash-lite.
         val selected =
             negotiator.negotiateBestModel(availableModelsList, GeminiAIService.TaskTier.LIGHT)
         selected shouldBe "gemini-2.5-flash-lite"
 
         database.appDatabaseQueries.getSelectedModel("preferred_gemini_model")
             .executeAsOneOrNull() shouldBe "gemini-2.5-flash-lite"
+    }
+
+    test("negotiateBestModel prefers gemini-3.6-flash for HEAVY tier when available") {
+        val negotiator = GeminiModelNegotiator(
+            apiKey = "fake-key",
+            accessToken = null,
+            client = HttpClient(MockEngine { respond("") }),
+            database = database,
+            logger = null
+        )
+
+        val listWithNewModel = availableModelsList + ModelInfo(
+            "models/gemini-3.6-flash",
+            listOf("generateContent")
+        )
+
+        val selected =
+            negotiator.negotiateBestModel(listWithNewModel, GeminiAIService.TaskTier.HEAVY)
+        selected shouldBe "gemini-3.6-flash"
+    }
+
+    test("negotiateBestModel prefers gemini-3.5-flash-lite for LIGHT tier when available") {
+        val negotiator = GeminiModelNegotiator(
+            apiKey = "fake-key",
+            accessToken = null,
+            client = HttpClient(MockEngine { respond("") }),
+            database = database,
+            logger = null
+        )
+
+        val listWithNewModel = availableModelsList + ModelInfo(
+            "models/gemini-3.5-flash-lite",
+            listOf("generateContent")
+        )
+
+        val selected =
+            negotiator.negotiateBestModel(listWithNewModel, GeminiAIService.TaskTier.LIGHT)
+        selected shouldBe "gemini-3.5-flash-lite"
     }
 
     test("negotiateBestModel filters out non-text/unsupported models") {

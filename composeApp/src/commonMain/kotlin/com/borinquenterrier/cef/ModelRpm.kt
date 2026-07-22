@@ -25,6 +25,8 @@ object ModelRpm {
         "gemini-flash-latest" to 10,
         "gemini-flash-lite-latest" to 15,
         "gemini-3.5-flash" to 8,
+        "gemini-3.5-flash-lite" to 15,
+        "gemini-3.6-flash" to 8,
         "gemini-2.0-flash" to 15,
         "gemini-2.0-flash-lite" to 30,
     )

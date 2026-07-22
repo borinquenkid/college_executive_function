@@ -59,6 +59,16 @@ gap (guava-parent, missing from `gradle/verification-metadata.xml`) passed local
 four targets) for the check that actually simulates a fresh CI checkout; this everyday protocol
 is for regular compile-error verification, not a substitute for that gate before tagging a release.
 
+**Even that gate has a blind spot: OS-specific artifact classifiers.** `release.sh` runs on
+whatever OS the developer is on (macOS here), so it only ever resolves and verifies that OS's
+classifier of a native dependency — e.g. `aapt2-<version>-osx.jar`. **Deploy Android (Play Store)**
+runs on `ubuntu-latest` and needs `aapt2-<version>-linux.jar`, a *different* artifact with its own
+checksum entry in `verification-metadata.xml`. v3.0.6 hit exactly this: the local gate passed
+clean, then Deploy Android failed dependency verification on the linux classifier moments later.
+There is no local reproduction for this class of gap — when adding/bumping a native Android build
+tool (aapt2, d8, r8, etc.), check `verification-metadata.xml` for both `-osx` *and* `-linux`
+entries, or expect Deploy Android to be the only thing that catches a missing one.
+
 ### Static Analysis Quality Gate Protocol
 
 > **Deviation from this file's own prior CRAP-index approach, as of 2026-07-05.** This

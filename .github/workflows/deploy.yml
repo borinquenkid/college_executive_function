@@ -27,6 +27,7 @@ jobs:
       # GOOGLE_APPLICATION_CREDENTIALS for the rest of the job, which Gradle Play Publisher
       # picks up via useApplicationDefaultCredentials (androidApp/build.gradle.kts).
       - name: Authenticate to Google Cloud
+        id: auth
         uses: google-github-actions/auth@v2
         with:
           workload_identity_provider: 'projects/1014783111965/locations/global/workloadIdentityPools/github-pool/providers/github-provider'
@@ -45,9 +46,17 @@ jobs:
       # scoped per-package with no "list my apps" endpoint. This opens (and immediately
       # discards) a draft edit for our own applicationId as the real access smoke test.
       - name: Verify Play Store API access
+        env:
+          # `gcloud auth application-default print-access-token` re-mints its own token from
+          # the ADC credential file using gcloud's default scope (cloud-platform), which
+          # silently discards the auth step's `access_token_scopes` input — that input only
+          # ever applied to the auth step's own `outputs.access_token`. Using that output
+          # directly is the only way the androidpublisher scope actually reaches the request
+          # (confirmed live: v3.0.4's run hit ACCESS_TOKEN_SCOPE_INSUFFICIENT via gcloud's token
+          # despite access_token_scopes being set).
+          ACCESS_TOKEN: ${{ steps.auth.outputs.access_token }}
         run: |
           set -o pipefail
-          ACCESS_TOKEN=$(gcloud auth application-default print-access-token)
 
           # -sS (not -sf): -f discards the response body on a non-2xx, which is exactly the
           # information needed to diagnose *why* the request failed — a bare "curl -sf | python3"

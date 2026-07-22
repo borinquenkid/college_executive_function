@@ -60,8 +60,11 @@ internal suspend fun extractMultipartData(call: ApplicationCall): MultipartPaylo
     val builder = MultipartBuilder()
     val multipart = call.receiveMultipart()
     multipart.forEachPart { part ->
-        processPart(part, builder)
-        part.dispose()
+        try {
+            processPart(part, builder)
+        } finally {
+            part.dispose()
+        }
     }
     return MultipartPayload(builder.url, builder.fileBytes, builder.fileName)
 }

@@ -27,13 +27,18 @@ class TenantDatabaseFactory(private val baseDir: String) {
 
         val driver = JdbcSqliteDriver("jdbc:sqlite:${file.absolutePath}")
 
-        if (isNew) {
-            AppDatabase.Schema.create(driver)
-        } else {
-            try { AppDatabase.Schema.create(driver) } catch (_: Exception) { }
-        }
+        try {
+            if (isNew) {
+                AppDatabase.Schema.create(driver)
+            } else {
+                try { AppDatabase.Schema.create(driver) } catch (_: Exception) { }
+            }
 
-        driver.execute(null, "PRAGMA journal_mode=WAL", 0, null)
+            driver.execute(null, "PRAGMA journal_mode=WAL", 0, null)
+        } catch (e: Exception) {
+            driver.close()
+            throw e
+        }
 
         return driver
     }

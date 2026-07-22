@@ -89,4 +89,33 @@ class TenantMigrationRunnerTest {
             bobDriver.close()
         }
     }
+
+    @Test
+    fun `TenantMigrationRunner skips a corrupted tenant database instead of aborting the whole sweep`() {
+        val aliceFile = dbFactory.dbFileFor("alice")
+        val corruptFile = dbFactory.dbFileFor("corrupt-student")
+        val bobFile = dbFactory.dbFileFor("bob")
+
+        aliceFile.parentFile.mkdirs()
+        corruptFile.parentFile.mkdirs()
+        bobFile.parentFile.mkdirs()
+
+        aliceFile.createNewFile()
+        bobFile.createNewFile()
+        corruptFile.createNewFile()
+        // buildDatabase/DriverFactory.createDriver() deliberately swallow every ALTER/CREATE and
+        // Schema.migrate() failure (idempotent-migration pattern — see DriverFactory.jvm.kt and
+        // db/DriverFactory.kt), so file *content* corruption never actually reaches this loop's
+        // try/catch. An unreadable file forces a real exception at JdbcSqliteDriver's own eager
+        // connection-open instead, which nothing upstream swallows.
+        assertTrue(corruptFile.setReadable(false, false), "test setup: could not revoke read permission")
+        assertTrue(corruptFile.setWritable(false, false), "test setup: could not revoke write permission")
+
+        val runner = TenantMigrationRunner(baseDir.absolutePath)
+        val migratedCount = runner.runMigrations()
+
+        // Only the two valid, empty tenant databases count as migrated — the unreadable one is
+        // skipped rather than aborting the sweep for alice/bob too.
+        assertEquals(2, migratedCount)
+    }
 }

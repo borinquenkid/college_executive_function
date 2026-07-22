@@ -20,19 +20,27 @@ class DirectoryDatabase(tenantBaseDir: String) {
     private val driver: SqlDriver = JdbcSqliteDriver("jdbc:sqlite:${dbFile(tenantBaseDir).absolutePath}")
 
     init {
-        dbFile(tenantBaseDir).parentFile?.mkdirs()
-        driver.execute(
-            null,
-            """
-            CREATE TABLE IF NOT EXISTS students (
-              student_id TEXT PRIMARY KEY NOT NULL,
-              created_at INTEGER NOT NULL,
-              is_staff INTEGER NOT NULL DEFAULT 0,
-              session_epoch INTEGER NOT NULL DEFAULT 0
+        try {
+            dbFile(tenantBaseDir).parentFile?.mkdirs()
+            driver.execute(
+                null,
+                """
+                CREATE TABLE IF NOT EXISTS students (
+                  student_id TEXT PRIMARY KEY NOT NULL,
+                  created_at INTEGER NOT NULL,
+                  is_staff INTEGER NOT NULL DEFAULT 0,
+                  session_epoch INTEGER NOT NULL DEFAULT 0
+                )
+                """.trimIndent(),
+                0, null
             )
-            """.trimIndent(),
-            0, null
-        )
+        } catch (e: Exception) {
+            // The driver is already open at this point (property initializer runs before this
+            // init block) — without this, a failed CREATE TABLE leaks the connection since the
+            // object never finishes constructing and nothing else holds a reference to close it.
+            driver.close()
+            throw e
+        }
     }
 
     /** Idempotent — called on every LTI launch. Only writes on first sight of a studentId, so a

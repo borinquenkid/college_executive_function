@@ -22,10 +22,17 @@ class TenantMigrationRunner(private val tenantBaseDir: String) {
         var count = 0
         for (dbFile in dbFiles) {
             val migratingFactory = MigratingDriverFactory(dbFile)
-            // createDatabase triggers schema creation and manual alter table migrations
-            createDatabase(migratingFactory)
-            migratingFactory.createdDriver?.close()
-            count++
+            try {
+                // createDatabase triggers schema creation and manual alter table migrations
+                createDatabase(migratingFactory)
+                count++
+            } catch (e: Exception) {
+                // One corrupted/unmigratable tenant database must not block migrations for
+                // every other tenant discovered in the same sweep.
+                println("[TenantMigrationRunner] WARN: Failed to migrate ${dbFile.name}: ${e.message}")
+            } finally {
+                migratingFactory.createdDriver?.close()
+            }
         }
         return count
     }

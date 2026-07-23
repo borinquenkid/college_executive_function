@@ -88,6 +88,17 @@ export default function App() {
   const [isUploading, setIsUploading] = useState(false);
   const [isDecomposing, setIsDecomposing] = useState(false);
 
+  // Toast notifications — a plain alert()/confirm() blocks the JS main thread until a human
+  // dismisses it, which froze the tab (and any CDP-driven automation) after long-running
+  // fetches like the syllabus upload. A toast never blocks, so it's used for anything fired
+  // automatically after an await rather than from a direct user click.
+  const [toast, setToast] = useState<{ message: string; kind: 'success' | 'error' } | null>(null);
+  useEffect(() => {
+    if (!toast) return;
+    const timer = setTimeout(() => setToast(null), 4000);
+    return () => clearTimeout(timer);
+  }, [toast]);
+
   // Google Calendar state
   const [googleLinked, setGoogleLinked] = useState(false);
   const [availableCalendars, setAvailableCalendars] = useState<RemoteCalendarMetadata[]>([]);
@@ -287,7 +298,7 @@ export default function App() {
         setApiKey('');
       }
       setPreferences(newPrefs);
-      alert('Settings updated successfully!');
+      setToast({ message: 'Settings updated successfully!', kind: 'success' });
     } catch (e) {
       console.error('Failed to save settings:', e);
     }
@@ -298,7 +309,7 @@ export default function App() {
     try {
       await fetch('/api/events/sync', { method: 'POST' });
       await fetchEvents();
-      alert('Calendar sync completed successfully!');
+      setToast({ message: 'Calendar sync completed successfully!', kind: 'success' });
     } catch (e) {
       console.error('Failed to sync calendar:', e);
     } finally {
@@ -332,9 +343,9 @@ export default function App() {
         setSourceUrl('');
         fetchSources();
         fetchEvents();
-        alert('URL successfully ingested and processed!');
+        setToast({ message: 'URL successfully ingested and processed!', kind: 'success' });
       } else {
-        alert('Failed to process URL source.');
+        setToast({ message: 'Failed to process URL source.', kind: 'error' });
       }
     } catch (e) {
       console.error('Failed to add URL source:', e);
@@ -357,9 +368,9 @@ export default function App() {
       if (res.ok) {
         fetchSources();
         fetchEvents();
-        alert('File successfully uploaded and processed!');
+        setToast({ message: 'File successfully uploaded and processed!', kind: 'success' });
       } else {
-        alert('Failed to process file upload.');
+        setToast({ message: 'Failed to process file upload.', kind: 'error' });
       }
     } catch (e) {
       console.error('Failed to upload file:', e);
@@ -428,6 +439,27 @@ export default function App() {
 
   return (
     <div className="app-container">
+      {toast && (
+        <div
+          role="status"
+          style={{
+            position: 'fixed',
+            top: '20px',
+            right: '20px',
+            zIndex: 1000,
+            padding: '12px 20px',
+            borderRadius: '10px',
+            fontSize: '14px',
+            fontWeight: 600,
+            maxWidth: '360px',
+            background: toast.kind === 'success' ? 'rgba(34,197,94,0.15)' : 'rgba(239,68,68,0.15)',
+            border: `1px solid ${toast.kind === 'success' ? 'var(--color-success)' : 'var(--color-danger)'}`,
+            color: toast.kind === 'success' ? 'var(--color-success)' : 'var(--color-danger)'
+          }}
+        >
+          {toast.message}
+        </div>
+      )}
       {/* Sidebar */}
       <aside className="sidebar">
         <div className="logo-container">

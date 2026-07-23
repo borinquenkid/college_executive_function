@@ -16,7 +16,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory) is DONE as of 2026-07-10** — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). `TermBoundaryTrigger` is wired to a real invocation site (`CalendarAgent.synchronize()` — see XM-3). SonarQube quality gate re-verified and passing (`new_coverage: 90.2 ≥ 80`, `new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`) — the earlier "expired `SONAR_TOKEN`" note was actually a Keychain-sourcing issue, not a dead token (see `docs/ops/keychain-secrets-migration.md`'s 2026-07-10 OOC section); the real gate run caught one genuine pre-existing `kotlin:S6310` (hardcoded dispatcher) violation in `TermProfileRepository.kt`, fixed to match the already-established `SqlDelightChatRepository` convention (injected `CoroutineDispatcher` param, defaulted to `Dispatchers.Default`).
+**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory) is DONE as of 2026-07-10** — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). `TermBoundaryTrigger` is wired to a real invocation site (`CalendarAgent.synchronize()` — see XM-3). SonarQube quality gate re-verified and passing (`new_coverage: 90.2 ≥ 80`, `new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`) — the earlier "expired `SONAR_TOKEN`" note was actually a Keychain-sourcing issue, not a dead token (see `docs/ops/keychain-secrets-migration.md`'s 2026-07-10 OOC section); the real gate run caught one genuine pre-existing `kotlin:S6310` (hardcoded dispatcher) violation in `TermProfileRepository.kt`, fixed to match the already-established `SqlDelightChatRepository` convention (injected `CoroutineDispatcher` param, defaulted to `Dispatchers.Default`). **Phase 14 (Accessibility Conformance — WCAG 2.1 AA + VPAT)** is proposed — see [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md); triggered by a 2026-07-23 request for defensible "ADA compliant" marketing language, which the project cannot currently back (ADR 0009 fixed real defects but set no conformance level, has no VPAT, and no automated a11y regression tests beyond static linting). AC-1 (this ADR) is done; AC-2 onward not started. **Phase 15 (Decouple Upload from Processing)** is proposed — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. Not started; AU-1 onward all open.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2672,3 +2672,275 @@ XM-5 (key-source guardrail)       needs XM-2 + XM-4
   manual, reviewed action.
 - **A separate long-running memory-agent process** — rejected in ADR 0004; this phase's XM- tasks
   are a batch trigger (XM-3) + read path (XM-4), not a new agent architecture.
+
+---
+
+## Phase 14 — Accessibility Conformance (WCAG 2.1 AA + VPAT) 🔵 PROPOSED — not started
+
+See [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md). ADR 0009 fixed real
+defects (keyboard operability, ARIA, focus management) and added static linting, but the project
+cannot currently back a "WCAG conformant" or "ADA compliant" claim: no explicit target level, no
+automated a11y regression tests beyond lint, no contrast audit, no assistive-tech pass, no VPAT.
+This phase closes that gap for real, in the order a truthful VPAT actually requires (you can't
+document conformance you haven't tested).
+
+### Tasks
+
+#### AC-1 — Adopt WCAG 2.1 AA as the documented conformance target
+
+**What:** Docs-only — this ADR (0011) is the artifact. No code change.
+
+**Acceptance criteria:**
+- [x] ADR 0011 accepted and committed
+
+**Files:** `docs/adr/0011-accessibility-conformance-target-and-vpat.md`
+
+---
+
+#### AC-2 — Frontend test infrastructure + automated axe coverage
+
+**What:** The web client has zero frontend tests today (ADR 0009 explicitly deferred this). Add
+Vitest + React Testing Library, then `vitest-axe` (or `jest-axe` under Vitest's jest-compat layer)
+run against the Calendar, Sources, Studio Panel, and Settings views plus both modals (task
+decomposition, create-calendar). This catches runtime issues static `jsx-a11y` linting structurally
+can't — dynamic ARIA state, color contrast, live regions.
+
+**Acceptance criteria:**
+- [ ] `web/package.json` has a working `npm test` (Vitest) wired into CI alongside the existing
+      `npm run lint` job
+- [ ] Test: axe reports zero violations against each of the four main views in their default
+      rendered state
+- [ ] Test: axe reports zero violations against both modals in their open state (focus-trapped,
+      per ADR 0009)
+- [ ] Regression test: intentionally reintroducing an ADR-0009-fixed defect (e.g. an unlabeled
+      button) fails the suite, proving the guardrail actually catches what it claims to
+
+**Files:** `web/package.json`, `web/vitest.config.ts` (new), `web/src/*.test.tsx` (new)
+
+---
+
+#### AC-3 — Color contrast audit (dark theme)
+
+**What:** Audit every text/UI-component color pair against WCAG 1.4.3 (4.5:1 normal text, 3:1
+large text/UI components), with particular attention to `var(--text-secondary)` and any other muted
+tone used over the dark background — the common failure mode for a dark theme that looks fine to a
+sighted engineer at full monitor brightness but fails the ratio. AC-2's axe integration catches most
+of this automatically; anything it can't (e.g. text over a gradient/image background, like the
+outro card) needs a manual check.
+
+**Acceptance criteria:**
+- [ ] Every CSS custom property used for text-on-background pairs in `web/src/index.css` (or
+      equivalent) documented with its computed contrast ratio
+- [ ] Any pair below the WCAG 1.4.3 threshold for its role fixed
+- [ ] AC-2's axe suite includes `color-contrast` as an enabled rule (it's on by default, but confirm
+      it isn't accidentally disabled) so future regressions are caught automatically
+
+**Files:** `web/src/index.css` (or wherever theme tokens live), `web/src/*.test.tsx`
+
+---
+
+#### AC-4 — Manual assistive-technology pass
+
+**What:** A real human pass automated tooling can't replace: full keyboard-only walkthrough of
+every primary flow (login via LTI launch, upload a source, view/sync the calendar, decompose a
+task, chat in the Studio Panel, edit settings, staff console if applicable), plus a screen-reader
+smoke test with VoiceOver (macOS — two of four platforms are Apple) and NVDA (Windows — the most
+common combination in US higher-ed IT). Findings get logged even if they don't block this phase's
+completion, so the VPAT (AC-6) can honestly note them.
+
+**Acceptance criteria:**
+- [ ] Written findings doc covering: keyboard-only pass (all flows reachable/operable, focus order
+      sane, no traps outside the two intentional modal traps), VoiceOver pass, NVDA pass
+- [ ] Any finding that's a quick fix gets fixed before AC-6; anything bigger gets its own follow-up
+      item and an honest "Partially Supports" row in the VPAT rather than being silently dropped
+
+**Files:** `docs/ops/accessibility-manual-audit-findings.md` (new)
+
+---
+
+#### AC-5 — Public in-app accessibility statement
+
+**What:** A reachable page/section in the web client stating the conformance target (WCAG 2.1 AA),
+known limitations (pulled honestly from AC-4's findings), and a contact path for reporting issues.
+Standard expectation in institutional procurement, independent of the VPAT itself.
+
+**Acceptance criteria:**
+- [ ] Statement reachable from the app (e.g. Settings or a footer link), not just a repo file
+- [ ] Content reflects AC-3/AC-4's actual findings, not aspirational language
+
+**Files:** `web/src/App.tsx` (or a new `AccessibilityStatement` component/route)
+
+---
+
+#### AC-6 — Produce the VPAT
+
+**What:** ITI's VPAT 2.5, WCAG Edition or the combined INT edition (covers Section 508/EN 301 549
+too — worth the small extra effort given the US higher-ed audience). Filled in from AC-2/AC-3/AC-4's
+actual results. Must include honest "Partially Supports" / "Does Not Support" rows where true — an
+oversold VPAT is worse than none once a real disability-services reviewer starts testing.
+
+**Acceptance criteria:**
+- [ ] VPAT document committed to the repo (e.g. `docs/compliance/VPAT.md` or `.pdf`)
+- [ ] Every WCAG 2.1 AA success criterion has a row backed by an actual AC-2/AC-3/AC-4 result, not
+      a guess
+
+**Files:** `docs/compliance/VPAT.md` (new)
+
+---
+
+#### AC-7 — Third-party accessibility audit (stretch, gated)
+
+**What:** Deferred, not rejected (see ADR 0011's "Alternatives Considered"). Only pursue if a real
+customer or procurement process asks for third-party attestation rather than a self-authored VPAT —
+real cost, no point paying for it speculatively.
+
+**Acceptance criteria:**
+- [ ] Not started until a concrete external ask exists; tracked here so it isn't forgotten
+
+**Files:** N/A yet
+
+### Build order
+
+```
+AC-1 (adopt target)         standalone — done via this ADR
+AC-2 (test infra + axe)     standalone — new frontend test infra
+AC-3 (contrast audit)       needs AC-2's axe setup for the automated half; manual half standalone
+AC-4 (manual AT pass)       standalone, can run in parallel with AC-2/AC-3
+AC-5 (statement page)       standalone; content depends on AC-4's findings for accuracy
+AC-6 (VPAT)                 needs AC-2 + AC-3 + AC-4 results — cannot be written truthfully before them
+AC-7 (third-party audit)    needs AC-6; gated behind a real external ask, not scheduled
+```
+
+### Ruled out (this phase)
+
+- **Targeting WCAG 2.2 AA instead of 2.1.** Rejected for now — 2.1 AA is the more universally
+  referenced baseline in current ADA/Section 508 guidance; revisit once 2.2 sees wider adoption on
+  the procurement side.
+- **Self-declaring conformance without a VPAT.** Rejected — the target audience (disability-services
+  / procurement offices) expects a VPAT as the standard artifact; showing up without one reads as
+  not having done the work.
+- **Commissioning a third-party audit now.** Deferred to AC-7, gated behind a real ask — see ADR
+  0011.
+
+---
+
+## Phase 15 — Decouple Upload from Processing (Async Ingestion + Progress Streaming) 🔵 PROPOSED — not started
+
+See [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md). `POST /api/sources` currently
+does upload and AI processing as one blocking HTTP request (`WebSourceHandler.processFileIngestion`
+awaits `SourceProcessingPipeline.processSource` in-line, temp file deleted before responding) — a
+real syllabus holds the request open 20-30+ seconds with one undifferentiated spinner. This is a
+web/HTTP-client-specific gap (Android/iOS/Desktop already get live phase text in-process via
+`EventAgent._statusMessage`); it surfaced during the 2026-07-23 live demo rehearsal alongside the
+(separately fixed) blocking-`alert()` bug. Reuses the existing `/api/agent/stream` SSE pattern
+rather than inventing a new async mechanism.
+
+### Tasks
+
+#### AU-1 — Persist upload immediately, respond before processing starts
+
+**What:** Replace `WebSourceHandler.processFileIngestion`'s temp-dir-then-delete flow with durable
+per-tenant storage, create the `SourceItem` with a pending status, and respond `202 Accepted` with
+the source id as soon as the bytes are safely stored — no AI call has run yet at response time.
+
+**Acceptance criteria:**
+- [ ] Test: `POST /api/sources` returns `202` (not `200`) with a source id well before any Gemini
+      call could plausibly complete — assert via a fake/slow `AIService` that the response lands
+      before the fake call resolves
+- [ ] Test: the uploaded file survives on disk after the request completes (no `finally`-block
+      deletion until digestion actually finishes)
+
+**Files:** `server/src/main/kotlin/com/borinquenterrier/cef/WebSourceHandler.kt`
+
+---
+
+#### AU-2 — Background digestion job
+
+**What:** Launch `sourceProcessingPipeline.processSource(sourceItem)` on an application-scoped
+`CoroutineScope`, decoupled from the request that returned in AU-1. Document the failure mode: an
+in-flight job is lost if the server restarts (accepted for now — single non-clustered container,
+see ADR 0012's "Alternatives Considered"); the UI must treat a vanished job as a failure requiring
+re-upload, not an indefinite wait.
+
+**Acceptance criteria:**
+- [ ] Test: the HTTP response from AU-1 does not block on `processSource` completing
+- [ ] Test: a source's status eventually reaches `DONE` or `FAILED` after the background job
+      finishes, observable via whatever state AU-1's `SourceItem` exposes
+
+**Files:** `server/src/main/kotlin/com/borinquenterrier/cef/DependencyContainer.kt` (or wherever the
+application-scoped `CoroutineScope` is defined), `WebSourceHandler.kt`
+
+---
+
+#### AU-3 — Phase markers in the pipeline
+
+**What:** Add discrete phase events to `SourceProcessingPipeline.processSource` — `ANALYZING_CONTEXT`,
+`EXTRACTING_DELIVERABLES`, `RESOLVING_CONFLICTS`, `WRITING_CALENDAR`, `DONE`, `FAILED` — via a
+listener interface shaped like the existing `CriticProgressListener`, alongside the
+`eventAgent.updateStatus(...)` calls already at lines 24/28-30.
+
+**Acceptance criteria:**
+- [ ] Test: each phase fires its listener callback exactly once, in order, for a successful run
+- [ ] Test: a mid-pipeline exception fires `FAILED` (not silently swallowed) — existing `catch`
+      block at line 31 already rethrows, so this should mostly be wiring the listener into that path
+- [ ] Android/iOS/Desktop's existing `_statusMessage` StateFlow shows the richer phase text with no
+      platform-specific code change (verify manually on one platform)
+
+**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceProcessingPipeline.kt`,
+new `IngestionProgressListener` (or similar) interface
+
+---
+
+#### AU-4 — SSE streaming endpoint
+
+**What:** `GET /api/sources/{id}/stream`, built the same way as the existing `/api/agent/stream`
+(`respondBytesWriter` + `ContentType.Text.EventStream` + `emit(type, dataJson)`), streaming AU-3's
+phase transitions for the given source id.
+
+**Acceptance criteria:**
+- [ ] Test: connecting mid-digestion receives the current phase, not just future transitions (a
+      late subscriber shouldn't see nothing until the next phase change)
+- [ ] Test: stream closes cleanly on `DONE`/`FAILED`, matching `/api/agent/stream`'s existing
+      lifecycle conventions
+
+**Files:** `server/src/main/kotlin/com/borinquenterrier/cef/Application.kt`
+
+---
+
+#### AU-5 — Web client: two-phase progress UI
+
+**What:** `uploadFile`/`addSourceUrl` in `web/src/App.tsx` change from one blocking `await fetch()`
+to: `POST /api/sources` (now fast) → open a stream against `/api/sources/{id}/stream`, mirroring
+`useAgentStream.ts`'s existing `EventSource` pattern → render "Uploaded" (done immediately) and a
+live digestion-phase label as two distinct states, replacing the single "Uploading and parsing..."
+spinner.
+
+**Acceptance criteria:**
+- [ ] AC-2's (Phase 14) Vitest/RTL infra used to test: upload state flips to "done" independently
+      of and before digestion state changes
+- [ ] Manual dry run: re-upload the real syllabus fixture, confirm the UI shows distinct
+      upload-done and per-phase digestion text rather than one static spinner string
+
+**Files:** `web/src/App.tsx`, `web/src/useSourceStream.ts` (new, mirroring `useAgentStream.ts`)
+
+### Build order
+
+```
+AU-1 (fast persist + 202)      standalone
+AU-2 (background job)          needs AU-1 (job runs against the persisted file, not a temp one)
+AU-3 (phase markers)           needs AU-2 (only meaningful once the pipeline actually runs
+                                in the background; the listener interface itself is standalone)
+AU-4 (SSE endpoint)            needs AU-3 (streams the events AU-3 emits)
+AU-5 (web client UI)           needs AU-4 (consumes the stream)
+```
+
+### Ruled out (this phase)
+
+- **Polling instead of SSE.** Rejected — the project already has a working SSE mechanism and
+  client-side hook shape (`useAgentStream.ts`); reusing it beats a second async pattern for a
+  near-identical problem.
+- **Persisted job queue surviving server restarts.** Deferred, not rejected — see ADR 0012;
+  revisit if the server ever runs multiple replicas.
+- **Client-side simulated progress bar.** Rejected — doesn't address the actual problem (still one
+  blocking call under the hood, no real visibility, same robustness risk on slow networks or large
+  documents).

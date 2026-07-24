@@ -130,6 +130,7 @@ export default function App() {
   const createCalendarModalRef = useFocusTrap<HTMLDivElement>(showCreateCalendarModal, closeCreateCalendarModal);
 
   const chatEndRef = useRef<HTMLDivElement>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   const {
     isActive: isDigesting,
@@ -614,19 +615,28 @@ export default function App() {
             <div className="grid-2">
               <div className="card">
                 <h2>Add New Source</h2>
-                <label
-                  htmlFor="sourceFileInput"
+                <input
+                  ref={fileInputRef}
+                  type="file"
+                  id="sourceFileInput"
+                  onChange={uploadFile}
+                  style={{ display: 'none' }}
+                  accept=".pdf,.docx,.ics,.txt"
+                  disabled={isUploading || isDigesting}
+                />
+                {/* A <label> wrapping a display:none input is never keyboard-focusable on its
+                    own — a keyboard-only user had no way to reach file upload at all (found
+                    during the AC-4 keyboard-only walkthrough, ADR 0011). A real <button>
+                    triggering the hidden input via ref gets keyboard operability natively,
+                    unlike retrofitting role="button" onto a <label> (invalid ARIA combination —
+                    axe's aria-allowed-role rule correctly flags that). */}
+                <button
+                  type="button"
                   className="dropzone"
-                  style={{ marginBottom: '24px' }}
+                  style={{ marginBottom: '24px', width: '100%' }}
+                  disabled={isUploading || isDigesting}
+                  onClick={() => fileInputRef.current?.click()}
                 >
-                  <input
-                    type="file"
-                    id="sourceFileInput"
-                    onChange={uploadFile}
-                    style={{ display: 'none' }}
-                    accept=".pdf,.docx,.ics,.txt"
-                    disabled={isUploading || isDigesting}
-                  />
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" style={{ marginBottom: '12px', color: 'var(--color-primary)' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
                   <p style={{ fontWeight: 600 }}>
                     {isUploading
@@ -636,7 +646,7 @@ export default function App() {
                         : 'Click or Drag File Here'}
                   </p>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Supports PDF, DOCX, and ICS calendar files</p>
-                </label>
+                </button>
 
                 <form onSubmit={addSourceUrl}>
                   <div className="form-group">

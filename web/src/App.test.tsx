@@ -1,4 +1,4 @@
-import { describe, it } from 'vitest';
+import { describe, it, expect, vi } from 'vitest';
 import { screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe } from 'vitest-axe';
@@ -27,6 +27,29 @@ describe('Sources Panel — default rendered state', () => {
 
     const results = await axe(document.body);
     expectNoAxeViolations(results);
+  });
+});
+
+describe('Sources Panel — file dropzone keyboard reachability (ADR 0011 AC-4)', () => {
+  it('is reachable via Tab/focus and activatable via Enter', async () => {
+    // Found during AC-4's keyboard-only walkthrough: a <label> wrapping a display:none file
+    // input is never keyboard-focusable on its own — axe-core doesn't flag this pattern, so this
+    // regression wouldn't be caught by the axe-violation tests above.
+    await renderApp();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Sources' }));
+    await screen.findByText('Sources Panel');
+
+    const dropzone = screen.getByRole('button', { name: /Click or Drag File Here/ });
+    const fileInput = document.getElementById('sourceFileInput') as HTMLInputElement;
+    const clickSpy = vi.fn();
+    fileInput.addEventListener('click', clickSpy);
+
+    dropzone.focus();
+    expect(document.activeElement).toBe(dropzone);
+
+    await user.keyboard('{Enter}');
+    expect(clickSpy).toHaveBeenCalledTimes(1);
   });
 });
 

@@ -24,7 +24,10 @@ also found that jsdom has no layout engine at all, so axe's `color-contrast` rul
 meaningfully in the AC-2 Vitest suite (confirmed, not fixable there) — closed for real the same day
 with a second, browser-backed test layer (Playwright + `@axe-core/playwright`, `web/e2e/`), added
 after discussing the tradeoff with the user; verified it actually catches the real bug AC-3 found by
-reverting the fix and confirming all 6 specs fail, then restoring it. AC-4 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
+reverting the fix and confirming all 6 specs fail, then restoring it. AC-4's keyboard-only pass is
+done as of 2026-07-24 (found and fixed a real WCAG 2.1.1 failure — the Sources tab's file-upload
+dropzone was completely unreachable by keyboard); its VoiceOver/NVDA passes are open — those
+genuinely need a human, not automated tooling. AC-5 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2835,7 +2838,7 @@ views + 2 modals), `.github/workflows/pr-check.yml`
 
 ---
 
-#### AC-4 — Manual assistive-technology pass
+#### AC-4 — Manual assistive-technology pass 🟡 PARTIALLY DONE (2026-07-24) — keyboard pass done, screen-reader passes open
 
 **What:** A real human pass automated tooling can't replace: full keyboard-only walkthrough of
 every primary flow (login via LTI launch, upload a source, view/sync the calendar, decompose a
@@ -2844,13 +2847,31 @@ smoke test with VoiceOver (macOS — two of four platforms are Apple) and NVDA (
 common combination in US higher-ed IT). Findings get logged even if they don't block this phase's
 completion, so the VPAT (AC-6) can honestly note them.
 
-**Acceptance criteria:**
-- [ ] Written findings doc covering: keyboard-only pass (all flows reachable/operable, focus order
-      sane, no traps outside the two intentional modal traps), VoiceOver pass, NVDA pass
-- [ ] Any finding that's a quick fix gets fixed before AC-6; anything bigger gets its own follow-up
-      item and an honest "Partially Supports" row in the VPAT rather than being silently dropped
+**What actually happened**: the keyboard-only pass is a genuinely objective, mechanical check (can
+every control be reached via Tab, does focus order make sense, do traps behave), so it was done
+live against the real running app via keyboard-driven browser automation — see
+`docs/ops/accessibility-manual-audit-findings.md` for the full writeup. It found and fixed one real
+WCAG 2.1.1 failure (the Sources tab's file-upload dropzone — a `<label>` wrapping a hidden file
+input — was completely unreachable by keyboard; rewritten as a real `<button>`, with a regression
+test added since axe-core doesn't flag this pattern on its own).
 
-**Files:** `docs/ops/accessibility-manual-audit-findings.md` (new)
+The VoiceOver and NVDA passes are **not done** — these need a human actually listening to real
+screen-reader speech output and judging whether it's clear/non-confusing, which isn't something
+automated tooling (or an agent without ears) can substitute for. NVDA additionally needs a Windows
+machine, unavailable in this environment. Both are open, tracked honestly rather than skipped
+silently or faked — see the findings doc's "What's still open" section for the reasoning and
+options going forward.
+
+**Acceptance criteria:**
+- [x] Written findings doc covering: keyboard-only pass (all flows reachable/operable, focus order
+      sane, no traps outside the two intentional modal traps) — done
+- [ ] Written findings doc covering: VoiceOver pass — **open, needs a human**
+- [ ] Written findings doc covering: NVDA pass — **open, needs a human + a Windows machine**
+- [x] Any finding that's a quick fix gets fixed before AC-6 — the dropzone keyboard-reachability bug
+      was fixed in this same pass
+
+**Files:** `docs/ops/accessibility-manual-audit-findings.md` (new), `web/src/App.tsx` (dropzone
+fix), `web/src/App.test.tsx` (regression test)
 
 ---
 

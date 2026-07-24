@@ -14,9 +14,19 @@
   
   --text-primary: #f3f4f6;
   --text-secondary: #9ca3af;
-  --text-muted: #6b7280;
-  
+  /* #6b7280 measured 3.4-4.0:1 against every background it's used on (WCAG 1.4.3 needs 4.5:1
+     for this token's actual usages, all <14px normal-weight text) — lightened until it clears
+     4.5:1 against bg-card-hover, the lightest background it renders over (ADR 0011 AC-3). */
+  --text-muted: #838ba0;
+
+  /* Accent/text color — kept light so it stays readable as text/icon color against the dark
+     backgrounds elsewhere in this file. NOT used as a background under white text (see
+     --color-primary-solid below) — #a855f7 only manages 3.95:1 with white on top, short of
+     WCAG 1.4.3's 4.5:1 (ADR 0011 AC-3). */
   --color-primary: #a855f7;
+  /* Same hue, darkened until white-on-top clears 4.5:1 (5.38:1) — for .btn-primary/.chat-msg.user,
+     which need a solid button-style background under white text, not this file's --color-primary. */
+  --color-primary-solid: #9333ea;
   --color-primary-glow: rgba(168, 85, 247, 0.15);
   --color-success: #10b981;
   --color-success-glow: rgba(16, 185, 129, 0.15);
@@ -205,12 +215,12 @@ body {
 }
 
 .btn-primary {
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: white;
 }
 
 .btn-primary:hover {
-  background: #9333ea;
+  background: #7e22ce;
   box-shadow: 0 0 15px rgba(168, 85, 247, 0.4);
 }
 
@@ -384,7 +394,7 @@ body {
 
 .chat-msg.user {
   align-self: flex-end;
-  background: var(--color-primary);
+  background: var(--color-primary-solid);
   color: white;
   border-bottom-right-radius: 2px;
 }

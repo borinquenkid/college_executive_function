@@ -18,7 +18,12 @@
 
 **Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory) is DONE as of 2026-07-10** — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). `TermBoundaryTrigger` is wired to a real invocation site (`CalendarAgent.synchronize()` — see XM-3). SonarQube quality gate re-verified and passing (`new_coverage: 90.2 ≥ 80`, `new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`) — the earlier "expired `SONAR_TOKEN`" note was actually a Keychain-sourcing issue, not a dead token (see `docs/ops/keychain-secrets-migration.md`'s 2026-07-10 OOC section); the real gate run caught one genuine pre-existing `kotlin:S6310` (hardcoded dispatcher) violation in `TermProfileRepository.kt`, fixed to match the already-established `SqlDelightChatRepository` convention (injected `CoroutineDispatcher` param, defaulted to `Dispatchers.Default`). **Phase 14 (Accessibility Conformance — WCAG 2.1 AA + VPAT)** is proposed — see [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md); triggered by a 2026-07-23 request for defensible "ADA compliant" marketing language, which the project cannot currently back (ADR 0009 fixed real defects but set no conformance level, has no VPAT, and no automated a11y regression tests beyond static linting). AC-1 (this ADR) is done. AC-2 (Vitest + RTL + vitest-axe test infra, wired into CI) is done as of
 2026-07-24 — found and fixed a real `heading-order` violation on the Calendar and Settings tabs
-along the way. AC-3 (contrast audit) onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
+along the way. AC-3 (contrast audit) is done as of 2026-07-24 — one real live violation
+(`.btn-primary`/`.chat-msg.user` white-on-purple, 3.95:1) fixed, plus `--text-muted` lightened;
+also found that jsdom has no layout engine at all, so axe's `color-contrast` rule can never run
+meaningfully in the AC-2 Vitest suite (confirmed, not fixable there) — future automated contrast
+regression coverage needs a real browser-based test runner, tracked as an open gap. AC-4 onward
+not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2745,7 +2750,7 @@ inline `fontSize` where the tag change would otherwise have changed it).
 
 ---
 
-#### AC-3 — Color contrast audit (dark theme)
+#### AC-3 — Color contrast audit (dark theme) ✅ DONE (2026-07-24)
 
 **What:** Audit every text/UI-component color pair against WCAG 1.4.3 (4.5:1 normal text, 3:1
 large text/UI components), with particular attention to `var(--text-secondary)` and any other muted
@@ -2754,14 +2759,70 @@ sighted engineer at full monitor brightness but fails the ratio. AC-2's axe inte
 of this automatically; anything it can't (e.g. text over a gradient/image background, like the
 outro card) needs a manual check.
 
-**Acceptance criteria:**
-- [ ] Every CSS custom property used for text-on-background pairs in `web/src/index.css` (or
-      equivalent) documented with its computed contrast ratio
-- [ ] Any pair below the WCAG 1.4.3 threshold for its role fixed
-- [ ] AC-2's axe suite includes `color-contrast` as an enabled rule (it's on by default, but confirm
-      it isn't accidentally disabled) so future regressions are caught automatically
+**A real, load-bearing gap in AC-2's own premise, found while working this task**: `color-contrast`
+cannot run meaningfully in jsdom at all — not "disabled," but functionally broken. axe-core's rule
+depends on real bounding-box geometry to decide if text is visible, and jsdom has **no layout engine
+whatsoever**: `getBoundingClientRect()`/`offsetWidth`/`offsetHeight` return `0` for every element
+regardless of CSS (verified directly: a 200×50px styled `<div>` reports a `0,0,0,0` rect). Every
+element in jsdom looks invisible to axe, so `color-contrast` can never produce a real pass or
+violation there — it either silently reports "incomplete" or throws internally
+(`Cannot read properties of null (reading 'canvas')`, from an icon-ligature check that needs a real
+`<canvas>` 2D context jsdom doesn't provide). Installing the `canvas` npm package (jsdom's optional
+native canvas backend) silences that specific error but **does not fix the underlying problem** —
+results stayed empty (0 violations, 0 incomplete, 0 passes) because the zero-size bounding boxes
+still make every element look invisible. Confirmed, then reverted (`canvas` isn't a real fix, just
+dead weight — a native-binary devDependency with no payoff). **This means AC-2's third acceptance
+criterion as originally written is not achievable**: the Vitest suite cannot auto-catch future
+contrast regressions; that requires a real browser-based test runner (Playwright/Cypress component
+tests), which is new infrastructure out of scope for this pass. `color-contrast` is still on by
+default in AC-2's suite (never explicitly disabled) — it's just a no-op there, always.
 
-**Files:** `web/src/index.css` (or wherever theme tokens live), `web/src/*.test.tsx`
+**This pass's actual audit** was done live: `axe-core`'s browser bundle
+(`node_modules/axe-core/axe.min.js`, already a vetted local devDependency — not fetched from a CDN)
+injected into the real running app via Vite's `/@fs/` dev-server path, logged in through the mock
+LTI platform, `axe.run(document, {runOnly:['color-contrast']})` run against each of the 4 views.
+This found one real, live violation axe caught automatically (`.btn-primary`/`.chat-msg.user`: white
+text on `--color-primary` `#a855f7` = 3.95:1, below the 4.5:1 required for this 14px/normal-weight
+text) and surfaced several backdrop-filter/semi-transparent-background pairs as "incomplete" (axe
+correctly can't reliably composite `backdrop-filter: blur()` layers even in a real browser) that
+were then hand-computed with the WCAG relative-luminance formula:
+
+| Text token | Background | Ratio | Threshold | Result |
+|---|---|---|---|---|
+| `--text-primary` (#f3f4f6) | bg-app / composited bg-card / bg-card-hover / bg-input / sidebar | 15.1–17.5 | 4.5:1 | OK |
+| `--text-secondary` (#9ca3af) | same set | 6.5–7.6 | 4.5:1 | OK |
+| `--text-muted` (old: #6b7280) | same set | 3.4–4.0 | 4.5:1 | **FAIL** (all real usages are ≤14px normal-weight, not "large text") |
+| `--text-muted` (new: #838ba0) | same set | 4.9–5.7 | 4.5:1 | OK — fixed |
+| `--color-primary` (#a855f7) as text/icon color | bg-app / composited bg-card / sidebar | 4.6–4.9 | 4.5:1 | OK |
+| `--color-primary` (#a855f7) as text/icon color | composited bg-card-hover / bg-input | 4.2–4.3 | 4.5:1 | FAIL, but not used as text color on these backgrounds today — not fixed, flagged for future caution |
+| `--color-success` / `--color-warning` / `--color-danger` as text color | full background set | 4.4–9.0 | 4.5:1 | OK |
+| white text on `--color-primary` solid bg (old, `.btn-primary`/`.chat-msg.user`) | — | 3.95 | 4.5:1 | **FAIL** |
+| white text on `--color-primary-solid` (new: #9333ea) | — | 5.38 | 4.5:1 | OK — fixed |
+| white text on `.btn-primary:hover` (new: #7e22ce, was #9333ea) | — | 6.98 | 4.5:1 | OK |
+| event-chip / badge tinted colors (`#60a5fa`, `#f87171`, `#c084fc`, `#34d399`, `#fbbf24`, etc.) on their own 15-25%-alpha tinted backgrounds | composited over bg-card | 5.4–8.4 | 4.5:1 | OK |
+| Modal content (`--text-primary/secondary`, `--color-warning/danger/primary`, `.btn-secondary`) | modal's solid `#131520` background | 4.6–16.5 | 4.5:1/3.0:1 | OK — both modals reuse already-audited tokens, no new pairs |
+
+**Fixes applied** (`web/src/index.css`): `--text-muted` lightened `#6b7280` → `#838ba0`; new
+`--color-primary-solid: #9333ea` token added for solid-button-background-under-white-text use
+(`.btn-primary`, `.chat-msg.user`), keeping `--color-primary` itself unchanged (#a855f7) since it's
+still correctly light for its many other uses as accent text/icon color; `.btn-primary:hover`
+darkened from `#9333ea` to `#7e22ce` to preserve the "gets darker on hover" pattern one step further.
+Verified live post-fix: the axe-caught `.btn-primary` violation cleared to 0; all 4 views re-checked
+clean.
+
+**Acceptance criteria:**
+- [x] Every CSS custom property used for text-on-background pairs documented with its computed
+      contrast ratio — table above
+- [x] Any pair below the WCAG 1.4.3 threshold for its role fixed — `--text-muted`,
+      `--color-primary-solid` (new), `.btn-primary:hover`
+- [ ] ~~AC-2's axe suite includes `color-contrast` as an enabled rule... so future regressions are
+      caught automatically~~ — **not achievable as written**; see the jsdom finding above. The rule
+      is enabled (never disabled) but structurally can't produce results in jsdom. Real automated
+      regression coverage for contrast needs a browser-based test runner — tracked as a gap, not
+      silently dropped.
+
+**Files:** `web/src/index.css` (token/value changes only — no new files needed; the live-browser
+audit was a one-time verification pass, not new test infrastructure)
 
 ---
 

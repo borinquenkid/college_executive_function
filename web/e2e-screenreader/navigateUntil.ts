@@ -10,21 +10,22 @@ const MAX_NAVIGATION_STEPS = 20;
 export async function navigateUntilItemTextIncludes(
   screenReader: ScreenReaderPlaywright,
   target: string,
-  maxSteps: number = MAX_NAVIGATION_STEPS
+  maxSteps: number = MAX_NAVIGATION_STEPS,
+  direction: 'next' | 'previous' = 'next'
 ) {
   const normalizedTarget = target.toLowerCase();
   let steps = 0;
   let itemText = (await screenReader.itemText()).toLowerCase();
 
   while (!itemText.includes(normalizedTarget) && steps < maxSteps) {
-    await screenReader.next();
+    await screenReader[direction]();
     itemText = (await screenReader.itemText()).toLowerCase();
     steps++;
   }
 
   if (!itemText.includes(normalizedTarget)) {
     throw new Error(
-      `Screen reader did not reach an item containing "${target}" within ${maxSteps} steps. Last item text: "${itemText}"`
+      `Screen reader did not reach an item containing "${target}" within ${maxSteps} steps going ${direction}. Last item text: "${itemText}"`
     );
   }
 }

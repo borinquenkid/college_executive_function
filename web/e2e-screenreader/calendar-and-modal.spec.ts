@@ -54,15 +54,18 @@ test.describe('Create calendar modal — dialog announces on open', () => {
     // NVDA correctly announcing "close, button, focused": accurate (useFocusTrap.ts focuses the
     // first focusable element on open, per the W3C ARIA APG modal dialog pattern's own default
     // recommendation), but it doesn't include the dialog's own name — a real, known NVDA
-    // per-object-report behavior, not a bug in this app. Confirm that separately by continuing
-    // forward with next() (no re-sync needed — next() doesn't require focus mode, and a plain
-    // button doesn't force NVDA into it) until reaching the dialog's title.
+    // per-object-report behavior, not a bug in this app. Confirm that separately with next() — but
+    // a real run showed forward-only next() walking straight through the rest of the modal
+    // (Calendar Name field, Cancel, the disabled Create button — "button, unavailable, create")
+    // and never finding the title, because the <h2> sits BEFORE the Close button in DOM order
+    // (see App.tsx) — the very first focusable element focus lands on. Go backward instead: the
+    // title is the immediately preceding item.
     if (screenReader.name === 'NVDA') {
       await screenReader.perform(NVDAKeyCodeCommands.reportCurrentFocus);
       const focusAnnouncement = (await screenReader.lastSpokenPhrase()).toLowerCase();
       expect(focusAnnouncement).toContain('button');
 
-      await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 40);
+      await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 5, 'previous');
     } else {
       await screenReader.navigateToWebContent();
       await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 100);

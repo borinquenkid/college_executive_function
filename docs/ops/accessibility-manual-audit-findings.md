@@ -120,14 +120,63 @@ controls in `web/src/App.tsx`).
 this either triggers an interactive System Settings permission dialog (needs a human to click
 through) or implies bypassing TCC via SIP-related settings in unattended environments (the setup
 action's own `ignoreTccDb` escape hatch). Both are real system-permission changes on the user's
-actual machine that shouldn't happen without them directly driving it. The code was authored with
-high confidence against the confirmed real API (matches the official examples closely, and
-`npx playwright test --config=playwright.screenreader.config.ts --list` confirms both spec files
-parse cleanly and both projects pick up all 3 tests each) but **first real functional verification
-happens by manually triggering the new workflow in GitHub Actions** — an isolated, disposable VM is
-exactly the right place for this kind of setup, not a real local machine.
+actual machine that shouldn't happen without them directly driving it. First real functional
+verification happened by manually triggering the workflow in GitHub Actions — an isolated,
+disposable VM is exactly the right place for this kind of setup, not a real local machine.
+
+### Real CI verification (5 runs, iterated against actual failures — not guessed)
+
+The first real trigger failed both jobs immediately, and it took several more real runs to reach a
+working state — recorded here because each failure taught something concrete about how Guidepup
+actually behaves in CI, not just in its docs:
+
+1. **`guidepup/setup-action` alone isn't enough.** It only runs the machine-level `setup` step.
+   `@guidepup/setup`'s own quick-start is a three-step sequence — `setup` → `npm install` →
+   `npx @guidepup/setup install` (reads the project's installed `@guidepup/guidepup` version to
+   fetch matching screen-reader assets) — and the third step was missing entirely. Fixed by adding
+   an explicit `npx @guidepup/setup install voiceover`/`nvda` step after `npm ci` in
+   `screen-reader-a11y.yml`. This alone fixed NVDA's "NVDA is not supported" error outright.
+2. **`navigateToWebContent()` doesn't land on the target — it lands wherever the browse cursor
+   starts** (a landmark region, in our case), matching Guidepup's own reference example
+   (`headerNavigation.ts`, shared across their VoiceOver/NVDA/generic example suites), which loops
+   `next()` until the target text is reached rather than asserting immediately. Our specs made the
+   same wrong assumption Guidepup's own docs implicitly warn against. Added
+   `navigateUntilItemTextIncludes()` (`web/e2e-screenreader/navigateUntil.ts`) matching that pattern.
+3. **`lastSpokenPhrase()` is a genuinely live query** (AppleScript on macOS, a live NVDA query on
+   Windows) — it does NOT reliably reflect a screen reader's live announcement following a passive,
+   non-Guidepup-driven DOM event (a focus-trap's native `.focus()` call, or a real Tab keypress) in
+   CI, even though the same event would audibly announce for an interactive human user. Confirmed
+   this is genuinely reader-specific, not a single fixable bug:
+   - Dropzone check: NVDA's real Tab-press loop worked; VoiceOver's didn't (stuck on stale content).
+     Switching to `next()`-loop fixed VoiceOver but broke NVDA (got stuck on an empty item).
+     **Final fix: branch on `screenReader.name` and give each reader the mechanism proven to work
+     for it** — real Tab presses for NVDA, `next()`-loop for VoiceOver.
+   - Modal-open check: same passive-announcement gap on both readers. `next()`-loop fixed VoiceOver
+     once given enough step budget (a real run got within one button of the target at 40 steps;
+     100 reliably reaches it). **NVDA's modal check still fails** — see "What's still open" below.
+
+**Final verified state (run `30128387849`, commit `92e85f5`): 5 of 6 checks pass for real.**
+VoiceOver (macOS): all 3 pass. NVDA (Windows): heading + dropzone pass, modal-open check fails.
 
 ## What's still open
+
+**NVDA's modal-open check reproducibly stalls, root cause not yet found.** After opening the
+create-calendar modal, NVDA's `next()`-driven browse cursor gets stuck on an item whose text is
+`"blank"` and never progresses further — confirmed as a genuine stall, not a step-budget shortfall,
+by raising the budget from 40 to 100 steps and getting the exact same stopping point both times. Two
+real, most-likely explanations neither confirmed nor ruled out yet: (a) NVDA's virtual browse buffer
+is a known category with staleness bugs after dynamic ARIA changes (e.g. background content going
+`aria-hidden` when a modal opens) and may need an explicit buffer-reload trigger rather than more
+`next()` calls; (b) the "blank" item itself (likely an empty text input in the Settings panel
+`next()` has to pass through en route to the modal) may be intercepting focus or otherwise blocking
+forward navigation in NVDA's browse mode specifically. This is a screen-reader-automation quirk
+under investigation, not a confirmed accessibility defect in the app — VoiceOver's real pass through
+the same modal succeeds, and the manual keyboard-only pass and axe suite didn't flag this modal
+either. Next step if picked back up: read `error-context.md` from a real run's test-results artifact
+(not yet fetched) for the actual accessibility-tree snapshot at the stall point, rather than guessing
+further from step-level logs alone.
+
+
 
 **A full human listen-through (VoiceOver and NVDA) for prosody/naturalness judgment is still not
 done** — this is qualitatively different from what Guidepup's text capture above gives: judging

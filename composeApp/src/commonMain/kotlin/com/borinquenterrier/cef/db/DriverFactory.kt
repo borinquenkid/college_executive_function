@@ -126,5 +126,18 @@ fun buildDatabase(driver: SqlDriver): AppDatabase {
         // Column may already exist, or table might not have been created yet, ignore.
         println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
     }
+    // Async web ingestion (ADR 0012) — existing rows default to DONE, not PENDING (see AppDatabase.sq).
+    try {
+        driver.execute(null, "ALTER TABLE SourceEntity ADD COLUMN status TEXT NOT NULL DEFAULT 'DONE'", 0)
+    } catch (e: Exception) {
+        // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
+    }
+    try {
+        driver.execute(null, "ALTER TABLE SourceEntity ADD COLUMN fileBytes BLOB", 0)
+    } catch (e: Exception) {
+        // Column may already exist, or table might not have been created yet, ignore.
+        println("[DriverFactory] Migration statement failed (may be already applied): ${e.message}")
+    }
     return AppDatabase(driver)
 }

@@ -197,16 +197,20 @@ class EventAgent(
      * agent action: toggles [_isLoading], logs and reports any [Exception] via
      * [_statusMessage] (and optionally [_errorState] for quota exhaustion), and always
      * resets [_isLoading] when done.
+     *
+     * Returns true if [block] completed without throwing, false if its exception was caught here.
+     * Existing callers that don't care can keep ignoring the result — this is additive.
      */
     private suspend fun runAgentAction(
         logContext: String,
         handleQuotaErrors: Boolean = false,
         onStatus: (String) -> Unit = { _statusMessage.value = it },
         block: suspend () -> Unit
-    ) {
+    ): Boolean {
         _isLoading.value = true
-        try {
+        return try {
             block()
+            true
         } catch (e: Exception) {
             logger?.e(tag, logContext, e)
             if (handleQuotaErrors && e.isQuotaError()) {
@@ -215,6 +219,7 @@ class EventAgent(
             } else {
                 onStatus(friendlyError(e))
             }
+            false
         } finally {
             _isLoading.value = false
         }
@@ -246,8 +251,10 @@ class EventAgent(
 
     /**
      * Extracts standard deliverables from a source using AI, processing the full context at once.
+     * Returns true unless the underlying AI call itself failed (see [runAgentAction]) — an empty
+     * or unhelpful extraction result is still a successful run, not a failure.
      */
-    suspend fun extractDeliverables(source: SourceItem) {
+    suspend fun extractDeliverables(source: SourceItem): Boolean =
         runAgentAction("Error extracting deliverables", handleQuotaErrors = true) {
             _statusMessage.value = "Analyzing ${source.title}..."
             _extractionWarning.value = null
@@ -256,7 +263,6 @@ class EventAgent(
             _extractionWarning.value = result.warning
             _statusMessage.value = result.statusMessage
         }
-    }
 
     /**
      * Automatically decomposes unplanned DEADLINE/FINALS events (nearest-due first) into

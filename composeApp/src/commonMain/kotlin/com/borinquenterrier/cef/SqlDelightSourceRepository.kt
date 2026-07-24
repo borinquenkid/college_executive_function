@@ -4,6 +4,11 @@ import com.borinquenterrier.cef.db.AppDatabase
 import com.borinquenterrier.cef.db.FragmentEntity
 import com.borinquenterrier.cef.db.SourceEntity
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.asStateFlow
+import kotlinx.coroutines.sync.Mutex
+import kotlinx.coroutines.sync.withLock
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 
@@ -11,7 +16,22 @@ class SqlDelightSourceRepository(
     private val database: AppDatabase
 ) : SourceRepository {
 
-    override suspend fun saveSource(sourceItem: SourceItem, originUri: String?) =
+    // Live status pub-sub for ADR 0012's web SSE stream — in-memory only (see statusFlow's kdoc
+    // on SourceRepository), guarded by a Mutex rather than java.util.concurrent.ConcurrentHashMap
+    // since this class must stay compilable on iOS/Android too, not just the JVM server.
+    private val statusFlowsMutex = Mutex()
+    private val statusFlows = mutableMapOf<String, MutableStateFlow<SourceStatus>>()
+
+    private suspend fun publishStatus(sourceId: String, status: SourceStatus) {
+        statusFlowsMutex.withLock {
+            statusFlows.getOrPut(sourceId) { MutableStateFlow(status) }.value = status
+        }
+    }
+
+    override suspend fun statusFlow(sourceId: String): StateFlow<SourceStatus>? =
+        statusFlowsMutex.withLock { statusFlows[sourceId]?.asStateFlow() }
+
+    override suspend fun saveSource(sourceItem: SourceItem, originUri: String?, rawBytes: ByteArray?) {
         withContext(Dispatchers.Default) {
             val sourceId = sourceItem.title
             val hash = ContentHasher.hash(sourceItem.fragments)
@@ -23,7 +43,9 @@ class SqlDelightSourceRepository(
                 category = sourceItem.category.name,
                 metadata = null,
                 updatedAt = Clock.System.now().toEpochMilliseconds(),
-                contentHash = hash
+                contentHash = hash,
+                status = sourceItem.status.name,
+                fileBytes = rawBytes
             )
 
             sourceItem.fragments.forEachIndexed { index, fragment ->
@@ -38,6 +60,15 @@ class SqlDelightSourceRepository(
                 )
             }
         }
+        publishStatus(sourceItem.title, sourceItem.status)
+    }
+
+    override suspend fun updateSourceStatus(sourceId: String, status: SourceStatus) {
+        withContext(Dispatchers.Default) {
+            database.appDatabaseQueries.updateSourceStatus(status = status.name, id = sourceId)
+        }
+        publishStatus(sourceId, status)
+    }
 
     override suspend fun updateSourceMetadata(sourceId: String, metadata: String) =
         withContext(Dispatchers.Default) {
@@ -51,7 +82,9 @@ class SqlDelightSourceRepository(
                     category = source.category,
                     metadata = metadata,
                     updatedAt = Clock.System.now().toEpochMilliseconds(),
-                    contentHash = source.contentHash
+                    contentHash = source.contentHash,
+                    status = source.status,
+                    fileBytes = source.fileBytes
                 )
             } else {
                 database.appDatabaseQueries.insertSource(
@@ -62,7 +95,9 @@ class SqlDelightSourceRepository(
                     category = "OTHER",
                     metadata = metadata,
                     updatedAt = Clock.System.now().toEpochMilliseconds(),
-                    contentHash = null
+                    contentHash = null,
+                    status = SourceStatus.DONE.name,
+                    fileBytes = null
                 )
             }
             Unit

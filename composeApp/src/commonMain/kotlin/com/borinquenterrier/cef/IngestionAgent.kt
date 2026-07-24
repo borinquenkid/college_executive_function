@@ -42,7 +42,11 @@ class IngestionAgent(
         onLargeDocumentDetected = { _largeDocumentNotice.value = LARGE_DOCUMENT_NOTICE }
     )
 
-    suspend fun addLocalFile(path: String): SourceItem {
+    // rawBytesForDurability: the web upload path's only copy of the original bytes (its temp file
+    // is deleted right after this call returns) — persisted alongside the source so a durable copy
+    // survives past the request (ADR 0012). Android/iOS/Desktop pass null; they keep the real file
+    // on-device and don't need a duplicate copy in the DB.
+    suspend fun addLocalFile(path: String, rawBytesForDurability: ByteArray? = null): SourceItem {
         _isBusy.value = true
         _largeDocumentNotice.value = null
         return try {
@@ -59,8 +63,10 @@ class IngestionAgent(
                 ContributionValidator.validate(fragments)
                 val category = resolveCategory(format == SourceFormat.ICS, fragments)
                 setAttribute("source.category", category.name)
-                val sourceItem = SourceItem(fileName, fragments, category)
-                persistSource(sourceItem, path)
+                // PENDING, not the SourceItem default: processSource (the actual digestion) hasn't
+                // run yet at this point — it flips to DONE/FAILED itself once it has (ADR 0012).
+                val sourceItem = SourceItem(fileName, fragments, category, status = SourceStatus.PENDING)
+                persistSource(sourceItem, path, rawBytesForDurability)
                 sourceItem
             }
         } finally {
@@ -81,7 +87,7 @@ class IngestionAgent(
                 setAttribute("fragment.count", fragments.size.toLong())
                 val category = resolveCategory(format == SourceFormat.ICS, fragments)
                 setAttribute("source.category", category.name)
-                val sourceItem = SourceItem(url, fragments, category)
+                val sourceItem = SourceItem(url, fragments, category, status = SourceStatus.PENDING)
                 persistSource(sourceItem, url)
                 sourceItem
             }
@@ -110,8 +116,8 @@ class IngestionAgent(
         }
     }
 
-    private suspend fun persistSource(item: SourceItem, originUri: String?) {
-        sourceRepository.saveSource(item, originUri)
+    private suspend fun persistSource(item: SourceItem, originUri: String?, rawBytes: ByteArray? = null) {
+        sourceRepository.saveSource(item, originUri, rawBytes)
     }
 
     companion object {

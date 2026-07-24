@@ -68,7 +68,15 @@ CREATE TABLE IF NOT EXISTS SourceEntity (
     category TEXT NOT NULL DEFAULT 'OTHER', -- SYLLABUS, READING_MATERIAL, LAB_MANUAL, LECTURE_NOTES, OTHER
     metadata TEXT, -- JSON map containing AI-extracted policies, grading scales, etc.
     updatedAt INTEGER NOT NULL,
-    contentHash TEXT
+    contentHash TEXT,
+    -- Ingestion lifecycle for the web async-upload path (ADR 0012). Existing rows default to
+    -- DONE, not PENDING: they were ingested under the old fully-synchronous model and are
+    -- already fully processed, so PENDING would make them look permanently stuck.
+    status TEXT NOT NULL DEFAULT 'DONE',
+    -- Raw upload bytes, web path only (durable copy so the request-scoped temp file can still be
+    -- deleted once this lands). Null for URL-ingested sources and for Android/iOS/Desktop, which
+    -- keep the real file on-device and don't need a duplicate copy here.
+    fileBytes BLOB
 );
 
 CREATE TABLE IF NOT EXISTS FragmentEntity (
@@ -90,8 +98,11 @@ CREATE TABLE IF NOT EXISTS AnalysisCacheEntity (
 );
 
 insertSource:
-INSERT OR REPLACE INTO SourceEntity(id, title, originUri, type, category, metadata, updatedAt, contentHash)
-VALUES (?, ?, ?, ?, ?, ?, ?, ?);
+INSERT OR REPLACE INTO SourceEntity(id, title, originUri, type, category, metadata, updatedAt, contentHash, status, fileBytes)
+VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?);
+
+updateSourceStatus:
+UPDATE SourceEntity SET status = ? WHERE id = ?;
 
 insertFragment:
 INSERT OR REPLACE INTO FragmentEntity(id, sourceId, text, pageNumber, sectionTitle, type, metadata)

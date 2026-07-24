@@ -22,6 +22,7 @@ import com.borinquenterrier.cef.lti.LtiPlatformConfig
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.flow.transformWhile
 import kotlinx.coroutines.withContext
 import kotlin.time.Clock
 import kotlin.time.Duration.Companion.seconds
@@ -86,7 +87,9 @@ suspend fun getAllSourceItems(container: DependencyContainer): List<SourceItem> 
         SourceItem(
             title = entity.title,
             fragments = fragments,
-            category = SourceCategory.valueOf(entity.category)
+            category = SourceCategory.valueOf(entity.category),
+            id = entity.id,
+            status = SourceStatus.valueOf(entity.status)
         )
     }
 }
@@ -281,6 +284,44 @@ fun Application.module(
             val container = resolveContainer(call) ?: return@delete
             val id = call.parameters["id"] ?: ""
             WebIngestionController.handleDeleteSource(call, id, container)
+        }
+
+        // Digestion phase streaming (ADR 0012) — built the same way as /api/agent/stream below:
+        // respondBytesWriter + ContentType.Text.EventStream + a local emit(type, dataJson) helper.
+        get("/api/sources/{id}/stream") {
+            val container = resolveContainer(call) ?: return@get
+            val id = call.parameters["id"] ?: ""
+            call.response.cacheControl(io.ktor.http.CacheControl.NoCache(null))
+
+            call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
+                suspend fun emit(type: String, dataJson: String) {
+                    writeStringUtf8("event: message\n")
+                    writeStringUtf8(
+                        "data: {\"type\":\"$type\",\"timestamp\":${Clock.System.now().toEpochMilliseconds()}," +
+                            "\"data\":$dataJson}\n\n"
+                    )
+                    flush()
+                }
+
+                val statusFlow = container.sourceRepository.statusFlow(id)
+                if (statusFlow == null) {
+                    emit("ERROR", "{\"message\":\"No status recorded for source ${id.escapeJsonString()}\"}")
+                } else {
+                    val terminal = setOf(SourceStatus.DONE, SourceStatus.FAILED)
+                    // transformWhile is inclusive: it emits the terminal DONE/FAILED value before
+                    // stopping, so a subscriber sees the final phase rather than the stream just
+                    // going silent. A subscriber connecting mid-digestion still gets the current
+                    // phase immediately — StateFlow always replays its current value to a new
+                    // collector (see SourceRepository.statusFlow's kdoc).
+                    statusFlow.transformWhile { status ->
+                        emit(status)
+                        status !in terminal
+                    }.collect { status ->
+                        emit("SOURCE_STATUS", "{\"status\":\"${status.name}\"}")
+                    }
+                }
+                emit("RUN_FINISHED", "{}")
+            }
         }
 
         get("/api/events") {

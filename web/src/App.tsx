@@ -1,5 +1,6 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAgentStream } from './useAgentStream';
+import { useSourceStream, describeSourceStatus, type SourceDigestionStatus } from './useSourceStream';
 import { useFocusTrap } from './useFocusTrap';
 import type { StudyPreferences, RemoteCalendarMetadata } from './cef-types';
 export type { StudyPreferences, RemoteCalendarMetadata } from './cef-types';
@@ -13,6 +14,9 @@ interface WebSource {
   category: string;
   metadata: string | null;
   updatedAt: number;
+  // ADR 0012 — present once the server includes it on SourceItem; optional so older cached
+  // responses (or a server not yet on this version) don't break the type.
+  status?: SourceDigestionStatus;
 }
 
 interface Event {
@@ -128,6 +132,15 @@ export default function App() {
   const chatEndRef = useRef<HTMLDivElement>(null);
 
   const {
+    isActive: isDigesting,
+    status: digestionStatus,
+    error: digestionError,
+    startStream: startSourceStream
+  } = useSourceStream();
+
+  const prevIsDigestingRef = useRef(false);
+
+  const {
     isActive: isStreaming,
     reasoning: streamReasoning,
     toolCalls: streamToolCalls,
@@ -203,6 +216,23 @@ export default function App() {
       console.error('Failed to fetch events:', e);
     }
   };
+
+  // Fires once when digestion (the SSE stream started right after a 202 upload response)
+  // finishes — separate from isUploading, which now only covers the fast persist step (AU-1/AU-2).
+  useEffect(() => {
+    if (prevIsDigestingRef.current && !isDigesting) {
+      fetchSources();
+      fetchEvents();
+      if (digestionStatus === 'DONE') {
+        setToast({ message: 'Source successfully processed!', kind: 'success' });
+      } else if (digestionStatus === 'FAILED') {
+        setToast({ message: 'Failed to process source.', kind: 'error' });
+      } else if (digestionError) {
+        setToast({ message: digestionError, kind: 'error' });
+      }
+    }
+    prevIsDigestingRef.current = isDigesting;
+  }, [isDigesting, digestionStatus, digestionError]);
 
   const fetchSettings = async () => {
     try {
@@ -341,9 +371,10 @@ export default function App() {
       });
       if (res.ok) {
         setSourceUrl('');
+        const sourceItem = await res.json();
+        setToast({ message: 'URL uploaded — processing in the background.', kind: 'success' });
         fetchSources();
-        fetchEvents();
-        setToast({ message: 'URL successfully ingested and processed!', kind: 'success' });
+        if (sourceItem?.id) startSourceStream(sourceItem.id);
       } else {
         setToast({ message: 'Failed to process URL source.', kind: 'error' });
       }
@@ -366,9 +397,10 @@ export default function App() {
         body: formData
       });
       if (res.ok) {
+        const sourceItem = await res.json();
+        setToast({ message: 'File uploaded — processing in the background.', kind: 'success' });
         fetchSources();
-        fetchEvents();
-        setToast({ message: 'File successfully uploaded and processed!', kind: 'success' });
+        if (sourceItem?.id) startSourceStream(sourceItem.id);
       } else {
         setToast({ message: 'Failed to process file upload.', kind: 'error' });
       }
@@ -593,9 +625,16 @@ export default function App() {
                     onChange={uploadFile}
                     style={{ display: 'none' }}
                     accept=".pdf,.docx,.ics,.txt"
+                    disabled={isUploading || isDigesting}
                   />
                   <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" aria-hidden="true" style={{ marginBottom: '12px', color: 'var(--color-primary)' }}><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"></path><polyline points="17 8 12 3 7 8"></polyline><line x1="12" y1="3" x2="12" y2="15"></line></svg>
-                  <p style={{ fontWeight: 600 }}>{isUploading ? 'Uploading and parsing...' : 'Click or Drag File Here'}</p>
+                  <p style={{ fontWeight: 600 }}>
+                    {isUploading
+                      ? 'Uploading…'
+                      : isDigesting
+                        ? `Uploaded — ${describeSourceStatus(digestionStatus)}`
+                        : 'Click or Drag File Here'}
+                  </p>
                   <p style={{ fontSize: '12px', color: 'var(--text-muted)' }}>Supports PDF, DOCX, and ICS calendar files</p>
                 </label>
 
@@ -610,12 +649,17 @@ export default function App() {
                         placeholder="https://example.com/syllabus.pdf or webcal://feed.ics"
                         value={sourceUrl}
                         onChange={e => setSourceUrl(e.target.value)}
-                        disabled={isUploading}
+                        disabled={isUploading || isDigesting}
                       />
-                      <button type="submit" disabled={isUploading} className="btn btn-primary">
+                      <button type="submit" disabled={isUploading || isDigesting} className="btn btn-primary">
                         Add
                       </button>
                     </div>
+                    {isDigesting && (
+                      <p role="status" style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '6px' }}>
+                        {describeSourceStatus(digestionStatus)}
+                      </p>
+                    )}
                   </div>
                 </form>
               </div>
@@ -637,6 +681,11 @@ export default function App() {
                             <span style={{ fontSize: '12px', color: 'var(--text-muted)' }}>
                               Type: {src.type}
                             </span>
+                            {src.status && src.status !== 'DONE' && (
+                              <span style={{ fontSize: '12px', color: src.status === 'FAILED' ? 'var(--color-danger)' : 'var(--text-muted)' }}>
+                                {describeSourceStatus(src.status)}
+                              </span>
+                            )}
                           </div>
                         </div>
                         <button onClick={() => deleteSource(src.title)} aria-label={`Delete ${src.title}`} className="btn" style={{ background: 'transparent', padding: '4px' }}>

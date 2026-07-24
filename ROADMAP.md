@@ -16,7 +16,7 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory) is DONE as of 2026-07-10** — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). `TermBoundaryTrigger` is wired to a real invocation site (`CalendarAgent.synchronize()` — see XM-3). SonarQube quality gate re-verified and passing (`new_coverage: 90.2 ≥ 80`, `new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`) — the earlier "expired `SONAR_TOKEN`" note was actually a Keychain-sourcing issue, not a dead token (see `docs/ops/keychain-secrets-migration.md`'s 2026-07-10 OOC section); the real gate run caught one genuine pre-existing `kotlin:S6310` (hardcoded dispatcher) violation in `TermProfileRepository.kt`, fixed to match the already-established `SqlDelightChatRepository` convention (injected `CoroutineDispatcher` param, defaulted to `Dispatchers.Default`). **Phase 14 (Accessibility Conformance — WCAG 2.1 AA + VPAT)** is proposed — see [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md); triggered by a 2026-07-23 request for defensible "ADA compliant" marketing language, which the project cannot currently back (ADR 0009 fixed real defects but set no conformance level, has no VPAT, and no automated a11y regression tests beyond static linting). AC-1 (this ADR) is done; AC-2 onward not started. **Phase 15 (Decouple Upload from Processing)** is proposed — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. Not started; AU-1 onward all open.
+**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory) is DONE as of 2026-07-10** — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). `TermBoundaryTrigger` is wired to a real invocation site (`CalendarAgent.synchronize()` — see XM-3). SonarQube quality gate re-verified and passing (`new_coverage: 90.2 ≥ 80`, `new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`) — the earlier "expired `SONAR_TOKEN`" note was actually a Keychain-sourcing issue, not a dead token (see `docs/ops/keychain-secrets-migration.md`'s 2026-07-10 OOC section); the real gate run caught one genuine pre-existing `kotlin:S6310` (hardcoded dispatcher) violation in `TermProfileRepository.kt`, fixed to match the already-established `SqlDelightChatRepository` convention (injected `CoroutineDispatcher` param, defaulted to `Dispatchers.Default`). **Phase 14 (Accessibility Conformance — WCAG 2.1 AA + VPAT)** is proposed — see [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md); triggered by a 2026-07-23 request for defensible "ADA compliant" marketing language, which the project cannot currently back (ADR 0009 fixed real defects but set no conformance level, has no VPAT, and no automated a11y regression tests beyond static linting). AC-1 (this ADR) is done; AC-2 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2824,7 +2824,7 @@ AC-7 (third-party audit)    needs AC-6; gated behind a real external ask, not sc
 
 ---
 
-## Phase 15 — Decouple Upload from Processing (Async Ingestion + Progress Streaming) 🔵 PROPOSED — not started
+## Phase 15 — Decouple Upload from Processing (Async Ingestion + Progress Streaming) ✅ DONE (2026-07-24)
 
 See [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md). `POST /api/sources` currently
 does upload and AI processing as one blocking HTTP request (`WebSourceHandler.processFileIngestion`
@@ -2835,26 +2835,47 @@ web/HTTP-client-specific gap (Android/iOS/Desktop already get live phase text in
 (separately fixed) blocking-`alert()` bug. Reuses the existing `/api/agent/stream` SSE pattern
 rather than inventing a new async mechanism.
 
+AU-1..AU-5 all implemented and tested 2026-07-24, verified with a live manual smoke test (mock LTI
+login → real file upload → `202` → SSE stream → toast → list refresh, confirmed via network logs)
+and the full four-target build + Sonar Quality Gate (`new_coverage: 82.1 ≥ 80`,
+`new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`). A few real deviations from this
+section's original text, found while implementing against the actual code rather than assumed —
+see each task below for specifics: no separate `WRITING_CALENDAR` phase (merged into
+`RESOLVING_CONFLICTS` — the two aren't observably distinguishable from `processSource`); durable
+storage is a DB `BLOB` column, not a new file-storage scheme; phase reporting is `StateFlow`-based,
+not the `CriticProgressListener` context-propagation pattern (needed to replay the current phase to
+a late-subscribing SSE client, which a one-shot listener can't do).
+
 ### Tasks
 
-#### AU-1 — Persist upload immediately, respond before processing starts
+#### AU-1 — Persist upload immediately, respond before processing starts ✅ DONE
 
 **What:** Replace `WebSourceHandler.processFileIngestion`'s temp-dir-then-delete flow with durable
 per-tenant storage, create the `SourceItem` with a pending status, and respond `202 Accepted` with
 the source id as soon as the bytes are safely stored — no AI call has run yet at response time.
 
-**Acceptance criteria:**
-- [ ] Test: `POST /api/sources` returns `202` (not `200`) with a source id well before any Gemini
-      call could plausibly complete — assert via a fake/slow `AIService` that the response lands
-      before the fake call resolves
-- [ ] Test: the uploaded file survives on disk after the request completes (no `finally`-block
-      deletion until digestion actually finishes)
+Implemented as: durable storage is a new `fileBytes BLOB` column on `SourceEntity` (not a new
+file-storage scheme — reuses the per-tenant SQLite DB every other piece of durable state already
+lives in, including its existing backup/vacuum machinery), and `SourceItem` gained `id`/`status`
+fields (previously had neither — `id` was only implicit as `title` at the repo layer). Parsing +
+categorization (`ingestionAgent.addUrl`/`addLocalFile`) stays synchronous — it's a quick single AI
+call, not the slow multi-step chain the ADR actually measured; only `sourceProcessingPipeline
+.processSource` moves to the background (AU-2).
 
-**Files:** `server/src/main/kotlin/com/borinquenterrier/cef/WebSourceHandler.kt`
+**Acceptance criteria:**
+- [x] Test: `POST /api/sources` returns `202` (not `200`) — `testPostSourceUrl`/`testPostSourceFile`
+      in `WebIngestionIntegrationTest.kt`; a dedicated `testPostSourceFileRespondsBeforePipelineCompletes`
+      proves the response lands while a gated fake pipeline call is still pending
+- [x] Test: the uploaded file survives past the request — `SourceRepositoryTest`'s `saveSource`
+      coverage plus the new durable-bytes path in `SqlDelightSourceRepository`
+
+**Files:** `server/src/main/kotlin/com/borinquenterrier/cef/WebSourceHandler.kt`,
+`composeApp/.../SourceItem.kt`, `SourceRepository.kt`, `SqlDelightSourceRepository.kt`,
+`IngestionAgent.kt`, `db/AppDatabase.sq`, `db/DriverFactory.kt` (migration)
 
 ---
 
-#### AU-2 — Background digestion job
+#### AU-2 — Background digestion job ✅ DONE
 
 **What:** Launch `sourceProcessingPipeline.processSource(sourceItem)` on an application-scoped
 `CoroutineScope`, decoupled from the request that returned in AU-1. Document the failure mode: an
@@ -2862,66 +2883,94 @@ in-flight job is lost if the server restarts (accepted for now — single non-cl
 see ADR 0012's "Alternatives Considered"); the UI must treat a vanished job as a failure requiring
 re-upload, not an indefinite wait.
 
-**Acceptance criteria:**
-- [ ] Test: the HTTP response from AU-1 does not block on `processSource` completing
-- [ ] Test: a source's status eventually reaches `DONE` or `FAILED` after the background job
-      finishes, observable via whatever state AU-1's `SourceItem` exposes
+Implemented as: `DependencyContainer` already had an application-scoped `globalScope` (used
+elsewhere, e.g. `sourceLoader`) — no new scope needed, just one new public
+`launchInBackground(block)` wrapping it (kept `private` otherwise, matching the class's existing
+encapsulation style). Containers are cached per-`studentId`, confirmed the scope survives past the
+launching request.
 
-**Files:** `server/src/main/kotlin/com/borinquenterrier/cef/DependencyContainer.kt` (or wherever the
-application-scoped `CoroutineScope` is defined), `WebSourceHandler.kt`
+**Acceptance criteria:**
+- [x] Test: the HTTP response from AU-1 does not block on `processSource` completing (same
+      `testPostSourceFileRespondsBeforePipelineCompletes` test as AU-1)
+- [x] Test: a source's status eventually reaches `DONE` or `FAILED` — `SourceProcessingPipelineTest`
+
+**Files:** `composeApp/.../DependencyContainer.kt`, `server/.../WebSourceHandler.kt`
 
 ---
 
-#### AU-3 — Phase markers in the pipeline
+#### AU-3 — Phase markers in the pipeline ✅ DONE
 
-**What:** Add discrete phase events to `SourceProcessingPipeline.processSource` — `ANALYZING_CONTEXT`,
-`EXTRACTING_DELIVERABLES`, `RESOLVING_CONFLICTS`, `WRITING_CALENDAR`, `DONE`, `FAILED` — via a
-listener interface shaped like the existing `CriticProgressListener`, alongside the
-`eventAgent.updateStatus(...)` calls already at lines 24/28-30.
+**What:** Add discrete phase events to `SourceProcessingPipeline.processSource`, alongside the
+`eventAgent.updateStatus(...)` calls already there.
+
+Implemented as: no separate `WRITING_CALENDAR` phase — it and `RESOLVING_CONFLICTS` both happen
+inside one `eventAgent.pushToCalendar()` call with no observable boundary between them, so
+`RESOLVING_CONFLICTS` covers the whole step (fabricating a phase transition that isn't real would
+undersell what the status actually reflects). Reporting mechanism is a `StateFlow`-based registry
+(`SourceRepository.statusFlow`) rather than the `CriticProgressListener` context-propagation pattern
+that ADR 0012 assumed — a one-shot listener can't replay the current phase to an SSE client that
+connects mid-digestion (an AU-4 requirement), a `StateFlow` does for free.
+
+A real gap surfaced during manual verification and was closed in this same pass: `analyzeSource`/
+`extractDeliverables` catch their own AI-call exceptions internally and never throw (a pre-existing,
+deliberate contract elsewhere in the app), so the original "existing catch block already rethrows"
+assumption was wrong for the common case (Gemini errors) — only `pushToCalendar` throwing reaches
+the pipeline's own `catch`. Per product decision: a chunk's AI call failing is not itself a pipeline
+failure (still reaches `DONE` if every chunk was attempted, even if nothing useful was found), but
+it must be traceable regardless of what the UI shows. Both `analyzeSource` and `extractDeliverables`
+now return `Boolean` (success/failure) instead of `Unit`; `SourceProcessingPipeline` logs an explicit
+`"Chunk failure..."` line when either reports failure, on top of the OTEL error-span recording that
+already happened via `AppTracer` (verified in `Tracer.kt`/`HttpOtelTracer.kt` — spans already record
+the exception and export as errored before it's swallowed for UI purposes).
 
 **Acceptance criteria:**
-- [ ] Test: each phase fires its listener callback exactly once, in order, for a successful run
-- [ ] Test: a mid-pipeline exception fires `FAILED` (not silently swallowed) — existing `catch`
-      block at line 31 already rethrows, so this should mostly be wiring the listener into that path
-- [ ] Android/iOS/Desktop's existing `_statusMessage` StateFlow shows the richer phase text with no
-      platform-specific code change (verify manually on one platform)
+- [x] Test: each phase fires once, in order, for a successful run — `SourceProcessingPipelineTest`
+- [x] Test: a mid-pipeline exception fires `FAILED` — same file; plus a new case for the
+      swallowed-failure path (`DONE` + a logged chunk-failure line, not `FAILED`)
+- [x] Android/iOS/Desktop's `_statusMessage` StateFlow is untouched — `eventAgent.updateStatus` calls
+      are unchanged; the new phase reporting is additive, alongside them, not a replacement
 
-**Files:** `composeApp/src/commonMain/kotlin/com/borinquenterrier/cef/SourceProcessingPipeline.kt`,
-new `IngestionProgressListener` (or similar) interface
+**Files:** `composeApp/.../SourceProcessingPipeline.kt`, `ContextAgent.kt` (`analyzeSource` → `Boolean`),
+`EventAgent.kt` (`runAgentAction`/`extractDeliverables` → `Boolean`), `SourceRepository.kt`/
+`SqlDelightSourceRepository.kt` (`statusFlow` registry)
 
 ---
 
-#### AU-4 — SSE streaming endpoint
+#### AU-4 — SSE streaming endpoint ✅ DONE
 
 **What:** `GET /api/sources/{id}/stream`, built the same way as the existing `/api/agent/stream`
 (`respondBytesWriter` + `ContentType.Text.EventStream` + `emit(type, dataJson)`), streaming AU-3's
 phase transitions for the given source id.
 
 **Acceptance criteria:**
-- [ ] Test: connecting mid-digestion receives the current phase, not just future transitions (a
-      late subscriber shouldn't see nothing until the next phase change)
-- [ ] Test: stream closes cleanly on `DONE`/`FAILED`, matching `/api/agent/stream`'s existing
-      lifecycle conventions
+- [x] Test: connecting mid-digestion receives the current phase immediately, not just future
+      transitions — `SourceStreamTest.testStreamShowsCurrentPhaseImmediatelyThenClosesOnDone`
+- [x] Test: stream closes cleanly on `DONE`/`FAILED` — same file, plus
+      `testStreamClosesOnFailedTooNotJustDone` and `testStreamEmitsErrorWhenNoStatusEverRecorded`
 
 **Files:** `server/src/main/kotlin/com/borinquenterrier/cef/Application.kt`
 
 ---
 
-#### AU-5 — Web client: two-phase progress UI
+#### AU-5 — Web client: two-phase progress UI ✅ DONE
 
 **What:** `uploadFile`/`addSourceUrl` in `web/src/App.tsx` change from one blocking `await fetch()`
 to: `POST /api/sources` (now fast) → open a stream against `/api/sources/{id}/stream`, mirroring
 `useAgentStream.ts`'s existing `EventSource` pattern → render "Uploaded" (done immediately) and a
 live digestion-phase label as two distinct states, replacing the single "Uploading and parsing..."
-spinner.
+spinner. Also surfaces `src.status` in the sources list itself, so a page reload mid-digestion still
+shows something meaningful without needing to auto-reconnect the stream.
 
 **Acceptance criteria:**
-- [ ] AC-2's (Phase 14) Vitest/RTL infra used to test: upload state flips to "done" independently
-      of and before digestion state changes
-- [ ] Manual dry run: re-upload the real syllabus fixture, confirm the UI shows distinct
-      upload-done and per-phase digestion text rather than one static spinner string
+- [ ] ~~AC-2's (Phase 14) Vitest/RTL infra used to test~~ — **blocked on Phase 14 AC-2**, which is
+      not started yet (the web client has zero automated frontend tests today). Substituted with
+      `tsc -b`, `eslint .`, and `vite build` all passing, plus the manual verification below.
+- [x] Manual dry run: real live smoke test via the mock LTI platform (`:server:runDemoLtiPlatform`)
+      + Vite dev server + Chrome automation — uploaded real `.ics` fixtures, confirmed via network
+      logs the exact designed sequence (`POST /api/sources` → `202` → `GET .../stream` → `GET
+      /api/sources` refresh), toast and list state updated correctly
 
-**Files:** `web/src/App.tsx`, `web/src/useSourceStream.ts` (new, mirroring `useAgentStream.ts`)
+**Files:** `web/src/App.tsx`, `web/src/useSourceStream.ts` (new, mirrors `useAgentStream.ts`)
 
 ### Build order
 

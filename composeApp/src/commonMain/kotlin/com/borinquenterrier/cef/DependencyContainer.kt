@@ -118,6 +118,14 @@ class DependencyContainer(
         globalScope.coroutineContext[Job]?.cancelAndJoin()
     }
 
+    /**
+     * Runs [block] detached from whatever request/caller triggered it, on the same
+     * application-scoped [globalScope] used elsewhere in this class (e.g. the startup check
+     * above) — not a new scope. Used by the web ingestion path (ADR 0012) to launch
+     * [SourceProcessingPipeline.processSource] without holding the HTTP response open for it.
+     */
+    fun launchInBackground(block: suspend CoroutineScope.() -> Unit): Job = globalScope.launch(block = block)
+
     val telemetryManager by lazy { TelemetryManager(settings) }
     val bugReporter by lazy {
         BugReporter(
@@ -236,7 +244,8 @@ class DependencyContainer(
             eventAgent,
             contextAgent,
             logger,
-            bugReporter
+            bugReporter,
+            sourceRepository
         )
     }
 

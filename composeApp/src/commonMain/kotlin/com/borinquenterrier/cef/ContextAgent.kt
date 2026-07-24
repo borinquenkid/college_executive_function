@@ -46,16 +46,24 @@ class ContextAgent(
     private val _isAnalyzing = MutableStateFlow(false)
     val isAnalyzing: StateFlow<Boolean> = _isAnalyzing.asStateFlow()
 
-    suspend fun analyzeSource(source: SourceItem, force: Boolean = false) {
+    /**
+     * Returns true if analysis completed (or was skipped as already-done) without the underlying
+     * AI call failing, false if it failed. A `false` here is not "nothing useful found" — an
+     * absent/empty result is a normal, successful outcome — it specifically means the call itself
+     * errored (caught below) and was silently absorbed rather than propagated, so callers that care
+     * (e.g. [SourceProcessingPipeline]) have a way to notice without this method throwing and
+     * breaking every other caller's fire-and-forget usage.
+     */
+    suspend fun analyzeSource(source: SourceItem, force: Boolean = false): Boolean {
         // analyzeDocument is an LLM call — expensive. Skip it when this source already has
         // metadata so the interactive-add path and the harness pipeline don't both pay for it
         // (idempotent across paths). Explicit re-analysis passes force = true.
         if (!force && !sourceRepository.getSourceMetadata(source.title).isNullOrBlank()) {
             logger?.d(tag, "Skipping re-analysis of ${source.title}; metadata already present")
-            return
+            return true
         }
         _isAnalyzing.value = true
-        try {
+        return try {
             AppTracer.current.span("context.analyze_source", mapOf("source.title_hash" to TelemetryIdHasher.hash(source.title))) {
                 val fullText = source.fragments.joinToString("\n\n") { it.text }
                 val metadataJson = aiService.analyzeDocument(fullText)
@@ -66,8 +74,10 @@ class ContextAgent(
                 }
                 setAttribute("context.metadata_extracted", (metadataJson != null).toString())
             }
+            true
         } catch (e: Exception) {
             logger?.e(tag, "Failed to analyze source ${source.title}", e)
+            false
         } finally {
             _isAnalyzing.value = false
         }

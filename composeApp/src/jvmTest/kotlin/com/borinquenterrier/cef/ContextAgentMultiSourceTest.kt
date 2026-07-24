@@ -224,7 +224,9 @@ class ContextAgentMultiSourceTest : FunSpec({
             category = "SYLLABUS",
             metadata = """{"grading_scale":"Final 40%, Midterm 30%, HW 30%"}""",
             updatedAt = 0L,
-            contentHash = null
+            contentHash = null,
+            status = "DONE",
+            fileBytes = null
         )
 
         val sources = listOf(makeSource("CS101 Syllabus", SourceCategory.SYLLABUS, "..."))

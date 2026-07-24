@@ -64,6 +64,27 @@ class SourceRepositoryTest : FunSpec({
         metadata shouldBe "{\"late_policy\": \"no late work\"}"
     }
 
+    test("statusFlow reflects saveSource's initial status and later updateSourceStatus transitions") {
+        val sourceItem = SourceItem(
+            title = "syllabus.pdf",
+            fragments = listOf(SourceFragment("text")),
+            category = SourceCategory.SYLLABUS,
+            status = SourceStatus.PENDING
+        )
+        repository.saveSource(sourceItem, null)
+
+        // A late subscriber sees the current phase immediately, not just future transitions —
+        // the whole point of using a StateFlow here (see SourceRepository.statusFlow's kdoc).
+        repository.statusFlow("syllabus.pdf")?.value shouldBe SourceStatus.PENDING
+
+        repository.updateSourceStatus("syllabus.pdf", SourceStatus.ANALYZING_CONTEXT)
+        repository.statusFlow("syllabus.pdf")?.value shouldBe SourceStatus.ANALYZING_CONTEXT
+    }
+
+    test("statusFlow is null for a source that has never had a status transition recorded") {
+        repository.statusFlow("never-seen") shouldBe null
+    }
+
     test("deleteSource removes source and fragments cascade") {
         val fragment = SourceFragment(
             text = "Line 1 of syllabus",

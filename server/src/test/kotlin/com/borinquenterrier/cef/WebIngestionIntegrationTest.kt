@@ -9,11 +9,26 @@ import io.ktor.http.*
 import io.ktor.server.testing.*
 import io.mockk.*
 import kotlin.test.*
+import kotlinx.coroutines.CompletableDeferred
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.withTimeout
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.encodeToString
 import kotlinx.datetime.LocalDate
 
 class WebIngestionIntegrationTest {
+
+    /** A relaxed mockk DependencyContainer never invokes real logic — [launchInBackground]'s
+     * default relaxed behavior returns a mock Job without ever running the block, so any test
+     * that needs the background pipeline call to actually happen must stub this explicitly. */
+    private fun DependencyContainer.stubBackgroundLaunchToRunInline() {
+        every { launchInBackground(any()) } answers {
+            val block = firstArg<suspend CoroutineScope.() -> Unit>()
+            CoroutineScope(Dispatchers.Default).launch { block() }
+        }
+    }
 
     @Test
     fun testGetSources() = testApplication {
@@ -28,6 +43,7 @@ class WebIngestionIntegrationTest {
             every { id } returns "test-source-id"
             every { title } returns "syllabus.pdf"
             every { category } returns "SYLLABUS"
+            every { status } returns "DONE"
         }
         coEvery { mockSourceRepo.getAllSources() } returns listOf(mockSourceEntity)
         
@@ -108,6 +124,7 @@ class WebIngestionIntegrationTest {
             every { id } returns "calculus-id"
             every { title } returns "Calculus Syllabus"
             every { category } returns "SYLLABUS"
+            every { status } returns "DONE"
         }
         coEvery { mockSourceRepo.getAllSources() } returns listOf(mockSourceEntity)
 
@@ -138,6 +155,7 @@ class WebIngestionIntegrationTest {
             every { id } returns "calculus-id"
             every { title } returns "Calculus Syllabus"
             every { category } returns "SYLLABUS"
+            every { status } returns "DONE"
         }
         coEvery { mockSourceRepo.getAllSources() } returns listOf(mockSourceEntity)
 
@@ -253,11 +271,13 @@ class WebIngestionIntegrationTest {
         val mockPipeline = mockk<SourceProcessingPipeline>(relaxed = true)
         every { mockContainer.ingestionAgent } returns mockIngestionAgent
         every { mockContainer.sourceProcessingPipeline } returns mockPipeline
+        mockContainer.stubBackgroundLaunchToRunInline()
 
         val mockSourceItem = SourceItem(
             title = "syllabus.ics",
             fragments = emptyList(),
-            category = SourceCategory.CALENDAR
+            category = SourceCategory.CALENDAR,
+            status = SourceStatus.PENDING
         )
         coEvery { mockIngestionAgent.addUrl("https://example.com/syllabus.ics") } returns mockSourceItem
 
@@ -272,11 +292,13 @@ class WebIngestionIntegrationTest {
             }
         )
 
-        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.Accepted, response.status)
         val body = response.bodyAsText()
         assertTrue(body.contains("syllabus.ics"))
         assertTrue(body.contains("CALENDAR"))
-        coVerify(exactly = 1) { mockPipeline.processSource(mockSourceItem) }
+        withTimeout(2000) {
+            coVerify(exactly = 1) { mockPipeline.processSource(mockSourceItem) }
+        }
     }
 
     @Test
@@ -286,13 +308,15 @@ class WebIngestionIntegrationTest {
         val mockPipeline = mockk<SourceProcessingPipeline>(relaxed = true)
         every { mockContainer.ingestionAgent } returns mockIngestionAgent
         every { mockContainer.sourceProcessingPipeline } returns mockPipeline
+        mockContainer.stubBackgroundLaunchToRunInline()
 
         val mockSourceItem = SourceItem(
             title = "sample.pdf",
             fragments = emptyList(),
-            category = SourceCategory.SYLLABUS
+            category = SourceCategory.SYLLABUS,
+            status = SourceStatus.PENDING
         )
-        coEvery { mockIngestionAgent.addLocalFile(any()) } returns mockSourceItem
+        coEvery { mockIngestionAgent.addLocalFile(any(), any()) } returns mockSourceItem
 
         application {
             module(mockContainer)
@@ -308,11 +332,57 @@ class WebIngestionIntegrationTest {
             }
         )
 
-        assertEquals(HttpStatusCode.OK, response.status)
+        assertEquals(HttpStatusCode.Accepted, response.status)
         val body = response.bodyAsText()
         assertTrue(body.contains("sample.pdf"))
         assertTrue(body.contains("SYLLABUS"))
-        coVerify(exactly = 1) { mockPipeline.processSource(mockSourceItem) }
+        withTimeout(2000) {
+            coVerify(exactly = 1) { mockPipeline.processSource(mockSourceItem) }
+        }
+    }
+
+    @Test
+    fun testPostSourceFileRespondsBeforePipelineCompletes() = testApplication {
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        val mockIngestionAgent = mockk<IngestionAgent>(relaxed = true)
+        val mockPipeline = mockk<SourceProcessingPipeline>(relaxed = true)
+        every { mockContainer.ingestionAgent } returns mockIngestionAgent
+        every { mockContainer.sourceProcessingPipeline } returns mockPipeline
+        mockContainer.stubBackgroundLaunchToRunInline()
+
+        val mockSourceItem = SourceItem(
+            title = "slow.pdf",
+            fragments = emptyList(),
+            category = SourceCategory.SYLLABUS,
+            status = SourceStatus.PENDING
+        )
+        coEvery { mockIngestionAgent.addLocalFile(any(), any()) } returns mockSourceItem
+
+        // Gates the pipeline call open until the test explicitly releases it — proves the HTTP
+        // response does not wait on processSource (the core claim of ADR 0012 / AU-1+AU-2).
+        val pipelineGate = CompletableDeferred<Unit>()
+        coEvery { mockPipeline.processSource(mockSourceItem) } coAnswers { pipelineGate.await() }
+
+        application {
+            module(mockContainer)
+        }
+
+        val response = withTimeout(2000) {
+            client.submitFormWithBinaryData(
+                url = "/api/sources",
+                formData = formData {
+                    append("file", byteArrayOf(1, 2, 3, 4), Headers.build {
+                        append(HttpHeaders.ContentType, "application/pdf")
+                        append(HttpHeaders.ContentDisposition, "filename=\"slow.pdf\"")
+                    })
+                }
+            )
+        }
+
+        // The response already landed above without the gate ever being released — if
+        // processSource were still awaited inline, this request would have hung on the 2s timeout.
+        assertEquals(HttpStatusCode.Accepted, response.status)
+        pipelineGate.complete(Unit)
     }
 
     @Test

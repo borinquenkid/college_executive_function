@@ -1,0 +1,60 @@
+name: Screen Reader Accessibility (VoiceOver + NVDA)
+
+# Real screen-reader automation (ADR 0011 AC-4) via Guidepup (https://github.com/guidepup/guidepup)
+# — captures actual announced text (not audio) from a real VoiceOver (macOS) or NVDA (Windows)
+# instance driving the real web client, closing the gap the fast Vitest/jsdom (AC-2) and headless
+# Playwright/axe (AC-3) suites structurally can't reach (jsdom has no layout engine at all; axe's
+# color-contrast rule needs real paint — neither runs a real screen reader).
+#
+# Manual trigger only, not on every PR: GitHub Actions bills macos-latest at ~10x and
+# windows-latest at ~2x the linux-runner-minute rate, and these tests are inherently slower/more
+# variable than the rest of CI (Guidepup's own reference configs budget 5 minutes and 2 retries
+# per test). Run from the Actions tab ("Run workflow") when a real screen-reader check is wanted,
+# e.g. before a release or after touching web/src/App.tsx's interactive controls.
+on:
+  workflow_dispatch:
+
+jobs:
+  voiceover-a11y:
+    name: VoiceOver (macOS)
+    runs-on: macos-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      - name: Setup screen reader automation environment
+        uses: guidepup/setup-action@0.21.0
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+      - name: Install Playwright WebKit
+        working-directory: web
+        run: npx playwright install webkit
+      - name: VoiceOver screen reader tests
+        working-directory: web
+        run: npm run test:voiceover
+
+  nvda-a11y:
+    name: NVDA (Windows)
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      - name: Setup screen reader automation environment
+        uses: guidepup/setup-action@0.21.0
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+      - name: Install Playwright Firefox
+        working-directory: web
+        run: npx playwright install firefox
+      - name: NVDA screen reader tests
+        working-directory: web
+        run: npm run test:nvda

@@ -1,0 +1,32 @@
+import { screenReaderTest as test } from '@guidepup/playwright';
+import { expect } from '@playwright/test';
+import { mockApi } from '../e2e/mockApi';
+
+// Real screen-reader regression check for the AC-4 keyboard-only-pass finding (ADR 0011): the
+// Sources tab's file-upload dropzone was a <label> wrapping a hidden input — reachable by mouse
+// only, invisible to keyboard/screen-reader users. Fixed as a real <button> (see App.tsx). This
+// confirms the fix is ALSO correctly exposed to a real screen reader's accessibility tree, not
+// just reachable via raw DOM focus (which the jsdom/axe suites already cover) — a screen reader
+// could in principle still announce a focusable element with no meaningful name.
+test.describe('Sources dropzone — real screen reader announcement', () => {
+  test('announces as a button with its label when tabbed to', async ({ page, screenReader }) => {
+    await mockApi(page);
+    await page.goto('/');
+    await page.getByText('Academic Calendar').waitFor();
+
+    await screenReader.navigateToWebContent();
+
+    await page.getByRole('button', { name: 'Sources' }).click();
+    await page.getByText('Sources Panel').waitFor();
+
+    // Tab from the top of the page to the dropzone button, same order verified manually during
+    // the keyboard-only pass: Calendar -> Sources -> Studio Panel -> Settings -> dropzone.
+    for (let i = 0; i < 4; i++) {
+      await screenReader.press('Tab');
+    }
+
+    const announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
+    expect(announced).toContain('button');
+    expect(announced).toContain('click or drag file here');
+  });
+});

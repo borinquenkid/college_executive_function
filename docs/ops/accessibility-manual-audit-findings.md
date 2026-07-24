@@ -1,8 +1,10 @@
 # Accessibility Manual Audit Findings (ADR 0011 AC-4)
 
-Status: **keyboard-only pass done** (2026-07-24, performed by Claude via live browser automation
-against the real running app). **VoiceOver and NVDA passes not done** — see "What's still open"
-below; these genuinely need a human, not automated tooling.
+Status (2026-07-24): **keyboard-only pass done** (live browser automation against the real running
+app) and **real automated VoiceOver + NVDA coverage now exists** via Guidepup — see "Automated
+screen-reader coverage" below. A genuine human listen-through (for prosody/naturalness judgment,
+which text-capture can't substitute for) is still valuable but no longer a hard blocker — see
+"What's still open" for the honest boundary of what the automated layer does and doesn't cover.
 
 ## Keyboard-only pass
 
@@ -69,17 +71,73 @@ rather than silently skipping it. Revisit if/when the staff console gets its own
    matched expected, sensible order with no unintended traps outside the two intentional modal traps
    ADR 0009 already established.
 
+## Automated screen-reader coverage (Guidepup)
+
+The user pushed back twice on assumptions made here in sequence — first that Compose Desktop
+couldn't target Windows (it does, via the JVM), then that a real screen-reader pass needed a human
+at all. Both corrections were right, and the second one led somewhere concrete:
+[Guidepup](https://github.com/guidepup/guidepup) is a real, actively maintained (MIT) screen-reader
+test-automation library supporting VoiceOver (macOS) and NVDA (Windows) with a single API, capturing
+the actual **announced text** (via `spokenPhraseLog()`/`lastSpokenPhrase()`) rather than audio — so
+no human ear needed to check *what* gets announced, even though judging *how natural it sounds* in
+sequence still benefits from one. Verified directly from the real READMEs
+(`guidepup/guidepup`, `guidepup/guidepup-playwright`, `guidepup/setup-action`) before committing to
+anything, not assumed from training data — in particular that screen readers cannot run against
+headless browsers at all (every official example sets `headless: false`), and that VoiceOver pairs
+with WebKit while NVDA pairs with Firefox in Guidepup's own reference configs (not Chromium for
+either).
+
+**Built**: `web/playwright.screenreader.config.ts` (separate from the fast, headless
+`web/playwright.config.ts` used by AC-3's axe suite — screen readers need a real, headed browser
+session), `web/e2e-screenreader/dropzone-keyboard-fix.spec.ts` and `calendar-and-modal.spec.ts`
+(using the cross-platform `screenReaderTest`/`screenReader` fixture from `@guidepup/playwright`,
+which resolves to VoiceOver on macOS and NVDA on Windows automatically — one set of test files
+covers both), and `.github/workflows/screen-reader-a11y.yml` (new, separate workflow — see below for
+why not folded into `pr-check.yml`).
+
+**Scope, deliberately not exhaustive**: 3 targeted checks, not a repeat of every view/modal already
+covered by `App.test.tsx`/`e2e/accessibility.spec.ts`, since each real screen-reader step drives
+actual OS automation (real wall-clock cost) — Guidepup's own reference configs budget 5 minutes and
+2 retries per test class:
+1. **The Sources dropzone button — this session's actual AC-4 keyboard-fix finding** — confirms it
+   announces as a real button with its label to a real screen reader, not just reachable via raw DOM
+   focus (which the jsdom/axe suites already cover, but can't confirm what a screen reader actually
+   *says*).
+2. Calendar view's main heading announces on load.
+3. The create-calendar modal announces as a dialog with its title.
+
+Broader per-view coverage can be added incrementally; this is a proportionate first real pass, not
+the ceiling.
+
+**Manual trigger only (`workflow_dispatch`), not on every PR/push** — a real, asymmetric GitHub
+Actions cost consideration flagged to and confirmed by the user before building: `macos-latest`
+bills at ~10x and `windows-latest` at ~2x the Linux-runner-minute rate. Run it from the Actions tab
+when a real screen-reader check is wanted (e.g. before a release, or after touching interactive
+controls in `web/src/App.tsx`).
+
+**Not run locally in this session, and shouldn't be by an agent unilaterally**: the one-time
+`npx @guidepup/setup setup` step configures macOS Accessibility/TCC permissions for automation —
+this either triggers an interactive System Settings permission dialog (needs a human to click
+through) or implies bypassing TCC via SIP-related settings in unattended environments (the setup
+action's own `ignoreTccDb` escape hatch). Both are real system-permission changes on the user's
+actual machine that shouldn't happen without them directly driving it. The code was authored with
+high confidence against the confirmed real API (matches the official examples closely, and
+`npx playwright test --config=playwright.screenreader.config.ts --list` confirms both spec files
+parse cleanly and both projects pick up all 3 tests each) but **first real functional verification
+happens by manually triggering the new workflow in GitHub Actions** — an isolated, disposable VM is
+exactly the right place for this kind of setup, not a real local machine.
+
 ## What's still open
 
-**VoiceOver (macOS, web + iOS/Desktop) and NVDA (Windows, Desktop) listen-through passes are not
-done.** These are qualitatively different from the keyboard pass above: they require a human
-actually listening to real screen-reader speech output and judging whether announcements are clear,
-non-redundant, and non-confusing — not an objective reachability check a script can perform.
-Additionally, enabling VoiceOver system-wide is a real macOS accessibility/system-settings change
-with an actual audible side effect on whoever's using the machine — not something to flip on
-unilaterally in an unattended automation session.
+**A full human listen-through (VoiceOver and NVDA) for prosody/naturalness judgment is still not
+done** — this is qualitatively different from what Guidepup's text capture above gives: judging
+whether a *sequence* of announcements sounds natural, non-redundant, and non-confusing when actually
+heard is not the same as confirming the right text is exposed line-by-line, and remains something
+only a human ear does well. Not a hard blocker anymore, though — the automated layer above already
+covers the more common failure mode (wrong or missing accessible names/roles) for the flows it
+checks.
 
-**NVDA is not a hard "wrong OS" blocker for this project** — this session runs on macOS and has no
+**NVDA was never a hard "wrong OS" blocker for this project** — this session runs on macOS and has no
 Windows machine available *right now*, but Compose Multiplatform Desktop (`composeApp`) already
 targets Windows natively via the JVM, so a real NVDA pass against the Desktop build is a legitimate
 task on an actual Windows machine (the user's, a VM, whatever), not something structurally
@@ -119,7 +177,8 @@ architecture across platforms per JetBrains' own docs. Once Access Bridge is ena
 Windows machine, this same semantic content should already surface reasonably to NVDA/JAWS without
 further app-side changes — worth confirming with a real listen-through, not assuming.
 
-Both listen-through passes (VoiceOver and NVDA-on-Windows-once-enabled) still need the user's own
-time (or another human's) to run for real. Options going forward, once decided: either the user runs
-these passes directly, or it's scheduled as a follow-up with a concrete written script per flow so
-the pass is repeatable and comparable across the app's platforms in the future.
+This Desktop/Compose section is a separate concern from the web client's automated Guidepup
+coverage above (ADR 0011 scopes the WCAG/VPAT target to *the web client* specifically) — a real
+human listen-through against the Desktop app on an actual Windows machine (once Access Bridge is
+enabled there) is still open, and would need its own pass, not covered by the web-scoped Guidepup
+workflow.

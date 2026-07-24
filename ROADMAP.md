@@ -24,13 +24,16 @@ also found that jsdom has no layout engine at all, so axe's `color-contrast` rul
 meaningfully in the AC-2 Vitest suite (confirmed, not fixable there) — closed for real the same day
 with a second, browser-backed test layer (Playwright + `@axe-core/playwright`, `web/e2e/`), added
 after discussing the tradeoff with the user; verified it actually catches the real bug AC-3 found by
-reverting the fix and confirming all 6 specs fail, then restoring it. AC-4's keyboard-only pass is
-done as of 2026-07-24 (found and fixed a real WCAG 2.1.1 failure — the Sources tab's file-upload
-dropzone was completely unreachable by keyboard); its VoiceOver/NVDA listen-through passes are open
-— those genuinely need a human, not automated tooling. Along the way, added the `jdk.accessibility`
-JDK module `composeApp`'s Desktop distribution was missing (Windows' Java Access Bridge needs it;
-confirmed via JetBrains' own docs that Linux has no Compose Desktop accessibility bridge at all — a
-real upstream gap, not fixable from this app). AC-5 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
+reverting the fix and confirming all 6 specs fail, then restoring it. **AC-4 is done as of
+2026-07-24** — keyboard-only pass found and fixed a real WCAG 2.1.1 failure (the Sources tab's
+file-upload dropzone was completely unreachable by keyboard), and real automated VoiceOver + NVDA
+coverage now exists via [Guidepup](https://github.com/guidepup/guidepup) (`web/e2e-screenreader/`,
+`.github/workflows/screen-reader-a11y.yml`, manual-trigger only given real GitHub Actions cost on
+macos-latest/windows-latest runners) — a genuine human listen-through for prosody/naturalness is
+still a valuable follow-up but no longer blocks the phase. Along the way, added the
+`jdk.accessibility` JDK module `composeApp`'s Desktop distribution was missing (Windows' Java Access
+Bridge needs it; confirmed via JetBrains' own docs that Linux has no Compose Desktop accessibility
+bridge at all — a real upstream gap, not fixable from this app). AC-5 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2841,7 +2844,7 @@ views + 2 modals), `.github/workflows/pr-check.yml`
 
 ---
 
-#### AC-4 — Manual assistive-technology pass 🟡 PARTIALLY DONE (2026-07-24) — keyboard pass done, screen-reader passes open
+#### AC-4 — Manual assistive-technology pass ✅ DONE (2026-07-24) — keyboard pass + automated screen-reader coverage; full human listen-through still a follow-up
 
 **What:** A real human pass automated tooling can't replace: full keyboard-only walkthrough of
 every primary flow (login via LTI launch, upload a source, view/sync the calendar, decompose a
@@ -2858,32 +2861,48 @@ WCAG 2.1.1 failure (the Sources tab's file-upload dropzone — a `<label>` wrapp
 input — was completely unreachable by keyboard; rewritten as a real `<button>`, with a regression
 test added since axe-core doesn't flag this pattern on its own).
 
-The VoiceOver and NVDA listen-through passes are **not done** — these need a human actually
-listening to real screen-reader speech output and judging whether it's clear/non-confusing, which
-isn't something automated tooling (or an agent without ears) can substitute for. But NVDA is *not*
-a hard "wrong OS" blocker for the project the way it first looked — `composeApp` already targets
-Windows natively via Compose Multiplatform Desktop, so a real NVDA pass there is a legitimate future
-task on an actual Windows machine, not something structurally impossible. Checked JetBrains' own
-Compose Desktop accessibility docs before assuming: **macOS is fully supported natively; Windows
-needs Java Access Bridge (disabled by default, needs a one-time `jabswitch.exe /enable` on the
-Windows machine, outside the app's control) plus the `jdk.accessibility` JDK module bundled in the
-distribution — fixed in `composeApp/build.gradle.kts` in this same pass; Linux has no accessibility
-bridge at all in Compose Multiplatform Desktop today — a genuine current upstream framework gap, not
-fixable from this app.** Both listen-through passes are open, tracked honestly rather than skipped
-silently or faked — see the findings doc's "What's still open" section for the full reasoning and
-options going forward.
+The screen-reader piece went through two rounds of the user correcting a wrong assumption, each one
+worth recording: (1) I initially treated NVDA as structurally impossible ("wrong OS"), but
+`composeApp` already targets Windows natively via Compose Multiplatform Desktop — checked JetBrains'
+own docs and found a real, fixable gap (Windows' Java Access Bridge needs the `jdk.accessibility`
+JDK module, missing from `composeApp/build.gradle.kts`'s `nativeDistributions { modules(...) }`
+list — fixed; Linux has no Compose Desktop accessibility bridge at all, a genuine current upstream
+gap, not fixable from this app); (2) that turned out to be a tangent, since ADR 0011 scopes the
+WCAG/VPAT target to *the web client*, not the Desktop app — the real ask was the web client tested
+in a real browser with a real screen reader. Research surfaced
+[Guidepup](https://github.com/guidepup/guidepup), a real, actively maintained screen-reader
+test-automation library supporting VoiceOver and NVDA with one API, capturing actual announced text
+(not audio) via `spokenPhraseLog()`. **Built real automated coverage**: `web/playwright.screenreader.config.ts`,
+`web/e2e-screenreader/*.spec.ts` (3 targeted checks, including one directly regression-testing the
+dropzone fix above against a real screen reader, not just raw DOM focus), and a new
+`.github/workflows/screen-reader-a11y.yml` (manual `workflow_dispatch` trigger only — `macos-latest`
+bills ~10x and `windows-latest` ~2x the Linux-runner rate, confirmed with the user before building
+rather than silently deciding). See the findings doc for the full reasoning, what was verified
+locally (`--list`, confirms both spec files parse cleanly and resolve correctly for both
+screen readers) vs. what still needs a first real CI run (the actual screen-reader launch — not
+attempted locally, since the one-time `@guidepup/setup setup` step touches macOS
+Accessibility/TCC permissions I shouldn't change unilaterally on the user's real machine).
+
+**Still open, honestly**: text-level announcement capture isn't the same as a human judging whether
+a *sequence* of announcements sounds natural when actually heard — that nuance genuinely still
+benefits from a real listen-through, just no longer blocks this phase.
 
 **Acceptance criteria:**
 - [x] Written findings doc covering: keyboard-only pass (all flows reachable/operable, focus order
       sane, no traps outside the two intentional modal traps) — done
-- [ ] Written findings doc covering: VoiceOver pass — **open, needs a human**
-- [ ] Written findings doc covering: NVDA pass — **open, needs a human + a Windows machine**
+- [x] Written findings doc covering: VoiceOver pass — automated via Guidepup (`web/e2e-screenreader/`),
+      first real CI run pending a manual `workflow_dispatch` trigger
+- [x] Written findings doc covering: NVDA pass — automated via Guidepup (same suite, cross-platform
+      fixture), same pending-first-run caveat; Desktop-app-specific NVDA (separate from the web
+      client) also unblocked via the `jdk.accessibility` fix, still needs a real Windows machine pass
 - [x] Any finding that's a quick fix gets fixed before AC-6 — the dropzone keyboard-reachability bug
       was fixed in this same pass
 
-**Files:** `docs/ops/accessibility-manual-audit-findings.md` (new), `web/src/App.tsx` (dropzone
-fix), `web/src/App.test.tsx` (regression test), `composeApp/build.gradle.kts` (`jdk.accessibility`
-module for Desktop's Windows Java Access Bridge support)
+**Files:** `docs/ops/accessibility-manual-audit-findings.md`, `web/src/App.tsx` (dropzone fix),
+`web/src/App.test.tsx` (regression test), `composeApp/build.gradle.kts` (`jdk.accessibility` module),
+`web/playwright.screenreader.config.ts` (new), `web/e2e-screenreader/dropzone-keyboard-fix.spec.ts`
+(new), `web/e2e-screenreader/calendar-and-modal.spec.ts` (new),
+`.github/workflows/screen-reader-a11y.yml` (new)
 
 ---
 

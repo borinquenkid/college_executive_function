@@ -19,13 +19,20 @@ test.describe('Sources dropzone — real screen reader announcement', () => {
     await page.getByRole('button', { name: 'Sources' }).click();
     await page.getByText('Sources Panel').waitFor();
 
-    // Tab from the top of the page to the dropzone button, same order verified manually during
-    // the keyboard-only pass: Calendar -> Sources -> Studio Panel -> Settings -> dropzone.
-    for (let i = 0; i < 4; i++) {
+    // Tab forward until reaching the dropzone rather than assuming a fixed tab-stop count — the
+    // exact number of stops before it isn't part of the contract under test, real keyboard
+    // reachability is. lastSpokenPhrase() is a live query, so give speech a beat after each Tab.
+    const MAX_TAB_PRESSES = 20;
+    let announced = '';
+    let presses = 0;
+
+    while (!announced.includes('click or drag file here') && presses < MAX_TAB_PRESSES) {
       await screenReader.press('Tab');
+      await page.waitForTimeout(300);
+      announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
+      presses++;
     }
 
-    const announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
     expect(announced).toContain('button');
     expect(announced).toContain('click or drag file here');
   });

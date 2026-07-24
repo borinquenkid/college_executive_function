@@ -1,6 +1,7 @@
 import { screenReaderTest as test } from '@guidepup/playwright';
 import { expect } from '@playwright/test';
 import { mockApi } from '../e2e/mockApi';
+import { navigateUntilItemTextIncludes } from './navigateUntil';
 
 // Real screen-reader regression check for the AC-4 keyboard-only-pass finding (ADR 0011): the
 // Sources tab's file-upload dropzone was a <label> wrapping a hidden input — reachable by mouse
@@ -9,7 +10,7 @@ import { mockApi } from '../e2e/mockApi';
 // just reachable via raw DOM focus (which the jsdom/axe suites already cover) — a screen reader
 // could in principle still announce a focusable element with no meaningful name.
 test.describe('Sources dropzone — real screen reader announcement', () => {
-  test('announces as a button with its label when tabbed to', async ({ page, screenReader }) => {
+  test('announces as a button with its label when reached', async ({ page, screenReader }) => {
     await mockApi(page);
     await page.goto('/');
     await page.getByText('Academic Calendar').waitFor();
@@ -19,20 +20,16 @@ test.describe('Sources dropzone — real screen reader announcement', () => {
     await page.getByRole('button', { name: 'Sources' }).click();
     await page.getByText('Sources Panel').waitFor();
 
-    // Tab forward until reaching the dropzone rather than assuming a fixed tab-stop count — the
-    // exact number of stops before it isn't part of the contract under test, real keyboard
-    // reachability is. lastSpokenPhrase() is a live query, so give speech a beat after each Tab.
-    const MAX_TAB_PRESSES = 20;
-    let announced = '';
-    let presses = 0;
+    // Real Tab-based keyboard reachability of the dropzone is already covered by the fast jsdom
+    // regression test (App.test.tsx) — this confirms the screen reader announces the fixed
+    // control correctly (role + label) once reached, using the same next()-loop navigation as the
+    // other checks in this suite (a real Tab-press loop worked for NVDA but VoiceOver's live
+    // lastSpokenPhrase() query didn't reliably reflect Tab-driven focus changes in CI — see
+    // calendar-and-modal.spec.ts for the same finding on the modal-open check).
+    await screenReader.navigateToWebContent();
+    await navigateUntilItemTextIncludes(screenReader, 'click or drag file here', 40);
 
-    while (!announced.includes('click or drag file here') && presses < MAX_TAB_PRESSES) {
-      await screenReader.press('Tab');
-      await page.waitForTimeout(300);
-      announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
-      presses++;
-    }
-
+    const announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
     expect(announced).toContain('button');
     expect(announced).toContain('click or drag file here');
   });

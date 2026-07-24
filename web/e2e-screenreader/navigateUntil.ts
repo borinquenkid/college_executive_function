@@ -7,12 +7,16 @@ const MAX_NAVIGATION_STEPS = 20;
 // browse cursor lands wherever the OS/browser puts it first (often a landmark region), not the item
 // under test. This drives the cursor forward with next() until the target text is reached, matching
 // that documented pattern instead of assuming the first item is the one we want.
-export async function navigateUntilItemTextIncludes(screenReader: ScreenReaderPlaywright, target: string) {
+export async function navigateUntilItemTextIncludes(
+  screenReader: ScreenReaderPlaywright,
+  target: string,
+  maxSteps: number = MAX_NAVIGATION_STEPS
+) {
   const normalizedTarget = target.toLowerCase();
   let steps = 0;
   let itemText = (await screenReader.itemText()).toLowerCase();
 
-  while (!itemText.includes(normalizedTarget) && steps < MAX_NAVIGATION_STEPS) {
+  while (!itemText.includes(normalizedTarget) && steps < maxSteps) {
     await screenReader.next();
     itemText = (await screenReader.itemText()).toLowerCase();
     steps++;
@@ -20,7 +24,7 @@ export async function navigateUntilItemTextIncludes(screenReader: ScreenReaderPl
 
   if (!itemText.includes(normalizedTarget)) {
     throw new Error(
-      `Screen reader did not reach an item containing "${target}" within ${MAX_NAVIGATION_STEPS} steps. Last item text: "${itemText}"`
+      `Screen reader did not reach an item containing "${target}" within ${maxSteps} steps. Last item text: "${itemText}"`
     );
   }
 }

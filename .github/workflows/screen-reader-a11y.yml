@@ -30,6 +30,9 @@ jobs:
       - name: Install dependencies
         working-directory: web
         run: npm ci
+      - name: Install VoiceOver screen reader assets
+        working-directory: web
+        run: npx @guidepup/setup install voiceover
       - name: Install Playwright WebKit
         working-directory: web
         run: npx playwright install webkit
@@ -52,6 +55,9 @@ jobs:
       - name: Install dependencies
         working-directory: web
         run: npm ci
+      - name: Install NVDA screen reader assets
+        working-directory: web
+        run: npx @guidepup/setup install nvda
       - name: Install Playwright Firefox
         working-directory: web
         run: npx playwright install firefox

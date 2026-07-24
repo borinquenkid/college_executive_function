@@ -49,12 +49,20 @@ test.describe('Create calendar modal — dialog announces on open', () => {
     // what useFocusTrap's cleanup does on close — with no modal anywhere in the tree). NVDA's
     // lastSpokenPhrase() also isn't a live OS query like VoiceOver's — it's the last entry of
     // Guidepup's own capture log (see NVDA.ts) — so a passive focus change is never captured
-    // without an explicit command. Fix: NVDA-Tab (reportCurrentFocus) re-announces whatever
-    // currently has system focus without moving it or touching Escape.
+    // without an explicit command. NVDA-Tab (reportCurrentFocus) re-announces whatever currently
+    // has system focus without moving it or touching Escape — with that fixed, a real run showed
+    // NVDA correctly announcing "close, button, focused": accurate (useFocusTrap.ts focuses the
+    // first focusable element on open, per the W3C ARIA APG modal dialog pattern's own default
+    // recommendation), but it doesn't include the dialog's own name — a real, known NVDA
+    // per-object-report behavior, not a bug in this app. Confirm that separately by continuing
+    // forward with next() (no re-sync needed — next() doesn't require focus mode, and a plain
+    // button doesn't force NVDA into it) until reaching the dialog's title.
     if (screenReader.name === 'NVDA') {
       await screenReader.perform(NVDAKeyCodeCommands.reportCurrentFocus);
-      const announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
-      expect(announced).toContain('create new google calendar');
+      const focusAnnouncement = (await screenReader.lastSpokenPhrase()).toLowerCase();
+      expect(focusAnnouncement).toContain('button');
+
+      await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 40);
     } else {
       await screenReader.navigateToWebContent();
       await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 100);

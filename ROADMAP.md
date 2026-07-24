@@ -16,7 +16,9 @@
 
 ## 🎯 Current Status (June 2026)
 
-**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory) is DONE as of 2026-07-10** — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). `TermBoundaryTrigger` is wired to a real invocation site (`CalendarAgent.synchronize()` — see XM-3). SonarQube quality gate re-verified and passing (`new_coverage: 90.2 ≥ 80`, `new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`) — the earlier "expired `SONAR_TOKEN`" note was actually a Keychain-sourcing issue, not a dead token (see `docs/ops/keychain-secrets-migration.md`'s 2026-07-10 OOC section); the real gate run caught one genuine pre-existing `kotlin:S6310` (hardcoded dispatcher) violation in `TermProfileRepository.kt`, fixed to match the already-established `SqlDelightChatRepository` convention (injected `CoroutineDispatcher` param, defaulted to `Dispatchers.Default`). **Phase 14 (Accessibility Conformance — WCAG 2.1 AA + VPAT)** is proposed — see [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md); triggered by a 2026-07-23 request for defensible "ADA compliant" marketing language, which the project cannot currently back (ADR 0009 fixed real defects but set no conformance level, has no VPAT, and no automated a11y regression tests beyond static linting). AC-1 (this ADR) is done; AC-2 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
+**Current Phase: All desktop/mobile phases complete (through Phase 9)** — Phase 9 done: window title, Studio FAB polish, and Drive picker manually verified end-to-end with a real Google account (search, chips, sorted rows all confirmed working 2026-06-25). **Phase 6b (Web Client & AG-UI Protocol Integration)**: 6.1–6.4 done. 6.2's SSE endpoint (real timestamps/runId, JSON escaping, real Critic-Actor loop wiring) was completed 2026-07-04. **6.5 (Dynamic Agentic UI Views) is next** — the React client still renders only a single fixed reasoning line and the server still streams the final answer as one chunk; see Phase 6b for the gap list. (Phase 0.25's `HttpOtelTracer` tests were found already complete on 2026-07-04 and deprioritized.) **Phase 10 (Hardening Pass)** is done — certification gate cleared 2026-07-05. **Phase 11 (Supply-Chain Hardening)** is proposed and prioritized above Phase 12 — see [`docs/ops/supply-chain-hardening.md`](docs/ops/supply-chain-hardening.md); not started. **Phase 12 (Outlook/Microsoft 365 Calendar Provider)** is proposed — see [ADR-004](docs/decisions/ADR-004-outlook-microsoft-365-calendar-provider.md) and the task breakdown below; A.1–A.2 of the Azure setup are done (see [`docs/ops/microsoft-azure-app-registration.md`](docs/ops/microsoft-azure-app-registration.md)), MS-1 onward not started, and is paused behind Phase 11 per an explicit priority call (hardening over new features). **Phase 13 (Eval Baseline/Delta + Cross-Term Memory) is DONE as of 2026-07-10** — see [ADR 0004](docs/adr/0004-eval-baseline-delta-and-cross-term-memory.md); EB-1/EB-2/EB-3/XM-1..5 all implemented and tested (commit `9271731`), including EB-2's initial baselines recorded against a real live-Gemini run and committed (`evals/baseline_*.json`). `TermBoundaryTrigger` is wired to a real invocation site (`CalendarAgent.synchronize()` — see XM-3). SonarQube quality gate re-verified and passing (`new_coverage: 90.2 ≥ 80`, `new_duplicated_lines_density: 0.0 ≤ 3`, `new_violations: 0`) — the earlier "expired `SONAR_TOKEN`" note was actually a Keychain-sourcing issue, not a dead token (see `docs/ops/keychain-secrets-migration.md`'s 2026-07-10 OOC section); the real gate run caught one genuine pre-existing `kotlin:S6310` (hardcoded dispatcher) violation in `TermProfileRepository.kt`, fixed to match the already-established `SqlDelightChatRepository` convention (injected `CoroutineDispatcher` param, defaulted to `Dispatchers.Default`). **Phase 14 (Accessibility Conformance — WCAG 2.1 AA + VPAT)** is proposed — see [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md); triggered by a 2026-07-23 request for defensible "ADA compliant" marketing language, which the project cannot currently back (ADR 0009 fixed real defects but set no conformance level, has no VPAT, and no automated a11y regression tests beyond static linting). AC-1 (this ADR) is done. AC-2 (Vitest + RTL + vitest-axe test infra, wired into CI) is done as of
+2026-07-24 — found and fixed a real `heading-order` violation on the Calendar and Settings tabs
+along the way. AC-3 (contrast audit) onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2675,7 +2677,7 @@ XM-5 (key-source guardrail)       needs XM-2 + XM-4
 
 ---
 
-## Phase 14 — Accessibility Conformance (WCAG 2.1 AA + VPAT) 🔵 PROPOSED — not started
+## Phase 14 — Accessibility Conformance (WCAG 2.1 AA + VPAT) 🔵 IN PROGRESS — AC-1, AC-2 done
 
 See [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md). ADR 0009 fixed real
 defects (keyboard operability, ARIA, focus management) and added static linting, but the project
@@ -2697,7 +2699,7 @@ document conformance you haven't tested).
 
 ---
 
-#### AC-2 — Frontend test infrastructure + automated axe coverage
+#### AC-2 — Frontend test infrastructure + automated axe coverage ✅ DONE (2026-07-24)
 
 **What:** The web client has zero frontend tests today (ADR 0009 explicitly deferred this). Add
 Vitest + React Testing Library, then `vitest-axe` (or `jest-axe` under Vitest's jest-compat layer)
@@ -2705,17 +2707,41 @@ run against the Calendar, Sources, Studio Panel, and Settings views plus both mo
 decomposition, create-calendar). This catches runtime issues static `jsx-a11y` linting structurally
 can't — dynamic ARIA state, color contrast, live regions.
 
-**Acceptance criteria:**
-- [ ] `web/package.json` has a working `npm test` (Vitest) wired into CI alongside the existing
-      `npm run lint` job
-- [ ] Test: axe reports zero violations against each of the four main views in their default
-      rendered state
-- [ ] Test: axe reports zero violations against both modals in their open state (focus-trapped,
-      per ADR 0009)
-- [ ] Regression test: intentionally reintroducing an ADR-0009-fixed defect (e.g. an unlabeled
-      button) fails the suite, proving the guardrail actually catches what it claims to
+Implemented as: the web client has no separable view components — one large `App.tsx` renders
+"Calendar"/"Sources"/"Studio Panel"/"Settings" via a single `activeTab` string, and both modals as
+inline JSX in the same file. Tests render the real `<App />` (fetch stubbed via a shared
+`renderApp()` helper in `src/test/testUtils.tsx`) and drive tab switches / button clicks with
+`@testing-library/user-event`, rather than importing views in isolation. `vitest-axe`'s own
+`toHaveNoViolations` matcher type (v0.1.0) doesn't match Vitest 4's actual `Assertion` interface, so
+assertions use a local `expectNoAxeViolations()` helper against the well-typed `results.violations`
+array instead of fighting the stale library's types. `@testing-library/react`'s auto-cleanup only
+self-registers under `globals: true`; since this config uses explicit imports instead, `setup.ts`
+wires `afterEach(cleanup)` manually — its absence looked like real accessibility violations
+(duplicate-id-style symptoms) until traced back to undismounted `<App/>` instances piling up in the
+same jsdom document across tests in a file.
 
-**Files:** `web/package.json`, `web/vitest.config.ts` (new), `web/src/*.test.tsx` (new)
+**A real, live violation surfaced and was fixed in this same pass**: `heading-order` (WCAG 1.3.1) —
+the Calendar tab's stat cards and the Settings tab both jumped from `<h1>` straight to `<h3>`,
+skipping `<h2>`; the Chronological Agenda's per-date group headers were `<h4>` directly under an
+`<h2>`. Exactly the kind of runtime/structural issue static `jsx-a11y` linting can't catch (it
+checks JSX shape, not document-wide heading hierarchy) — fixed by promoting the stat-card and
+Settings-section headings to `<h2>` and the date-group headers to `<h3>` (visual size preserved via
+inline `fontSize` where the tag change would otherwise have changed it).
+
+**Acceptance criteria:**
+- [x] `web/package.json` has a working `npm test` (Vitest) wired into CI alongside the existing
+      `npm run lint` job — `.github/workflows/pr-check.yml`'s `build-web` job
+- [x] Test: axe reports zero violations against each of the four main views in their default
+      rendered state — `App.test.tsx` (after fixing the real `heading-order` violations found)
+- [x] Test: axe reports zero violations against both modals in their open state (focus-trapped,
+      per ADR 0009) — `App.test.tsx`
+- [x] Regression test: `src/test/axeGuardrailSanityCheck.test.ts` proves the guardrail isn't
+      silently inert — a synthetic unlabeled-icon-button snippet (the literal ADR-0009 defect
+      shape) is asserted to fail axe, and the same snippet with an `aria-label` is asserted to pass
+
+**Files:** `web/package.json`, `web/vitest.config.ts`, `web/src/test/setup.ts`,
+`web/src/test/testUtils.tsx`, `web/src/App.test.tsx`, `web/src/test/axeGuardrailSanityCheck.test.ts`,
+`web/src/App.tsx` (heading-level fixes), `.github/workflows/pr-check.yml`
 
 ---
 

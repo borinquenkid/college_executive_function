@@ -534,19 +534,19 @@ export default function App() {
 
             <div className="grid-3" style={{ marginBottom: '24px' }}>
               <div className="card">
-                <h3>Semester Health</h3>
+                <h2 style={{ fontSize: '18px' }}>Semester Health</h2>
                 <p style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--color-success)', marginTop: '8px' }}>92%</p>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Proactive completion rate</p>
               </div>
               <div className="card">
-                <h3>Upcoming Tasks</h3>
+                <h2 style={{ fontSize: '18px' }}>Upcoming Tasks</h2>
                 <p style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--color-primary)', marginTop: '8px' }}>
                   {events.filter(e => e.category === 'DEADLINE').length}
                 </p>
                 <p style={{ fontSize: '12px', color: 'var(--text-secondary)' }}>Deliverables to finish</p>
               </div>
               <div className="card">
-                <h3>Active Study Blocks</h3>
+                <h2 style={{ fontSize: '18px' }}>Active Study Blocks</h2>
                 <p style={{ fontSize: '28px', fontWeight: 'bold', color: 'var(--color-warning)', marginTop: '8px' }}>
                   {events.filter(e => e.category === 'STUDY_BLOCK').length}
                 </p>
@@ -562,9 +562,9 @@ export default function App() {
                 ) : (
                   sortedDates.map(date => (
                     <div key={date} style={{ borderLeft: '3px solid var(--color-primary)', paddingLeft: '16px' }}>
-                      <h4 style={{ color: 'var(--color-primary)', marginBottom: '8px' }}>
+                      <h3 style={{ color: 'var(--color-primary)', marginBottom: '8px', fontSize: '15px' }}>
                         {new Date(date).toLocaleDateString(undefined, { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' })}
-                      </h4>
+                      </h3>
                       <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
                         {eventsByDate[date].map(event => (
                           <div key={event.id} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', background: 'rgba(255,255,255,0.02)', padding: '10px 14px', borderRadius: '8px', border: '1px solid var(--border-color)' }}>
@@ -829,7 +829,7 @@ export default function App() {
 
               <div style={{ borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
 
-              <h3>Study Hour Allocation Constraints</h3>
+              <h2>Study Hour Allocation Constraints</h2>
               <div className="grid-2" style={{ marginTop: '16px' }}>
                 <div className="form-group">
                   <label htmlFor="studyStartHour">Study Hours start</label>
@@ -877,7 +877,7 @@ export default function App() {
               <div style={{ borderTop: '1px solid var(--border-color)', margin: '24px 0' }} />
 
               {/* Google Calendar Section */}
-              <h3>Google Calendar Connection</h3>
+              <h2>Google Calendar Connection</h2>
               <div style={{ marginTop: '12px', padding: '16px', borderRadius: '10px', border: `1px solid ${googleLinked ? 'var(--color-success)' : 'var(--border-color)'}`, background: googleLinked ? 'rgba(34,197,94,0.06)' : 'rgba(255,255,255,0.02)' }}>
                 <div style={{ display: 'flex', alignItems: 'center', gap: '10px', marginBottom: '10px' }}>
                   <span style={{ fontSize: '18px' }}>{googleLinked ? '✅' : '🔒'}</span>

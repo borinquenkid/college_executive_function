@@ -85,6 +85,12 @@ jobs:
         # accessibility regression guardrail (see docs/adr/0009-web-accessibility-remediation.md).
         working-directory: web
         run: npm run lint
+      - name: Test
+        # Vitest + React Testing Library + vitest-axe (ADR 0011 AC-2) — runtime accessibility
+        # coverage (dynamic ARIA state, focus behavior, rendered heading structure) beyond what
+        # eslint-plugin-jsx-a11y's static JSX-shape linting above can catch.
+        working-directory: web
+        run: npm test
       - name: Type-check and build
         working-directory: web
         run: npm run build

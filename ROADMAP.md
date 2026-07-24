@@ -21,9 +21,10 @@
 along the way. AC-3 (contrast audit) is done as of 2026-07-24 — one real live violation
 (`.btn-primary`/`.chat-msg.user` white-on-purple, 3.95:1) fixed, plus `--text-muted` lightened;
 also found that jsdom has no layout engine at all, so axe's `color-contrast` rule can never run
-meaningfully in the AC-2 Vitest suite (confirmed, not fixable there) — future automated contrast
-regression coverage needs a real browser-based test runner, tracked as an open gap. AC-4 onward
-not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
+meaningfully in the AC-2 Vitest suite (confirmed, not fixable there) — closed for real the same day
+with a second, browser-backed test layer (Playwright + `@axe-core/playwright`, `web/e2e/`), added
+after discussing the tradeoff with the user; verified it actually catches the real bug AC-3 found by
+reverting the fix and confirming all 6 specs fail, then restoring it. AC-4 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2815,14 +2816,22 @@ clean.
       contrast ratio — table above
 - [x] Any pair below the WCAG 1.4.3 threshold for its role fixed — `--text-muted`,
       `--color-primary-solid` (new), `.btn-primary:hover`
-- [ ] ~~AC-2's axe suite includes `color-contrast` as an enabled rule... so future regressions are
-      caught automatically~~ — **not achievable as written**; see the jsdom finding above. The rule
-      is enabled (never disabled) but structurally can't produce results in jsdom. Real automated
-      regression coverage for contrast needs a browser-based test runner — tracked as a gap, not
-      silently dropped.
+- [x] ~~AC-2's axe suite includes `color-contrast` as an enabled rule... so future regressions are
+      caught automatically~~ — **not achievable in AC-2's jsdom suite** (see the jsdom finding
+      above; the rule is enabled there, never disabled, it just can't produce results). Closed for
+      real instead with a second, browser-backed layer: **Playwright + `@axe-core/playwright`**
+      (`web/playwright.config.ts`, `web/e2e/`), added the same day after discussing the tradeoff
+      with the user (a slower real-browser suite alongside, not instead of, the fast jsdom one).
+      `page.route()` mocks every `/api/*` call before it reaches Vite's dev-server proxy, so no real
+      backend is needed to run it. Verified the guardrail isn't inert the same way AC-2's own
+      sanity-check test proves itself: reverted `--color-primary-solid` back to the real
+      `.btn-primary` bug this task found, confirmed all 6 `test:e2e` specs failed with the exact
+      3.95:1 contrast data, then restored the fix and confirmed green again. Wired into CI
+      (`.github/workflows/pr-check.yml`) after the existing Vitest `Test` step.
 
-**Files:** `web/src/index.css` (token/value changes only — no new files needed; the live-browser
-audit was a one-time verification pass, not new test infrastructure)
+**Files:** `web/src/index.css` (token/value fixes), `web/playwright.config.ts` (new),
+`web/e2e/mockApi.ts` (new), `web/e2e/accessibility.spec.ts` (new, mirrors `App.test.tsx`'s 4
+views + 2 modals), `.github/workflows/pr-check.yml`
 
 ---
 

@@ -91,6 +91,15 @@ jobs:
         # eslint-plugin-jsx-a11y's static JSX-shape linting above can catch.
         working-directory: web
         run: npm test
+      - name: Install Playwright browsers
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+      - name: E2E accessibility tests (Playwright)
+        # Real-browser layer (ADR 0011 AC-3) — the Vitest suite above runs in jsdom, which has no
+        # layout engine at all, so axe's color-contrast rule (and anything else paint-dependent)
+        # can never produce a real result there. This closes that gap for real.
+        working-directory: web
+        run: npm run test:e2e
       - name: Type-check and build
         working-directory: web
         run: npm run build

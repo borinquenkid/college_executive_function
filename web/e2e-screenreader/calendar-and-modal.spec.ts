@@ -40,8 +40,8 @@ test.describe('Create calendar modal — dialog announces on open', () => {
     // the dialog title explicitly, same as the heading and dropzone checks in this suite. There's
     // no outside-click-to-close handler on the modal (see useFocusTrap.ts), so the re-sync's body
     // click can't dismiss it. Bigger step budget since the modal renders further down the DOM
-    // than the page heading.
+    // than the page heading — a real run got within one button of the target at 40 steps.
     await screenReader.navigateToWebContent();
-    await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 40);
+    await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 100);
   });
 });

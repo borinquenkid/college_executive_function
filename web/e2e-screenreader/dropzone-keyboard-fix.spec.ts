@@ -9,6 +9,13 @@ import { navigateUntilItemTextIncludes } from './navigateUntil';
 // confirms the fix is ALSO correctly exposed to a real screen reader's accessibility tree, not
 // just reachable via raw DOM focus (which the jsdom/axe suites already cover) — a screen reader
 // could in principle still announce a focusable element with no meaningful name.
+//
+// The two screen readers need different navigation mechanisms here, confirmed by real CI runs:
+// NVDA's live lastSpokenPhrase() reliably reflected real Tab-driven focus changes, but
+// VoiceOver's didn't; conversely VoiceOver's next()-loop reliably reached the target, but NVDA's
+// got stuck on an unrelated empty item within budget. Each reader uses whichever mechanism was
+// actually observed to work for it (same NVDA-vs-VoiceOver split found on the modal-open check
+// in calendar-and-modal.spec.ts).
 test.describe('Sources dropzone — real screen reader announcement', () => {
   test('announces as a button with its label when reached', async ({ page, screenReader }) => {
     await mockApi(page);
@@ -20,16 +27,25 @@ test.describe('Sources dropzone — real screen reader announcement', () => {
     await page.getByRole('button', { name: 'Sources' }).click();
     await page.getByText('Sources Panel').waitFor();
 
-    // Real Tab-based keyboard reachability of the dropzone is already covered by the fast jsdom
-    // regression test (App.test.tsx) — this confirms the screen reader announces the fixed
-    // control correctly (role + label) once reached, using the same next()-loop navigation as the
-    // other checks in this suite (a real Tab-press loop worked for NVDA but VoiceOver's live
-    // lastSpokenPhrase() query didn't reliably reflect Tab-driven focus changes in CI — see
-    // calendar-and-modal.spec.ts for the same finding on the modal-open check).
-    await screenReader.navigateToWebContent();
-    await navigateUntilItemTextIncludes(screenReader, 'click or drag file here', 40);
+    let announced: string;
 
-    const announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
+    if (screenReader.name === 'NVDA') {
+      const MAX_TAB_PRESSES = 20;
+      announced = '';
+      let presses = 0;
+
+      while (!announced.includes('click or drag file here') && presses < MAX_TAB_PRESSES) {
+        await screenReader.press('Tab');
+        await page.waitForTimeout(300);
+        announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
+        presses++;
+      }
+    } else {
+      await screenReader.navigateToWebContent();
+      await navigateUntilItemTextIncludes(screenReader, 'click or drag file here', 40);
+      announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
+    }
+
     expect(announced).toContain('button');
     expect(announced).toContain('click or drag file here');
   });

@@ -26,8 +26,11 @@ with a second, browser-backed test layer (Playwright + `@axe-core/playwright`, `
 after discussing the tradeoff with the user; verified it actually catches the real bug AC-3 found by
 reverting the fix and confirming all 6 specs fail, then restoring it. AC-4's keyboard-only pass is
 done as of 2026-07-24 (found and fixed a real WCAG 2.1.1 failure — the Sources tab's file-upload
-dropzone was completely unreachable by keyboard); its VoiceOver/NVDA passes are open — those
-genuinely need a human, not automated tooling. AC-5 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
+dropzone was completely unreachable by keyboard); its VoiceOver/NVDA listen-through passes are open
+— those genuinely need a human, not automated tooling. Along the way, added the `jdk.accessibility`
+JDK module `composeApp`'s Desktop distribution was missing (Windows' Java Access Bridge needs it;
+confirmed via JetBrains' own docs that Linux has no Compose Desktop accessibility bridge at all — a
+real upstream gap, not fixable from this app). AC-5 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2855,11 +2858,19 @@ WCAG 2.1.1 failure (the Sources tab's file-upload dropzone — a `<label>` wrapp
 input — was completely unreachable by keyboard; rewritten as a real `<button>`, with a regression
 test added since axe-core doesn't flag this pattern on its own).
 
-The VoiceOver and NVDA passes are **not done** — these need a human actually listening to real
-screen-reader speech output and judging whether it's clear/non-confusing, which isn't something
-automated tooling (or an agent without ears) can substitute for. NVDA additionally needs a Windows
-machine, unavailable in this environment. Both are open, tracked honestly rather than skipped
-silently or faked — see the findings doc's "What's still open" section for the reasoning and
+The VoiceOver and NVDA listen-through passes are **not done** — these need a human actually
+listening to real screen-reader speech output and judging whether it's clear/non-confusing, which
+isn't something automated tooling (or an agent without ears) can substitute for. But NVDA is *not*
+a hard "wrong OS" blocker for the project the way it first looked — `composeApp` already targets
+Windows natively via Compose Multiplatform Desktop, so a real NVDA pass there is a legitimate future
+task on an actual Windows machine, not something structurally impossible. Checked JetBrains' own
+Compose Desktop accessibility docs before assuming: **macOS is fully supported natively; Windows
+needs Java Access Bridge (disabled by default, needs a one-time `jabswitch.exe /enable` on the
+Windows machine, outside the app's control) plus the `jdk.accessibility` JDK module bundled in the
+distribution — fixed in `composeApp/build.gradle.kts` in this same pass; Linux has no accessibility
+bridge at all in Compose Multiplatform Desktop today — a genuine current upstream framework gap, not
+fixable from this app.** Both listen-through passes are open, tracked honestly rather than skipped
+silently or faked — see the findings doc's "What's still open" section for the full reasoning and
 options going forward.
 
 **Acceptance criteria:**
@@ -2871,7 +2882,8 @@ options going forward.
       was fixed in this same pass
 
 **Files:** `docs/ops/accessibility-manual-audit-findings.md` (new), `web/src/App.tsx` (dropzone
-fix), `web/src/App.test.tsx` (regression test)
+fix), `web/src/App.test.tsx` (regression test), `composeApp/build.gradle.kts` (`jdk.accessibility`
+module for Desktop's Windows Java Access Bridge support)
 
 ---
 

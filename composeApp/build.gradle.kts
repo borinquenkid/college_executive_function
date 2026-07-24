@@ -481,7 +481,18 @@ compose.desktop {
                 "java.base", "java.desktop", "java.logging", "jdk.crypto.ec",
                 "java.compiler", "java.instrument", "java.management", "java.naming",
                 "java.prefs", "java.security.jgss", "java.sql", "jdk.httpserver", "jdk.unsupported",
-                "java.net.http"
+                "java.net.http",
+                // Windows screen-reader bridge (ADR 0011 AC-4) — Compose Desktop's accessibility
+                // tree reaches JAWS/NVDA via Java Access Bridge, which needs this JDK module
+                // bundled in the jlink runtime image. Still requires a one-time
+                // `jabswitch.exe /enable` on the end user's machine (Access Bridge itself ships
+                // disabled by default on Windows; the app can't silently flip that OS-level
+                // toggle) — see docs/ops/accessibility-manual-audit-findings.md. No equivalent
+                // exists for Linux: Compose Multiplatform Desktop has no accessibility bridge on
+                // Linux at all as of this writing (upstream framework gap, not fixable here) —
+                // see https://kotlinlang.org/docs/multiplatform/compose-desktop-accessibility.html.
+                // macOS needs nothing extra — fully supported natively.
+                "jdk.accessibility"
             )
 
             windows {

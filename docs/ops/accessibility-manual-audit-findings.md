@@ -71,17 +71,55 @@ rather than silently skipping it. Revisit if/when the staff console gets its own
 
 ## What's still open
 
-**VoiceOver (macOS) and NVDA (Windows) passes are not done.** These are qualitatively different
-from the keyboard pass above: they require a human actually listening to real screen-reader speech
-output and judging whether announcements are clear, non-redundant, and non-confusing — not an
-objective reachability check a script can perform. Additionally:
+**VoiceOver (macOS, web + iOS/Desktop) and NVDA (Windows, Desktop) listen-through passes are not
+done.** These are qualitatively different from the keyboard pass above: they require a human
+actually listening to real screen-reader speech output and judging whether announcements are clear,
+non-redundant, and non-confusing — not an objective reachability check a script can perform.
+Additionally, enabling VoiceOver system-wide is a real macOS accessibility/system-settings change
+with an actual audible side effect on whoever's using the machine — not something to flip on
+unilaterally in an unattended automation session.
 
-- Enabling VoiceOver system-wide is a real macOS accessibility/system-settings change with an
-  actual audible side effect on whoever's using the machine — not something to flip on
-  unilaterally in an unattended automation session.
-- NVDA requires an actual Windows machine, which isn't available in this environment at all.
+**NVDA is not a hard "wrong OS" blocker for this project** — this session runs on macOS and has no
+Windows machine available *right now*, but Compose Multiplatform Desktop (`composeApp`) already
+targets Windows natively via the JVM, so a real NVDA pass against the Desktop build is a legitimate
+task on an actual Windows machine (the user's, a VM, whatever), not something structurally
+impossible for the project. Checked what that actually requires against JetBrains' own
+[Compose Desktop accessibility docs](https://kotlinlang.org/docs/multiplatform/compose-desktop-accessibility.html)
+before assuming, since Compose Multiplatform's Desktop accessibility support is a fast-moving,
+often-limited part of the framework:
 
-Both need the user's own time (or another human's) to run for real. Options going forward, once
-decided: either the user runs these passes directly against a running local instance, or this is
-scheduled as a follow-up with a concrete written script per flow so the pass is repeatable and
-comparable across the app's four platforms in the future.
+| Platform | Status |
+|---|---|
+| macOS | Fully supported natively — nothing to configure |
+| Windows | Supported via Java Access Bridge, but Access Bridge ships **disabled by default** on Windows |
+| Linux | **Not supported at all** — no accessibility bridge exists in Compose Multiplatform Desktop for Linux as of this writing (upstream framework gap, not fixable from this app) |
+
+Two concrete things followed from this, done in this same pass:
+
+1. **Fixed**: `composeApp/build.gradle.kts`'s `nativeDistributions { modules(...) }` list explicitly
+   replaces the plugin's default JDK module set (per its own existing comment) — `jdk.accessibility`
+   wasn't in it, so the Windows MSI's bundled jlink runtime never had the module Java Access Bridge
+   needs. Added it; verified with `./gradlew :composeApp:createDistributable` (macOS-buildable, but
+   confirms the module resolves and doesn't break runtime-image creation — the actual Windows MSI
+   itself can only be built and tested on Windows).
+2. **Still required, not something the app can do for the user**: Access Bridge itself is an
+   OS-level toggle, disabled by default — a real NVDA pass needs `%JAVA_HOME%\bin\jabswitch.exe
+   /enable` run once on the Windows machine first. This is a one-time IT/user setup step, not a
+   bug — but it means "install the app" alone isn't enough for NVDA to see anything; worth a line in
+   deployment docs for anyone setting up a Windows instance.
+3. **Linux gets nothing from this fix** — genuinely no accessibility bridge exists for Compose
+   Desktop on Linux today. Recorded here so nobody re-discovers this from scratch or spends time
+   trying to configure something that doesn't exist yet.
+
+The good news underneath all this: the shared Compose UI code (`composeApp/src/commonMain`,
+used by Android, iOS, and Desktop alike) already has real `contentDescription`s on icons throughout
+(`Icon(Icons.Default.Sync, contentDescription = "Sync Now")` and similar, confirmed via a repo-wide
+grep) — this isn't new work needed, since Compose Multiplatform shares its semantics tree
+architecture across platforms per JetBrains' own docs. Once Access Bridge is enabled on a given
+Windows machine, this same semantic content should already surface reasonably to NVDA/JAWS without
+further app-side changes — worth confirming with a real listen-through, not assuming.
+
+Both listen-through passes (VoiceOver and NVDA-on-Windows-once-enabled) still need the user's own
+time (or another human's) to run for real. Options going forward, once decided: either the user runs
+these passes directly, or it's scheduled as a follow-up with a concrete written script per flow so
+the pass is repeatable and comparable across the app's platforms in the future.

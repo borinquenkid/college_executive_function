@@ -39,6 +39,13 @@ jobs:
       - name: VoiceOver screen reader tests
         working-directory: web
         run: npm run test:voiceover
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: voiceover-test-results
+          path: web/test-results
+          retention-days: 7
 
   nvda-a11y:
     name: NVDA (Windows)
@@ -64,3 +71,10 @@ jobs:
       - name: NVDA screen reader tests
         working-directory: web
         run: npm run test:nvda
+      - name: Upload test results on failure
+        if: failure()
+        uses: actions/upload-artifact@v7
+        with:
+          name: nvda-test-results
+          path: web/test-results
+          retention-days: 7

@@ -1,4 +1,6 @@
 import { screenReaderTest as test } from '@guidepup/playwright';
+import { NVDAKeyCodeCommands } from '@guidepup/guidepup';
+import { expect } from '@playwright/test';
 import { mockApi } from '../e2e/mockApi';
 import { navigateUntilItemTextIncludes } from './navigateUntil';
 
@@ -33,15 +35,29 @@ test.describe('Create calendar modal — dialog announces on open', () => {
     await page.getByRole('button', { name: '+ Create New Calendar' }).click();
     await page.getByText('Create New Google Calendar').waitFor();
 
-    // useFocusTrap.ts (ADR 0009) moves real DOM focus into the modal on open, which a real screen
-    // reader picks up passively in an interactive session — but CI screen-reader automation
-    // doesn't reliably observe passive focus-driven announcements (confirmed here: the browse
-    // cursor stayed put after the clicks above). Re-sync into web content and drive the cursor to
-    // the dialog title explicitly, same as the heading and dropzone checks in this suite. There's
-    // no outside-click-to-close handler on the modal (see useFocusTrap.ts), so the re-sync's body
-    // click can't dismiss it. Bigger step budget since the modal renders further down the DOM
-    // than the page heading — a real run got within one button of the target at 40 steps.
-    await screenReader.navigateToWebContent();
-    await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 100);
+    // useFocusTrap.ts (ADR 0009) moves real DOM focus into the modal on open. Two different fixes
+    // per reader, both confirmed against real CI runs:
+    //
+    // VoiceOver: passive focus-driven announcements weren't observed, but re-syncing with
+    // navigateToWebContent() and driving forward with next() reliably reaches the dialog title.
+    //
+    // NVDA: navigateToWebContent() is NOT safe to call again here — its internal re-sync sends a
+    // real Escape keypress (NVDAKeyCodeCommands.exitFocusMode), which our focus trap treats as
+    // "close the dialog" globally regardless of what's focused, so it was silently closing our own
+    // modal (confirmed via a real run's error-context.md: the accessibility snapshot at failure
+    // showed the Settings panel with focus back on the "+ Create New Calendar" button — exactly
+    // what useFocusTrap's cleanup does on close — with no modal anywhere in the tree). NVDA's
+    // lastSpokenPhrase() also isn't a live OS query like VoiceOver's — it's the last entry of
+    // Guidepup's own capture log (see NVDA.ts) — so a passive focus change is never captured
+    // without an explicit command. Fix: NVDA-Tab (reportCurrentFocus) re-announces whatever
+    // currently has system focus without moving it or touching Escape.
+    if (screenReader.name === 'NVDA') {
+      await screenReader.perform(NVDAKeyCodeCommands.reportCurrentFocus);
+      const announced = (await screenReader.lastSpokenPhrase()).toLowerCase();
+      expect(announced).toContain('create new google calendar');
+    } else {
+      await screenReader.navigateToWebContent();
+      await navigateUntilItemTextIncludes(screenReader, 'create new google calendar', 100);
+    }
   });
 });

@@ -124,11 +124,11 @@ actual machine that shouldn't happen without them directly driving it. First rea
 verification happened by manually triggering the workflow in GitHub Actions — an isolated,
 disposable VM is exactly the right place for this kind of setup, not a real local machine.
 
-### Real CI verification (5 runs, iterated against actual failures — not guessed)
+### Real CI verification (8 runs, iterated against actual failures — not guessed)
 
 The first real trigger failed both jobs immediately, and it took several more real runs to reach a
-working state — recorded here because each failure taught something concrete about how Guidepup
-actually behaves in CI, not just in its docs:
+fully passing state — recorded here because each failure taught something concrete about how
+Guidepup actually behaves in CI, not just in its docs:
 
 1. **`guidepup/setup-action` alone isn't enough.** It only runs the machine-level `setup` step.
    `@guidepup/setup`'s own quick-start is a three-step sequence — `setup` → `npm install` →
@@ -142,40 +142,44 @@ actually behaves in CI, not just in its docs:
    `next()` until the target text is reached rather than asserting immediately. Our specs made the
    same wrong assumption Guidepup's own docs implicitly warn against. Added
    `navigateUntilItemTextIncludes()` (`web/e2e-screenreader/navigateUntil.ts`) matching that pattern.
-3. **`lastSpokenPhrase()` is a genuinely live query** (AppleScript on macOS, a live NVDA query on
-   Windows) — it does NOT reliably reflect a screen reader's live announcement following a passive,
-   non-Guidepup-driven DOM event (a focus-trap's native `.focus()` call, or a real Tab keypress) in
-   CI, even though the same event would audibly announce for an interactive human user. Confirmed
-   this is genuinely reader-specific, not a single fixable bug:
-   - Dropzone check: NVDA's real Tab-press loop worked; VoiceOver's didn't (stuck on stale content).
-     Switching to `next()`-loop fixed VoiceOver but broke NVDA (got stuck on an empty item).
-     **Final fix: branch on `screenReader.name` and give each reader the mechanism proven to work
-     for it** — real Tab presses for NVDA, `next()`-loop for VoiceOver.
-   - Modal-open check: same passive-announcement gap on both readers. `next()`-loop fixed VoiceOver
-     once given enough step budget (a real run got within one button of the target at 40 steps;
-     100 reliably reaches it). **NVDA's modal check still fails** — see "What's still open" below.
+3. **`lastSpokenPhrase()` behaves differently per platform.** VoiceOver's is a genuinely live
+   AppleScript query; NVDA's is literally `spokenPhraseLog().at(-1)` — the last entry of Guidepup's
+   own capture log, populated only by explicit Guidepup commands. Neither reliably reflects a
+   passive, non-Guidepup-driven DOM event (a focus-trap's native `.focus()` call, or a real Tab
+   keypress) in CI, even though the same event would audibly announce for an interactive human user.
+   Confirmed this is genuinely reader-specific, not a single fixable bug — the dropzone check needed
+   opposite mechanisms per reader (real Tab presses for NVDA, `next()`-loop for VoiceOver, branched
+   on `screenReader.name`).
+4. **The modal-open check's root cause, found via `error-context.md` (an ARIA-tree snapshot at the
+   failure point) after adding `actions/upload-artifact` on failure to the workflow** (nothing
+   preserved `test-results/` before that — every prior failure's most useful diagnostic was lost):
+   `NVDAKeyCodeCommands.exitFocusMode` (called twice inside NVDA's `navigateToWebContent()`)
+   compiles to a literal **Escape** keypress, and our modal's focus trap treats Escape as "close the
+   dialog" globally, regardless of what's focused. Calling `navigateToWebContent()` a second time
+   after the modal was already open — the fix that worked for VoiceOver — was silently closing our
+   own modal for NVDA before its navigation loop ever got a real chance. Fixed by skipping
+   `navigateToWebContent()` entirely for NVDA on this check and using
+   `NVDAKeyCodeCommands.reportCurrentFocus` (NVDA-Tab) instead, which re-announces whatever
+   currently holds focus without moving it or touching Escape.
+5. **A real, spec-confirmed cross-reader difference, not a bug**: once the Escape issue was fixed,
+   NVDA's `reportCurrentFocus` correctly announced `"close, button, focused"` — accurate, since
+   `useFocusTrap.ts` focuses the first focusable element on open (which is the Close button, since
+   the `<h2>` title isn't focusable), exactly matching the
+   [W3C ARIA Authoring Practices modal dialog pattern](https://github.com/w3c/aria-practices)'s own
+   documented default ("Generally, focus is initially set on the first focusable element"). NVDA's
+   per-object focus report just doesn't include ancestor dialog context the way VoiceOver's
+   `next()`-loop discovery does — confirmed against the real spec rather than assumed. Split the
+   NVDA assertion in two: `reportCurrentFocus` confirms real, correctly labeled focus; a separate,
+   bounded navigation confirms the title is still reachable.
+6. **Final navigation bug**: that second NVDA check first tried `next()` (forward), which walked
+   straight through the rest of the modal (Calendar Name field, Cancel, the disabled Create submit
+   button — `"button, unavailable, create"`, not stuck/garbled content) and never found the title,
+   because the `<h2>` sits **before** the Close button in DOM order — behind the starting point,
+   unreachable by forward-only navigation. Fixed by adding a `direction` param to
+   `navigateUntilItemTextIncludes()` and going `previous()` instead for this one case.
 
-**Final verified state (run `30128387849`, commit `92e85f5`): 5 of 6 checks pass for real.**
-VoiceOver (macOS): all 3 pass. NVDA (Windows): heading + dropzone pass, modal-open check fails.
-
-## What's still open
-
-**NVDA's modal-open check reproducibly stalls, root cause not yet found.** After opening the
-create-calendar modal, NVDA's `next()`-driven browse cursor gets stuck on an item whose text is
-`"blank"` and never progresses further — confirmed as a genuine stall, not a step-budget shortfall,
-by raising the budget from 40 to 100 steps and getting the exact same stopping point both times. Two
-real, most-likely explanations neither confirmed nor ruled out yet: (a) NVDA's virtual browse buffer
-is a known category with staleness bugs after dynamic ARIA changes (e.g. background content going
-`aria-hidden` when a modal opens) and may need an explicit buffer-reload trigger rather than more
-`next()` calls; (b) the "blank" item itself (likely an empty text input in the Settings panel
-`next()` has to pass through en route to the modal) may be intercepting focus or otherwise blocking
-forward navigation in NVDA's browse mode specifically. This is a screen-reader-automation quirk
-under investigation, not a confirmed accessibility defect in the app — VoiceOver's real pass through
-the same modal succeeds, and the manual keyboard-only pass and axe suite didn't flag this modal
-either. Next step if picked back up: read `error-context.md` from a real run's test-results artifact
-(not yet fetched) for the actual accessibility-tree snapshot at the stall point, rather than guessing
-further from step-level logs alone.
-
+**Final verified state (run `30136830086`, commit `b66147d`): all 6 checks pass for real, on both
+VoiceOver (macOS) and NVDA (Windows).**
 
 
 **A full human listen-through (VoiceOver and NVDA) for prosody/naturalness judgment is still not

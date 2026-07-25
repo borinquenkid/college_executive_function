@@ -963,6 +963,44 @@ export default function App() {
                 Save Configurations
               </button>
             </div>
+
+            <div className="card" style={{ maxWidth: '600px', marginTop: '24px' }}>
+              <h2>Accessibility</h2>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px' }}>
+                This app targets <strong>WCAG 2.1 Level AA</strong> conformance for the web client.
+                That target is backed by automated testing (axe-core, both in-memory and in a real
+                browser), a manual color-contrast audit, a full keyboard-only walkthrough, and
+                automated real screen-reader testing with VoiceOver and NVDA — not just a claim.
+              </p>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '12px' }}>
+                Known limitations, reported honestly rather than left out:
+              </p>
+              <ul style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '8px', paddingLeft: '20px', display: 'flex', flexDirection: 'column', gap: '6px' }}>
+                <li>
+                  A full human listen-through of VoiceOver and NVDA hasn't been done yet.
+                  Automated testing confirms the correct text and roles are announced, but hasn't
+                  been judged by ear for how natural a full sequence of announcements sounds.
+                </li>
+                <li>
+                  The accent color used as text/icon color can fall slightly below the contrast
+                  threshold against certain hover/input backgrounds. It isn't used that way
+                  anywhere today, but is flagged here as a constraint on future design changes.
+                </li>
+                <li>
+                  This statement covers the web client only. The native Android, iOS, and Desktop
+                  apps aren't covered here; on Desktop, NVDA requires Windows' Java Access Bridge to
+                  be enabled by an administrator, and Linux currently has no accessibility bridge at
+                  all in the underlying UI framework (an upstream limitation, not specific to this
+                  app).
+                </li>
+              </ul>
+              <p style={{ fontSize: '13px', color: 'var(--text-secondary)', marginTop: '12px' }}>
+                Found an accessibility issue? Report it to{' '}
+                <a href="mailto:privacy@borinquenterrier.com" style={{ color: 'var(--color-primary)' }}>
+                  privacy@borinquenterrier.com
+                </a>.
+              </p>
+            </div>
           </div>
         )}
       </main>

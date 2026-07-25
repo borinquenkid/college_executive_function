@@ -77,6 +77,21 @@ describe('Settings — default rendered state', () => {
   });
 });
 
+describe('Settings — accessibility statement (ADR 0011 AC-5)', () => {
+  it('is reachable from Settings and states the conformance target and a contact path', async () => {
+    await renderApp();
+    const user = userEvent.setup();
+    await user.click(screen.getByRole('button', { name: 'Settings' }));
+
+    await screen.findByRole('heading', { name: 'Accessibility' });
+    expect(screen.getByText(/WCAG 2.1 Level AA/)).toBeInTheDocument();
+    expect(screen.getByRole('link', { name: 'privacy@borinquenterrier.com' })).toHaveAttribute(
+      'href',
+      'mailto:privacy@borinquenterrier.com'
+    );
+  });
+});
+
 describe('Task decomposition modal — open state', () => {
   it('has no axe violations', async () => {
     await renderApp({

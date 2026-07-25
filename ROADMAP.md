@@ -29,11 +29,17 @@ reverting the fix and confirming all 6 specs fail, then restoring it. **AC-4 is 
 file-upload dropzone was completely unreachable by keyboard), and real automated VoiceOver + NVDA
 coverage now exists via [Guidepup](https://github.com/guidepup/guidepup) (`web/e2e-screenreader/`,
 `.github/workflows/screen-reader-a11y.yml`, manual-trigger only given real GitHub Actions cost on
-macos-latest/windows-latest runners) — a genuine human listen-through for prosody/naturalness is
-still a valuable follow-up but no longer blocks the phase. Along the way, added the
-`jdk.accessibility` JDK module `composeApp`'s Desktop distribution was missing (Windows' Java Access
-Bridge needs it; confirmed via JetBrains' own docs that Linux has no Compose Desktop accessibility
-bridge at all — a real upstream gap, not fixable from this app). AC-5 onward not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
+macos-latest/windows-latest runners) — **verified against 8 real CI runs, all 6 checks passing for
+real on both VoiceOver and NVDA** (see `docs/ops/accessibility-manual-audit-findings.md` for the
+full root-cause chain: missing screen-reader asset installation, an NVDA Escape-vs-focus-trap
+interaction, a real spec-confirmed cross-reader focus-report difference, and a DOM-order navigation
+bug in the test itself). A genuine human listen-through for prosody/naturalness is still a valuable
+follow-up but no longer blocks the phase. Along the way, added the `jdk.accessibility` JDK module
+`composeApp`'s Desktop distribution was missing (Windows' Java Access Bridge needs it; confirmed via
+JetBrains' own docs that Linux has no Compose Desktop accessibility bridge at all — a real upstream
+gap, not fixable from this app). **AC-5 is done as of 2026-07-24** — an in-app "Accessibility"
+statement in the Settings tab, stating the WCAG 2.1 AA target and honestly listing the real
+limitations found in AC-3/AC-4. AC-6 (VPAT) not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2692,7 +2698,7 @@ XM-5 (key-source guardrail)       needs XM-2 + XM-4
 
 ---
 
-## Phase 14 — Accessibility Conformance (WCAG 2.1 AA + VPAT) 🔵 IN PROGRESS — AC-1, AC-2 done
+## Phase 14 — Accessibility Conformance (WCAG 2.1 AA + VPAT) 🔵 IN PROGRESS — AC-1 through AC-5 done
 
 See [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md). ADR 0009 fixed real
 defects (keyboard operability, ARIA, focus management) and added static linting, but the project
@@ -2906,17 +2912,31 @@ benefits from a real listen-through, just no longer blocks this phase.
 
 ---
 
-#### AC-5 — Public in-app accessibility statement
+#### AC-5 — Public in-app accessibility statement ✅ DONE (2026-07-24)
 
 **What:** A reachable page/section in the web client stating the conformance target (WCAG 2.1 AA),
 known limitations (pulled honestly from AC-4's findings), and a contact path for reporting issues.
 Standard expectation in institutional procurement, independent of the VPAT itself.
 
-**Acceptance criteria:**
-- [ ] Statement reachable from the app (e.g. Settings or a footer link), not just a repo file
-- [ ] Content reflects AC-3/AC-4's actual findings, not aspirational language
+**Implemented as**: a new "Accessibility" card in the Settings tab (below the existing settings
+card, same `activeTab === 'settings'` view — reachable from the app's nav, not a repo-only file).
+States the WCAG 2.1 AA target and what backs it (axe-core in both jsdom and a real browser, the
+manual contrast audit, the keyboard-only pass, and automated real screen-reader testing), then three
+honest limitations pulled directly from AC-3/AC-4's actual findings rather than written generically:
+the still-open full VoiceOver/NVDA listen-through, the `--color-primary`-as-text contrast caution
+against certain composited backgrounds (not currently used that way, flagged for future designs),
+and the Desktop/Linux Compose accessibility-bridge gaps from AC-4. Contact path reuses the existing
+`privacy@borinquenterrier.com` support address already used for store-listing privacy/support
+(`AGENTS.md`'s store submission reference) rather than inventing a new one.
 
-**Files:** `web/src/App.tsx` (or a new `AccessibilityStatement` component/route)
+**Acceptance criteria:**
+- [x] Statement reachable from the app (e.g. Settings or a footer link), not just a repo file
+- [x] Content reflects AC-3/AC-4's actual findings, not aspirational language — regression test
+      (`App.test.tsx`) asserts the heading, the WCAG 2.1 Level AA text, and the contact `mailto:`
+      link; verified with zero axe violations in both the jsdom (`npm test`) and real-browser
+      (`npm run test:e2e`) suites
+
+**Files:** `web/src/App.tsx`, `web/src/App.test.tsx`
 
 ---
 

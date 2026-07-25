@@ -39,7 +39,11 @@ follow-up but no longer blocks the phase. Along the way, added the `jdk.accessib
 JetBrains' own docs that Linux has no Compose Desktop accessibility bridge at all — a real upstream
 gap, not fixable from this app). **AC-5 is done as of 2026-07-24** — an in-app "Accessibility"
 statement in the Settings tab, stating the WCAG 2.1 AA target and honestly listing the real
-limitations found in AC-3/AC-4. AC-6 (VPAT) not started. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
+limitations found in AC-3/AC-4. **AC-6 is done as of 2026-07-24** —
+[`docs/compliance/VPAT.md`](docs/compliance/VPAT.md), ITI VPAT 2.5 INT edition, all 50 WCAG 2.1
+A+AA success criteria evaluated against real AC-2/AC-3/AC-4 evidence with honest "Partially
+Supports"/"Not Evaluated" rows where true rather than oversold. AC-7 (third-party audit) remains
+gated behind a real external ask, per ADR 0011. **Phase 15 (Decouple Upload from Processing) is DONE as of 2026-07-24** — see [ADR 0012](docs/adr/0012-decouple-upload-from-processing.md); triggered by the same 2026-07-23 demo rehearsal, which surfaced that `POST /api/sources` holds one HTTP request open for the entire 20-30+s AI pipeline with no phase visibility. AU-1 through AU-5 all implemented and tested, verified with a live manual smoke test and the full four-target build + Sonar Quality Gate.
 
 ### CRAP Remediation Progress (Phases 0.1–0.8)
 
@@ -2698,7 +2702,7 @@ XM-5 (key-source guardrail)       needs XM-2 + XM-4
 
 ---
 
-## Phase 14 — Accessibility Conformance (WCAG 2.1 AA + VPAT) 🔵 IN PROGRESS — AC-1 through AC-5 done
+## Phase 14 — Accessibility Conformance (WCAG 2.1 AA + VPAT) 🔵 IN PROGRESS — AC-1 through AC-6 done, AC-7 gated behind a real external ask
 
 See [ADR 0011](docs/adr/0011-accessibility-conformance-target-and-vpat.md). ADR 0009 fixed real
 defects (keyboard operability, ARIA, focus management) and added static linting, but the project
@@ -2940,16 +2944,29 @@ and the Desktop/Linux Compose accessibility-bridge gaps from AC-4. Contact path 
 
 ---
 
-#### AC-6 — Produce the VPAT
+#### AC-6 — Produce the VPAT ✅ DONE (2026-07-24)
 
 **What:** ITI's VPAT 2.5, WCAG Edition or the combined INT edition (covers Section 508/EN 301 549
 too — worth the small extra effort given the US higher-ed audience). Filled in from AC-2/AC-3/AC-4's
 actual results. Must include honest "Partially Supports" / "Does Not Support" rows where true — an
 oversold VPAT is worse than none once a real disability-services reviewer starts testing.
 
+**Implemented as**: the INT edition (WCAG 2.1 A/AA tables, Section 508 Chapters, EN 301 549 clauses)
+scoped to the web client per ADR 0011. All 30 Level A and 20 Level AA success criteria have a row —
+each grounded in an actual AC-2 (axe, both jsdom and real-browser), AC-3 (manual contrast audit),
+AC-4 (keyboard-only pass + automated real screen-reader testing), or direct code-inspection result,
+never a guess. Two real "Partially Supports" rows document genuine, specific gaps rather than
+generic hedging: **2.1.1 Keyboard** (the AC-4 dropzone bug, found and fixed within this same
+evaluation), **1.4.11 Non-text Contrast** and **4.1.3 Status Messages** (both: a correct pattern is
+in place — `role="status"` for live updates, a real contrast pass for text — but wasn't extended to
+every non-text/async-status case). Six criteria are honestly marked **Not Evaluated** (2.4.1, 1.3.5,
+1.4.4, 1.4.10, 1.4.12, 1.4.13) rather than assumed passing, with a prioritized follow-up list in the
+document's Notes section. Section 508/EN 301 549 non-web chapters (hardware, authoring tools,
+real-time text, etc.) are marked Not Applicable with a factual reason each, not silently omitted.
+
 **Acceptance criteria:**
-- [ ] VPAT document committed to the repo (e.g. `docs/compliance/VPAT.md` or `.pdf`)
-- [ ] Every WCAG 2.1 AA success criterion has a row backed by an actual AC-2/AC-3/AC-4 result, not
+- [x] VPAT document committed to the repo (e.g. `docs/compliance/VPAT.md` or `.pdf`)
+- [x] Every WCAG 2.1 AA success criterion has a row backed by an actual AC-2/AC-3/AC-4 result, not
       a guess
 
 **Files:** `docs/compliance/VPAT.md` (new)

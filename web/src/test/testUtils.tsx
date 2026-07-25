@@ -33,14 +33,14 @@ export interface FetchOverrides {
   studyPreferences?: Record<string, unknown> | null;
   googleLinked?: boolean;
   calendars?: unknown[];
-  decomposedTasks?: unknown[];
 }
 
 /**
  * Stubs global.fetch to answer every request App.tsx fires on mount
  * (checkSession -> GET /api/settings, then fetchSources/fetchEvents/fetchSettings/
  * fetchGoogleAuthStatus once sessionReady flips true — see App.tsx's mount effects) plus the
- * on-demand endpoints (/api/tasks/decompose, /api/calendars) exercised by modal tests.
+ * on-demand /api/calendars endpoint exercised by modal tests. Task decomposition (Phase 6.5) is
+ * streamed via SSE, not fetch — see setup.ts's FakeEventSource stub instead.
  */
 function stubFetch(overrides: FetchOverrides = {}) {
   const {
@@ -50,7 +50,6 @@ function stubFetch(overrides: FetchOverrides = {}) {
     studyPreferences = null,
     googleLinked = false,
     calendars = [],
-    decomposedTasks = [],
   } = overrides;
 
   const fetchMock = vi.fn(async (input: RequestInfo | URL) => {
@@ -71,10 +70,6 @@ function stubFetch(overrides: FetchOverrides = {}) {
     if (url.startsWith('/api/calendars')) {
       return jsonResponse(calendars);
     }
-    if (url.startsWith('/api/tasks/decompose')) {
-      return jsonResponse(decomposedTasks);
-    }
-
     throw new Error(`testUtils.stubFetch: no mock configured for ${url}`);
   });
 

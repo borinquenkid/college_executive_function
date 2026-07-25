@@ -73,7 +73,9 @@ To support a React web client without duplicating domain classes, CEF communicat
 ```
 
 ### 4.1 Transport Specification
-* **Endpoint:** `GET /api/agent/stream?query={urlEncodedQuery}`
+* **Endpoints:**
+  * `GET /api/agent/stream?query={urlEncodedQuery}` — chat with the ContextAgent.
+  * `GET /api/events/{id}/decompose/stream` — "Break it Down" task decomposition (Phase 6.5); emits `RUN_STARTED` → `TOOL_CALL_START`/`TOOL_CALL_RESULT` (`decomposeTask`) → `STATE_SNAPSHOT` with `{"decomposedTasks": [{"title", "daysBeforeDue", "description"}, ...]}` → `RUN_FINISHED`, or `ERROR` → `RUN_FINISHED` if `id` doesn't match any event on the "default" calendar.
 * **Response Content-Type:** `text/event-stream`
 * **Response Headers:** `Cache-Control: no-cache`, `Connection: keep-alive`
 
@@ -88,10 +90,10 @@ All events use a generic wrapper structure:
 ```
 
 * **`RUN_STARTED`**: Stream session initialized.
-* **`REASONING_START` / `REASONING_DELTA` / `REASONING_END`**: Emits chain-of-thought text (from Critic-Actor loop).
+* **`REASONING_DELTA`**: Emits chain-of-thought text (from Critic-Actor loop) — one event per phase (initial retrieval, then "reviewing the answer" if a critique pass runs); the client (`useAgentStream`) renders each as its own bubble rather than concatenating them (Phase 6.5).
 * **`TOOL_CALL_START` / `TOOL_CALL_RESULT`**: Notifies the UI of background tasks (e.g. database reads, sync flushes) and returns JSON results.
-* **`TEXT_MESSAGE_START` / `TEXT_MESSAGE_DELTA` / `TEXT_MESSAGE_END`**: Streams response markdown text word-by-word.
-* **`STATE_SNAPSHOT`**: Delivers a full update of active source documents or calendar events.
+* **`TEXT_MESSAGE_START` / `TEXT_MESSAGE_DELTA` / `TEXT_MESSAGE_END`**: Streams response text word-by-word — implemented as of Phase 6.5 (`SseEventWriter.emitTextWordByWord`, `server/.../SseEventWriter.kt`): one `TEXT_MESSAGE_DELTA` per word (plus trailing whitespace) with a small delay between them, bracketed by `_START`/`_END`.
+* **`STATE_SNAPSHOT`**: Delivers a full update of some piece of state — e.g. `GET /api/events/{id}/decompose/stream` (below) uses it for `{"decomposedTasks": [...]}`.
 * **`RUN_FINISHED`**: Execution complete.
 
 ### 4.3 REST API Endpoints

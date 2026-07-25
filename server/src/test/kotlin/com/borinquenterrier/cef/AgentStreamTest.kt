@@ -24,6 +24,16 @@ class AgentStreamTest {
             .map { Json.parseToJsonElement(it.removePrefix("data: ")).jsonObject["type"]!!.jsonPrimitive.content }
             .toList()
 
+    /** Reconstructs the full streamed response by concatenating every TEXT_MESSAGE_DELTA's "text"
+     *  field in order — the response is now word-chunked (Phase 6.5), so it never appears as one
+     *  contiguous substring in the raw body. */
+    private fun reconstructedTextOf(body: String): String =
+        body.lineSequence()
+            .filter { it.startsWith("data: ") }
+            .map { Json.parseToJsonElement(it.removePrefix("data: ")).jsonObject }
+            .filter { it["type"]!!.jsonPrimitive.content == "TEXT_MESSAGE_DELTA" }
+            .joinToString("") { it["data"]!!.jsonObject["text"]!!.jsonPrimitive.content }
+
     private val createdFactories = mutableListOf<ServerContainerFactory>()
 
     private fun newFactory(): ServerContainerFactory {
@@ -97,7 +107,11 @@ class AgentStreamTest {
         // Verify reasoning and tool call logs are streamed
         assertTrue(body.contains("REASONING_DELTA"), "Expected stream to contain reasoning events")
         assertTrue(body.contains("TOOL_CALL_START"), "Expected stream to contain tool call logs")
-        assertTrue(body.contains("This is a mocked RAG response."), "Expected stream to contain final streamed response")
+        assertEquals(
+            "This is a mocked RAG response.",
+            reconstructedTextOf(body),
+            "Expected the concatenated TEXT_MESSAGE_DELTA chunks to reproduce the final response"
+        )
         assertTrue(body.contains("RUN_FINISHED"), "Expected stream to end with RUN_FINISHED")
     }
 
@@ -150,7 +164,40 @@ class AgentStreamTest {
         val body = response.bodyAsText()
         val dataLines = body.lineSequence().filter { it.startsWith("data: ") }.toList()
         dataLines.forEach { line -> Json.parseToJsonElement(line.removePrefix("data: ")) }
-        assertTrue(body.contains("Line one\\nLine \\\"two\\\" with a backslash \\\\ here."))
+        assertEquals(
+            "Line one\nLine \"two\" with a backslash \\ here.",
+            reconstructedTextOf(body),
+            "Expected the reassembled response to match the original unescaped text exactly"
+        )
+    }
+
+    @Test
+    fun testAgentStreamStreamsResponseWordByWord() = testApplication {
+        val mockContextAgent = mockk<ContextAgent>(relaxed = true)
+        coEvery { mockContextAgent.queryAllSources(any(), any(), any()) } returns
+            "This is a mocked RAG response."
+
+        val mockContainer = mockk<DependencyContainer>(relaxed = true)
+        every { mockContainer.contextAgent } returns mockContextAgent
+
+        application {
+            module(mockContainer)
+        }
+
+        val response = client.get("/api/agent/stream?query=homework") {
+            header(HttpHeaders.Accept, "text/event-stream")
+        }
+
+        val body = response.bodyAsText()
+        val types = eventTypesOf(body)
+        assertTrue(types.contains("TEXT_MESSAGE_START"), "Expected a TEXT_MESSAGE_START bracket event")
+        assertTrue(types.contains("TEXT_MESSAGE_END"), "Expected a TEXT_MESSAGE_END bracket event")
+        assertEquals(
+            6,
+            types.count { it == "TEXT_MESSAGE_DELTA" },
+            "Expected one TEXT_MESSAGE_DELTA per word, not the whole response in one chunk"
+        )
+        assertEquals("This is a mocked RAG response.", reconstructedTextOf(body))
     }
 
     @Test

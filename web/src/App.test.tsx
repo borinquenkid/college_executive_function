@@ -110,7 +110,6 @@ describe('Task decomposition modal — open state', () => {
           completionStatus: 'INCOMPLETE',
         },
       ],
-      decomposedTasks: [],
     });
     const user = userEvent.setup();
 

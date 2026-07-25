@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useAgentStream } from './useAgentStream';
 import { useSourceStream, describeSourceStatus, type SourceDigestionStatus } from './useSourceStream';
+import { useDecomposeStream } from './useDecomposeStream';
 import { useFocusTrap } from './useFocusTrap';
 import type { StudyPreferences, RemoteCalendarMetadata } from './cef-types';
 export type { StudyPreferences, RemoteCalendarMetadata } from './cef-types';
@@ -38,12 +39,6 @@ interface Event {
 interface WebChatMessage {
   author: string;
   content: string;
-}
-
-interface DecomposedTask {
-  title: string;
-  daysBeforeDue: number;
-  description: string;
 }
 
 // StudyPreferences and RemoteCalendarMetadata are imported from ./cef-types
@@ -90,7 +85,6 @@ export default function App() {
   // Action/Loading States
   const [isSyncing, setIsSyncing] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
-  const [isDecomposing, setIsDecomposing] = useState(false);
 
   // Toast notifications — a plain alert()/confirm() blocks the JS main thread until a human
   // dismisses it, which froze the tab (and any CDP-driven automation) after long-running
@@ -117,9 +111,19 @@ export default function App() {
   const [sourceUrl, setSourceUrl] = useState('');
   const [chatQuery, setChatQuery] = useState('');
   const [selectedEventForDecompose, setSelectedEventForDecompose] = useState<Event | null>(null);
-  const [decomposedTasks, setDecomposedTasks] = useState<DecomposedTask[]>([]);
 
-  const closeDecomposeModal = useCallback(() => setSelectedEventForDecompose(null), []);
+  const {
+    isActive: isDecomposing,
+    tasks: decomposedTasks,
+    error: decomposeError,
+    startStream: startDecomposeStream,
+    stopStream: stopDecomposeStream
+  } = useDecomposeStream();
+
+  const closeDecomposeModal = useCallback(() => {
+    stopDecomposeStream();
+    setSelectedEventForDecompose(null);
+  }, [stopDecomposeStream]);
   const decomposeModalRef = useFocusTrap<HTMLDivElement>(!!selectedEventForDecompose, closeDecomposeModal);
 
   const closeCreateCalendarModal = useCallback(() => {
@@ -143,7 +147,7 @@ export default function App() {
 
   const {
     isActive: isStreaming,
-    reasoning: streamReasoning,
+    reasoningSteps: streamReasoningSteps,
     toolCalls: streamToolCalls,
     responseText: streamResponseText,
     error: streamError,
@@ -169,7 +173,7 @@ export default function App() {
     if (isStreaming) {
       chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
     }
-  }, [isStreaming, streamReasoning, streamToolCalls, streamResponseText]);
+  }, [isStreaming, streamReasoningSteps, streamToolCalls, streamResponseText]);
 
   const checkSession = async () => {
     setSessionError(null);
@@ -421,25 +425,13 @@ export default function App() {
     startStream(userMsg);
   };
 
-  const runTaskDecomposition = async (event: Event) => {
+  const runTaskDecomposition = (event: Event) => {
     setSelectedEventForDecompose(event);
-    setDecomposedTasks([]);
-    setIsDecomposing(true);
-    try {
-      const res = await fetch('/api/tasks/decompose', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ eventId: event.id, depth: 3 })
-      });
-      const data = await res.json();
-      if (Array.isArray(data)) {
-        setDecomposedTasks(data);
-      }
-    } catch (e) {
-      console.error('Failed to decompose task:', e);
-    } finally {
-      setIsDecomposing(false);
+    if (!event.id) {
+      setToast({ message: 'This event has no id yet — try again after the next sync.', kind: 'error' });
+      return;
     }
+    startDecomposeStream(event.id);
   };
 
   // Group events by date for a simple chronological list view
@@ -738,14 +730,17 @@ export default function App() {
                         AI (Agent Streaming...)
                       </p>
                       
-                      {/* Live Reasoning */}
-                      {streamReasoning && (
+                      {/* Live Reasoning — one bubble per phase (retrieval, critique, ...)
+                          instead of a single growing paragraph */}
+                      {streamReasoningSteps.length > 0 && (
                         <div className="stream-reasoning-box">
                           <div className="stream-reasoning-title">
                             <span className="pulse-dot"></span>
                             <span>Reasoning Chain:</span>
                           </div>
-                          <p className="stream-reasoning-text">{streamReasoning}</p>
+                          {streamReasoningSteps.map((step, idx) => (
+                            <p key={idx} className="stream-reasoning-text stream-reasoning-step">{step}</p>
+                          ))}
                         </div>
                       )}
 
@@ -775,7 +770,7 @@ export default function App() {
                       )}
 
                       {/* Typing indicator until we get response text or reasoning */}
-                      {!streamResponseText && !streamReasoning && (
+                      {!streamResponseText && streamReasoningSteps.length === 0 && (
                         <div style={{ display: 'flex', gap: '8px', alignItems: 'center', marginTop: '8px' }}>
                           <div className="loader-dot"></div>
                           <div className="loader-dot" style={{ animationDelay: '0.2s' }}></div>
@@ -1028,7 +1023,9 @@ export default function App() {
               </div>
             ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
-                {decomposedTasks.length === 0 ? (
+                {decomposeError ? (
+                  <p style={{ color: 'var(--color-danger)' }}>{decomposeError}</p>
+                ) : decomposedTasks.length === 0 ? (
                   <p>Decomposition resulted in no subtasks. Make sure your API key is configured.</p>
                 ) : (
                   decomposedTasks.map((task, idx) => (

@@ -485,6 +485,14 @@ body {
   font-style: italic;
 }
 
+.stream-reasoning-step {
+  padding: 4px 0;
+}
+
+.stream-reasoning-step + .stream-reasoning-step {
+  border-top: 1px solid rgba(255, 255, 255, 0.06);
+}
+
 .stream-tools-box {
   margin-bottom: 12px;
   font-size: 12px;

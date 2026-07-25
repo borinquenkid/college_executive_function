@@ -365,25 +365,18 @@ fun Application.module(
             call.response.cacheControl(io.ktor.http.CacheControl.NoCache(null))
 
             call.respondBytesWriter(contentType = ContentType.Text.EventStream) {
-                suspend fun emit(type: String, dataJson: String) {
-                    writeStringUtf8("event: message\n")
-                    writeStringUtf8(
-                        "data: {\"type\":\"$type\",\"timestamp\":${Clock.System.now().toEpochMilliseconds()}," +
-                            "\"data\":$dataJson}\n\n"
-                    )
-                    flush()
-                }
+                val writer = SseEventWriter(this)
 
                 val runId = randomHexId(8)
                 try {
-                    emit("RUN_STARTED", "{\"runId\":\"$runId\"}")
+                    writer.emit("RUN_STARTED", "{\"runId\":\"$runId\"}")
 
-                    emit(
+                    writer.emit(
                         "REASONING_DELTA",
                         "{\"text\":\"Retrieving relevant course documents and syllabi...\"}"
                     )
 
-                    emit(
+                    writer.emit(
                         "TOOL_CALL_START",
                         "{\"toolName\":\"queryAllSources\",\"arguments\":\"{\\\"query\\\":\\\"" +
                             "${query.escapeJsonString()}\\\"}\"}"
@@ -394,15 +387,15 @@ fun Application.module(
                     val progressListener = CriticProgressListener { phase ->
                         when (phase) {
                             CriticPhase.ACTOR_START ->
-                                emit("TOOL_CALL_START", "{\"toolName\":\"actorPass\"}")
+                                writer.emit("TOOL_CALL_START", "{\"toolName\":\"actorPass\"}")
                             CriticPhase.ACTOR_DONE ->
-                                emit("TOOL_CALL_RESULT", "{\"toolName\":\"actorPass\",\"success\":true}")
+                                writer.emit("TOOL_CALL_RESULT", "{\"toolName\":\"actorPass\",\"success\":true}")
                             CriticPhase.CRITIQUE_START -> {
-                                emit("REASONING_DELTA", "{\"text\":\"Reviewing the answer for accuracy...\"}")
-                                emit("TOOL_CALL_START", "{\"toolName\":\"critiquePass\"}")
+                                writer.emit("REASONING_DELTA", "{\"text\":\"Reviewing the answer for accuracy...\"}")
+                                writer.emit("TOOL_CALL_START", "{\"toolName\":\"critiquePass\"}")
                             }
                             CriticPhase.CRITIQUE_DONE ->
-                                emit("TOOL_CALL_RESULT", "{\"toolName\":\"critiquePass\",\"success\":true}")
+                                writer.emit("TOOL_CALL_RESULT", "{\"toolName\":\"critiquePass\",\"success\":true}")
                         }
                     }
 
@@ -416,17 +409,23 @@ fun Application.module(
                         "Error querying context agent: ${e.message}"
                     }
 
-                    emit("TOOL_CALL_RESULT", "{\"toolName\":\"queryAllSources\",\"success\":true}")
+                    writer.emit("TOOL_CALL_RESULT", "{\"toolName\":\"queryAllSources\",\"success\":true}")
 
-                    emit("TEXT_MESSAGE_DELTA", "{\"text\":\"${responseText.escapeJsonString()}\"}")
+                    writer.emitTextWordByWord(responseText)
                 } catch (e: Throwable) {
                     println("STREAM ERROR: ${e.message}")
                     e.printStackTrace()
-                    emit("ERROR", "{\"message\":\"${(e.message ?: "").escapeJsonString()}\"}")
+                    writer.emit("ERROR", "{\"message\":\"${(e.message ?: "").escapeJsonString()}\"}")
                 } finally {
-                    emit("RUN_FINISHED", "{}")
+                    writer.emit("RUN_FINISHED", "{}")
                 }
             }
+        }
+
+        get("/api/events/{id}/decompose/stream") {
+            val container = resolveContainer(call) ?: return@get
+            val id = call.parameters["id"] ?: ""
+            WebTaskDecompositionHandler.handleDecomposeStream(call, id, container)
         }
     }
 }

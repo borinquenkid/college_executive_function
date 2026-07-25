@@ -9,7 +9,7 @@ export interface ToolCallState {
 export interface AgentStreamState {
   isActive: boolean;
   runId: string | null;
-  reasoning: string;
+  reasoningSteps: string[];
   toolCalls: ToolCallState[];
   responseText: string;
   error: string | null;
@@ -19,7 +19,7 @@ export function useAgentStream() {
   const [state, setState] = useState<AgentStreamState>({
     isActive: false,
     runId: null,
-    reasoning: '',
+    reasoningSteps: [],
     toolCalls: [],
     responseText: '',
     error: null,
@@ -45,7 +45,7 @@ export function useAgentStream() {
     setState({
       isActive: true,
       runId: null,
-      reasoning: '',
+      reasoningSteps: [],
       toolCalls: [],
       responseText: '',
       error: null,
@@ -69,10 +69,12 @@ export function useAgentStream() {
             break;
 
           case 'REASONING_DELTA':
-            setState((prev) => ({
-              ...prev,
-              reasoning: prev.reasoning + (data?.text || ''),
-            }));
+            if (data?.text) {
+              setState((prev) => ({
+                ...prev,
+                reasoningSteps: [...prev.reasoningSteps, data.text],
+              }));
+            }
             break;
 
           case 'TOOL_CALL_START':
@@ -103,6 +105,12 @@ export function useAgentStream() {
                 toolCalls: updatedCalls,
               };
             });
+            break;
+
+          case 'TEXT_MESSAGE_START':
+          case 'TEXT_MESSAGE_END':
+            // Bracket events for the word-by-word TEXT_MESSAGE_DELTA stream below — no state
+            // change needed, isActive already covers the "streaming" indicator.
             break;
 
           case 'TEXT_MESSAGE_DELTA':

@@ -44,9 +44,40 @@ jobs:
           GOOGLE_REFRESH_TOKEN: ${{ secrets.GOOGLE_REFRESH_TOKEN }}
         run: ./gradlew :composeApp:jvmTest -PrunAITests=true --tests "com.borinquenterrier.cef.GoogleOAuthIntegrationTest"
 
+  verify-web:
+    name: Build and test web client
+    # Mirrors pr-check.yml's build-web job exactly — that job only runs on pull_request, so a
+    # direct-to-main push or a tag push skipped it entirely, the same gap :server:test had above
+    # before it was added to this workflow.
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - uses: actions/setup-node@v5
+        with:
+          node-version: '22'
+          cache: 'npm'
+          cache-dependency-path: web/package-lock.json
+      - name: Install dependencies
+        working-directory: web
+        run: npm ci
+      - name: Lint
+        working-directory: web
+        run: npm run lint
+      - name: Test
+        working-directory: web
+        run: npm test
+      - name: Install Playwright browsers
+        working-directory: web
+        run: npx playwright install --with-deps chromium
+      - name: E2E accessibility tests (Playwright)
+        working-directory: web
+        run: npm run test:e2e
+      - name: Type-check and build
+        working-directory: web
+        run: npm run build
 
   build:
-    needs: verify
+    needs: [verify, verify-web]
     strategy:
       fail-fast: false
       matrix:

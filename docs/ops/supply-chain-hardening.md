@@ -107,7 +107,11 @@ under pressure later:
    active external forks).
 3. Rotate: `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`, `CEF_GEMINI_API_KEY`, `SONAR_TOKEN`,
    `OOC_TOKEN`, the newly-added `MICROSOFT_CLIENT_ID`/`SECRET` (see `.env`) — every credential
-   currently in `.env`/GitHub Actions secrets, not a subset.
+   currently in `.env`/GitHub Actions secrets, not a subset. **Exact mechanism (API command or
+   manual console path) for each secret, plus the tested/rehearsed procedure, lives in
+   `~/second_brain/ops/runbooks/secret-rotation-runbook.md`** (ROADMAP.md Phase 11 Task 10) — not
+   duplicated here since that doc is the maintained source of truth, this bullet is just the "what
+   to rotate" list.
 4. Re-image the affected developer workstation if the entry vector isn't confirmed, rather than
    selectively cleaning.
 5. This project currently has a single active developer/maintainer (per CODEOWNERS — one owner,

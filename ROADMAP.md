@@ -2078,13 +2078,62 @@ it's just no longer what determines order.
 
    **Files:** `docs/ops/keychain-secrets-migration.md` (CEF and Oficio — record results in both)
 
-10. **Secret rotation runbook.** Context for a fresh session: this was scoped out of the original
-    hardening plan after a 2026-07-09 conversation concluded that local secret storage (even
-    Keychain) cannot meaningfully defend against an attacker with interactive access past an
-    unlocked laptop — hardening local storage further has diminishing returns for a solo developer.
-    The higher-leverage investment is capping blast radius fast if a leak is ever suspected or
-    confirmed. Today, the incident runbook (`docs/ops/supply-chain-hardening.md` §2) lists "rotate
-    everything" as a bare checklist item — untested, with no known time-to-complete.
+10. 🔄 **IN PROGRESS, started 2026-07-24.** **Secret rotation runbook.** Context for a fresh session:
+    this was scoped out of the original hardening plan after a 2026-07-09 conversation concluded
+    that local secret storage (even Keychain) cannot meaningfully defend against an attacker with
+    interactive access past an unlocked laptop — hardening local storage further has diminishing
+    returns for a solo developer. The higher-leverage investment is capping blast radius fast if a
+    leak is ever suspected or confirmed. Today, the incident runbook
+    (`docs/ops/supply-chain-hardening.md` §2) lists "rotate everything" as a bare checklist item —
+    untested, with no known time-to-complete. **As of 2026-07-24:** the runbook document exists at
+    `~/second_brain/ops/runbooks/secret-rotation-runbook.md` with CEF's 6 secrets classified
+    (API-rotatable vs. manual-only), grounded in real prior incidents where possible (`OOC_TOKEN`'s
+    actual 2026-07-10 rotation) rather than assumed; `docs/ops/supply-chain-hardening.md` §2 now
+    points to it. Found one real, non-obvious gap along the way: `GOOGLE_CLIENT_SECRET` is compiled
+    into release binaries at build time (`BuildSecrets`), so rotating it isn't a simple credential
+    swap — it breaks OAuth token refresh for every already-installed app copy until a coordinated
+    new release ships with the new secret (see the runbook's "Blast radius note"). **`SONAR_TOKEN` fully closed same day:** `scripts/rotate-sonar-token.sh` (generate → verify → swap
+    Keychain → revoke old, in that order so a mid-run failure never leaves zero working tokens),
+    exercised for real — not simulated — via a full rehearsal: script run (<1s) then a real
+    `./gradlew :composeApp:checkQualityGate` on the rotated value (`Quality Gate OK`, 2m 25s).
+    Total ~2m 26s, the runbook's first actual "known, proven completion time." Along the way, found
+    (but didn't touch — different repo) that **Oficio's own `SONAR_TOKEN` is currently dead**
+    (`401` against the shared local SonarQube instance) plus an orphaned, actively-reused token
+    (`local-gradle-1784396423`) that matches neither project's current Keychain value — logged in
+    the runbook as the natural starting point for Oficio's half of this task. Also confirmed, via
+    current Google docs (not memory): `GOOGLE_CLIENT_SECRET` rotation can actually be near-zero-
+    downtime using **Add Secret** (2 secrets active at once) instead of the destructive **Reset
+    Secret**; and AI Studio Gemini keys have no gcloud/API lifecycle management at all (UI-only).
+    **Time-sensitive Gemini Standard-key finding, corrected same day after an initial false alarm:**
+    Google is rejecting "Standard" Gemini API keys — unrestricted ones since 2026-06-19, *all*
+    Standard keys from September 2026. First checked via browser against `aistudio.google.com`
+    and wrongly concluded `CEF_GEMINI_API_KEY` was affected — that check was against Walter's
+    personal `glang` Google account (project `gen-lang-client-0174531061`), not the Borinquen
+    Terrier account the real production key lives under. **Corrected by checking the actual
+    Keychain values directly** (`security find-generic-password -a <KEY> -s
+    college_executive_function -w`), which is authoritative regardless of which account a browser
+    session happens to be logged into: `CEF_GEMINI_API_KEY` (the paid Tier 1 key used in
+    eval-corpus CI) starts with `AQ.Ab8RN6Lae...` — **already an auth key, not at risk.**
+    `CEF_TEST_USER_API_KEY` starts with `AIzaSyCw7iqM...` — **this one genuinely is** a legacy
+    Standard key and needs migrating before September, but it's the low-stakes manual-testing key,
+    not anything CI or production depends on. **`CEF_OTLP_PASSWORD` — fully resolved same day**,
+    after two wrong guesses first ("login password" via IAM→Users, then merely "probably an
+    ingestion token"): logged into `cloud.openobserve.ai` for real and found **IAM → Ingestion
+    Tokens** — a third, separate credential type from both Users and Service Accounts. One token
+    exists, named `default`. Decoded its Basic Auth value and matched the token half against the
+    real Keychain value — exact prefix match (`o2oi_L...`), confirmed. Surprising find: the token's
+    own paired username is literally `"default"`, not `admin@borinquenterrier.com` (what
+    `CEF_OTLP_USER` holds) — ingestion works anyway, meaning OpenObserve's OTLP auth likely doesn't
+    validate the username half at all. **Rotated for real same day, with Walter's go-ahead**:
+    created a new token (`cef-otlp-2026-07-25`), verified with a genuine OTLP push (`HTTP 200`) plus
+    a real query confirming the trace landed, swapped Keychain, disabled the old `default` token,
+    then confirmed the old value now returns `401` — a true rotation, not a dry run. Confirmed the
+    username-mismatch finding a second time with the new token too. **Deprioritized 2026-07-25, by
+    explicit call:** `GOOGLE_CLIENT_SECRET`, `CEF_GEMINI_API_KEY`, and `CEF_TEST_USER_API_KEY` stay
+    documented at their current level (console path + mechanism, confirmed against current docs,
+    not click-through rehearsed) rather than pursued further right now — correct as documented, not
+    stale, just lower priority than Oficio and the rest of Phase 11 for the moment. **Still open:**
+    Oficio's 13 secrets (not researched beyond the live `SONAR_TOKEN` finding).
 
     **What this task builds:** for every secret across both repos (6 in CEF, 13 in Oficio — full
     list in each repo's `docs/ops/keychain-secrets-migration.md`), determine whether it can be

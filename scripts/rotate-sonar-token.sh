@@ -10,7 +10,7 @@
 #
 # Usage: scripts/rotate-sonar-token.sh
 #
-# Full context: ROADMAP.md Phase 11 Task 10, ~/second_brain/ops/runbooks/secret-rotation-runbook.md.
+# Full context: ROADMAP.md Phase 11 Task 10, ~/zed/second_brain/ops/runbooks/secret-rotation-runbook.md.
 
 set -euo pipefail
 

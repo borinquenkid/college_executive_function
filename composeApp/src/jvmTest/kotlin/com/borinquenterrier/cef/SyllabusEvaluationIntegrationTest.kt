@@ -62,9 +62,9 @@ class SyllabusEvaluationIntegrationTest : FunSpec({
         if (n1.contains(n2) || n2.contains(n1)) return true
 
         // Token-subset: tolerate the AI rewording a title with interstitial words —
-        // e.g. "Last day to drop this course without a grade" vs the fixture's
-        // "Drop course without a grade" (the inserted "this"/"last day to" broke a
-        // plain substring check). We treat the two as the same event when every
+        // e.g. "Last day to drop without a grade" vs the fixture's "Drop without a
+        // grade" (the inserted "last day to" broke a plain substring check). We
+        // treat the two as the same event when every
         // meaningful token of the shorter title appears in the longer one. Common
         // filler words are ignored, but content words like "grade" vs "w" are kept,
         // so "…without a grade" still won't cross-match "…with a W".

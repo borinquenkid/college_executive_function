@@ -66,6 +66,16 @@ class ContextAgentMultiSourceTest : FunSpec({
             category = category
         )
 
+    fun sutWithEvents(events: List<Event>, today: kotlinx.datetime.LocalDate) = ContextAgent(
+        aiService = mockAiService,
+        sourceRepository = SqlDelightSourceRepository(database),
+        fragmentRanker = fragmentRanker,
+        contextBuilder = SourceContextBuilder(),
+        logger = null,
+        eventsProvider = { events },
+        todayProvider = { today }
+    )
+
     // ── tests ─────────────────────────────────────────────────────────────────
 
     test("queryAllSources returns guard message when no sources are loaded") {
@@ -99,6 +109,79 @@ class ContextAgentMultiSourceTest : FunSpec({
         prompt shouldContain "Lab 1 Manual"
         prompt shouldContain "Final exam is worth 40%"
         prompt shouldContain "What topics are covered?"
+    }
+
+    test("queryAllSources injects the calendar digest with precedence guardrail when events are wired") {
+        val promptSlot = slot<String>()
+        coEvery { mockAiService.generateChatResponse(capture(promptSlot)) } returns "ok"
+
+        val today = kotlinx.datetime.LocalDate(2026, 7, 1)
+        val events = listOf(
+            DayEvent(
+                title = "Issue Brief #2",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.DEADLINE,
+                date = kotlinx.datetime.LocalDate(2026, 7, 10)
+            ),
+            DayEvent(
+                title = "Inferred class meeting",
+                source = EventSource.AI_GENERATED,
+                category = AcademicCategory.CLASS,
+                date = kotlinx.datetime.LocalDate(2026, 7, 3),
+                warning = "Added automatically"
+            )
+        )
+
+        sutWithEvents(events, today).queryAllSources(
+            sources = listOf(makeSource("ENG 101", SourceCategory.SYLLABUS, "Weekly schedule.")),
+            conversationHistory = emptyList(),
+            question = "When is my next deadline?"
+        )
+
+        val prompt = promptSlot.captured
+        prompt shouldContain "<calendar_digest>"
+        prompt shouldContain "2026-07-10 | DEADLINE | Issue Brief #2"
+        // Inferred events keep their marker all the way into the prompt.
+        prompt shouldContain "Inferred class meeting ⚠"
+        // The precedence rule: digest beats document prose on dates, and conflicts are surfaced.
+        prompt shouldContain "answer from <calendar_digest> first"
+        prompt shouldContain "tell the student that their documents say otherwise"
+    }
+
+    test("queryAllSources omits the digest block when no events provider is wired") {
+        val promptSlot = slot<String>()
+        coEvery { mockAiService.generateChatResponse(capture(promptSlot)) } returns "ok"
+
+        sut.queryAllSources(
+            sources = listOf(makeSource("ENG 101", SourceCategory.SYLLABUS, "Weekly schedule.")),
+            conversationHistory = emptyList(),
+            question = "When is my next deadline?"
+        )
+
+        promptSlot.captured shouldNotContain "<calendar_digest>"
+    }
+
+    test("queryAllSources still answers from sources when the events provider throws") {
+        val promptSlot = slot<String>()
+        coEvery { mockAiService.generateChatResponse(capture(promptSlot)) } returns "ok"
+
+        val failing = ContextAgent(
+            aiService = mockAiService,
+            sourceRepository = SqlDelightSourceRepository(database),
+            fragmentRanker = fragmentRanker,
+            contextBuilder = SourceContextBuilder(),
+            logger = null,
+            eventsProvider = { throw IllegalStateException("db unavailable") }
+        )
+
+        val result = failing.queryAllSources(
+            sources = listOf(makeSource("ENG 101", SourceCategory.SYLLABUS, "Weekly schedule.")),
+            conversationHistory = emptyList(),
+            question = "When is my next deadline?"
+        )
+
+        result shouldBe "ok"
+        promptSlot.captured shouldNotContain "<calendar_digest>"
     }
 
     test("queryAllSources sorts SYLLABUS before READING_MATERIAL before OTHER in prompt") {

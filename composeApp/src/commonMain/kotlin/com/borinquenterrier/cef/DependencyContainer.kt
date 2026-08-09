@@ -178,7 +178,10 @@ class DependencyContainer(
             contextBuilder,
             logger,
             chatRepository,
-            termProfileRepository = termProfileRepository
+            termProfileRepository = termProfileRepository,
+            // Deadline-safety channel (tasks/plan.md T4): chat's calendar digest reads the synced
+            // local calendar — the ground truth the student actually acts on.
+            eventsProvider = { localRepository.getAllEvents() }
         )
     }
     val syllabusAuditor by lazy { SyllabusAuditor(aiService, logger) }

@@ -39,9 +39,11 @@ object AiPrompts {
         warnings: List<String> = emptyList(),
         summary: String? = null,
         historyAlreadyBudgeted: Boolean = false,
-        studentProfile: String? = null
+        studentProfile: String? = null,
+        eventsDigest: String? = null
     ): String = ChatBuilder.getMultiSourceChatPrompt(
-        sourceBlocks, conversationHistory, question, warnings, summary, historyAlreadyBudgeted, studentProfile
+        sourceBlocks, conversationHistory, question, warnings, summary, historyAlreadyBudgeted, studentProfile,
+        eventsDigest
     )
 
     fun getConversationSummaryPrompt(

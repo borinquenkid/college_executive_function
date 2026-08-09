@@ -5,6 +5,7 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.sync.Mutex
 import kotlinx.coroutines.sync.withLock
+import kotlinx.datetime.toLocalDateTime
 import kotlin.time.Clock
 
 /**
@@ -26,7 +27,16 @@ class ContextAgent(
     // Cross-term memory (ADR 0004 / ROADMAP Phase 13, XM-4). Nullable + defaulted for the same
     // reason chatRepository is: existing call sites/tests built without one are unaffected and
     // keep today's behavior (no student-profile block injected).
-    private val termProfileRepository: TermProfileRepository? = null
+    private val termProfileRepository: TermProfileRepository? = null,
+    // Deadline-safety channel (tasks/plan.md T4): supplies the student's own calendar events for
+    // the chat digest. Nullable + defaulted like the seams above — unwired call sites/tests keep
+    // today's behavior (no digest block injected).
+    private val eventsProvider: (suspend () -> List<Event>)? = null,
+    // Seam so tests can pin "today" for the digest's near-term window instead of wall clock.
+    private val todayProvider: () -> kotlinx.datetime.LocalDate = {
+        Clock.System.now()
+            .toLocalDateTime(kotlinx.datetime.TimeZone.currentSystemDefault()).date
+    }
 ) {
     private val tag = "ContextAgent"
 
@@ -129,10 +139,13 @@ class ContextAgent(
         }
 
         val studentProfile = studentProfileSummary()
+        val eventsDigest = eventsDigestBlock(question)
 
         val compaction = compactHistory(
             conversationId, conversationHistory, sourceBlocks, question,
-            profileTokens = studentProfile?.let { TokenEstimator.estimate(it) } ?: 0
+            // Fixed prompt overhead beyond sources/history: profile block + calendar digest.
+            profileTokens = (studentProfile?.let { TokenEstimator.estimate(it) } ?: 0) +
+                (eventsDigest?.let { TokenEstimator.estimate(it) } ?: 0)
         )
 
         val historyPairs = compaction.verbatimTail
@@ -143,7 +156,8 @@ class ContextAgent(
             // turn actually folded anything — a long-but-under-budget history must not be
             // re-truncated to MAX_HISTORY_TURNS by ChatBuilder's legacy fallback.
             historyAlreadyBudgeted = chatRepository != null,
-            studentProfile = studentProfile
+            studentProfile = studentProfile,
+            eventsDigest = eventsDigest
         )
 
         logger?.d(
@@ -162,6 +176,23 @@ class ContextAgent(
      * to search, computed fresh each call from [TermProfileAggregator.summarize] (plain
      * formatting, no LLM call).
      */
+    /**
+     * Deadline-safety channel (tasks/plan.md T4): the student's own calendar rendered as a
+     * compact digest so date answers never depend on lexical fragment retrieval. A provider
+     * failure degrades to "no digest" (chat still works from sources) rather than failing the
+     * whole turn — but is logged, since a silently absent digest weakens the deadline guarantee.
+     */
+    private suspend fun eventsDigestBlock(question: String): String? {
+        val provider = eventsProvider ?: return null
+        val events = try {
+            provider()
+        } catch (e: Exception) {
+            logger?.e(tag, "Failed to load calendar events for chat digest: ${e.message}")
+            return null
+        }
+        return EventsDigestBuilder.build(events, question, todayProvider())
+    }
+
     private suspend fun studentProfileSummary(): String? {
         val repository = termProfileRepository ?: return null
         val profiles = repository.getAll()

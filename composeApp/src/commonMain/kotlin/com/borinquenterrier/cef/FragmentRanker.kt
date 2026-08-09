@@ -18,7 +18,8 @@ class FragmentRanker(
             return emptyList()
         }
 
-        val queryTerms = termNormalizer.extractQueryTerms(question)
+        // Query-side synonym expansion (tasks/plan.md T5) — see AcademicSynonyms for rationale.
+        val queryTerms = termNormalizer.extractQueryTerms(AcademicSynonyms.expandQuery(question))
 
         if (queryTerms.isEmpty()) {
             return allPairs.take(topK)

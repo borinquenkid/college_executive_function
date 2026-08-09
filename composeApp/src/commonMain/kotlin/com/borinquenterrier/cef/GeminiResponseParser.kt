@@ -16,8 +16,11 @@ private data class RawGeminiEvent(
     val category: String = "REGULAR",
     val warning: String? = null,
     val gradeWeight: Float? = null,
-    val startTime: String = "09:00",
-    val endTime: String = "10:00"
+    // Blank (not "09:00") so an absent time is distinguishable from a real one — a TIME
+    // event with no parseable start is downgraded to a date-only DayEvent rather than
+    // silently given an invented clock time a student might trust.
+    val startTime: String = "",
+    val endTime: String = ""
 )
 
 @Serializable
@@ -80,13 +83,17 @@ object GeminiResponseParser {
             LocalDate(2024, 1, 1)
         }
 
-        return if (raw.type == "TIME") {
-            val start = parseClockTime(raw.startTime, LocalTime(9, 0), telemetry)
-            val rawEnd = parseClockTime(raw.endTime, LocalTime(10, 0), telemetry)
+        val start = if (raw.type == "TIME") parseClockTime(raw.startTime, telemetry) else null
+        return if (start != null) {
+            // A missing/invalid end is low-risk once the start is real — assume an hour rather
+            // than dropping the time the student actually needs to show up at.
+            val rawEnd = parseClockTime(raw.endTime, telemetry)
+            val validEnd = if (rawEnd != null && rawEnd > start) rawEnd else null
             val plusHourMins = start.hour * 60 + start.minute + 60
-            // If end <= start and adding 1 hour would overflow midnight, the AI placed this event
-            // at an unschedulable time — treat it as an all-day DayEvent rather than a 1-second sentinel.
-            if (rawEnd <= start && plusHourMins >= 24 * 60) {
+            // If no valid end exists and adding 1 hour would overflow midnight, the AI placed this
+            // event at an unschedulable time — treat it as an all-day DayEvent rather than a
+            // 1-second sentinel.
+            if (validEnd == null && plusHourMins >= 24 * 60) {
                 DayEvent(
                     title = raw.title,
                     source = EventSource.AI_GENERATED,
@@ -96,8 +103,7 @@ object GeminiResponseParser {
                     gradeWeight = raw.gradeWeight
                 )
             } else {
-                val end = if (rawEnd > start) rawEnd
-                          else LocalTime(plusHourMins / 60, plusHourMins % 60)
+                val end = validEnd ?: LocalTime(plusHourMins / 60, plusHourMins % 60)
                 TimeEvent(
                     title = raw.title,
                     source = EventSource.AI_GENERATED,
@@ -121,18 +127,17 @@ object GeminiResponseParser {
         }
     }
 
-    /** Parses an "HH:mm" string, falling back to [default] (and logging telemetry) on failure. */
+    /** Parses an "HH:mm" string, returning null (and logging telemetry) on failure. */
     private fun parseClockTime(
         value: String,
-        default: LocalTime,
         telemetry: TelemetryManager?
-    ): LocalTime =
+    ): LocalTime? =
         try {
             val parts = value.split(":")
             LocalTime(parts[0].toInt(), parts[1].toInt())
         } catch (e: Exception) {
             telemetry?.logJsonError()
-            default
+            null
         }
 
     fun parseDecomposeTaskJson(responseText: String): List<DecomposedTask> {

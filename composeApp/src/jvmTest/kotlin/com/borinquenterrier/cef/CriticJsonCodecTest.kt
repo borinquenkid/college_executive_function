@@ -130,15 +130,37 @@ class CriticJsonCodecTest : FunSpec({
         event.warning shouldBe null
     }
 
-    test("parseEvents falls back to default times for an unparseable TIME event") {
+    test("parseEvents downgrades a TIME event with an unparseable start to a DayEvent") {
         val json =
             """[{"title": "Bad Time", "type": "TIME", "category": "REGULAR", "date": "2026-06-02", "startTime": "not-a-time", "endTime": "also-bad"}]"""
 
         val parsed = CriticJsonCodec.parseEvents(json)
 
+        // No fabricated 09:00–10:00 — an unknown start means a date-only event.
+        val event = parsed[0] as DayEvent
+        event.title shouldBe "Bad Time"
+        event.date shouldBe LocalDate(2026, 6, 2)
+    }
+
+    test("parseEvents downgrades a TIME event with no time fields at all to a DayEvent") {
+        val json =
+            """[{"title": "No Times", "type": "TIME", "category": "DEADLINE", "date": "2026-06-02"}]"""
+
+        val parsed = CriticJsonCodec.parseEvents(json)
+
+        (parsed[0] is DayEvent) shouldBe true
+        parsed[0].category shouldBe AcademicCategory.DEADLINE
+    }
+
+    test("parseEvents keeps a TIME event with a valid start and missing end, assuming 1h duration") {
+        val json =
+            """[{"title": "Lab", "type": "TIME", "category": "CLASS", "date": "2026-06-02", "startTime": "14:00"}]"""
+
+        val parsed = CriticJsonCodec.parseEvents(json)
+
         val timeEvent = parsed[0] as TimeEvent
-        timeEvent.startTime shouldBe LocalTime(9, 0)
-        timeEvent.endTime shouldBe LocalTime(10, 0)
+        timeEvent.startTime shouldBe LocalTime(14, 0)
+        timeEvent.endTime shouldBe LocalTime(15, 0)
     }
 
     test("parseEvents skips malformed elements without failing the whole batch") {

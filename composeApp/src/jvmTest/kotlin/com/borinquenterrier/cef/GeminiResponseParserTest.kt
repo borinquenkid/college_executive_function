@@ -50,16 +50,39 @@ class GeminiResponseParserTest : FunSpec({
         parsed[0].category shouldBe AcademicCategory.REGULAR
     }
 
-    test("parseEventsJson leniently coerces a numeric-string gradeWeight and falls back to default times on bad input") {
+    test("parseEventsJson coerces a numeric-string gradeWeight and downgrades a TIME event with an unparseable start to a DayEvent") {
         val response =
             """[{"title": "Final Exam", "type": "TIME", "date": "2026-08-01", "gradeWeight": "0.4", "startTime": "noon", "endTime": "later"}]"""
 
         val parsed = GeminiResponseParser.parseEventsJson(response)
 
+        // No fabricated 09:00–10:00 — a student trusting an invented time is worse than
+        // an all-day entry, so an unknown start means a date-only event.
+        val event = parsed[0] as DayEvent
+        event.title shouldBe "Final Exam"
+        event.gradeWeight shouldBe 0.4f
+        event.date shouldBe LocalDate(2026, 8, 1)
+    }
+
+    test("parseEventsJson downgrades a TIME event with no time fields at all to a DayEvent") {
+        val response =
+            """[{"title": "Quiz", "type": "TIME", "date": "2026-08-01", "category": "DEADLINE"}]"""
+
+        val parsed = GeminiResponseParser.parseEventsJson(response)
+
+        (parsed[0] is DayEvent) shouldBe true
+        parsed[0].category shouldBe AcademicCategory.DEADLINE
+    }
+
+    test("parseEventsJson keeps a TIME event with a valid start and missing end, assuming 1h duration") {
+        val response =
+            """[{"title": "Lab", "type": "TIME", "date": "2026-08-01", "startTime": "14:00", "category": "CLASS"}]"""
+
+        val parsed = GeminiResponseParser.parseEventsJson(response)
+
         val timeEvent = parsed[0] as TimeEvent
-        timeEvent.gradeWeight shouldBe 0.4f
-        timeEvent.startTime shouldBe LocalTime(9, 0)
-        timeEvent.endTime shouldBe LocalTime(10, 0)
+        timeEvent.startTime shouldBe LocalTime(14, 0)
+        timeEvent.endTime shouldBe LocalTime(15, 0)
     }
 
     test("parseEventsJson throws when the JSON shape is neither an array nor an 'events' object") {
@@ -133,7 +156,7 @@ class GeminiResponseParserTest : FunSpec({
 
     // --- midnight overflow (Bug 8B) ---
 
-    test("TIME event at 23:59 with omitted endTime (defaults to 10:00) overflows midnight → DayEvent") {
+    test("TIME event at 23:59 with omitted endTime overflows midnight → DayEvent") {
         val response = """[{
             "title": "Late Night Alarm",
             "type": "TIME",

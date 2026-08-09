@@ -17,8 +17,11 @@ private data class RawCriticEvent(
     val date: String = "2024-01-01",
     val category: String = "REGULAR",
     val warning: String? = null,
-    val startTime: String = "09:00",
-    val endTime: String = "10:00"
+    // Blank (not "09:00") so an absent time is distinguishable from a real one — a TIME
+    // event with no parseable start is downgraded to a date-only DayEvent rather than
+    // silently given an invented clock time a student might trust.
+    val startTime: String = "",
+    val endTime: String = ""
 )
 
 @Serializable
@@ -88,20 +91,27 @@ object CriticJsonCodec {
                 kotlinx.datetime.LocalDate(2024, 1, 1)
             }
 
-            if (raw.type == "TIME") {
-                val start = try {
+            val start = if (raw.type == "TIME") {
+                try {
                     kotlinx.datetime.LocalTime.parse(raw.startTime)
                 } catch (e: Exception) {
-                    logger?.e("CriticActor", "Failed to parse startTime '${raw.startTime}', defaulting to 09:00: ${e.message}")
-                    kotlinx.datetime.LocalTime(9, 0)
+                    logger?.e("CriticActor", "Unparseable startTime '${raw.startTime}' — downgrading TIME event to date-only: ${e.message}")
+                    null
                 }
+            } else {
+                null
+            }
+
+            if (start != null) {
+                // A missing end is low-risk once the start is real — assume an hour rather
+                // than dropping the time the student actually needs to show up at.
                 val rawEnd = try {
                     kotlinx.datetime.LocalTime.parse(raw.endTime)
                 } catch (e: Exception) {
-                    logger?.e("CriticActor", "Failed to parse endTime '${raw.endTime}', defaulting to 10:00: ${e.message}")
-                    kotlinx.datetime.LocalTime(10, 0)
+                    logger?.e("CriticActor", "Unparseable endTime '${raw.endTime}', assuming 1h duration: ${e.message}")
+                    null
                 }
-                val end = if (rawEnd > start) rawEnd else {
+                val end = if (rawEnd != null && rawEnd > start) rawEnd else {
                     val plusHourMins = start.hour * 60 + start.minute + 60
                     if (plusHourMins < 24 * 60) kotlinx.datetime.LocalTime(plusHourMins / 60, plusHourMins % 60)
                     else kotlinx.datetime.LocalTime(23, 59, 59)

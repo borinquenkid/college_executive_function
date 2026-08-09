@@ -1,0 +1,128 @@
+[
+  {
+    "question": "When is the Primary Source Image Project due?",
+    "expectedSource": "syllabus_hist152.pdf",
+    "expectAnyOf": ["due on Sunday, 5/4"],
+    "style": "verbatim",
+    "stake": "deadline"
+  },
+  {
+    "question": "What is the last day to drop BDAN 250 without a grade?",
+    "expectedSource": "syllabus_bdan250.pdf",
+    "expectAnyOf": ["January 28, 2025"],
+    "style": "verbatim",
+    "stake": "deadline"
+  },
+  {
+    "question": "When is Issue Brief #2 due?",
+    "expectedSource": "day_within_week_syllabus.txt",
+    "expectAnyOf": ["Issue Brief #2 due at 11:59 pm"],
+    "style": "verbatim",
+    "stake": "deadline"
+  },
+  {
+    "question": "When is the PSYCH 101 Final Exam?",
+    "expectedSource": "week_based_syllabus.txt",
+    "expectAnyOf": ["December 14, 2026"],
+    "style": "verbatim",
+    "stake": "deadline"
+  },
+  {
+    "question": "Which week is the Case Study Paper due?",
+    "expectedSource": "week_based_syllabus.txt",
+    "expectAnyOf": ["Due Week 10"],
+    "style": "verbatim",
+    "stake": "deadline"
+  },
+  {
+    "question": "What is the recommended calculator for MTH 103?",
+    "expectedSource": "syllabus.txt",
+    "expectAnyOf": ["Casio fx-115"],
+    "style": "verbatim",
+    "stake": "general"
+  },
+  {
+    "question": "Where does BDAN 250 meet and at what time?",
+    "expectedSource": "syllabus_bdan250.pdf",
+    "expectAnyOf": ["Grise Hall, room 336"],
+    "style": "verbatim",
+    "stake": "general"
+  },
+  {
+    "question": "What is Mr. Lindsey's drop and replace policy?",
+    "expectedSource": "syllabus_bdan250.pdf",
+    "expectAnyOf": ["drop and replace your lowest"],
+    "style": "verbatim",
+    "stake": "general"
+  },
+  {
+    "question": "What does the late work policy say in HIST 152?",
+    "expectedSource": "syllabus_hist152.pdf",
+    "expectAnyOf": ["48-hour grace period"],
+    "style": "verbatim",
+    "stake": "general"
+  },
+  {
+    "question": "When do I have to turn in the big history assignment where I make up a fake social media argument between two historical figures?",
+    "expectedSource": "syllabus_hist152.pdf",
+    "expectAnyOf": ["due on Sunday, 5/11"],
+    "style": "paraphrase",
+    "stake": "deadline"
+  },
+  {
+    "question": "What's the deadline to get out of my analytics class without it showing up on my record?",
+    "expectedSource": "syllabus_bdan250.pdf",
+    "expectAnyOf": ["January 28, 2025"],
+    "style": "paraphrase",
+    "stake": "deadline"
+  },
+  {
+    "question": "When's the final essay for my English class due?",
+    "expectedSource": "day_within_week_syllabus.txt",
+    "expectAnyOf": ["Final Paper due at 11:59 pm"],
+    "style": "paraphrase",
+    "stake": "deadline"
+  },
+  {
+    "question": "When do I need to hand in my first write-up on the psych readings?",
+    "expectedSource": "week_based_syllabus.txt",
+    "expectAnyOf": ["Reading Response 1"],
+    "style": "paraphrase",
+    "stake": "deadline"
+  },
+  {
+    "question": "I missed a cutoff in world history — can I still send my work in?",
+    "expectedSource": "syllabus_hist152.pdf",
+    "expectAnyOf": ["48-hour grace period"],
+    "style": "paraphrase",
+    "stake": "general"
+  },
+  {
+    "question": "Do I have to buy any books for world history?",
+    "expectedSource": "syllabus_hist152.pdf",
+    "expectAnyOf": ["no required textbooks"],
+    "style": "paraphrase",
+    "stake": "general"
+  },
+  {
+    "question": "Is showing up to class mandatory in my analytics course?",
+    "expectedSource": "syllabus_bdan250.pdf",
+    "expectAnyOf": ["not compulsory"],
+    "style": "paraphrase",
+    "stake": "general"
+  },
+  {
+    "question": "What happens if I turn in math homework after it was supposed to be done?",
+    "expectedSource": "syllabus.txt",
+    "expectAnyOf": ["10% penalty"],
+    "style": "paraphrase",
+    "stake": "general"
+  },
+  {
+    "question": "Do mistakes on my math practice problems hurt me, or can I redo them?",
+    "expectedSource": "syllabus.txt",
+    "expectAnyOf": ["until it is correct"],
+    "style": "paraphrase",
+    "stake": "general"
+  }
+]

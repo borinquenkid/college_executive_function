@@ -47,6 +47,31 @@ class EvalBaselineComparatorTest : FunSpec({
         }
     }
 
+    test("retrieval metrics produce overall and per-bucket delta rows") {
+        val dir = tempEvalsDir()
+        try {
+            val metrics = RetrievalEvalMetrics(
+                questionCount = 18,
+                fragmentRecallAt5Percent = 77.8,
+                fragmentRecallAt15Percent = 100.0,
+                meanReciprocalRank = 0.6,
+                promptContainsAnswerPercent = 88.9,
+                perBucket = mapOf(
+                    "paraphrase|deadline" to RetrievalBucketMetric(4, 100.0, 75.0)
+                )
+            )
+            EvalBaseline.writeCurrent("retrieval", RetrievalEvalMetrics.serializer(), metrics, dir)
+            File(dir, "baseline_retrieval.json").writeText(File(dir, "current_retrieval.json").readText())
+
+            val report = EvalBaselineComparator.buildReport(dir)
+            report shouldContain "| retrieval | promptContainsAnswerPercent |"
+            report shouldContain "| retrieval:paraphrase|deadline | promptContainsAnswerPercent |"
+            report.contains("DRIFT") shouldBe false
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
+
     test("a regressed current metric beyond tolerance is flagged as DRIFT") {
         val dir = tempEvalsDir()
         try {

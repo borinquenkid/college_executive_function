@@ -61,6 +61,30 @@ object EvalBaselineComparator {
         }
     }
 
+    private fun retrievalRows(dir: File): List<DeltaRow> {
+        val baseline = EvalBaseline.readBaseline("retrieval", RetrievalEvalMetrics.serializer(), dir)
+        val current = EvalBaseline.readCurrent("retrieval", RetrievalEvalMetrics.serializer(), dir)
+        if (baseline == null || current == null) return emptyList()
+        val rows = mutableListOf(
+            DeltaRow(
+                "retrieval", "fragmentRecallAt15Percent",
+                baseline.fragmentRecallAt15Percent, current.fragmentRecallAt15Percent
+            ),
+            DeltaRow(
+                "retrieval", "promptContainsAnswerPercent",
+                baseline.promptContainsAnswerPercent, current.promptContainsAnswerPercent
+            )
+        )
+        (baseline.perBucket.keys intersect current.perBucket.keys).sorted().forEach { bucket ->
+            rows += DeltaRow(
+                "retrieval:$bucket", "promptContainsAnswerPercent",
+                baseline.perBucket.getValue(bucket).promptContainsAnswerPercent,
+                current.perBucket.getValue(bucket).promptContainsAnswerPercent
+            )
+        }
+        return rows
+    }
+
     /**
      * A metric delta is only interpretable as "did our code regress" when the underlying model
      * held steady — GeminiModelNegotiator's HEAVY-tier negotiation (see ROADMAP Phase 13) can
@@ -99,7 +123,12 @@ object EvalBaselineComparator {
     }
 
     fun buildReport(dir: File = EvalBaseline.defaultEvalsDir()): String {
-        val allSections = listOf("syllabus" to syllabusRows(dir), "contributor_pdf" to contributorPdfRows(dir), "stlcc" to stlccRows(dir))
+        val allSections = listOf(
+            "syllabus" to syllabusRows(dir),
+            "contributor_pdf" to contributorPdfRows(dir),
+            "stlcc" to stlccRows(dir),
+            "retrieval" to retrievalRows(dir)
+        )
         val sb = StringBuilder()
         sb.appendLine("## Eval Baseline Delta")
         sb.appendLine()

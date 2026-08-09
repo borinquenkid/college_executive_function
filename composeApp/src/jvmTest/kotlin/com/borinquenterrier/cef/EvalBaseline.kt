@@ -123,3 +123,29 @@ data class StlccDocMetric(
 data class StlccEvalMetrics(
     val perDocument: Map<String, StlccDocMetric>
 )
+
+@Serializable
+data class RetrievalBucketMetric(
+    val questionCount: Int,
+    val fragmentRecallAt15Percent: Double,
+    val promptContainsAnswerPercent: Double
+)
+
+/**
+ * Metrics for the deterministic chat-retrieval eval (RetrievalEvalTest) — no `modelUsed` field
+ * because no LLM is involved: the ranking pipeline (FragmentRanker → SourceContextBuilder →
+ * ChatBuilder) is pure code. Report-only by design (tasks/plan.md): the owner's cost model is
+ * asymmetric (deadline misses catastrophic, false positives corrosive) and thresholds are to be
+ * chosen from observed data, so no test gates on these values.
+ */
+@Serializable
+data class RetrievalEvalMetrics(
+    val questionCount: Int,
+    val fragmentRecallAt5Percent: Double,
+    val fragmentRecallAt15Percent: Double,
+    val meanReciprocalRank: Double,
+    /** End-to-end: the answer text survived into the final assembled chat prompt. Headline metric. */
+    val promptContainsAnswerPercent: Double,
+    /** Keyed "style|stake", e.g. "paraphrase|deadline" — the bucket the embeddings decision hinges on. */
+    val perBucket: Map<String, RetrievalBucketMetric>
+)

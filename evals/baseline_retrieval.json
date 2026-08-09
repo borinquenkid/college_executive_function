@@ -1,0 +1,29 @@
+{
+    "questionCount": 18,
+    "fragmentRecallAt5Percent": 77.77777777777777,
+    "fragmentRecallAt15Percent": 100.0,
+    "meanReciprocalRank": 0.5960537918871252,
+    "promptContainsAnswerPercent": 88.88888888888889,
+    "perBucket": {
+        "verbatim|deadline": {
+            "questionCount": 5,
+            "fragmentRecallAt15Percent": 100.0,
+            "promptContainsAnswerPercent": 100.0
+        },
+        "verbatim|general": {
+            "questionCount": 4,
+            "fragmentRecallAt15Percent": 100.0,
+            "promptContainsAnswerPercent": 100.0
+        },
+        "paraphrase|deadline": {
+            "questionCount": 4,
+            "fragmentRecallAt15Percent": 100.0,
+            "promptContainsAnswerPercent": 75.0
+        },
+        "paraphrase|general": {
+            "questionCount": 5,
+            "fragmentRecallAt15Percent": 100.0,
+            "promptContainsAnswerPercent": 80.0
+        }
+    }
+}

@@ -28,7 +28,7 @@ class EventGenerationService(
         // etc. The cache key only hashes the source content, not the prompt or pipeline version,
         // so any of these changing without a bump means old entries — produced under the previous
         // logic — get served stale for up to CACHE_TTL_MS instead of being ignored.
-        const val GENERATION_CACHE_VERSION = 2
+        const val GENERATION_CACHE_VERSION = 3
         const val CACHE_TTL_MS = 7L * 24 * 60 * 60 * 1000
     }
     /**
@@ -86,7 +86,18 @@ class EventGenerationService(
             allEvents.addAll(aiService.generateCalendarEvents(batch))
         }
 
-        val normalized = normalize(allEvents)
+        // Syllabi state their meeting pattern outright — fill any class dates the per-date LLM
+        // tagging missed before normalize() so synthesized events get the same dedup/ID/timestamp
+        // treatment as extracted ones.
+        val reconciled = if (source.category == SourceCategory.SYLLABUS) {
+            val filled = ClassMeetingReconciler.fillMissedMeetings(allEvents)
+            setAttribute("events.class_meetings_inferred", (filled.size - allEvents.size).toLong())
+            filled
+        } else {
+            allEvents
+        }
+
+        val normalized = normalize(reconciled)
 
         val withWarnings = if (auditWarnings.isNotEmpty()) {
             val combinedWarning = auditWarnings.joinToString("; ")

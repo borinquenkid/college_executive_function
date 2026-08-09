@@ -32,6 +32,13 @@ class AcademicSynonymsTest : FunSpec({
         AcademicSynonyms.expandQuery(query).startsWith(query) shouldBe true
     }
 
+    test("'assignment' bridges to both deliverable and recurring-work families") {
+        val expanded = AcademicSynonyms.expandQuery("when is the big assignment due?")
+
+        expanded shouldContain "project"
+        expanded shouldContain "homework"
+    }
+
     test("expansion crosses singular and plural forms without a stemmer") {
         val expanded = AcademicSynonyms.expandQuery("do I need to buy books")
 

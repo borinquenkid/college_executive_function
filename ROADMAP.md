@@ -3234,3 +3234,27 @@ AU-5 (web client UI)           needs AU-4 (consumes the stream)
 - **Client-side simulated progress bar.** Rejected — doesn't address the actual problem (still one
   blocking call under the hood, no real visibility, same robustness risk on slow networks or large
   documents).
+
+---
+
+## Phase 16 — Chat Retrieval: Measured Lexical-First + Deadline-Safety Digest ✅ DONE (2026-08-09)
+
+See [ADR 0013](docs/adr/0013-lexical-first-retrieval-embeddings-deferred.md) and
+[tasks/plan.md](tasks/plan.md). Answers "would a vector DB beat BM25 here?" with measurement
+instead of intuition, under the owner's asymmetric cost model (deadline miss = catastrophic for
+EF-impaired users; false positives corrode credibility).
+
+- **RetrievalEvalTest** — deterministic, API-free chat-retrieval eval (18 questions,
+  style × stake buckets, production-shaped 36-fragment corpus) feeding the ADR-0004
+  baseline-delta harness as the `retrieval` class. Report-only by design; the only hard gate is
+  deterministic (below).
+- **EventsDigestBuilder** — every multi-source chat prompt now carries the student's synced
+  calendar (next-14-days always; synonym-matched beyond; ⚠ markers on inferred events; prompt
+  precedence rule surfacing digest-vs-document conflicts). Deadline answers no longer depend on
+  lexical retrieval; a 100% in-window coverage gate is asserted in unit tests.
+- **AcademicSynonyms** — query-side expansion in `FragmentRanker` + digest title matching only:
+  fragment recall@5 77.8% → 94.4%, MRR 0.596 → 0.624, no bucket regressed. Expansion at the
+  within-fragment compression stage was tried, measured as a regression (verbatim|deadline
+  100% → 80%), and reverted — kept as a negative result in ADR 0013.
+- **Embeddings deferred** by the cost-anchored rule: residual deadline-question gap after
+  digest + expansion is zero; revisit triggers documented in the ADR.

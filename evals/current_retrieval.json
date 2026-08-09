@@ -2,7 +2,7 @@
     "questionCount": 18,
     "fragmentRecallAt5Percent": 94.44444444444444,
     "fragmentRecallAt15Percent": 100.0,
-    "meanReciprocalRank": 0.6335978835978836,
+    "meanReciprocalRank": 0.6243386243386243,
     "promptContainsAnswerPercent": 88.88888888888889,
     "perBucket": {
         "verbatim|deadline": {

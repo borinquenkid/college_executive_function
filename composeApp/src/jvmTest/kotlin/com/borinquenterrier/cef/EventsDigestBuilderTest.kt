@@ -54,6 +54,23 @@ class EventsDigestBuilderTest : FunSpec({
         digest shouldContain "Final Paper: Hidden Systems"
     }
 
+    test("far-future events match through synonym expansion, not just literal title words") {
+        // The residual gap from the retrieval eval: student says "assignment", the calendar
+        // says "Project", and the deadline is beyond the 14-day always-include window.
+        val events = listOf(
+            deadline("Quiz #5", LocalDate(2026, 7, 3)),
+            deadline("Hypothetical Twitter Feud Project", LocalDate(2026, 9, 20))
+        )
+
+        val digest = EventsDigestBuilder.build(
+            events,
+            "When do I have to turn in the big history assignment where I make up a fake social media argument?",
+            today
+        )!!
+
+        digest shouldContain "Hypothetical Twitter Feud Project"
+    }
+
     test("far-future events with no title match are omitted") {
         val events = listOf(
             deadline("Quiz #5", LocalDate(2026, 7, 3)),

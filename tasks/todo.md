@@ -21,4 +21,7 @@ deadline coverage is the only hard gate.
 - [x] **Checkpoint 3:** measured, verbatim did not regress (after the stage-2 revert)
 
 ## Phase 4 — Decide
-- [ ] T6: ADR 0013 via cost-anchored rule (residual deadline-question gap after digest+expansion, not flat recall), ROADMAP.md update, re-record baseline — S — **awaiting owner review of numbers**
+- [x] T6 (owner approved 2026-08-09): digest title matching now synonym-expanded (closes the
+  far-future "assignment"→"Feud Project" case → residual deadline gap = 0); ADR 0013 accepted
+  (embeddings deferred, revisit triggers documented); ROADMAP Phase 16 added; final baseline
+  re-recorded (recall@5 94.4%, MRR 0.624, verbatim 100%)

@@ -18,8 +18,11 @@ package com.borinquenterrier.cef
 object AcademicSynonyms {
 
     private val groups: List<Set<String>> = listOf(
-        // Written deliverables
-        setOf("essay", "essays", "paper", "papers", "project", "projects", "brief", "briefs", "writeup", "write-ups", "report", "reports"),
+        // Written deliverables. "assignment(s)" appears here AND in the recurring-work group:
+        // it's the universal student word for any graded item ("the big history assignment" =
+        // a project), so it must bridge to both families — a term in multiple groups expands
+        // to the union of its siblings.
+        setOf("essay", "essays", "paper", "papers", "project", "projects", "brief", "briefs", "writeup", "write-ups", "report", "reports", "assignment", "assignments"),
         // Examinations
         setOf("exam", "exams", "test", "tests", "quiz", "quizzes", "midterm", "midterms", "final", "finals", "examination"),
         // Recurring work

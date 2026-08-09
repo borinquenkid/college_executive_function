@@ -42,7 +42,11 @@ object EventsDigestBuilder {
         val nearTerm = sorted.filter { it.date in today..windowEnd }
         val rest = sorted.filter { it.date !in today..windowEnd }
         val matchedRest = if (rest.isEmpty()) emptyList() else {
-            Bm25Ranker.rank(question, rest.map { it.title })
+            // Synonym-expanded (tasks/plan.md T6): a student asking about "the big history
+            // assignment" must still match the far-future "…Feud Project" event title —
+            // beyond-window deadlines are the one place digest coverage depends on wording,
+            // so the expansion closes the same vocabulary gap FragmentRanker's does.
+            Bm25Ranker.rank(AcademicSynonyms.expandQuery(question), rest.map { it.title })
                 .filter { it.score > 0.0 }
                 .map { rest[it.index] }
         }

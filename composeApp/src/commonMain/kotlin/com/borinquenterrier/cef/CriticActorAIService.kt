@@ -178,8 +178,12 @@ class CriticActorAIService(
         }
     }
 
-    override suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
-        val firstPass = delegate.decomposeTask(taskTitle, dueDate)
+    override suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String,
+        sourceContext: String
+    ): List<DecomposedTask> {
+        val firstPass = delegate.decomposeTask(taskTitle, dueDate, sourceContext)
         if (firstPass.isEmpty()) return firstPass
 
         val refined = runCritiqueLoop(
@@ -191,7 +195,8 @@ class CriticActorAIService(
                 AiPrompts.getDecompositionCritiquePrompt(
                     taskTitle,
                     dueDate,
-                    currentJson
+                    currentJson,
+                    sourceContext
                 )
             }
         )

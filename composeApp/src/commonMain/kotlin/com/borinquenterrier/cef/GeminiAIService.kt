@@ -219,8 +219,12 @@ class GeminiAIService private constructor(
         )
     }
 
-    suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
-        val prompt = AiPrompts.getTaskDecompositionPrompt(taskTitle, dueDate)
+    suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String,
+        sourceContext: String = ""
+    ): List<DecomposedTask> {
+        val prompt = AiPrompts.getTaskDecompositionPrompt(taskTitle, dueDate, sourceContext)
         return executeWithRetry(
             maxAttempts = 5,
             tier = TaskTier.LIGHT,

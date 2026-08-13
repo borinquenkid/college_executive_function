@@ -39,7 +39,7 @@ class DecompositionScenarioTest : FunSpec({
     test("COMFORTABLE 30d — produces 5-9 steps all within 30 days before due") {
         val dueDate = today.plus(30, DateTimeUnit.DAY).toString()
         val mockAi = mockk<AIService>()
-        coEvery { mockAi.decomposeTask(any(), any()) } returns steps(
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } returns steps(
             "Review assignment prompt" to 29,
             "Research key sources (3 articles)" to 25,
             "Draft annotated bibliography" to 22,
@@ -67,7 +67,7 @@ class DecompositionScenarioTest : FunSpec({
     test("NORMAL 14d — produces 5-9 steps all within 14 days before due") {
         val dueDate = today.plus(14, DateTimeUnit.DAY).toString()
         val mockAi = mockk<AIService>()
-        coEvery { mockAi.decomposeTask(any(), any()) } returns steps(
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } returns steps(
             "Read assignment prompt and rubric" to 13,
             "Brainstorm and choose argument" to 11,
             "Research 2-3 supporting sources" to 9,
@@ -97,7 +97,7 @@ class DecompositionScenarioTest : FunSpec({
     test("TIGHT 3d — all steps fall within 3 days before due") {
         val dueDate = today.plus(3, DateTimeUnit.DAY).toString()
         val mockAi = mockk<AIService>()
-        coEvery { mockAi.decomposeTask(any(), any()) } returns steps(
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } returns steps(
             "Skim prompt and pick argument" to 3,
             "Draft with sources already in syllabus" to 2,
             "Quick revision pass" to 1,
@@ -122,7 +122,7 @@ class DecompositionScenarioTest : FunSpec({
     test("CRISIS due-today — steps reference emergency triage and partial credit") {
         val dueDate = today.toString()
         val mockAi = mockk<AIService>()
-        coEvery { mockAi.decomposeTask(any(), any()) } returns steps(
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } returns steps(
             "Email professor — request 24h extension or clarify late policy" to 0,
             "Write 1-paragraph response addressing the core question" to 0,
             "Submit what you have with a note on your approach" to 0
@@ -149,7 +149,7 @@ class DecompositionScenarioTest : FunSpec({
         val dueDate = today.plus(5, DateTimeUnit.DAY).toString()
         val mockAi = mockk<AIService>()
         var callCount = 0
-        coEvery { mockAi.decomposeTask(any(), any()) } answers {
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } answers {
             callCount++
             // Return steps all <= 3 days before — none should trigger recursion
             steps(

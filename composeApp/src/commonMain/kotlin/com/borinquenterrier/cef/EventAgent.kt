@@ -32,7 +32,8 @@ class EventAgent(
     private val logger: Logger? = null,
     private val userPreferenceMemoryRepository: UserPreferenceMemoryRepository = UserPreferenceMemoryRepository.NoOp,
     private val clock: Clock = Clock.System,
-    private val cacheRepository: AnalysisCacheRepository? = null
+    private val cacheRepository: AnalysisCacheRepository? = null,
+    private val sourceRepository: SourceRepository? = null
 ) {
     private val tag = "EventAgent"
 
@@ -52,7 +53,7 @@ class EventAgent(
         cacheRepository,
         clock
     )
-    private val decompositionService = TaskDecompositionService(aiService, repository)
+    private val decompositionService = TaskDecompositionService(aiService, repository, sourceRepository, logger)
     private val autoDecomposer = AutoDecomposer(repository, decompositionService, clock)
     private val deliverableExtractor = DeliverableExtractor(
         generationService = generationService,

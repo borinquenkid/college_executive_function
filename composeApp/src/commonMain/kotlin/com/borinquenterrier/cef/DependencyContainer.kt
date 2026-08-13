@@ -186,7 +186,9 @@ class DependencyContainer(
     }
     val syllabusAuditor by lazy { SyllabusAuditor(aiService, logger) }
 
-    val taskDecompositionService by lazy { TaskDecompositionService(aiService, calendarAgent) }
+    val taskDecompositionService by lazy {
+        TaskDecompositionService(aiService, calendarAgent, sourceRepository, logger)
+    }
 
     val sharedEventGenerationService by lazy {
         EventGenerationService(
@@ -208,7 +210,8 @@ class DependencyContainer(
             logger,
             userPreferenceMemoryRepository,
             clock,
-            analysisCacheRepository
+            analysisCacheRepository,
+            sourceRepository
         )
     }
 

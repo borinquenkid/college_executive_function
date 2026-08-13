@@ -268,7 +268,7 @@ class SourceFlowTest : FunSpec({
         )
         calendarAgent.saveEvent(target, "default")
 
-        coEvery { mockAi.decomposeTask(any(), any()) } returns listOf(
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } returns listOf(
             DecomposedTask("Outline draft", daysBeforeDue = 3, description = ""),
             DecomposedTask("Write introduction", daysBeforeDue = 5, description = "")
         )
@@ -294,7 +294,7 @@ class SourceFlowTest : FunSpec({
         )
         calendarAgent.saveEvent(target, "default")
 
-        coEvery { mockAi.decomposeTask(any(), any()) } returns listOf(
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } returns listOf(
             DecomposedTask("Draft outline", daysBeforeDue = 7, description = "")
         )
 

@@ -1,9 +1,11 @@
 package com.borinquenterrier.cef
 
+import com.borinquenterrier.cef.db.FragmentEntity
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
+import io.mockk.coVerify
 import io.mockk.mockk
 import kotlinx.datetime.LocalDate
 
@@ -94,5 +96,56 @@ class TaskDecompositionServiceTest : StringSpec({
         service.applyDecomposition(deadline, makeTasks(), "default")
 
         updatedTarget?.studyPlanStart shouldBe "2026-11-13" // 7 days before Nov 20
+    }
+
+    "decompose resolves the originating event's source fragments and forwards them as context" {
+        val aiService = mockk<AIService>(relaxed = true)
+        val sourceRepository = mockk<SourceRepository>()
+        coEvery { sourceRepository.getFragmentsForSource("source-1") } returns listOf(
+            FragmentEntity(
+                id = "frag-1",
+                sourceId = "source-1",
+                text = "Essay due Dec 1. Worth 20% of the final grade.",
+                pageNumber = null,
+                sectionTitle = null,
+                type = "TEXT",
+                metadata = null
+            )
+        )
+
+        val service = TaskDecompositionService(
+            aiService = aiService,
+            repository = mockk(relaxed = true),
+            sourceRepository = sourceRepository
+        )
+        val deadline = makeDeadline("d-1", "Final Paper", LocalDate(2026, 12, 1))
+            .withSourceId("source-1")
+
+        service.decompose(deadline)
+
+        coVerify(exactly = 1) { sourceRepository.getFragmentsForSource("source-1") }
+        coVerify(exactly = 1) {
+            aiService.decomposeTask(
+                "Final Paper",
+                "2026-12-01",
+                "Essay due Dec 1. Worth 20% of the final grade."
+            )
+        }
+    }
+
+    "decompose falls back to empty context when the event has no linked source" {
+        val aiService = mockk<AIService>(relaxed = true)
+        val sourceRepository = mockk<SourceRepository>(relaxed = true)
+
+        val service = TaskDecompositionService(
+            aiService = aiService,
+            repository = mockk(relaxed = true),
+            sourceRepository = sourceRepository
+        )
+        val deadline = makeDeadline("d-2", "Untraced Task", LocalDate(2026, 12, 1))
+
+        service.decompose(deadline)
+
+        coVerify(exactly = 1) { aiService.decomposeTask("Untraced Task", "2026-12-01", "") }
     }
 })

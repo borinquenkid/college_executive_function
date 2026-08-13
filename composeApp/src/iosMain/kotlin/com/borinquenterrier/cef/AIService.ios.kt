@@ -58,9 +58,10 @@ actual class RealAIService actual constructor(
 
     actual override suspend fun decomposeTask(
         taskTitle: String,
-        dueDate: String
+        dueDate: String,
+        sourceContext: String
     ): List<DecomposedTask> {
-        return getGeminiService().decomposeTask(taskTitle, dueDate)
+        return getGeminiService().decomposeTask(taskTitle, dueDate, sourceContext)
     }
 
     actual override suspend fun categorizeSource(text: String): SourceCategory {

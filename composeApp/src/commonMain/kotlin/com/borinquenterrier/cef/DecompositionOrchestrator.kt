@@ -29,11 +29,19 @@ class DecompositionOrchestrator(
     private val maxDepth: Int = 3
 ) {
 
-    suspend fun decompose(rootTitle: String, rootDueDate: String): List<DecomposedTask> =
+    // sourceContext is the originating event's source-document text (resolved once by the
+    // caller via Event.sourceId) — constant across every recursion level, since all 3 depths
+    // decompose the same origin document, not a per-level derived summary.
+    suspend fun decompose(
+        rootTitle: String,
+        rootDueDate: String,
+        sourceContext: String = ""
+    ): List<DecomposedTask> =
         AppTracer.current.span("decomposition.orchestrate", mapOf(
             "task.title" to rootTitle,
             "task.due_date" to rootDueDate,
-            "max_depth" to maxDepth.toString()
+            "max_depth" to maxDepth.toString(),
+            "source_context.chars" to sourceContext.length.toString()
         )) {
         val queue = ArrayDeque<WorkUnit>()
         queue.add(WorkUnit.Task(rootTitle, rootDueDate, depth = 0))
@@ -44,87 +52,96 @@ class DecompositionOrchestrator(
             val current = queue.removeFirst()
 
             if (current.depth >= maxDepth) {
-                val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
                 addEvent("decomposition.max_depth_leaf", mapOf(
                     "node.title" to current.title, "node.depth" to current.depth.toString()
                 ))
-                finalLeaves.add(
-                    DecomposedTask(
-                        title = current.title,
-                        daysBeforeDue = daysBeforeDue,
-                        description = "Decomposition leaf"
-                    )
-                )
+                finalLeaves.add(leafFor(current.title, current.dueDate, rootDueDate, "Decomposition leaf"))
                 continue
             }
 
-            try {
-                val subTasks = delegate.decomposeTask(current.title, current.dueDate)
-                addEvent("decomposition.node_expanded", mapOf(
-                    "node.title" to current.title,
-                    "node.depth" to current.depth.toString(),
-                    "subtask.count" to subTasks.size.toString()
-                ))
-                if (subTasks.isEmpty()) {
-                    val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
-                    finalLeaves.add(
-                        DecomposedTask(
-                            title = current.title,
-                            daysBeforeDue = daysBeforeDue,
-                            description = "Decomposed leaf"
-                        )
-                    )
-                    continue
-                }
-
-                for (sub in subTasks) {
-                    val subDueDate = calculateSubDueDate(current.dueDate, sub.daysBeforeDue)
-
-                    if (current.depth + 1 < maxDepth && isComplex(sub)) {
-                        queue.add(
-                            WorkUnit.SubTask(
-                                title = sub.title,
-                                dueDate = subDueDate,
-                                depth = current.depth + 1,
-                                parentTitle = current.title
-                            )
-                        )
-                    } else {
-                        val daysBefore = calculateDaysBeforeDue(subDueDate, rootDueDate)
-                        finalLeaves.add(
-                            DecomposedTask(
-                                title = sub.title,
-                                daysBeforeDue = daysBefore,
-                                description = sub.description
-                            )
-                        )
-                    }
-                }
-            } catch (e: Exception) {
-                // Quota and auth errors mean no further calls will succeed — propagate so
-                // EventAgent can surface a proper message instead of returning silent garbage.
-                val msg = e.message ?: ""
-                if (msg.contains("QuotaExhausted", ignoreCase = true) ||
-                    msg.contains("RateLimited", ignoreCase = true) ||
-                    msg.contains("Unauthorized", ignoreCase = true)
-                ) throw e
-
-                println("[DecompositionOrchestrator] Decomposition failed for '${current.title}', falling back to sentinel leaf: ${e.message}")
-                val daysBeforeDue = calculateDaysBeforeDue(current.dueDate, rootDueDate)
-                finalLeaves.add(
-                    DecomposedTask(
-                        title = current.title,
-                        daysBeforeDue = daysBeforeDue,
-                        description = "Decomposition fallback: ${e.message}"
-                    )
-                )
-            }
+            expandNode(this, current, rootDueDate, sourceContext, queue, finalLeaves)
         }
 
         val result = finalLeaves.sortedByDescending { it.daysBeforeDue }
         setAttribute("leaves.count", result.size.toLong())
         result
     }
+
+    private suspend fun expandNode(
+        span: SpanScope,
+        current: WorkUnit,
+        rootDueDate: String,
+        sourceContext: String,
+        queue: ArrayDeque<WorkUnit>,
+        finalLeaves: MutableList<DecomposedTask>
+    ) {
+        try {
+            val subTasks = delegate.decomposeTask(current.title, current.dueDate, sourceContext)
+            span.addEvent("decomposition.node_expanded", mapOf(
+                "node.title" to current.title,
+                "node.depth" to current.depth.toString(),
+                "subtask.count" to subTasks.size.toString()
+            ))
+            if (subTasks.isEmpty()) {
+                finalLeaves.add(leafFor(current.title, current.dueDate, rootDueDate, "Decomposed leaf"))
+                return
+            }
+            enqueueOrLeaf(current, subTasks, rootDueDate, queue, finalLeaves)
+        } catch (e: Exception) {
+            handleExpansionFailure(e, current, rootDueDate, finalLeaves)
+        }
+    }
+
+    private fun enqueueOrLeaf(
+        current: WorkUnit,
+        subTasks: List<DecomposedTask>,
+        rootDueDate: String,
+        queue: ArrayDeque<WorkUnit>,
+        finalLeaves: MutableList<DecomposedTask>
+    ) {
+        for (sub in subTasks) {
+            val subDueDate = calculateSubDueDate(current.dueDate, sub.daysBeforeDue)
+
+            if (current.depth + 1 < maxDepth && isComplex(sub)) {
+                queue.add(
+                    WorkUnit.SubTask(
+                        title = sub.title,
+                        dueDate = subDueDate,
+                        depth = current.depth + 1,
+                        parentTitle = current.title
+                    )
+                )
+            } else {
+                finalLeaves.add(leafFor(sub.title, subDueDate, rootDueDate, sub.description))
+            }
+        }
+    }
+
+    // Quota and auth errors mean no further calls will succeed — propagate so EventAgent can
+    // surface a proper message instead of returning silent garbage. Anything else falls back
+    // to a sentinel leaf so one bad node doesn't sink the whole decomposition.
+    private fun handleExpansionFailure(
+        e: Exception,
+        current: WorkUnit,
+        rootDueDate: String,
+        finalLeaves: MutableList<DecomposedTask>
+    ) {
+        val msg = e.message ?: ""
+        if (msg.contains("QuotaExhausted", ignoreCase = true) ||
+            msg.contains("RateLimited", ignoreCase = true) ||
+            msg.contains("Unauthorized", ignoreCase = true)
+        ) throw e
+
+        println("[DecompositionOrchestrator] Decomposition failed for '${current.title}', falling back to sentinel leaf: ${e.message}")
+        finalLeaves.add(leafFor(current.title, current.dueDate, rootDueDate, "Decomposition fallback: ${e.message}"))
+    }
+
+    private fun leafFor(title: String, dueDate: String, rootDueDate: String, description: String): DecomposedTask =
+        DecomposedTask(
+            title = title,
+            daysBeforeDue = calculateDaysBeforeDue(dueDate, rootDueDate),
+            description = description
+        )
 
     private fun isComplex(task: DecomposedTask): Boolean {
         // Only recurse on genuinely multi-day, coarse-grained tasks.

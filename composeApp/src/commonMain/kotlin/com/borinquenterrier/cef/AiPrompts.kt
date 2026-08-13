@@ -60,9 +60,10 @@ object AiPrompts {
     fun getDecompositionCritiquePrompt(
         taskTitle: String,
         dueDate: String,
-        tasksJson: String
+        tasksJson: String,
+        sourceContext: String = ""
     ): String =
-        StudyPlanBuilder.getDecompositionCritiquePrompt(taskTitle, dueDate, tasksJson)
+        StudyPlanBuilder.getDecompositionCritiquePrompt(taskTitle, dueDate, tasksJson, sourceContext)
 
     fun getSyllabusAuditPrompt(syllabusText: String): String =
         CategorizationBuilder.getSyllabusAuditPrompt(syllabusText)

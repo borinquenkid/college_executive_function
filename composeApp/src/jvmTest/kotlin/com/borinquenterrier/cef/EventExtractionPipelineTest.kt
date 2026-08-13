@@ -30,7 +30,11 @@ private class GeminiBackedAIService(private val gemini: GeminiAIService) : AISer
         preferences: StudyPreferences
     ) = gemini.generateStudyPlan(syllabusText, existingSchedule, preferences)
     override suspend fun analyzeDocument(text: String): String? = null
-    override suspend fun decomposeTask(taskTitle: String, dueDate: String) = emptyList<DecomposedTask>()
+    override suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String,
+        sourceContext: String
+    ) = emptyList<DecomposedTask>()
     override suspend fun categorizeSource(text: String) = SourceCategory.OTHER
 }
 

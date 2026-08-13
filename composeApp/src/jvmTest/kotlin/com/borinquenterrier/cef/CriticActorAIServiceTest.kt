@@ -169,12 +169,12 @@ class CriticActorAIServiceTest : FunSpec({
     }
 
     test("passes through when delegate returns empty task decomposition list") {
-        coEvery { delegate.decomposeTask(any(), any()) } returns emptyList()
+        coEvery { delegate.decomposeTask(any(), any(), any()) } returns emptyList()
 
         val result = criticActorService.decomposeTask("task title", "2026-06-02")
 
         result shouldBe emptyList()
-        coVerify(exactly = 1) { delegate.decomposeTask(any(), any()) }
+        coVerify(exactly = 1) { delegate.decomposeTask(any(), any(), any()) }
         coVerify(exactly = 0) { delegate.generateChatResponse(any()) }
     }
 
@@ -187,7 +187,7 @@ class CriticActorAIServiceTest : FunSpec({
                 description = "Write all the code in 10 hours"
             )
         )
-        coEvery { delegate.decomposeTask(any(), any()) } returns firstPassTasks
+        coEvery { delegate.decomposeTask(any(), any(), any()) } returns firstPassTasks
 
         val critiqueResponseJson = """
             [
@@ -217,7 +217,7 @@ class CriticActorAIServiceTest : FunSpec({
         result[1].title shouldBe "Write skeleton code"
         result[2].title shouldBe "Implement detail logic"
 
-        coVerify(exactly = 1) { delegate.decomposeTask(any(), any()) }
+        coVerify(exactly = 1) { delegate.decomposeTask(any(), any(), any()) }
         coVerify(exactly = 2) { delegate.generateChatResponse(any()) }
     }
 

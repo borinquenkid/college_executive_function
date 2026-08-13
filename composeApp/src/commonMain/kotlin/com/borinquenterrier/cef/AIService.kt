@@ -15,7 +15,19 @@ interface AIService {
     ): List<Event>
 
     suspend fun analyzeDocument(text: String): String?
-    suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask>
+
+    /**
+     * [sourceContext] is the raw text of the source document the originating [Event] was
+     * extracted from (looked up via `Event.sourceId`), so sub-task generation and critique can
+     * be checked against the same ground truth as the original extraction, not just against a
+     * prior level's own output. Empty when the event has no linked source or none was found.
+     */
+    suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String,
+        sourceContext: String = ""
+    ): List<DecomposedTask>
+
     suspend fun categorizeSource(text: String): SourceCategory
 
     /**
@@ -41,7 +53,11 @@ expect class RealAIService(
     ): List<Event>
 
     override suspend fun analyzeDocument(text: String): String?
-    override suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask>
+    override suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String,
+        sourceContext: String
+    ): List<DecomposedTask>
     override suspend fun categorizeSource(text: String): SourceCategory
 }
 

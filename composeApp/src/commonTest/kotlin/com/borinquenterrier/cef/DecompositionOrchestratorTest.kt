@@ -86,7 +86,7 @@ class DecompositionOrchestratorTest : FunSpec({
     test("DecompositionOrchestrator re-throws QuotaExhausted so EventAgent can surface it") {
         val mockAi = mockk<AIService>()
         val orchestrator = DecompositionOrchestrator(mockAi, maxDepth = 3)
-        coEvery { mockAi.decomposeTask(any(), any()) } throws RuntimeException("QuotaExhausted: 429")
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } throws RuntimeException("QuotaExhausted: 429")
 
         val ex = runCatching { runBlocking { orchestrator.decompose(rootTitle, rootDueDate) } }
         ex.isFailure shouldBe true
@@ -96,7 +96,7 @@ class DecompositionOrchestratorTest : FunSpec({
     test("DecompositionOrchestrator re-throws RateLimited errors") {
         val mockAi = mockk<AIService>()
         val orchestrator = DecompositionOrchestrator(mockAi, maxDepth = 3)
-        coEvery { mockAi.decomposeTask(any(), any()) } throws RuntimeException("RateLimited: retry in 60s")
+        coEvery { mockAi.decomposeTask(any(), any(), any()) } throws RuntimeException("RateLimited: retry in 60s")
 
         val ex = runCatching { runBlocking { orchestrator.decompose(rootTitle, rootDueDate) } }
         ex.isFailure shouldBe true

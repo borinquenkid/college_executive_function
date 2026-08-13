@@ -20,6 +20,10 @@ class ScriptedAIService(
     ): List<Event> = onStudyPlan()
 
     override suspend fun analyzeDocument(text: String): String? = null
-    override suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> = emptyList()
+    override suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String,
+        sourceContext: String
+    ): List<DecomposedTask> = emptyList()
     override suspend fun categorizeSource(text: String): SourceCategory = SourceCategory.OTHER
 }

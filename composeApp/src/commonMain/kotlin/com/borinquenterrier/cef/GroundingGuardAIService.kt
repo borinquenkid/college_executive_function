@@ -13,6 +13,10 @@ package com.borinquenterrier.cef
  * specific date and grade-weight claims that do not appear anywhere in the provided context
  * are flagged with a verification warning appended to the response.
  *
+ * **Decomposition grounding** — sub-task descriptions from decomposeTask are checked the same
+ * way as chat: specific date/grade-weight claims not backed by the source document (when one
+ * was resolved — see [TaskDecompositionService]) get a verification warning appended.
+ *
  * This is deliberately the *last* link in the chain (wrapping CriticActorAIService and
  * everything inside it): no matter how many generation or critique passes happen internally,
  * exactly one deterministic, non-AI check runs on whatever finally comes out.
@@ -59,6 +63,35 @@ class GroundingGuardAIService(
     override suspend fun generateChatResponse(prompt: String): String {
         val response = delegate.generateChatResponse(prompt)
         return SourceFactGrounder.groundFreeText(response, prompt, logger)
+    }
+
+    // Reuses the same claim-extraction-and-lexical-check SourceFactGrounder already applies to
+    // chat responses. Sub-task titles are short imperative phrases ("Draft outline") that
+    // legitimately won't lexically overlap with source text — that's expected, not confabulation
+    // — so this checks only `description`, where a fabricated specific (a due date, a grading
+    // weight) copied from a wrong context would actually show up as a claim.
+    override suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String,
+        sourceContext: String
+    ): List<DecomposedTask> {
+        val tasks = delegate.decomposeTask(taskTitle, dueDate, sourceContext)
+        if (sourceContext.isBlank()) return tasks
+
+        var flaggedCount = 0
+        val grounded = tasks.map { task ->
+            val groundedDescription = SourceFactGrounder.groundFreeText(task.description, sourceContext, logger)
+            if (groundedDescription == task.description) {
+                task
+            } else {
+                flaggedCount++
+                task.copy(description = groundedDescription)
+            }
+        }
+        if (flaggedCount > 0) {
+            logger?.d("GroundingGuard", "decomposeTask: flagged $flaggedCount ungrounded sub-task claim(s)")
+        }
+        return grounded
     }
 
     // analyzeDocument returns structured JSON metadata (grading scale, late policy, etc.)

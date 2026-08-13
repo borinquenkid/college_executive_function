@@ -5,8 +5,12 @@ class RecursiveDecompositionAIService(
     private val maxDepth: Int = 3
 ) : AIService by delegate {
 
-    override suspend fun decomposeTask(taskTitle: String, dueDate: String): List<DecomposedTask> {
+    override suspend fun decomposeTask(
+        taskTitle: String,
+        dueDate: String,
+        sourceContext: String
+    ): List<DecomposedTask> {
         val orchestrator = DecompositionOrchestrator(delegate, maxDepth)
-        return orchestrator.decompose(taskTitle, dueDate)
+        return orchestrator.decompose(taskTitle, dueDate, sourceContext)
     }
 }

@@ -12,10 +12,28 @@ import okio.ByteString.Companion.encodeUtf8
  */
 class TaskDecompositionService(
     private val aiService: AIService,
-    private val repository: CalendarAgent
+    private val repository: CalendarAgent,
+    private val sourceRepository: SourceRepository? = null,
+    private val logger: Logger? = null
 ) {
     suspend fun decompose(event: Event): List<DecomposedTask> =
-        aiService.decomposeTask(event.title, event.date.toString())
+        aiService.decomposeTask(event.title, event.date.toString(), resolveSourceContext(event.sourceId))
+
+    /**
+     * Looks up the raw text of the document [sourceId] was extracted from, so decomposition
+     * can be checked against the same ground truth as the original event extraction. Falls
+     * back to "" (unset link, missing source, or a lookup failure) rather than failing the
+     * whole decomposition — grounding is a quality improvement, not a hard dependency.
+     */
+    private suspend fun resolveSourceContext(sourceId: String?): String {
+        if (sourceId == null || sourceRepository == null) return ""
+        return try {
+            sourceRepository.getFragmentsForSource(sourceId).joinToString("\n\n") { it.text }
+        } catch (e: Exception) {
+            logger?.e("TaskDecompositionService", "Failed to resolve source context for $sourceId", e)
+            ""
+        }
+    }
 
     /**
      * Records [target]'s study-plan start date (the earliest step's date) and saves

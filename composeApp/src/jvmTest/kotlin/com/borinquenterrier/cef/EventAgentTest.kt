@@ -194,7 +194,7 @@ class HeadlessLogicTest : FunSpec({
             DecomposedTask("Draft introduction", 5, "Just get something on paper."),
             DecomposedTask("Write body paragraphs", 3, "Use your outline as a guide.")
         )
-        coEvery { mockAiService.decomposeTask(any(), any()) } returns mockTasks
+        coEvery { mockAiService.decomposeTask(any(), any(), any()) } returns mockTasks
         coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
         coEvery { mockCalendarAgent.updateEvent(any(), any()) } returns Unit
 
@@ -731,7 +731,7 @@ class HeadlessLogicTest : FunSpec({
         )
         eventAgent.autoDecomposeDeliverables()
         // No AI calls should have been made
-        coVerify(exactly = 0) { mockAiService.decomposeTask(any(), any()) }
+        coVerify(exactly = 0) { mockAiService.decomposeTask(any(), any(), any()) }
     }
 
     test("autoDecomposeDeliverables skips events that already have a studyPlanStart") {
@@ -748,7 +748,7 @@ class HeadlessLogicTest : FunSpec({
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(alreadyPlanned)
         eventAgent.autoDecomposeDeliverables()
-        coVerify(exactly = 0) { mockAiService.decomposeTask(any(), any()) }
+        coVerify(exactly = 0) { mockAiService.decomposeTask(any(), any(), any()) }
     }
 
     test("autoDecomposeDeliverables decomposes DEADLINE event and sets status message with step count") {
@@ -789,7 +789,7 @@ class HeadlessLogicTest : FunSpec({
             category = AcademicCategory.FINALS, date = LocalDate(2026, 12, 10)
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(finals)
-        coEvery { mockAiService.decomposeTask(any(), any()) } returns listOf(
+        coEvery { mockAiService.decomposeTask(any(), any(), any()) } returns listOf(
             DecomposedTask("Review notes", 7, "Study notes")
         )
         coEvery { mockCalendarAgent.saveEvent(any(), any()) } returns Unit
@@ -812,7 +812,7 @@ class HeadlessLogicTest : FunSpec({
             category = AcademicCategory.DEADLINE, date = LocalDate(2026, 9, 1)
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(deadline)
-        coEvery { mockAiService.decomposeTask(any(), any()) } returns listOf(
+        coEvery { mockAiService.decomposeTask(any(), any(), any()) } returns listOf(
             DecomposedTask("Draft", 5, "Write draft")
         )
         // Every save throws OverlapException — all steps blocked

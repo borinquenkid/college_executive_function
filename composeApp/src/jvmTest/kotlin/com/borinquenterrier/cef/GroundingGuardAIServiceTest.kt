@@ -165,4 +165,39 @@ class GroundingGuardAIServiceTest : FunSpec({
 
         result shouldBe null
     }
+
+    // --- Decomposition grounding (ADR 0014) ---
+
+    test("decomposeTask passes through unchanged when no source context was resolved") {
+        val tasks = listOf(DecomposedTask("Draft outline", 5, "Sketch the main argument"))
+        coEvery { delegate.decomposeTask("Essay", "2026-12-01", "") } returns tasks
+
+        val result = guard.decomposeTask("Essay", "2026-12-01", "")
+
+        result shouldBe tasks
+    }
+
+    test("decomposeTask flags a sub-task description asserting a date not in the source") {
+        val source = "Essay due Dec 1. Worth 20% of the final grade."
+        coEvery { delegate.decomposeTask("Essay", "2026-12-01", source) } returns listOf(
+            DecomposedTask("Draft outline", 5, "Outline due November 28, worth 20%")
+        )
+
+        val result = guard.decomposeTask("Essay", "2026-12-01", source)
+
+        result shouldHaveSize 1
+        result[0].description.contains("November 28") shouldBe true
+        result[0].description.contains("could not be verified") shouldBe true
+    }
+
+    test("decomposeTask leaves a sub-task unflagged when its claims are backed by the source") {
+        val source = "Essay due Dec 1. Worth 20% of the final grade."
+        coEvery { delegate.decomposeTask("Essay", "2026-12-01", source) } returns listOf(
+            DecomposedTask("Final review", 0, "Submit before Dec 1, worth 20% of your grade")
+        )
+
+        val result = guard.decomposeTask("Essay", "2026-12-01", source)
+
+        result[0].description shouldBe "Submit before Dec 1, worth 20% of your grade"
+    }
 })

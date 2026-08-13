@@ -151,13 +151,17 @@ class ContextAgent(
         val historyPairs = compaction.verbatimTail
             .map { (if (it.role == ChatRole.USER) "User" else "AI") to it.content }
         val prompt = AiPrompts.getMultiSourceChatPrompt(
-            sourceBlocks, historyPairs, question, warnings, compaction.summary,
-            // Budgeting ran whenever a chatRepository is wired, whether or not this particular
-            // turn actually folded anything — a long-but-under-budget history must not be
-            // re-truncated to MAX_HISTORY_TURNS by ChatBuilder's legacy fallback.
-            historyAlreadyBudgeted = chatRepository != null,
-            studentProfile = studentProfile,
-            eventsDigest = eventsDigest
+            sourceBlocks, historyPairs, question,
+            ChatPromptExtras(
+                warnings = warnings,
+                summary = compaction.summary,
+                // Budgeting ran whenever a chatRepository is wired, whether or not this particular
+                // turn actually folded anything — a long-but-under-budget history must not be
+                // re-truncated to MAX_HISTORY_TURNS by ChatBuilder's legacy fallback.
+                historyAlreadyBudgeted = chatRepository != null,
+                studentProfile = studentProfile,
+                eventsDigest = eventsDigest
+            )
         )
 
         logger?.d(

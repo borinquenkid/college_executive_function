@@ -60,22 +60,10 @@ object ChatBuilder {
         sourceBlocks: List<SourceContextBlock>,
         conversationHistory: List<Pair<String, String>>,
         question: String,
-        warnings: List<String> = emptyList(),
-        summary: String? = null,
-        // True when the caller (ContextAgent) already sized conversationHistory to fit the token
-        // budget — independent of whether a summary exists yet (a long-but-not-yet-folded
-        // conversation is still budget-sized and must NOT be re-truncated to MAX_HISTORY_TURNS).
-        // False (the legacy default) applies the naive takeLast cut below.
-        historyAlreadyBudgeted: Boolean = false,
-        // Cross-term memory (ADR 0004 / ROADMAP Phase 13, XM-4): a small, fixed-size distilled
-        // summary across a student's prior completed terms, or null below the min-2-terms floor.
-        // Plain text, not RAG-retrieved — there's one profile per student, not a corpus to search.
-        studentProfile: String? = null,
-        // Deadline-safety channel (tasks/plan.md T4): a compact digest of the student's own
-        // calendar events from EventsDigestBuilder. Date answers must come from here, not from
-        // lexically-retrieved document prose — see the precedence guardrail below.
-        eventsDigest: String? = null
+        extras: ChatPromptExtras = ChatPromptExtras()
     ): String {
+        val (warnings, summary, historyAlreadyBudgeted, studentProfile, eventsDigest) = extras
+
         val sourcesSection = if (sourceBlocks.isEmpty()) {
             "No course materials are loaded yet. Ask the student to add a source first."
         } else {

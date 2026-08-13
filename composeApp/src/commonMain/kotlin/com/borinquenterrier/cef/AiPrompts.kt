@@ -36,15 +36,8 @@ object AiPrompts {
         sourceBlocks: List<SourceContextBlock>,
         conversationHistory: List<Pair<String, String>>,
         question: String,
-        warnings: List<String> = emptyList(),
-        summary: String? = null,
-        historyAlreadyBudgeted: Boolean = false,
-        studentProfile: String? = null,
-        eventsDigest: String? = null
-    ): String = ChatBuilder.getMultiSourceChatPrompt(
-        sourceBlocks, conversationHistory, question, warnings, summary, historyAlreadyBudgeted, studentProfile,
-        eventsDigest
-    )
+        extras: ChatPromptExtras = ChatPromptExtras()
+    ): String = ChatBuilder.getMultiSourceChatPrompt(sourceBlocks, conversationHistory, question, extras)
 
     fun getConversationSummaryPrompt(
         existingSummary: String?,
@@ -77,4 +70,26 @@ data class SourceContextBlock(
     val category: String,
     val metadata: String?,
     val fragmentText: String
+)
+
+/**
+ * Secondary, mostly-optional context for [AiPrompts.getMultiSourceChatPrompt] — grouped out of
+ * the main parameter list (Sonar S107) since these all default and are rarely all supplied
+ * together, unlike [SourceContextBlock]/conversationHistory/question which every call needs.
+ */
+data class ChatPromptExtras(
+    val warnings: List<String> = emptyList(),
+    val summary: String? = null,
+    // True when the caller (ContextAgent) already sized conversationHistory to fit the token
+    // budget — independent of whether a summary exists yet (a long-but-not-yet-folded
+    // conversation is still budget-sized and must NOT be re-truncated to MAX_HISTORY_TURNS).
+    // False (the legacy default) applies the naive takeLast cut.
+    val historyAlreadyBudgeted: Boolean = false,
+    // Cross-term memory (ADR 0004 / ROADMAP Phase 13, XM-4): a small, fixed-size distilled
+    // summary across a student's prior completed terms, or null below the min-2-terms floor.
+    val studentProfile: String? = null,
+    // Deadline-safety channel (tasks/plan.md T4): a compact digest of the student's own
+    // calendar events from EventsDigestBuilder. Date answers must come from here, not from
+    // lexically-retrieved document prose — see the precedence guardrail in getMultiSourceChatPrompt.
+    val eventsDigest: String? = null
 )

@@ -140,7 +140,7 @@ class ChatBuilderTest : StringSpec({
 
         val result = ChatBuilder.getMultiSourceChatPrompt(
             sources, history, "And the final?",
-            summary = "Earlier: student asked about grading (40% final, 30% midterm)."
+            ChatPromptExtras(summary = "Earlier: student asked about grading (40% final, 30% midterm).")
         )
 
         result.shouldContain("Conversation summary so far: Earlier: student asked about grading")
@@ -152,7 +152,7 @@ class ChatBuilderTest : StringSpec({
         val longHistory = (1..20).map { "User" to "turn $it" }
 
         val result = ChatBuilder.getMultiSourceChatPrompt(
-            sources, longHistory, "Latest?", summary = "Summary of turns before these."
+            sources, longHistory, "Latest?", ChatPromptExtras(summary = "Summary of turns before these.")
         )
 
         result.shouldContain("turn 1")
@@ -163,7 +163,7 @@ class ChatBuilderTest : StringSpec({
         val sources = listOf(SourceContextBlock("Syllabus", "SYLLABUS", null, "Content"))
 
         val result = ChatBuilder.getMultiSourceChatPrompt(
-            sources, emptyList(), "Question?", summary = "Everything so far is summarized."
+            sources, emptyList(), "Question?", ChatPromptExtras(summary = "Everything so far is summarized.")
         )
 
         result.shouldContain("(No further messages since the summary above)")
@@ -188,7 +188,7 @@ class ChatBuilderTest : StringSpec({
         val longHistory = (1..15).map { "User" to "turn $it" }
 
         val result = ChatBuilder.getMultiSourceChatPrompt(
-            sources, longHistory, "Latest?", historyAlreadyBudgeted = true
+            sources, longHistory, "Latest?", ChatPromptExtras(historyAlreadyBudgeted = true)
         )
 
         result.shouldContain("turn 1\n")

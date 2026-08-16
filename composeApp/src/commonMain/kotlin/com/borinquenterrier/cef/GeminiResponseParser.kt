@@ -20,7 +20,12 @@ private data class RawGeminiEvent(
     // event with no parseable start is downgraded to a date-only DayEvent rather than
     // silently given an invented clock time a student might trust.
     val startTime: String = "",
-    val endTime: String = ""
+    val endTime: String = "",
+    // Set by the model when `date` was derived from a "Week N" reference instead of an
+    // explicit calendar date. The date is then recomputed deterministically from the
+    // week-anchor table (WeekAnchorDateResolver) — the model's own arithmetic never wins.
+    val weekNumber: Int? = null,
+    val dayName: String? = null
 )
 
 @Serializable
@@ -62,26 +67,36 @@ object GeminiResponseParser {
         }
     }
 
-    fun parseEventsJson(responseText: String, telemetry: TelemetryManager? = null): List<Event> {
+    fun parseEventsJson(
+        responseText: String,
+        telemetry: TelemetryManager? = null,
+        weekAnchors: Map<Int, LocalDate> = emptyMap()
+    ): List<Event> {
         val jsonArray = extractJsonArray(responseText, "events")
         return jsonArray.map { element ->
-            toEvent(json.decodeFromJsonElement(RawGeminiEvent.serializer(), element), telemetry)
+            toEvent(json.decodeFromJsonElement(RawGeminiEvent.serializer(), element), telemetry, weekAnchors)
         }
     }
 
-    private fun toEvent(raw: RawGeminiEvent, telemetry: TelemetryManager?): Event {
+    private fun toEvent(
+        raw: RawGeminiEvent,
+        telemetry: TelemetryManager?,
+        weekAnchors: Map<Int, LocalDate> = emptyMap()
+    ): Event {
         val category = try {
             AcademicCategory.valueOf(raw.category)
         } catch (e: Exception) {
             telemetry?.logJsonError()
             AcademicCategory.REGULAR
         }
-        val date = try {
+        val modelDate = try {
             LocalDate.parse(raw.date)
         } catch (e: Exception) {
             telemetry?.logJsonError()
             LocalDate(2024, 1, 1)
         }
+
+        val (date, warning) = groundWeekDerivedDate(raw, weekAnchors, modelDate)
 
         val start = if (raw.type == "TIME") parseClockTime(raw.startTime, telemetry) else null
         return if (start != null) {
@@ -99,7 +114,7 @@ object GeminiResponseParser {
                     source = EventSource.AI_GENERATED,
                     date = date,
                     category = category,
-                    warning = raw.warning,
+                    warning = warning,
                     gradeWeight = raw.gradeWeight
                 )
             } else {
@@ -111,7 +126,7 @@ object GeminiResponseParser {
                     startTime = start,
                     endTime = end,
                     category = category,
-                    warning = raw.warning,
+                    warning = warning,
                     gradeWeight = raw.gradeWeight
                 )
             }
@@ -121,10 +136,30 @@ object GeminiResponseParser {
                 source = EventSource.AI_GENERATED,
                 category = category,
                 date = date,
-                warning = raw.warning,
+                warning = warning,
                 gradeWeight = raw.gradeWeight
             )
         }
+    }
+
+    /**
+     * Week-derived dates are recomputed from the deterministic anchor table; the model's own
+     * calendar arithmetic is only kept when there is nothing to ground it against. Returns the
+     * date to use plus the (possibly annotated) warning.
+     */
+    private fun groundWeekDerivedDate(
+        raw: RawGeminiEvent,
+        weekAnchors: Map<Int, LocalDate>,
+        modelDate: LocalDate
+    ): Pair<LocalDate, String?> {
+        val date = if (raw.weekNumber != null) {
+            WeekAnchorDateResolver.resolve(weekAnchors, raw.weekNumber, raw.dayName, modelDate)
+        } else {
+            modelDate
+        }
+        if (date == modelDate) return date to raw.warning
+        val note = "Date grounded to the Week ${raw.weekNumber} anchor table (model computed ${raw.date})."
+        return date to (raw.warning?.let { "$it; $note" } ?: note)
     }
 
     /** Parses an "HH:mm" string, returning null (and logging telemetry) on failure. */

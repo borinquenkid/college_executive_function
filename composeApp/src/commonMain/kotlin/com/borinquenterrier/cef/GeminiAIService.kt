@@ -116,9 +116,10 @@ class GeminiAIService private constructor(
 
         fun parseEventsJson(
             responseText: String,
-            telemetry: TelemetryManager? = null
+            telemetry: TelemetryManager? = null,
+            weekAnchors: Map<Int, kotlinx.datetime.LocalDate> = emptyMap()
         ): List<Event> =
-            GeminiResponseParser.parseEventsJson(responseText, telemetry)
+            GeminiResponseParser.parseEventsJson(responseText, telemetry, weekAnchors)
 
         internal fun parseDecomposeTaskJson(responseText: String): List<DecomposedTask> =
             GeminiResponseParser.parseDecomposeTaskJson(responseText)
@@ -154,6 +155,10 @@ class GeminiAIService private constructor(
     ): T = requestExecutor.executeWithRetry(maxAttempts, tier, family, body, parseResponse)
 
     suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
+        // Built from the whole call's fragments (text + injected metadata) so week-derived
+        // dates in the response are recomputed deterministically instead of trusting the
+        // model's own calendar arithmetic (see WeekAnchorDateResolver).
+        val weekAnchors = WeekAnchorDateResolver.buildTable(fragments)
         val isText = fragments.firstOrNull()?.type == SourceType.TEXT
         if (isText && fragments.size > SourceFragmentBatcher.BATCH_SIZE) {
             // Direct callers (tests, legacy paths) that pass all fragments at once still get
@@ -166,8 +171,10 @@ class GeminiAIService private constructor(
                         add(Json.parseToJsonElement(fragment.toJson()))
                     }
                 }.toString()
-                allEvents.addAll(generateCalendarEventsFromPrompt(
-                    AiPrompts.getSourceEventExtractionPrompt(combinedJson)
+                allEvents.addAll(generateEventsFromPrompt(
+                    AiPrompts.getSourceEventExtractionPrompt(combinedJson),
+                    PromptFamily.EVENT_EXTRACTION,
+                    weekAnchors
                 ))
             }
             return allEvents
@@ -177,8 +184,10 @@ class GeminiAIService private constructor(
                     add(Json.parseToJsonElement(fragment.toJson()))
                 }
             }.toString()
-            return generateCalendarEventsFromPrompt(
-                AiPrompts.getSourceEventExtractionPrompt(combinedJson)
+            return generateEventsFromPrompt(
+                AiPrompts.getSourceEventExtractionPrompt(combinedJson),
+                PromptFamily.EVENT_EXTRACTION,
+                weekAnchors
             )
         }
     }
@@ -191,7 +200,11 @@ class GeminiAIService private constructor(
      * extraction ([PromptFamily.EVENT_EXTRACTION]) and study-plan generation
      * ([PromptFamily.STUDY_PLAN]) run on independent queues and can't starve each other.
      */
-    private suspend fun generateEventsFromPrompt(prompt: String, family: PromptFamily): List<Event> {
+    private suspend fun generateEventsFromPrompt(
+        prompt: String,
+        family: PromptFamily,
+        weekAnchors: Map<Int, kotlinx.datetime.LocalDate> = emptyMap()
+    ): List<Event> {
         return executeWithRetry(
             maxAttempts = 5,
             tier = TaskTier.HEAVY,
@@ -199,7 +212,7 @@ class GeminiAIService private constructor(
             body = { _ -> buildGeminiBody(prompt) },
             parseResponse = { responseText ->
                 try {
-                    parseEventsJson(responseText)
+                    parseEventsJson(responseText, weekAnchors = weekAnchors)
                 } catch (e: Exception) {
                     telemetryManager?.logJsonError()
                     throw e

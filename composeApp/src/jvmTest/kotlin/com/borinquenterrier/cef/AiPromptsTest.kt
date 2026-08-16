@@ -27,6 +27,15 @@ class AiPromptsTest : FunSpec({
         prompt9 shouldContain "09:00 (9 AM)"
     }
 
+    test("extraction prompt demands week-derived provenance and critique prompt protects grounded dates") {
+        val extraction = AiPrompts.getSourceEventExtractionPrompt("dummy content")
+        extraction shouldContain "weekNumber"
+        extraction shouldContain "dayName"
+
+        val critique = AiPrompts.getEventCritiquePrompt("source", "[]")
+        critique shouldContain "do NOT alter their dates"
+    }
+
     test("verify other prompts generated correctly") {
         val text = "dummy content"
 

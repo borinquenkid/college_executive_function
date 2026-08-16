@@ -144,6 +144,30 @@ class GeminiAIServiceTest : FunSpec({
         result shouldBe emptyList()
     }
 
+    // ── generateCalendarEvents: week-anchor date grounding ────────────────────
+
+    test("generateCalendarEvents grounds a week-derived date against the fragment's anchor table") {
+        // Regression for the 2026-08-16 eval failure: the model shifted every Week 6–8 date
+        // +1 day. With weekNumber/dayName in the response, the anchor table in the fragment
+        // text is authoritative and the date is recomputed deterministically.
+        val eventsJson = Json.encodeToString(
+            """[{"title":"Issue Brief #2 due","type":"DAY","date":"2026-07-16","category":"DEADLINE","weekNumber":6,"dayName":"WEDNESDAY"}]"""
+        )
+        val engine = statelessEngine(
+            HttpStatusCode.OK,
+            """{"candidates":[{"content":{"parts":[{"text":$eventsJson}]}}]}"""
+        )
+        val fragments = listOf(
+            SourceFragment(
+                text = "Week 6: July 13–19, 2026\nWednesday: Issue Brief #2 due at 11:59 pm",
+                type = SourceType.TEXT
+            )
+        )
+        val result = makeService(engine).generateCalendarEvents(fragments)
+        result.size shouldBe 1
+        result.first().date shouldBe kotlinx.datetime.LocalDate(2026, 7, 15)
+    }
+
     // ── generateStudyPlan ─────────────────────────────────────────────────────
 
     test("generateStudyPlan delegates to generateCalendarEventsFromPrompt") {

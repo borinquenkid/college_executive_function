@@ -3,6 +3,7 @@ package com.borinquenterrier.cef
 import io.kotest.assertions.throwables.shouldThrow
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.shouldBe
+import io.kotest.matchers.string.shouldContain
 import kotlinx.datetime.LocalDate
 import kotlinx.datetime.LocalTime
 
@@ -193,5 +194,103 @@ class GeminiResponseParserTest : FunSpec({
         }]"""
         val event = GeminiResponseParser.parseEventsJson(response).first() as TimeEvent
         event.endTime shouldBe LocalTime(23, 30)
+    }
+
+    // ── week-anchor date grounding ────────────────────────────────────────────
+
+    val week6Anchors = mapOf(6 to LocalDate(2026, 7, 13))
+
+    test("parseEventsJson grounds a week-derived date to the anchor table and flags the correction") {
+        // 2026-08-16 eval regression: model computed Week 6 Wednesday as Jul 16 (truth Jul 15).
+        val response = """[{
+            "title": "Issue Brief #2 due",
+            "type": "DAY",
+            "date": "2026-07-16",
+            "category": "DEADLINE",
+            "weekNumber": 6,
+            "dayName": "WEDNESDAY"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response, weekAnchors = week6Anchors).first()
+        event.date shouldBe LocalDate(2026, 7, 15)
+        event.warning!! shouldContain "Week 6"
+    }
+
+    test("parseEventsJson appends the grounding note to an existing model warning") {
+        val response = """[{
+            "title": "Issue Brief #2 due",
+            "type": "DAY",
+            "date": "2026-07-16",
+            "category": "DEADLINE",
+            "warning": "Date calculated from week number",
+            "weekNumber": 6,
+            "dayName": "WEDNESDAY"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response, weekAnchors = week6Anchors).first()
+        event.warning!! shouldContain "Date calculated from week number"
+        event.warning!! shouldContain "Week 6"
+    }
+
+    test("parseEventsJson leaves date and warning untouched when the model date already matches the grid") {
+        val response = """[{
+            "title": "Revision Interviews",
+            "type": "DAY",
+            "date": "2026-07-13",
+            "category": "CLASS",
+            "weekNumber": 6,
+            "dayName": "MONDAY"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response, weekAnchors = week6Anchors).first()
+        event.date shouldBe LocalDate(2026, 7, 13)
+        event.warning shouldBe null
+    }
+
+    test("parseEventsJson keeps the model date when no anchor table is supplied") {
+        val response = """[{
+            "title": "Issue Brief #2 due",
+            "type": "DAY",
+            "date": "2026-07-16",
+            "category": "DEADLINE",
+            "weekNumber": 6,
+            "dayName": "WEDNESDAY"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response).first()
+        event.date shouldBe LocalDate(2026, 7, 16)
+    }
+
+    test("parseEventsJson grounds a TimeEvent's date while preserving its clock times") {
+        val response = """[{
+            "title": "Issue Brief #2 due",
+            "type": "TIME",
+            "date": "2026-07-16",
+            "startTime": "14:00",
+            "endTime": "15:15",
+            "category": "DEADLINE",
+            "weekNumber": 6,
+            "dayName": "WEDNESDAY"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response, weekAnchors = week6Anchors).first() as TimeEvent
+        event.date shouldBe LocalDate(2026, 7, 15)
+        event.startTime shouldBe LocalTime(14, 0)
+        event.endTime shouldBe LocalTime(15, 15)
+    }
+
+    test("parseEventsJson tolerates weekNumber emitted as a JSON string") {
+        val response = """[{
+            "title": "Issue Brief #2 due",
+            "type": "DAY",
+            "date": "2026-07-16",
+            "category": "DEADLINE",
+            "weekNumber": "6",
+            "dayName": "WEDNESDAY"
+        }]"""
+        val event = GeminiResponseParser.parseEventsJson(response, weekAnchors = week6Anchors).first()
+        event.date shouldBe LocalDate(2026, 7, 15)
+    }
+
+    test("parseEventsJson without the new fields behaves exactly as before (backward compat)") {
+        val response = """[{"title": "Midterm", "type": "DAY", "date": "2026-07-01", "category": "FINALS"}]"""
+        val event = GeminiResponseParser.parseEventsJson(response, weekAnchors = week6Anchors).first()
+        event.date shouldBe LocalDate(2026, 7, 1)
+        event.warning shouldBe null
     }
 })

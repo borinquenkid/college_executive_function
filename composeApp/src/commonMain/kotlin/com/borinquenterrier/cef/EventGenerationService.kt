@@ -28,7 +28,8 @@ class EventGenerationService(
         // etc. The cache key only hashes the source content, not the prompt or pipeline version,
         // so any of these changing without a bump means old entries — produced under the previous
         // logic — get served stale for up to CACHE_TTL_MS instead of being ignored.
-        const val GENERATION_CACHE_VERSION = 3
+        // v4: weekNumber/dayName provenance fields + WeekAnchorDateResolver date grounding.
+        const val GENERATION_CACHE_VERSION = 4
         const val CACHE_TTL_MS = 7L * 24 * 60 * 60 * 1000
     }
     /**

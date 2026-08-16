@@ -1,7 +1,7 @@
 {
     "perDocument": {
         "STLCC_ENG101_WEEKLY": {
-            "eventCount": 38,
+            "eventCount": 45,
             "duplicateCount": 0,
             "modelStable": true,
             "modelUsed": "gemini-2.5-flash"

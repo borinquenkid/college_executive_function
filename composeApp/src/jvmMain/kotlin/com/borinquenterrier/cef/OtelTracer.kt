@@ -85,19 +85,31 @@ class OtelTracer(
     }
 
     companion object {
-        // Reads from AppEnv (system props → OS env → .env).
+        // Reads from AppEnv (system props → OS env → .env) first — that covers dev-from-source
+        // and CI runs. Falls back to BuildSecrets (baked in at build time from .env via
+        // generateBuildSecrets, same mechanism GOOGLE_CLIENT_ID uses) for a packaged installer
+        // (.dmg/.msi/.deb), which has no .env file and no CEF_OTLP_* env vars on a real user's
+        // machine — without this fallback, tracing was silently a NoopTracer for every real
+        // desktop user, forever. commonMain's HttpOtelTracer (iOS/Android) already did this;
+        // this JVM-specific OtelTracer (real OpenTelemetry SDK) never had the fallback wired in.
         // CEF_OTLP_ENDPOINT must be the full traces URL, e.g.:
         // http://localhost:5428/api/default/v1/traces
         // OtlpHttpSpanExporter 1.40+ uses the endpoint string as-is (no auto-append).
-        fun create(appEnv: AppEnv, serviceName: String = "cef-desktop"): OtelTracer? {
+        fun create(
+            appEnv: AppEnv,
+            serviceName: String = "cef-desktop",
+            buildEndpoint: String? = BuildSecrets.OTLP_ENDPOINT,
+            buildUser: String? = BuildSecrets.OTLP_USER,
+            buildPassword: String? = BuildSecrets.OTLP_PASSWORD
+        ): OtelTracer? {
             fun missing(key: String): OtelTracer? {
                 println("[OTEL] Tracing DISABLED — missing env var: $key")
                 println("[OTEL] Set CEF_OTLP_ENDPOINT, CEF_OTLP_USER, CEF_OTLP_PASSWORD in .env or env to enable tracing.")
                 return null
             }
-            val endpoint = appEnv.get("CEF_OTLP_ENDPOINT") ?: return missing("CEF_OTLP_ENDPOINT")
-            val user     = appEnv.get("CEF_OTLP_USER")     ?: return missing("CEF_OTLP_USER")
-            val password = appEnv.get("CEF_OTLP_PASSWORD") ?: return missing("CEF_OTLP_PASSWORD")
+            val endpoint = appEnv.get("CEF_OTLP_ENDPOINT") ?: buildEndpoint ?: return missing("CEF_OTLP_ENDPOINT")
+            val user     = appEnv.get("CEF_OTLP_USER")     ?: buildUser     ?: return missing("CEF_OTLP_USER")
+            val password = appEnv.get("CEF_OTLP_PASSWORD") ?: buildPassword ?: return missing("CEF_OTLP_PASSWORD")
             val authBase64 = Base64.getEncoder().encodeToString("$user:$password".toByteArray())
             println("[OTEL] Tracing ENABLED → POST $endpoint (user=$user, service=$serviceName)")
             return OtelTracer(endpoint, "Basic $authBase64", serviceName)

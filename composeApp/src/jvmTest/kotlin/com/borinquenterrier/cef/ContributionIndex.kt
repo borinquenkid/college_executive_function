@@ -32,6 +32,10 @@ enum class ContributionIndex(
         "mo/st_louis_community_college/2025-2026/summer/syllabi-202620-eng-101-601-20366.pdf",
         "STLCC ENG 101-601 Full Syllabus"
     ),
+    STLCC_MTH140S_SYLLABUS(
+        "mo/st_louis_community_college/2026-2027/fall/syllabi-202630-mth-140s-605-31245.pdf",
+        "STLCC MTH 140S-605 Fall 2026 Full Syllabus"
+    ),
 
     // ── Texas: University of Texas at Austin ──────────────────────────────────
     UT_BIO325_GENETICS(

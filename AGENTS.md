@@ -345,6 +345,22 @@ Store-listing assets and questionnaire drafts live in `branding/play-store/`.
      into every target and hard-errors under `GITHUB_ACTIONS=true`) — unlike
      `release-desktop.yml`'s build step, which already had all five.
 
+- **GitHub Actions repo secrets can silently drift from the GCP project you think you're
+  verifying** — `release-desktop.yml`'s `GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET` were last set
+  2026-06-11, two weeks *before* the real, verified GCP project (`college-executive-function`,
+  `1014783111965`) was even created (2026-06-27). Every desktop release from v3.0-era through
+  v3.2.2 kept shipping OAuth credentials from an earlier decoy project
+  (`neural-cortex-474922-u0`, `118849293337`, under a personal Gmail account) that was never
+  submitted for Google verification and is permanently stuck in Testing status — so users kept
+  seeing "Google hasn't verified this app" no matter how much verification work landed on the
+  real project. Confirmed by decoding the XOR-obfuscated `BuildSecrets.class` inside a downloaded
+  release artifact (obfuscation key `19007`, see `composeApp/build.gradle.kts`'s
+  `generateBuildSecrets`). **A correct local `.env` proves nothing about what CI actually bakes
+  in** — `gh secret list` timestamps vs. GCP project creation dates is the only reliable check.
+  Fixed 2026-08-23: rotated the Desktop OAuth client secret, updated the three GitHub secrets
+  (`GOOGLE_CLIENT_ID`/`GOOGLE_CLIENT_SECRET`/`GOOGLE_REFRESH_TOKEN` — the refresh token has to be
+  re-minted too, since it's bound to the specific client that issued it), shipped v3.2.3 clean.
+
 ### Cross-repo ops knowledge
 
 Operational knowledge that spans this repo *and* others (Oficio) — e.g. the secret-rotation

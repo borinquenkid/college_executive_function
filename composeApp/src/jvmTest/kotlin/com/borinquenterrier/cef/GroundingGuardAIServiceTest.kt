@@ -37,57 +37,25 @@ class GroundingGuardAIServiceTest : FunSpec({
     )
 
     // --- Year-level grounding ---
+    //
+    // generateCalendarEvents itself does NOT year-ground (moved to EventGenerationService,
+    // see EventGenerationServiceTest's "document-level year grounding" section) — this method
+    // only ever sees whatever single batch of fragments its caller passed in, which for a
+    // multi-batch source is not the whole document. Grounding per-batch here false-dropped real
+    // events whenever a batch's own text happened to lack the document's year while another
+    // batch's did (confirmed live 2026-08-23: a batch containing an advising-office phone number
+    // "636-422-2000" but not the source's "Fall 2026" header wrongly zeroed out 7 real events).
 
-    test("generateCalendarEvents drops events whose year never appears in the source, no matter how the delegate produced them") {
+    test("generateCalendarEvents passes events through unfiltered regardless of year") {
         val fragments = listOf(SourceFragment("Spring 2026 reading list. No other dates mentioned."))
         coEvery { delegate.generateCalendarEvents(any()) } returns listOf(
             dayEvent(2026, title = "Reading Response"),
-            dayEvent(2099, title = "Class Meeting") // confabulated — 2099 nowhere in source
+            dayEvent(2099, title = "Class Meeting") // would have been dropped by the old per-batch check
         )
 
         val result = guard.generateCalendarEvents(fragments)
 
-        result.shouldHaveSize(1)
-        result[0].title shouldBe "Reading Response"
-    }
-
-    test("generateCalendarEvents keeps events whose year is grounded in the source") {
-        val fragments = listOf(SourceFragment("Course runs Fall 2025 through Spring 2026."))
-        coEvery { delegate.generateCalendarEvents(any()) } returns listOf(
-            dayEvent(2025, title = "Kickoff"),
-            dayEvent(2026, title = "Finals")
-        )
-
-        guard.generateCalendarEvents(fragments).shouldHaveSize(2)
-    }
-
-    test("generateCalendarEvents keeps Fall events from a Fall syllabus loaded in Summer") {
-        // A student loading their Fall 2026 syllabus in June should get all Fall events.
-        // The guard must not filter by today's date — only by years mentioned in the source.
-        val fragments = listOf(SourceFragment("ENG 301 Fall 2026 — Course Syllabus."))
-        coEvery { delegate.generateCalendarEvents(any()) } returns listOf(
-            dayEvent(2026, 10, 14, "Midterm Exam"),
-            dayEvent(2026, 12, 10, "Final Exam"),
-            dayEvent(2026, 11, 3,  "Essay Due")
-        )
-
-        guard.generateCalendarEvents(fragments).shouldHaveSize(3)
-    }
-
-    test("generateCalendarEvents keeps all semesters from a multi-semester academic calendar") {
-        // Loading a full-year calendar should return events from all semesters it covers —
-        // the student may be planning ahead for Spring and Fall while currently in Summer.
-        val fragments = listOf(SourceFragment(
-            "Spring 2026 (Jan–May). Summer 2026 (May–Aug). Fall 2026 (Aug–Dec)."
-        ))
-        coEvery { delegate.generateCalendarEvents(any()) } returns listOf(
-            dayEvent(2026, 3, 15, "Spring Break"),
-            dayEvent(2026, 7, 2,  "Summer Session Ends"),
-            dayEvent(2026, 10, 12, "Fall Midterms"),
-            dayEvent(2026, 12, 14, "Fall Finals")
-        )
-
-        guard.generateCalendarEvents(fragments).shouldHaveSize(4)
+        result.shouldHaveSize(2)
     }
 
     test("generateStudyPlan drops events whose year never appears in the source — closes the gap that produced academic_calendar.ics") {

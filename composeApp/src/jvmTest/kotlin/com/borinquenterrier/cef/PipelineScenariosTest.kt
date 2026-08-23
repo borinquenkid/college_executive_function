@@ -330,14 +330,20 @@ class PipelineScenariosTest : FunSpec({
         titles(h.localEvents()) shouldContainExactlyInAnyOrder listOf("Real deadline") // 2099 not in source
     }
 
-    test("ungrounded control: same confabulation survives without the grounding decorator") {
+    test("year-grounding for calendar events is unconditional, not decorator-gated") {
+        // As of 2026-08-23 this check no longer lives in the optional GroundingGuardAIService
+        // decorator — it moved to EventGenerationService, running once against the full merged
+        // document text (see that class's kdoc for why: per-batch decorator-level grounding
+        // false-dropped real events whenever a batch's own text lacked the document's year).
+        // That means calendar-event confabulation defense can no longer be disabled by omitting
+        // the decorator from the AIService chain — grounded=false no longer produces a contrast.
         val h = PipelineScenarioHarness(grounded = false, semesterStart = null, semesterEnd = null)
         h.ingest(
             "syllabus",
             generates = listOf(day("Real deadline", "2026-07-01"), day("Confabulated", "2099-07-01")),
             sourceText = "Summer 2026 course syllabus. Issue Brief due in July."
         )
-        titles(h.localEvents()) shouldContainExactlyInAnyOrder listOf("Real deadline", "Confabulated")
+        titles(h.localEvents()) shouldContainExactlyInAnyOrder listOf("Real deadline")
     }
 
     // ── Orphan detection (source deleted) ─────────────────────────────────────

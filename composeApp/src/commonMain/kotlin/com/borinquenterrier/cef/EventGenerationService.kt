@@ -87,15 +87,23 @@ class EventGenerationService(
             allEvents.addAll(aiService.generateCalendarEvents(batch))
         }
 
+        // Year-level confabulation check, run once against the FULL document text — not per
+        // batch. A batch's own text can easily lack the document's year (e.g. a batch holding a
+        // weekly test schedule but not the syllabus header), which would false-drop real events
+        // if grounded against only that batch. See GroundingGuardAIService's kdoc.
+        val documentSourceYears = GeminiAIService.extractSourceYears(syllabusText)
+        val grounded = GeminiAIService.filterToSourceYears(allEvents, documentSourceYears)
+        setAttribute("events.dropped_ungrounded_years", (allEvents.size - grounded.size).toLong())
+
         // Syllabi state their meeting pattern outright — fill any class dates the per-date LLM
         // tagging missed before normalize() so synthesized events get the same dedup/ID/timestamp
         // treatment as extracted ones.
         val reconciled = if (source.category == SourceCategory.SYLLABUS) {
-            val filled = ClassMeetingReconciler.fillMissedMeetings(allEvents)
-            setAttribute("events.class_meetings_inferred", (filled.size - allEvents.size).toLong())
+            val filled = ClassMeetingReconciler.fillMissedMeetings(grounded)
+            setAttribute("events.class_meetings_inferred", (filled.size - grounded.size).toLong())
             filled
         } else {
-            allEvents
+            grounded
         }
 
         val normalized = normalize(reconciled)

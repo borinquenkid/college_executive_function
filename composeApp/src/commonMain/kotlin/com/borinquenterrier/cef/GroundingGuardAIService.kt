@@ -7,7 +7,14 @@ package com.borinquenterrier.cef
  * **Year-level grounding** — events are filtered to years explicitly mentioned in the
  * source text. An event dated 2099 from a source that only mentions 2026 is a confabulation
  * and is dropped. A student may load syllabi from any semester (past, current, or future)
- * and all events grounded in that source's years are kept.
+ * and all events grounded in that source's years are kept. For calendar-event extraction this
+ * check runs once, in [EventGenerationService], against the *entire* source document — not here
+ * per [generateCalendarEvents] call. When a large source is split into multiple batches (see
+ * [SourceFragmentBatcher]), each batch only carries a fragment of the document's text; grounding
+ * per-batch here would false-drop real events whenever a batch's own text happens to lack the
+ * document's year (e.g. a batch containing a weekly test schedule but not the syllabus header) —
+ * confirmed live 2026-08-23: a batch containing an advising-office phone number
+ * ("636-422-2000") but not the "Fall 2026" header got sourceYears={2000}, dropping 7 real events.
  *
  * **Source-fact grounding** — for free-text coaching responses (generateChatResponse),
  * specific date and grade-weight claims that do not appear anywhere in the provided context
@@ -26,8 +33,11 @@ class GroundingGuardAIService(
     private val logger: Logger? = null
 ) : AIService by delegate {
 
+    // No year-grounding here — see the class kdoc. This method only sees whatever batch of
+    // fragments EventGenerationService's caller passed in, which for a multi-batch source is not
+    // the full document; EventGenerationService applies year-grounding once, after all batches
+    // are merged, against the complete source text.
     override suspend fun generateCalendarEvents(fragments: List<SourceFragment>): List<Event> {
-        val sourceText = fragments.joinToString("\n\n") { it.text }
         return AppTracer.current.span(
             "pipeline.generate_calendar_events",
             mapOf(
@@ -35,8 +45,7 @@ class GroundingGuardAIService(
                 "fragment.chars" to fragments.sumOf { it.text.length }.toString()
             )
         ) {
-            val events = delegate.generateCalendarEvents(fragments)
-            val result = groundToSource("generateCalendarEvents", sourceText, events, spanScope = this)
+            val result = delegate.generateCalendarEvents(fragments)
             setAttribute("events.final", result.size.toLong())
             setAttribute("class.final", result.count { it.category == AcademicCategory.CLASS }.toLong())
             result

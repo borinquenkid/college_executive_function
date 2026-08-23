@@ -23,20 +23,24 @@ class OtelTracerTest : FunSpec({
 
     // ── OtelTracer.create() ───────────────────────────────────────────────────
 
-    test("create() returns null when no env vars are set") {
+    // buildEndpoint/buildUser/buildPassword default to BuildSecrets.OTLP_* in production (the
+    // packaged-installer fallback — see OtelTracer.create's kdoc), so these "genuinely missing"
+    // tests pass explicit nulls to isolate AppEnv-only behavior regardless of what this dev
+    // machine's local .env happens to have baked into BuildSecrets.
+    test("create() returns null when no env vars are set anywhere") {
         clearProps()
-        OtelTracer.create(AppEnv(emptyMap())) shouldBe null
+        OtelTracer.create(AppEnv(emptyMap()), buildEndpoint = null, buildUser = null, buildPassword = null) shouldBe null
     }
 
     test("create() returns null when only endpoint is set") {
         System.setProperty(ENDPOINT_KEY, "http://localhost:4318")
-        OtelTracer.create(AppEnv(emptyMap())) shouldBe null
+        OtelTracer.create(AppEnv(emptyMap()), buildEndpoint = null, buildUser = null, buildPassword = null) shouldBe null
     }
 
     test("create() returns null when only user and password are set") {
         System.setProperty(USER_KEY, "u")
         System.setProperty(PASS_KEY, "p")
-        OtelTracer.create(AppEnv(emptyMap())) shouldBe null
+        OtelTracer.create(AppEnv(emptyMap()), buildEndpoint = null, buildUser = null, buildPassword = null) shouldBe null
     }
 
     test("create() returns OtelTracer when all three vars are set") {
@@ -46,6 +50,28 @@ class OtelTracerTest : FunSpec({
         val tracer = OtelTracer.create(AppEnv(emptyMap()))
         tracer shouldNotBe null
         tracer!!.shutdown() // clean up SDK
+    }
+
+    test("create() falls back to build secrets when AppEnv has nothing (packaged-installer case)") {
+        clearProps()
+        val tracer = OtelTracer.create(
+            AppEnv(emptyMap()),
+            buildEndpoint = "http://localhost:4318",
+            buildUser = "builduser",
+            buildPassword = "buildpass"
+        )
+        tracer shouldNotBe null
+        tracer!!.shutdown()
+    }
+
+    test("create() returns null when build secrets are present but incomplete") {
+        clearProps()
+        OtelTracer.create(
+            AppEnv(emptyMap()),
+            buildEndpoint = "http://localhost:4318",
+            buildUser = "builduser",
+            buildPassword = null
+        ) shouldBe null
     }
 
     test("create() accepts a custom serviceName without falling back to the cef-desktop default") {

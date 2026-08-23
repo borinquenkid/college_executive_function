@@ -225,6 +225,60 @@ class EventGenerationServiceTest : FunSpec({
         coVerify(exactly = 1) { aiService.generateCalendarEvents(any()) }
     }
 
+    // ── document-level year grounding (post-merge, not per-batch) ─────────────
+    //
+    // Regression coverage for a real bug found 2026-08-23: a batch containing an advising-office
+    // phone number ("636-422-2000") but not the syllabus's "Fall 2026" header false-matched "2000"
+    // as the batch's only "source year" and dropped 7 real 2026-dated events. Grounding must run
+    // once against the full merged document text, not per batch — see GroundingGuardAIService's
+    // kdoc and EventGenerationService.extractDeliverables.
+
+    test("extractDeliverables keeps events from a batch whose own text has no year, as long as the DOCUMENT has one") {
+        val aiService = mockk<AIService>()
+        val auditor = mockk<SyllabusAuditor>(relaxed = true)
+        coEvery { auditor.audit(any()) } returns emptyList()
+        // Batch 1's fragment carries the document's year; batch 2's fragment (a weekly test
+        // schedule) doesn't mention a year at all but its events are still 2026-dated.
+        coEvery { aiService.generateCalendarEvents(any()) } returnsMany listOf(
+            listOf(dayEvent("First Day of Class", date = LocalDate(2026, 8, 24))),
+            listOf(
+                dayEvent("Test 1", date = LocalDate(2026, 9, 11)),
+                dayEvent("Test 2", date = LocalDate(2026, 9, 25))
+            )
+        )
+        // BATCH_SIZE=3, OVERLAP=1 (SourceFragmentBatcher): 4 fragments → batch1=[0,1,2],
+        // batch2=[2,3]. Put the year header only in fragment 0 and the test schedule only in
+        // fragment 3, so batch2's own text (fragment 2 + fragment 3) never mentions a year —
+        // the exact shape that reproduced the real bug.
+        val fragments = listOf(
+            SourceFragment("Fall 2026 Syllabus, Section 605", pageNumber = 1, type = SourceType.TEXT),
+            SourceFragment("filler page 2", pageNumber = 2, type = SourceType.TEXT),
+            SourceFragment("filler page 3", pageNumber = 3, type = SourceType.TEXT),
+            SourceFragment("Wk 3: Test 1. Wk 5: Test 2.", pageNumber = 4, type = SourceType.TEXT)
+        )
+        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+
+        val events = service.extractDeliverables(syllabusSource(fragments = fragments))
+
+        events shouldHaveSize 3
+    }
+
+    test("extractDeliverables still drops an event whose year appears nowhere in the whole document") {
+        val aiService = mockk<AIService>()
+        val auditor = mockk<SyllabusAuditor>(relaxed = true)
+        coEvery { auditor.audit(any()) } returns emptyList()
+        coEvery { aiService.generateCalendarEvents(any()) } returns listOf(
+            dayEvent("Real Midterm", date = LocalDate(2026, 10, 14)),
+            dayEvent("Confabulated Event", date = LocalDate(2099, 1, 1))
+        )
+        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+
+        val events = service.extractDeliverables(syllabusSource(text = "Fall 2026 Syllabus"))
+
+        events shouldHaveSize 1
+        events[0].title shouldBe "Real Midterm"
+    }
+
     test("extractDeliverables emits audit then per-batch progress messages for SYLLABUS source") {
         val aiService = mockk<AIService>(relaxed = true)
         val auditor = mockk<SyllabusAuditor>(relaxed = true)

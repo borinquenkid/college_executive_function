@@ -86,6 +86,10 @@ class GeminiModelNegotiator(
             if (!response.status.isSuccess()) {
                 val body = response.bodyAsText()
                 logger?.e(tag, "Failed to get available models: ${response.status}. Body: $body")
+                AppTracer.current.event(
+                    "gemini.fallback_used",
+                    mapOf("site" to "getAvailableModels", "reason" to "http_${response.status.value}")
+                )
                 return emptyList()
             }
 
@@ -93,6 +97,10 @@ class GeminiModelNegotiator(
             modelList.models
         } catch (e: Exception) {
             logger?.e(tag, "Exception fetching models: ${e.message}")
+            AppTracer.current.event(
+                "gemini.fallback_used",
+                mapOf("site" to "getAvailableModels", "reason" to (e.message ?: e::class.simpleName.orEmpty()))
+            )
             emptyList()
         }
     }

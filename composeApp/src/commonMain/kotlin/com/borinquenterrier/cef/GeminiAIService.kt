@@ -279,6 +279,10 @@ class GeminiAIService private constructor(
         } catch (e: Exception) {
             if (e.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) throw e
             logger?.e(tag, "Failed to analyze document: ${e.message}")
+            AppTracer.current.event(
+                "gemini.fallback_used",
+                mapOf("site" to "analyzeDocument", "reason" to (e.message ?: e::class.simpleName.orEmpty()))
+            )
             null
         }
     }
@@ -319,6 +323,10 @@ class GeminiAIService private constructor(
         } catch (e: Exception) {
             if (e.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) throw e
             logger?.e(tag, "Vision text extraction failed: ${e.message}")
+            AppTracer.current.event(
+                "gemini.fallback_used",
+                mapOf("site" to "extractTextFromDocument", "reason" to (e.message ?: e::class.simpleName.orEmpty()))
+            )
             null
         }
     }
@@ -340,6 +348,10 @@ class GeminiAIService private constructor(
             logger?.e(
                 tag,
                 "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}"
+            )
+            AppTracer.current.event(
+                "gemini.fallback_used",
+                mapOf("site" to "categorizeSource", "reason" to (e.message ?: e::class.simpleName.orEmpty()))
             )
             SourceCategory.OTHER
         }

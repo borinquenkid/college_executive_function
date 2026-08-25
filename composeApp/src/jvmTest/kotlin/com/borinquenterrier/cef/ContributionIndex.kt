@@ -17,7 +17,16 @@ package com.borinquenterrier.cef
  */
 enum class ContributionIndex(
     val relativePath: String,
-    val description: String
+    val description: String,
+    /**
+     * False for documents that genuinely contain no datable schedule — e.g. a UT course
+     * catalog page whose "detailed syllabus below" section was never included, or a
+     * week-numbered topic list with no term start date or meeting days. For these,
+     * extracting zero events is the CORRECT behavior and depth assertions don't apply;
+     * instead, any dated event beyond a semester bound is flagged as confabulation
+     * (verified against the PDF text 2026-08-25 — see ContributorPdfIntegrationTest).
+     */
+    val expectsDatedSchedule: Boolean = true
 ) {
     // ── Missouri: St. Louis Community College ─────────────────────────────────
     STLCC_CALENDAR(
@@ -56,7 +65,11 @@ enum class ContributionIndex(
     ),
     UT_E375L_VICTORIAN_LIT(
         "tx/ut_austin/2025-2026/fall/E375L_victorian_literature.pdf",
-        "UT Austin E 375L Victorian Literature"
+        "UT Austin E 375L Victorian Literature",
+        // Catalog-style course description only: instructor, texts, grading, policies. The
+        // "detailed syllabus below" its Requirements section references is not in the PDF —
+        // the only date-ish content is "Semester: Fall 2025".
+        expectsDatedSchedule = false
     ),
     UT_E376S_AFRICAN_AMERICAN_LIT(
         "tx/ut_austin/2025-2026/fall/E376S_african_american_lit.pdf",
@@ -64,7 +77,10 @@ enum class ContributionIndex(
     ),
     UT_E379_AMERICAN_LIT(
         "tx/ut_austin/2025-2026/fall/E379_american_literature.pdf",
-        "UT Austin E 379 American Literature"
+        "UT Austin E 379 American Literature",
+        // Schedule is "Week 1..Week 15" topic labels with no dates, no term start date, and
+        // no meeting days ("twice-weekly" only) — nothing to anchor a single concrete date.
+        expectsDatedSchedule = false
     ),
     UT_HIS368S_AGE_OF_SAMURAI(
         "tx/ut_austin/2025-2026/fall/HIS368S_age_of_samurai.pdf",

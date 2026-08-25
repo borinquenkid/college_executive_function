@@ -23,6 +23,9 @@ import kotlin.time.Duration.Companion.milliseconds
  * ## Depth assertions per file (syllabi)
  * - At least 3 events extracted (catches "only midterm and final" regression)
  * - At least 1 non-exam event (DEADLINE, REGULAR, HOLIDAY, or SEMESTER_BOUND)
+ * - Exception: entries marked expectsDatedSchedule=false in ContributionIndex contain no
+ *   datable schedule at all; for those, zero events passes and any non-SEMESTER_BOUND
+ *   event fails as confabulation.
  *
  * ## Skip behavior
  * - Skipped when contributions/ is empty or absent.
@@ -78,13 +81,14 @@ class ContributorPdfIntegrationTest : FunSpec({
             ContributionIndex.entries
         }
 
-        val pdfFiles = entries.mapNotNull { entry ->
+        val pdfEntries = entries.mapNotNull { entry ->
             val file = File(contributionsDir, entry.relativePath)
             if (!file.exists()) {
                 println("WARN: ${entry.name} — file not found at ${file.canonicalPath}")
                 null
-            } else file
+            } else entry to file
         }
+        val pdfFiles = pdfEntries.map { it.second }
         if (pdfFiles.isEmpty()) {
             println("SKIPPING: No matching PDFs found in ${contributionsDir.canonicalPath}.")
             return@config
@@ -127,7 +131,7 @@ class ContributorPdfIntegrationTest : FunSpec({
         val failures = mutableListOf<String>()
         val perFileMetrics = mutableMapOf<String, ContributorFileMetric>()
 
-        for (pdfFile in pdfFiles) {
+        for ((entry, pdfFile) in pdfEntries) {
             val relativePath = pdfFile.relativeTo(contributionsDir)
             println("--- $relativePath ---")
 
@@ -167,7 +171,22 @@ class ContributorPdfIntegrationTest : FunSpec({
                     || it.category == AcademicCategory.SEMESTER_BOUND
             }
             val passed: Boolean
-            if (source.category == SourceCategory.SYLLABUS) {
+            if (!entry.expectsDatedSchedule) {
+                // A date-free document (see ContributionIndex): zero events IS the correct
+                // extraction. Any dated event other than a semester bound had no source date
+                // to come from — that's confabulation, a real product bug, so it still fails.
+                val confabulated = events.filter { it.category != AcademicCategory.SEMESTER_BOUND }
+                if (confabulated.isEmpty()) {
+                    passed = true
+                    println("  PASS: date-free document, ${events.size} event(s), none confabulated")
+                } else {
+                    passed = false
+                    val reason = "${confabulated.size} confabulated event(s) from a date-free document: " +
+                        confabulated.take(3).joinToString { "${it.title} @ ${eventDate(it)}" }
+                    failures.add("$relativePath: $reason")
+                    println("  FAIL: $reason")
+                }
+            } else if (source.category == SourceCategory.SYLLABUS) {
                 if (events.size < 3 || !hasNonExam) {
                     passed = false
                     val reason = when {
@@ -221,9 +240,10 @@ class ContributorPdfIntegrationTest : FunSpec({
             )
         )
 
-        // Allow up to 2 failures (≈12% of 17 PDFs) — free-tier Gemini occasionally
+        // Allow up to 2 failures (≈9% of 22 PDFs) — free-tier Gemini occasionally
         // returns sparse results for complex multi-column syllabi; this is API variance,
-        // not a code regression. File a separate task if the same PDF fails consistently.
+        // not a code regression. File a separate task if the same PDF fails consistently
+        // (that's how E375L/E379 earned their expectsDatedSchedule=false entries).
         val maxAllowedFailures = 2
         if (failures.size > maxAllowedFailures) {
             failures.size shouldBe 0  // will print the actual count in the assertion message

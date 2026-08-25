@@ -112,9 +112,25 @@ class OtelTracerTest : FunSpec({
 
     test("createTracer() returns NoopTracer when vars are missing") {
         clearProps()
-        val settings = io.mockk.mockk<com.russhwolf.settings.Settings>(relaxed = true)
-        val tracer = createTracer(settings, AppEnv(emptyMap()))
+        // Pin the BuildSecrets fallback to null explicitly: on a machine whose .env holds
+        // real CEF_OTLP_* values, generateBuildSecrets bakes them into BuildSecrets and the
+        // parameterless path would (correctly) return a real OtelTracer here.
+        val tracer = OtelTracer.create(
+            AppEnv(emptyMap()), buildEndpoint = null, buildUser = null, buildPassword = null
+        ) ?: NoopTracer
         tracer shouldBe NoopTracer
+    }
+
+    test("create() falls back to build-time secrets when env vars are missing") {
+        clearProps()
+        val tracer = OtelTracer.create(
+            AppEnv(emptyMap()),
+            buildEndpoint = "http://localhost:4318",
+            buildUser = "u",
+            buildPassword = "p"
+        )
+        tracer.shouldBeInstanceOf<OtelTracer>()
+        tracer.shutdown()
     }
 
     test("createTracer() returns OtelTracer when vars are present") {

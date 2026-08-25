@@ -100,6 +100,10 @@ class GeminiAIService private constructor(
         // Below the Gemini ~20 MB inline-request cap, with headroom for base64 (~33%) + JSON overhead.
         private const val INLINE_DOCUMENT_LIMIT_BYTES = 14 * 1024 * 1024
 
+        // Span-event name marking a swallowed failure that fell back to a benign-looking
+        // value (see commit a196183); shared by every fallback site so trace queries match all.
+        const val FALLBACK_USED_EVENT = "gemini.fallback_used"
+
         /** True when [bytes] will route through the (slower, quota-heavier) Files API rather than an inline request. */
         fun exceedsInlineDocumentLimit(bytes: ByteArray): Boolean = bytes.size > INLINE_DOCUMENT_LIMIT_BYTES
 
@@ -113,6 +117,9 @@ class GeminiAIService private constructor(
 
         fun filterToSourceYears(events: List<Event>, sourceYears: Set<Int>): List<Event> =
             GeminiResponseParser.filterToSourceYears(events, sourceYears)
+
+        fun remapOffByOneYears(events: List<Event>, sourceYears: Set<Int>): List<Event> =
+            GeminiResponseParser.remapOffByOneYears(events, sourceYears)
 
         fun parseEventsJson(
             responseText: String,
@@ -280,7 +287,7 @@ class GeminiAIService private constructor(
             if (e.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) throw e
             logger?.e(tag, "Failed to analyze document: ${e.message}")
             AppTracer.current.event(
-                "gemini.fallback_used",
+                FALLBACK_USED_EVENT,
                 mapOf("site" to "analyzeDocument", "reason" to (e.message ?: e::class.simpleName.orEmpty()))
             )
             null
@@ -324,7 +331,7 @@ class GeminiAIService private constructor(
             if (e.message.orEmpty().contains("QuotaExhausted", ignoreCase = true)) throw e
             logger?.e(tag, "Vision text extraction failed: ${e.message}")
             AppTracer.current.event(
-                "gemini.fallback_used",
+                FALLBACK_USED_EVENT,
                 mapOf("site" to "extractTextFromDocument", "reason" to (e.message ?: e::class.simpleName.orEmpty()))
             )
             null
@@ -350,7 +357,7 @@ class GeminiAIService private constructor(
                 "Failed to categorize source after retries, defaulting to OTHER. Error: ${e.message}"
             )
             AppTracer.current.event(
-                "gemini.fallback_used",
+                FALLBACK_USED_EVENT,
                 mapOf("site" to "categorizeSource", "reason" to (e.message ?: e::class.simpleName.orEmpty()))
             )
             SourceCategory.OTHER

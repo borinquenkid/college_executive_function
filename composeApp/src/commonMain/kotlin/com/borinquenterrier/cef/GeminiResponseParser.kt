@@ -67,6 +67,39 @@ object GeminiResponseParser {
         }
     }
 
+    /**
+     * Deterministically corrects the model's signature year confabulation before
+     * [filterToSourceYears] drops the events outright. A schedule that lists dates with no
+     * year ("Sept. 30 & Oct. 2") forces the model to infer one, and on a batch that lacks
+     * the document's term header it tends to land on the year it believes is current —
+     * exactly one year off from the document's real term (confirmed live 2026-08-25:
+     * HIS 378W fall-2025 batch 2 came back dated 2026 and lost 16 real events).
+     *
+     * An event whose year is missing from [sourceYears] but sits exactly one year from
+     * exactly one source year is remapped to that year, month/day preserved. Anything
+     * further off (2099-style confabulation), ambiguous (two adjacent source years), or
+     * calendar-invalid after the swap (Feb 29) is returned unchanged for
+     * [filterToSourceYears] to drop.
+     */
+    fun remapOffByOneYears(events: List<Event>, sourceYears: Set<Int>): List<Event> {
+        if (sourceYears.isEmpty()) return events
+        return events.map { event ->
+            val date = when (event) {
+                is TimeEvent -> event.date
+                is DayEvent -> event.date
+            }
+            if (date.year in sourceYears) return@map event
+            val target = sourceYears.singleOrNull { it == date.year - 1 || it == date.year + 1 }
+                ?: return@map event
+            val remapped = runCatching { LocalDate(target, date.month, date.day) }
+                .getOrNull() ?: return@map event
+            when (event) {
+                is TimeEvent -> event.copy(date = remapped)
+                is DayEvent -> event.copy(date = remapped)
+            }
+        }
+    }
+
     fun parseEventsJson(
         responseText: String,
         telemetry: TelemetryManager? = null,

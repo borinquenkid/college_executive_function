@@ -29,7 +29,9 @@ class EventGenerationService(
         // so any of these changing without a bump means old entries — produced under the previous
         // logic — get served stale for up to CACHE_TTL_MS instead of being ignored.
         // v4: weekNumber/dayName provenance fields + WeekAnchorDateResolver date grounding.
-        const val GENERATION_CACHE_VERSION = 4
+        // v5: off-by-one year remap before year-grounding; CLASS events exempt from
+        //     dedupSubmissionPairs' keep-later fold.
+        const val GENERATION_CACHE_VERSION = 5
         const val CACHE_TTL_MS = 7L * 24 * 60 * 60 * 1000
     }
     /**
@@ -92,8 +94,14 @@ class EventGenerationService(
         // weekly test schedule but not the syllabus header), which would false-drop real events
         // if grounded against only that batch. See GroundingGuardAIService's kdoc.
         val documentSourceYears = GeminiAIService.extractSourceYears(syllabusText)
-        val grounded = GeminiAIService.filterToSourceYears(allEvents, documentSourceYears)
-        setAttribute("events.dropped_ungrounded_years", (allEvents.size - grounded.size).toLong())
+        // First recover the off-by-one year confabulation (year-less schedule dates inferred
+        // into the wrong-but-adjacent year) deterministically, then drop whatever remains
+        // ungrounded. See GeminiResponseParser.remapOffByOneYears.
+        val remapped = GeminiAIService.remapOffByOneYears(allEvents, documentSourceYears)
+        setAttribute("events.remapped_off_by_one_years",
+            remapped.zip(allEvents).count { (after, before) -> after !== before }.toLong())
+        val grounded = GeminiAIService.filterToSourceYears(remapped, documentSourceYears)
+        setAttribute("events.dropped_ungrounded_years", (remapped.size - grounded.size).toLong())
 
         // Syllabi state their meeting pattern outright — fill any class dates the per-date LLM
         // tagging missed before normalize() so synthesized events get the same dedup/ID/timestamp

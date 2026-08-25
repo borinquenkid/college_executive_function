@@ -3,7 +3,9 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldHaveSize
 import io.kotest.matchers.shouldBe
+import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.plus
 
 class EventDeduplicatorTest : FunSpec({
 
@@ -109,6 +111,40 @@ class EventDeduplicatorTest : FunSpec({
         val a = dayEvent("Issue Brief #1 due", date1)
         val b = dayEvent("Issue Brief #2 due", date2)
         EventDeduplicator.dedupSubmissionPairs(listOf(a, b)) shouldHaveSize 2
+    }
+
+    test("dedupSubmissionPairs never folds recurring CLASS meetings with identical titles") {
+        // HIS 378W regression (2026-08-25): ten identically-titled class meetings two days
+        // apart chain-folded down to the single last meeting via the keep-later rule.
+        val meetings = (0..9).map { i ->
+            dayEvent(
+                "HIS 378W - Women and Gender in China",
+                LocalDate(2025, 8, 26).plus(i * 2, DateTimeUnit.DAY),
+                AcademicCategory.CLASS
+            )
+        }
+        EventDeduplicator.dedupSubmissionPairs(meetings) shouldHaveSize 10
+    }
+
+    test("dedupSubmissionPairs still folds a DEADLINE pair when a same-titled CLASS sits between them") {
+        val early = dayEvent("Issue Brief #1", date1, AcademicCategory.DEADLINE)
+        val cls = dayEvent("Issue Brief #1", date2, AcademicCategory.CLASS)
+        val late = dayEvent("Submit Issue Brief #1", date2, AcademicCategory.DEADLINE)
+        val result = EventDeduplicator.dedupSubmissionPairs(listOf(early, cls, late))
+        result shouldHaveSize 2
+        result.count { it.category == AcademicCategory.CLASS } shouldBe 1
+        result.first { it.category == AcademicCategory.DEADLINE }.title shouldBe "Submit Issue Brief #1"
+    }
+
+    test("dedup (full pipeline) preserves same-title class meetings on distinct dates") {
+        val meetings = (0..4).map { i ->
+            dayEvent(
+                "BIO 325 Genetics Lecture",
+                LocalDate(2025, 9, 1).plus(i * 2, DateTimeUnit.DAY),
+                AcademicCategory.CLASS
+            )
+        }
+        EventDeduplicator.dedup(meetings) shouldHaveSize 5
     }
 
     // ── dedup (full pipeline) ─────────────────────────────────────────────────

@@ -103,11 +103,17 @@ internal object EventDeduplicator {
         for (i in sorted.indices) {
             if (sorted[i] in toRemove) continue
             val a = sorted[i]
+            // Recurring class meetings legitimately repeat an identical title within 7 days
+            // (e.g. ten "HIS 378W" sessions two days apart); the keep-later fold below would
+            // chain them down to the single last meeting. This step only targets deliverable
+            // submission pairs, so CLASS events are never folded.
+            if (a.category == AcademicCategory.CLASS) continue
             val aCanon = submissionCanonical(a.title)
             val aDate = dateOf(a)
             for (j in i + 1 until sorted.size) {
                 if (sorted[j] in toRemove) continue
                 val b = sorted[j]
+                if (b.category == AcademicCategory.CLASS) continue
                 val bDate = dateOf(b)
                 val daysDiff = (bDate.toEpochDays() - aDate.toEpochDays()).toInt()
                 if (daysDiff > 7) break

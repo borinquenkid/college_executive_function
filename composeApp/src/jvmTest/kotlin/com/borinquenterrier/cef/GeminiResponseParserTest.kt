@@ -155,6 +155,59 @@ class GeminiResponseParserTest : FunSpec({
         GeminiResponseParser.filterToSourceYears(events, emptySet()) shouldBe events
     }
 
+    // --- remapOffByOneYears (HIS 378W fall-2025 batch-2 regression, 2026-08-25) ---
+
+    test("remapOffByOneYears moves an event one year ahead of the source term back onto it") {
+        val events = listOf(
+            DayEvent(title = "Women in Late Qing China", source = EventSource.AI_GENERATED,
+                date = LocalDate(2026, 9, 30), category = AcademicCategory.CLASS)
+        )
+        val remapped = GeminiResponseParser.remapOffByOneYears(events, setOf(2025))
+        remapped.single().date shouldBe LocalDate(2025, 9, 30)
+    }
+
+    test("remapOffByOneYears moves an event one year behind the source term forward onto it") {
+        val events = listOf(
+            DayEvent(title = "First class", source = EventSource.AI_GENERATED, date = LocalDate(2026, 1, 15))
+        )
+        GeminiResponseParser.remapOffByOneYears(events, setOf(2027))
+            .single().date shouldBe LocalDate(2027, 1, 15)
+    }
+
+    test("remapOffByOneYears leaves grounded, far-off, and ambiguous events unchanged") {
+        val grounded = DayEvent(title = "G", source = EventSource.AI_GENERATED, date = LocalDate(2025, 9, 1))
+        val farOff = DayEvent(title = "F", source = EventSource.AI_GENERATED, date = LocalDate(2099, 9, 1))
+        // 2026 sits one year from BOTH 2025 and 2027 — ambiguous, so left for the filter to drop.
+        val ambiguous = DayEvent(title = "X", source = EventSource.AI_GENERATED, date = LocalDate(2026, 9, 1))
+        GeminiResponseParser.remapOffByOneYears(
+            listOf(grounded, farOff, ambiguous), setOf(2025, 2027)
+        ) shouldBe listOf(grounded, farOff, ambiguous)
+    }
+
+    test("remapOffByOneYears with an empty source-year set is a no-op") {
+        val events = listOf(
+            DayEvent(title = "A", source = EventSource.AI_GENERATED, date = LocalDate(2026, 9, 1))
+        )
+        GeminiResponseParser.remapOffByOneYears(events, emptySet()) shouldBe events
+    }
+
+    test("remapOffByOneYears drops nothing itself and skips a calendar-invalid swap (Feb 29)") {
+        val leap = DayEvent(title = "Leap", source = EventSource.AI_GENERATED, date = LocalDate(2024, 2, 29))
+        val result = GeminiResponseParser.remapOffByOneYears(listOf(leap), setOf(2025))
+        // 2025-02-29 doesn't exist; the event passes through unchanged for the year filter.
+        result shouldBe listOf(leap)
+    }
+
+    test("remapOffByOneYears preserves TimeEvent times while swapping the year") {
+        val timed = TimeEvent(id = null, title = "Seminar", source = EventSource.AI_GENERATED,
+            startTime = LocalTime(15, 30), endTime = LocalTime(17, 0),
+            date = LocalDate(2026, 10, 21), category = AcademicCategory.CLASS)
+        val result = GeminiResponseParser.remapOffByOneYears(listOf(timed), setOf(2025)).single() as TimeEvent
+        result.date shouldBe LocalDate(2025, 10, 21)
+        result.startTime shouldBe LocalTime(15, 30)
+        result.endTime shouldBe LocalTime(17, 0)
+    }
+
     // --- midnight overflow (Bug 8B) ---
 
     test("TIME event at 23:59 with omitted endTime overflows midnight → DayEvent") {

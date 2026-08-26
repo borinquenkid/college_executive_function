@@ -77,6 +77,12 @@ fun isTestProfile(): Boolean {
 private val tracerInitialized = java.util.concurrent.atomic.AtomicBoolean(false)
 
 private fun ensureTracerInitialized() {
+    // Only arm live tracing in a -PrunAITests=true run (build.gradle.kts forwards the flag as
+    // this system property). Without the guard, any test outside the integration exclusion
+    // filters that touches resolveApiKey arms the real cef-eval-ci exporter for the whole
+    // unit-test JVM, and every later test's MOCKED gemini spans flood production OpenObserve —
+    // exactly the fake "model cascade" alert of 2026-08-25/26 (7.7k mock spans in one run).
+    if (System.getProperty("runAITests") != "true") return
     if (tracerInitialized.compareAndSet(false, true)) {
         AppTracer.current = OtelTracer.create(AppEnv(), serviceName = "cef-eval-ci") ?: NoopTracer
     }

@@ -550,6 +550,10 @@ tasks.withType<Test>().configureEach {
             excludeTestsMatching("*ContributorPdf*")
         }
     } else {
+        // Forwarded so IntegrationTestHelpers.ensureTracerInitialized only arms the live
+        // cef-eval-ci OTLP exporter in AI-test runs — unit-test JVMs must never export their
+        // mocked gemini spans to production OpenObserve (fake model-cascade alert, 2026-08-25).
+        systemProperty("runAITests", "true")
         // Eval-corpus failures (e.g. StlccIntegrationTest) previously surfaced in CI as a bare
         // "AssertionFailedError at Foo.kt:N" with none of the test's println diagnostics (actual
         // extracted events, model-cascade warnings) — undiagnosable without re-spending real

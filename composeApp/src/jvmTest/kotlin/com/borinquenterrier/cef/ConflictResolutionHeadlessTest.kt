@@ -11,16 +11,18 @@ import kotlinx.datetime.plus
 import kotlin.time.Duration.Companion.minutes
 
 /**
- * Headless e2e test: Load real PDFs → Parse → Generate study plan → Resolve conflicts
- * Tests happy path only: conflicts are auto-resolved or marked for professor review
+ * Headless e2e test over SYNTHETIC events: build calendar + proposed plan → resolve conflicts.
+ * Fully deterministic — no PDFs, no AI, no API key. It used to gate on [resolveApiKey] anyway,
+ * which had a nasty side effect: resolveApiKey arms the live cef-eval-ci OTLP exporter, and
+ * since this class matches no integration-test exclusion filter, every ordinary unit-test run
+ * armed it — flooding OpenObserve with mocked gemini spans from all subsequent tests (the
+ * fake "model cascade" of 2026-08-25/26).
  */
 class ConflictResolutionHeadlessTest : FunSpec({
 
     test("Headless e2e: Process real syllabi, generate plan, resolve conflicts").config(
-        timeout = 120_000.minutes  // Real API calls can be slow
+        timeout = 120_000.minutes
     ) {
-        resolveApiKey("CONFLICT RESOLUTION E2E TEST") ?: return@config
-
         // In real scenario, load from ~/Desktop
         // For now, we'll create synthetic events that simulate the calendar + proposed plan
 
@@ -111,8 +113,6 @@ class ConflictResolutionHeadlessTest : FunSpec({
     test("Headless e2e: No conflicts in generated plan").config(
         timeout = 60_000.minutes
     ) {
-        resolveApiKey("CONFLICT RESOLUTION E2E TEST") ?: return@config
-
         val calendarEvents = listOf(
             TimeEvent(
                 title = "BDAN 250: Lecture",

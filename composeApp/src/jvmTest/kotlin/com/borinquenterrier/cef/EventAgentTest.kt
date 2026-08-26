@@ -741,10 +741,15 @@ class HeadlessLogicTest : FunSpec({
             mockAiService, mockCalendarAgent, null, NormalizationService(),
             logger = Logger(MapSettings())
         )
+        // Future-dated relative to the real clock (AutoDecomposer uses Clock.System): a
+        // past-due deadline is skipped for a different reason, which would make this test
+        // pass vacuously once a hardcoded date rots.
+        val due = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            .plus(30, kotlinx.datetime.DateTimeUnit.DAY)
         val alreadyPlanned = DayEvent(
             title = "Essay #1", source = EventSource.AI_GENERATED,
-            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 8, 20),
-            studyPlanStart = "2026-08-10"
+            category = AcademicCategory.DEADLINE, date = due,
+            studyPlanStart = due.plus(-10, kotlinx.datetime.DateTimeUnit.DAY).toString()
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(alreadyPlanned)
         eventAgent.autoDecomposeDeliverables()
@@ -758,12 +763,17 @@ class HeadlessLogicTest : FunSpec({
             mockAiService, mockCalendarAgent, null, NormalizationService(),
             logger = Logger(MapSettings())
         )
+        // Relative to the real clock — this test failed in CI on 2026-08-26 when its
+        // hardcoded 2026-08-25 due date became past-due at UTC midnight (AutoDecomposer
+        // only decomposes date >= today).
+        val due = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            .plus(30, kotlinx.datetime.DateTimeUnit.DAY)
         val deadline = DayEvent(
             title = "Research Paper", source = EventSource.AI_GENERATED,
-            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 8, 25)
+            category = AcademicCategory.DEADLINE, date = due
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(deadline)
-        coEvery { mockAiService.decomposeTask("Research Paper", "2026-08-25") } returns listOf(
+        coEvery { mockAiService.decomposeTask("Research Paper", due.toString()) } returns listOf(
             DecomposedTask("Research sources", 14, "Find sources"),
             DecomposedTask("Write draft", 7, "First draft"),
             DecomposedTask("Final edits", 2, "Polish")
@@ -784,9 +794,11 @@ class HeadlessLogicTest : FunSpec({
             mockAiService, mockCalendarAgent, null, NormalizationService(),
             logger = Logger(MapSettings())
         )
+        val due = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            .plus(60, kotlinx.datetime.DateTimeUnit.DAY)
         val finals = DayEvent(
             title = "Final Exam", source = EventSource.AI_GENERATED,
-            category = AcademicCategory.FINALS, date = LocalDate(2026, 12, 10)
+            category = AcademicCategory.FINALS, date = due
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(finals)
         coEvery { mockAiService.decomposeTask(any(), any(), any()) } returns listOf(
@@ -797,7 +809,7 @@ class HeadlessLogicTest : FunSpec({
 
         eventAgent.autoDecomposeDeliverables()
 
-        coVerify(exactly = 1) { mockAiService.decomposeTask("Final Exam", "2026-12-10") }
+        coVerify(exactly = 1) { mockAiService.decomposeTask("Final Exam", due.toString()) }
     }
 
     test("autoDecomposeDeliverables shows 'no steps' message when all steps blocked by conflicts") {
@@ -809,7 +821,9 @@ class HeadlessLogicTest : FunSpec({
         )
         val deadline = DayEvent(
             title = "Blocked Essay", source = EventSource.AI_GENERATED,
-            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 9, 1)
+            category = AcademicCategory.DEADLINE,
+            date = Clock.System.todayIn(TimeZone.currentSystemDefault())
+                .plus(30, kotlinx.datetime.DateTimeUnit.DAY)
         )
         coEvery { mockCalendarAgent.getEvents("default") } returns listOf(deadline)
         coEvery { mockAiService.decomposeTask(any(), any(), any()) } returns listOf(

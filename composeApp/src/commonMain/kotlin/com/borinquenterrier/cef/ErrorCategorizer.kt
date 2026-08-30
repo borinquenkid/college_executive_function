@@ -36,6 +36,14 @@ class ErrorCategorizer(
 
         return when {
             status == HttpStatusCode.Unauthorized -> ErrorType.Unauthorized
+            status == HttpStatusCode.Forbidden && isHtmlBody(body) -> {
+                // Gemini's own 403s (bad key, API not enabled) come back as JSON. An HTML
+                // body means Google's edge blocked the request before it reached the API —
+                // e.g. its abuse-detection front door flagging a shared CI-runner IP — not a
+                // real permission error, so it's worth retrying rather than failing outright.
+                logger?.d(tag, "403 with HTML body - edge block, not a real permission error - transient")
+                ErrorType.TransientServerError
+            }
             status == HttpStatusCode.Forbidden -> ErrorType.Forbidden
             status == HttpStatusCode.NotFound -> {
                 logger?.d(tag, "Model not found - marking as structural error")
@@ -87,5 +95,10 @@ class ErrorCategorizer(
                 )
             }
         }
+    }
+
+    private fun isHtmlBody(body: String): Boolean {
+        val start = body.trimStart().take(15).lowercase()
+        return start.startsWith("<!doctype html") || start.startsWith("<html")
     }
 }

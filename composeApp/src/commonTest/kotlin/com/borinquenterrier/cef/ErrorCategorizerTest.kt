@@ -21,6 +21,18 @@ class ErrorCategorizerTest : StringSpec({
         result shouldBe ErrorCategorizer.ErrorType.Forbidden
     }
 
+    "categorizes 403 with JSON permission-denied body as Forbidden" {
+        val body = """{"error":{"code":403,"message":"...","status":"PERMISSION_DENIED"}}"""
+        val result = categorizer.categorizeError(HttpStatusCode.Forbidden, body)
+        result shouldBe ErrorCategorizer.ErrorType.Forbidden
+    }
+
+    "categorizes 403 with HTML body as TransientServerError (Google edge block, not a real permission error)" {
+        val body = "<!DOCTYPE html><html><head><title>Error 403 (Forbidden)!!1</title></head></html>"
+        val result = categorizer.categorizeError(HttpStatusCode.Forbidden, body)
+        result shouldBe ErrorCategorizer.ErrorType.TransientServerError
+    }
+
     "categorizes 404 as StructuralError" {
         val result = categorizer.categorizeError(HttpStatusCode.NotFound, "Model not found")
         result shouldBe ErrorCategorizer.ErrorType.StructuralError("Model not found (404)")

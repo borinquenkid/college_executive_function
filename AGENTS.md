@@ -6,6 +6,14 @@ An application designed to assist students with executive function challenges by
 
 ## Agent Mandates
 
+### Git Push Policy
+Only Walter pushes to remote (`git push`, any branch, including `main`) — an agent must never run
+`git push` itself. Commit locally and stop; tell the user what's committed and ready, and let them
+push it. This is a standing rule, not a one-off for a specific commit. The one documented exception
+is `./release.sh`, which pushes the branch and tag as part of its own flow (see `## Release`) — that
+script is still invoked by/for the user for an intentional release, so its push is expected, not an
+agent deciding to push on its own.
+
 ### Clarify Protocol
 Before writing any phase plan into `ROADMAP.md`, ask these questions and get answers — do not proceed to the plan until each is resolved:
 

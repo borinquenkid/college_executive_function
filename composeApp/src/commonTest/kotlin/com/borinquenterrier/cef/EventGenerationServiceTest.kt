@@ -14,10 +14,10 @@ import kotlinx.datetime.LocalTime
 
 class EventGenerationServiceTest : FunSpec({
 
-    fun fragment(text: String = "PSYCH 101 Syllabus") =
+    fun fragment(text: String = "PSYCH 101 Syllabus. Midterm Oct 1") =
         SourceFragment(text = text, type = SourceType.TEXT)
 
-    fun syllabusSource(text: String = "PSYCH 101 Syllabus", fragments: List<SourceFragment>? = null) =
+    fun syllabusSource(text: String = "PSYCH 101 Syllabus. Midterm Oct 1", fragments: List<SourceFragment>? = null) =
         SourceItem(
             title = "PSYCH 101",
             fragments = fragments ?: listOf(fragment(text)),
@@ -183,7 +183,7 @@ class EventGenerationServiceTest : FunSpec({
             listOf(dayEvent("HW3"))
         )
         val fragments = (1..4).map { i ->
-            SourceFragment("page $i content", pageNumber = i, type = SourceType.TEXT)
+            SourceFragment("page $i content. Due Oct 1", pageNumber = i, type = SourceType.TEXT)
         }
         val service = EventGenerationService(aiService, NormalizationService(), auditor)
 
@@ -200,7 +200,7 @@ class EventGenerationServiceTest : FunSpec({
         coEvery { aiService.generateCalendarEvents(any()) } returns listOf(dayEvent("Midterm"))
         // 3 fragments == BATCH_SIZE, not >, so no split
         val fragments = (1..3).map { i ->
-            SourceFragment("page $i", pageNumber = i, type = SourceType.TEXT)
+            SourceFragment("page $i. Due Oct 1", pageNumber = i, type = SourceType.TEXT)
         }
         val service = EventGenerationService(aiService, NormalizationService(), auditor)
 
@@ -254,7 +254,7 @@ class EventGenerationServiceTest : FunSpec({
             SourceFragment("Fall 2026 Syllabus, Section 605", pageNumber = 1, type = SourceType.TEXT),
             SourceFragment("filler page 2", pageNumber = 2, type = SourceType.TEXT),
             SourceFragment("filler page 3", pageNumber = 3, type = SourceType.TEXT),
-            SourceFragment("Wk 3: Test 1. Wk 5: Test 2.", pageNumber = 4, type = SourceType.TEXT)
+            SourceFragment("Wk 3 (Sept 8): Test 1. Wk 5 (Sept 22): Test 2.", pageNumber = 4, type = SourceType.TEXT)
         )
         val service = EventGenerationService(aiService, NormalizationService(), auditor)
 
@@ -273,7 +273,7 @@ class EventGenerationServiceTest : FunSpec({
         )
         val service = EventGenerationService(aiService, NormalizationService(), auditor)
 
-        val events = service.extractDeliverables(syllabusSource(text = "Fall 2026 Syllabus"))
+        val events = service.extractDeliverables(syllabusSource(text = "Fall 2026 Syllabus. Midterm Oct 14"))
 
         events shouldHaveSize 1
         events[0].title shouldBe "Real Midterm"

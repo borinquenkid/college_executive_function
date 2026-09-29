@@ -21,10 +21,9 @@ class SyllabusAuditor(
         val prompt = AiPrompts.getSyllabusAuditPrompt(text)
         val response = aiService.generateChatResponse(prompt)
         return try {
-            val cleanJson = response.trim()
-                .removePrefix("```json")
-                .removeSuffix("```")
-                .trim()
+            // Take the outermost {...}: tolerates code fences and the "[Note: ...]" line
+            // GroundingGuardAIService appends to generateChatResponse output.
+            val cleanJson = response.substring(response.indexOf('{'), response.lastIndexOf('}') + 1)
             val root = Json.parseToJsonElement(cleanJson).jsonObject
             val hasAmbiguities = root["hasAmbiguities"]?.jsonPrimitive?.booleanOrNull ?: false
             if (hasAmbiguities) {

@@ -103,15 +103,24 @@ class EventGenerationService(
         val grounded = GeminiAIService.filterToSourceYears(remapped, documentSourceYears)
         setAttribute("events.dropped_ungrounded_years", (remapped.size - grounded.size).toLong())
 
+        // Stray-year guesses survive the filter above when the source states no year at all.
+        val yearConsistent = GeminiResponseParser.keepDominantYearWhenUngrounded(grounded, documentSourceYears)
+        // A syllabus with nothing datable in it (e.g. a phase/points handout) cannot ground any
+        // event — whatever the model returned there is invented.
+        val evidenced = if (source.category == SourceCategory.SYLLABUS &&
+            !SourceDateEvidence.hasDatableContent(syllabusText)
+        ) emptyList() else yearConsistent
+        setAttribute("events.dropped_no_date_evidence", (yearConsistent.size - evidenced.size).toLong())
+
         // Syllabi state their meeting pattern outright — fill any class dates the per-date LLM
         // tagging missed before normalize() so synthesized events get the same dedup/ID/timestamp
         // treatment as extracted ones.
         val reconciled = if (source.category == SourceCategory.SYLLABUS) {
-            val filled = ClassMeetingReconciler.fillMissedMeetings(grounded)
-            setAttribute("events.class_meetings_inferred", (filled.size - grounded.size).toLong())
+            val filled = ClassMeetingReconciler.fillMissedMeetings(evidenced)
+            setAttribute("events.class_meetings_inferred", (filled.size - evidenced.size).toLong())
             filled
         } else {
-            grounded
+            evidenced
         }
 
         val normalized = normalize(reconciled)

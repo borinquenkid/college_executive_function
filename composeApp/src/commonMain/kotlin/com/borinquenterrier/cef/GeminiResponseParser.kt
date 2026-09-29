@@ -53,8 +53,31 @@ object GeminiResponseParser {
 
     val YEAR_PATTERN = Regex("""\b(20\d{2})\b""")
 
+    // A year that only appears as a publication/edition/copyright citation ("4th Edition (2019)",
+    // "© 2018") says nothing about the term the document describes. Counting it made a syllabus
+    // whose body never states its term year (Missouri S&T SPMS 1185, 2026-09-29) ground against
+    // {2019} and drop every real 2026 event.
+    private val CITATION_YEAR = Regex(
+        """(?:edition[^\d\n]{0,12}|©\s*|copyright\s*)\(?\s*20\d{2}\)?""",
+        RegexOption.IGNORE_CASE
+    )
+
     fun extractSourceYears(sourceText: String): Set<Int> =
-        YEAR_PATTERN.findAll(sourceText).map { it.value.toInt() }.toSet()
+        YEAR_PATTERN.findAll(CITATION_YEAR.replace(sourceText, " ")).map { it.value.toInt() }.toSet()
+
+    /**
+     * When the source states no term year at all, [filterToSourceYears] is a no-op and stray-year
+     * guesses (a batch that lacks the document header comes back dated 2024-01-01) would survive
+     * next to the real events. A term document spans a single year, so keep only the dominant one.
+     * No-op when the source does state years — [filterToSourceYears] owns that case.
+     */
+    fun keepDominantYearWhenUngrounded(events: List<Event>, sourceYears: Set<Int>): List<Event> {
+        if (sourceYears.isNotEmpty()) return events
+        val years = events.map { it.date.year }
+        if (years.distinct().size <= 1) return events
+        val dominant = years.groupingBy { it }.eachCount().maxByOrNull { it.value }!!.key
+        return events.filter { it.date.year == dominant }
+    }
 
     fun filterToSourceYears(events: List<Event>, sourceYears: Set<Int>): List<Event> {
         if (sourceYears.isEmpty()) return events

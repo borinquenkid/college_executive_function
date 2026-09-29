@@ -637,7 +637,7 @@ class HeadlessLogicTest : FunSpec({
         coEvery { mockAiService.generateChatResponse(any()) } returns """{"hasAmbiguities":false,"findings":[]}"""
 
         val source = SourceItem(
-            "CS 101 Syllabus", listOf(SourceFragment("syllabus text", type = SourceType.TEXT)),
+            "CS 101 Syllabus", listOf(SourceFragment("syllabus text. Midterm Oct 15", type = SourceType.TEXT)),
             SourceCategory.SYLLABUS
         )
         eventAgent.extractDeliverables(source)
@@ -651,7 +651,7 @@ class HeadlessLogicTest : FunSpec({
             mockAiService, mockk(relaxed = true), null, NormalizationService(), logger = Logger(MapSettings())
         )
         val source = SourceItem(
-            "CS 101", listOf(SourceFragment("text", type = SourceType.TEXT)), SourceCategory.SYLLABUS
+            "CS 101", listOf(SourceFragment("text. Midterm Oct 15", type = SourceType.TEXT)), SourceCategory.SYLLABUS
         )
         coEvery { mockAiService.generateChatResponse(any()) } returns """{"hasAmbiguities":false,"findings":[]}"""
 

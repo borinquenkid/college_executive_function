@@ -196,7 +196,8 @@ class DependencyContainer(
             NormalizationService(),
             syllabusAuditor,
             preferencesRepository,
-            userPreferenceMemoryRepository
+            userPreferenceMemoryRepository,
+            knownEvents = { calendarAgent.getEvents() }
         )
     }
 

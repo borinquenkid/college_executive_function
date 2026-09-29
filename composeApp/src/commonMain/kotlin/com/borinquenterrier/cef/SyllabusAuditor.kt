@@ -20,10 +20,16 @@ class SyllabusAuditor(
     suspend fun audit(text: String): List<String> {
         val prompt = AiPrompts.getSyllabusAuditPrompt(text)
         val response = aiService.generateChatResponse(prompt)
+        val open = response.indexOf('{')
+        val close = response.lastIndexOf('}')
+        if (open < 0 || close < open) {
+            logger?.e(tag, "Syllabus audit response has no JSON object: $response")
+            return emptyList()
+        }
         return try {
             // Take the outermost {...}: tolerates code fences and the "[Note: ...]" line
             // GroundingGuardAIService appends to generateChatResponse output.
-            val cleanJson = response.substring(response.indexOf('{'), response.lastIndexOf('}') + 1)
+            val cleanJson = response.substring(open, close + 1)
             val root = Json.parseToJsonElement(cleanJson).jsonObject
             val hasAmbiguities = root["hasAmbiguities"]?.jsonPrimitive?.booleanOrNull ?: false
             if (hasAmbiguities) {

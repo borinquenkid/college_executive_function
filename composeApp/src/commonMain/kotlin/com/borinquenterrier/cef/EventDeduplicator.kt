@@ -97,6 +97,8 @@ internal object EventDeduplicator {
         return events.filter { it !in toRemove }
     }
 
+    private val NEVER_FOLDED = setOf(AcademicCategory.CLASS, AcademicCategory.HOLIDAY)
+
     internal fun dedupSubmissionPairs(events: List<Event>): List<Event> {
         val toRemove = mutableSetOf<Event>()
         val sorted = events.sortedBy { dateOf(it) }
@@ -106,14 +108,16 @@ internal object EventDeduplicator {
             // Recurring class meetings legitimately repeat an identical title within 7 days
             // (e.g. ten "HIS 378W" sessions two days apart); the keep-later fold below would
             // chain them down to the single last meeting. This step only targets deliverable
-            // submission pairs, so CLASS events are never folded.
-            if (a.category == AcademicCategory.CLASS) continue
+            // submission pairs, so CLASS events are never folded. HOLIDAY likewise: a multi-day
+            // break is one title on several days (STAT 5643 "Thanksgiving Break - No Class" on
+            // 11/23, 11/25, 11/27 folded to 11/27 alone, 2026-09-29).
+            if (a.category in NEVER_FOLDED) continue
             val aCanon = submissionCanonical(a.title)
             val aDate = dateOf(a)
             for (j in i + 1 until sorted.size) {
                 if (sorted[j] in toRemove) continue
                 val b = sorted[j]
-                if (b.category == AcademicCategory.CLASS) continue
+                if (b.category in NEVER_FOLDED) continue
                 val bDate = dateOf(b)
                 val daysDiff = (bDate.toEpochDays() - aDate.toEpochDays()).toInt()
                 if (daysDiff > 7) break

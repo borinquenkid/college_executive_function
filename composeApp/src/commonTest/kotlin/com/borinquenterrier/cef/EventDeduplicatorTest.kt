@@ -126,6 +126,15 @@ class EventDeduplicatorTest : FunSpec({
         EventDeduplicator.dedupSubmissionPairs(meetings) shouldHaveSize 10
     }
 
+    test("dedupSubmissionPairs never folds a multi-day HOLIDAY into its last day") {
+        // Missouri S&T STAT 5643 regression (2026-09-29): "Thanksgiving Break - No Class" on
+        // Mon/Wed/Fri 11/23-27 came back as only 11/27, so Mon and Wed looked like class days.
+        val days = listOf(23, 25, 27).map { d ->
+            dayEvent("Thanksgiving Break - No Class", LocalDate(2026, 11, d), AcademicCategory.HOLIDAY)
+        }
+        EventDeduplicator.dedupSubmissionPairs(days) shouldHaveSize 3
+    }
+
     test("dedupSubmissionPairs still folds a DEADLINE pair when a same-titled CLASS sits between them") {
         val early = dayEvent("Issue Brief #1", date1, AcademicCategory.DEADLINE)
         val cls = dayEvent("Issue Brief #1", date2, AcademicCategory.CLASS)

@@ -51,7 +51,8 @@ class EventAgent(
         preferencesRepository,
         userPreferenceMemoryRepository,
         cacheRepository,
-        clock
+        clock,
+        knownEvents = { repository.getEvents() }
     )
     private val decompositionService = TaskDecompositionService(aiService, repository, sourceRepository, logger)
     private val autoDecomposer = AutoDecomposer(repository, decompositionService, clock)

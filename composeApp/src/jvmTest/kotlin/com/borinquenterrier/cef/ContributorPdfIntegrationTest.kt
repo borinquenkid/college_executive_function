@@ -164,8 +164,11 @@ class ContributorPdfIntegrationTest : FunSpec({
 
             // Only apply depth assertions to syllabi — calendars and generic documents
             // may legitimately contain fewer structured events
+            // CLASS counts: a syllabus whose only non-exam content is its stated meeting pattern
+            // (STAT 5353: two exams, a project, "MWF 1:00") is still more than "only exams".
             val hasNonExam = events.any {
                 it.category == AcademicCategory.DEADLINE
+                    || it.category == AcademicCategory.CLASS
                     || it.category == AcademicCategory.REGULAR
                     || it.category == AcademicCategory.HOLIDAY
                     || it.category == AcademicCategory.SEMESTER_BOUND
@@ -187,11 +190,11 @@ class ContributorPdfIntegrationTest : FunSpec({
                     println("  FAIL: $reason")
                 }
             } else if (source.category == SourceCategory.SYLLABUS) {
-                if (events.size < 3 || !hasNonExam) {
+                if (events.size < entry.minEvents || (entry.minEvents > 1 && !hasNonExam)) {
                     passed = false
                     val reason = when {
                         events.isEmpty() -> "0 events extracted (document may have no calendar dates)"
-                        events.size < 3 -> "${events.size} events — only exams found, missed assignments/deadlines"
+                        events.size < entry.minEvents -> "${events.size} events — only exams found, missed assignments/deadlines"
                         else -> "no non-exam events (only FINALS/STUDY_BLOCK categories)"
                     }
                     failures.add("$relativePath: $reason")

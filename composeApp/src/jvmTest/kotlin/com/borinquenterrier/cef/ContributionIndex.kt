@@ -26,7 +26,12 @@ enum class ContributionIndex(
      * instead, any dated event beyond a semester bound is flagged as confabulation
      * (verified against the PDF text 2026-08-25 — see ContributorPdfIntegrationTest).
      */
-    val expectsDatedSchedule: Boolean = true
+    val expectsDatedSchedule: Boolean = true,
+    /**
+     * Minimum events for a syllabus to pass the depth check (which also requires a non-exam event
+     * when this is above 1). Lowered only for a document verified to state fewer datable items.
+     */
+    val minEvents: Int = 3
 ) {
     // ── Missouri: St. Louis Community College ─────────────────────────────────
     STLCC_CALENDAR(
@@ -104,7 +109,11 @@ enum class ContributionIndex(
     ),
     UT_M427L_ADVANCED_CALCULUS(
         "tx/ut_austin/2025-2026/fall/M427L_advanced_calculus.pdf",
-        "UT Austin M 427L Advanced Calculus"
+        "UT Austin M 427L Advanced Calculus",
+        // Its only datable item is "final exam on Thursday, December 11 1:00pm-3:00pm"; midterms and
+        // quizzes are undated (verified against the PDF 2026-09-29, the first run after the "curl of a
+        // vector field" poison false positive stopped skipping it).
+        minEvents = 1
     ),
 
     // ── Missouri: Missouri S&T (Rolla), Fall 2026 ─────────────────────────────

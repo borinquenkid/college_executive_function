@@ -1,6 +1,8 @@
 package com.borinquenterrier.cef
 
 import kotlin.time.Clock
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.todayIn
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.ByteString.Companion.encodeUtf8
@@ -20,7 +22,10 @@ class EventGenerationService(
     // Optional analysis cache: skips the (expensive) LLM extraction + audit for a source whose
     // content we have already analyzed. Shared by every extractDeliverables caller. Null disables it.
     private val cacheRepository: AnalysisCacheRepository? = null,
-    private val clock: Clock = Clock.System
+    private val clock: Clock = Clock.System,
+    // Events already stored from other sources (e.g. the school calendar's holidays and class-day
+    // bounds) — lets MeetingScheduleApplier avoid generating sessions on institutional days off.
+    private val knownEvents: suspend () -> List<Event> = { emptyList() }
 ) {
     private companion object {
         // Bump when anything between source content and the cached result changes: the AI
@@ -31,7 +36,10 @@ class EventGenerationService(
         // v4: weekNumber/dayName provenance fields + WeekAnchorDateResolver date grounding.
         // v5: off-by-one year remap before year-grounding; CLASS events exempt from
         //     dedupSubmissionPairs' keep-later fold.
-        const val GENERATION_CACHE_VERSION = 5
+        // v6: citation-year-aware year grounding, dominant-year fallback, no-date-evidence drop,
+        //     defaulted-to-today drop, HOLIDAY exempt from the keep-later fold. (Meeting-pattern
+        //     application runs after the cache, so it needs no bump.)
+        const val GENERATION_CACHE_VERSION = 6
         const val CACHE_TTL_MS = 7L * 24 * 60 * 60 * 1000
     }
     /**
@@ -56,7 +64,7 @@ class EventGenerationService(
         readCachedEvents(cacheKey)?.let { cachedEvents ->
             setAttribute("events.cache_hit", "true")
             onProgress?.invoke("Using cached analysis.")
-            return@span SemesterFilter.apply(cachedEvents, prefs)
+            return@span finish(cachedEvents, source, prefs)
         }
         setAttribute("events.cache_hit", "false")
 
@@ -111,16 +119,22 @@ class EventGenerationService(
             !SourceDateEvidence.hasDatableContent(syllabusText)
         ) emptyList() else yearConsistent
         setAttribute("events.dropped_no_date_evidence", (yearConsistent.size - evidenced.size).toLong())
+        // The prompt carries "Today's Date"; undatable items tend to land on it.
+        val today = clock.todayIn(TimeZone.currentSystemDefault())
+        val notDefaultedToToday = SourceDateEvidence.dropUnmentionedToday(evidenced, syllabusText, today)
+        setAttribute("events.dropped_defaulted_to_today", (evidenced.size - notDefaultedToToday.size).toLong())
 
         // Syllabi state their meeting pattern outright — fill any class dates the per-date LLM
         // tagging missed before normalize() so synthesized events get the same dedup/ID/timestamp
         // treatment as extracted ones.
         val reconciled = if (source.category == SourceCategory.SYLLABUS) {
-            val filled = ClassMeetingReconciler.fillMissedMeetings(evidenced)
-            setAttribute("events.class_meetings_inferred", (filled.size - evidenced.size).toLong())
+            val inTerm = MeetingScheduleApplier.dropClassesOutsideOwnTerm(notDefaultedToToday)
+            setAttribute("events.dropped_classes_outside_term", (notDefaultedToToday.size - inTerm.size).toLong())
+            val filled = ClassMeetingReconciler.fillMissedMeetings(inTerm)
+            setAttribute("events.class_meetings_inferred", (filled.size - inTerm.size).toLong())
             filled
         } else {
-            evidenced
+            notDefaultedToToday
         }
 
         val normalized = normalize(reconciled)
@@ -146,14 +160,30 @@ class EventGenerationService(
         // semester filter, so a config change is reflected on the next call without a re-run.
         writeCachedEvents(cacheKey, withWarnings)
 
+        finish(withWarnings, source, prefs).also { setAttribute("events.extracted_count", it.size.toLong()) }
+    }
+
+    /**
+     * Post-cache steps shared by the fresh and cached paths: they depend on state that can change
+     * without the source changing (the semester window, other loaded sources), so they must never be
+     * baked into the cached result.
+     */
+    private suspend fun finish(events: List<Event>, source: SourceItem, prefs: StudyPreferences): List<Event> {
+        val window = SemesterFilter.window(prefs)
+        val text = source.fragments.joinToString("\n") { it.text }
+        // Other sources are read only when there is a meeting pattern to apply.
+        val withMeetings = if (source.category == SourceCategory.SYLLABUS && MeetingPatternParser.parse(text) != null) {
+            val others = knownEvents().filter { it.sourceId != source.title }
+            assignIdsAndTimestamps(MeetingScheduleApplier.apply(events, text, window, others))
+        } else {
+            events
+        }
         // Constrain to the active semester window at the generation choke point so EVERY caller
         // (studio staging AND the auto-push pipeline) drops out-of-term events before they can be
         // pushed to the calendar — not just hidden in the view.
-        val inSemester = SemesterFilter.apply(withWarnings, prefs)
-        setAttribute("events.extracted_count", inSemester.size.toLong())
         // Tag with the originating source so deleting that source removes its events and the
         // reconciler can spot orphans (events whose source no longer exists).
-        inSemester.map { it.withSourceId(source.title) }
+        return SemesterFilter.apply(withMeetings, window).map { it.withSourceId(source.title) }
     }
 
     private fun generationCacheKey(fragments: List<SourceFragment>): String =
@@ -235,9 +265,12 @@ class EventGenerationService(
             }
         }
         val extracted = normalizationService.extract(cleaned)
-        val deduped = EventDeduplicator.dedup(extracted)
+        return assignIdsAndTimestamps(EventDeduplicator.dedup(extracted))
+    }
+
+    private fun assignIdsAndTimestamps(events: List<Event>): List<Event> {
         val now = clock.now().toEpochMilliseconds()
-        return deduped.map { event ->
+        return events.map { event ->
             val ided = if (event.id == null) {
                 val idContent =
                     "${event.title}|${EventDeduplicator.dateOf(event)}|${if (event is TimeEvent) event.startTime else ""}|${event.category}"

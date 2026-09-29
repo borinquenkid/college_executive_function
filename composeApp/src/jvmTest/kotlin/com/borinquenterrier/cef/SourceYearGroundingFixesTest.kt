@@ -65,6 +65,39 @@ class SourceYearGroundingFixesTest : FunSpec({
         }
     }
 
+    context("SourceDateEvidence.mentions — the prompt's 'Today's Date' leaks into undatable items") {
+        val today = LocalDate(2026, 9, 29)
+        test("literal forms") {
+            SourceDateEvidence.mentions("Tue 9/29 - Informative Speeches", today) shouldBe true
+            SourceDateEvidence.mentions("due 09/29/26", today) shouldBe true
+            SourceDateEvidence.mentions("Exam on Sept. 29", today) shouldBe true
+            SourceDateEvidence.mentions("Tuesday, September 29th", today) shouldBe true
+            SourceDateEvidence.mentions("29 September", today) shouldBe true
+            SourceDateEvidence.mentions("released 2026-09-29", today) shouldBe true
+        }
+        test("compact day lists and ranges") {
+            SourceDateEvidence.mentions("W6 9/22, 29 Relational Algebra", today) shouldBe true
+            SourceDateEvidence.mentions("6 Sept. 28–Oct. 2 Exam 1", today) shouldBe true
+            SourceDateEvidence.mentions("Wk 6 - Sept 28 - Oct 2", today) shouldBe true
+            SourceDateEvidence.mentions("Sept 28-30", today) shouldBe true
+        }
+        test("not mentioned") {
+            SourceDateEvidence.mentions("Exams on Friday, October 2nd and Friday, November 20th", today) shouldBe false
+            SourceDateEvidence.mentions("9/2/26 Problem Set #1; 9/26/26 Problem Set #2", today) shouldBe false
+            SourceDateEvidence.mentions("Sept 28 lecture", today) shouldBe false
+            SourceDateEvidence.mentions("Room 9/290", today) shouldBe false
+        }
+        test("dropUnmentionedToday removes only today-dated events the source never states") {
+            val text = "Exams on Friday, October 2nd and Friday, November 20th"
+            val events = listOf(
+                day("Exam 2", 2026, 9, 29, AcademicCategory.FINALS),
+                day("Exam 1", 2026, 10, 2, AcademicCategory.FINALS),
+            )
+            SourceDateEvidence.dropUnmentionedToday(events, text, today).map { it.title } shouldBe listOf("Exam 1")
+            SourceDateEvidence.dropUnmentionedToday(events, "$text. Review 9/29.", today).size shouldBe 2
+        }
+    }
+
     context("SyllabusAuditor tolerates the grounder's appended note") {
         val json = """{"hasAmbiguities": true, "findings": [{"type": "DATE_CONTRADICTION", "description": "Nov 21 is a Saturday", "severity": "MEDIUM"}]}"""
         val noted = "$json\n\n[Note: the following specific claims could not be verified in your loaded syllabi: November 21. Please confirm these directly with your course materials.]"
@@ -78,6 +111,11 @@ class SourceYearGroundingFixesTest : FunSpec({
             val ai = mockk<AIService>()
             coEvery { ai.generateChatResponse(any()) } returns "```json\n$json\n```"
             SyllabusAuditor(ai).audit("text") shouldBe listOf("[DATE_CONTRADICTION] Nov 21 is a Saturday")
+        }
+        test("empty response yields no warnings") {
+            val ai = mockk<AIService>()
+            coEvery { ai.generateChatResponse(any()) } returns ""
+            SyllabusAuditor(ai).audit("text").shouldBeEmpty()
         }
         test("garbage yields no warnings") {
             val ai = mockk<AIService>()

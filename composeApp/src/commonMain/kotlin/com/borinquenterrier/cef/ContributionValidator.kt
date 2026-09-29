@@ -13,7 +13,7 @@ object ContributionValidator {
         "chmod/chown"                      to Regex("""\b(chmod|chown)\s+""", RegexOption.IGNORE_CASE),
         // Command form only (flag or URL next): the bare word blocked every vector-calculus syllabus
         // ("divergence, and curl of a vector field" — UT M 427L, 2026-09-29).
-        "curl/wget"                        to Regex("""\b(curl|wget)\s+(-{1,2}[a-zA-Z]|[a-z]+://)""", RegexOption.IGNORE_CASE),
+        "curl/wget"                        to Regex("""\b(curl|wget)\s+(-{1,2}[a-z]|[a-z]+://)""", RegexOption.IGNORE_CASE),
         "shell command with flags"         to Regex("""\b(sh|bash|python|perl|eval|exec)\b\s+-[a-zA-Z0-9]"""),
         "pipe into shell"                  to Regex("""\|\s*(sh|bash|python|perl|eval|exec)\b""", RegexOption.IGNORE_CASE),
         // Script & HTML/JS Injection

@@ -41,10 +41,10 @@ object MeetingPatternParser {
             "|[MTWRF]{2,5}" +
             ")(?![A-Za-z])"
     )
-    private val TIME_RANGE = Regex(
-        """(\d{1,2})(?::(\d{2}))?\s*(?:([ap])\.?m\.?)?:?\s*(?:-|–|—|to)\s*(\d{1,2})(?::(\d{2}))?\s*(?:([ap])\.?m\.?)?""",
-        RegexOption.IGNORE_CASE
-    )
+    // One clock time ("3:30 pm", "09:00AM", "1"); ranges are two of these joined by [RANGE_JOIN].
+    // Kept as two small patterns rather than one range regex (Sonar S5843 complexity limit).
+    private val TIME_POINT = Regex("""(\d{1,2})(?::(\d{2}))?\s*(?:([ap])\.?m\.?)?""", RegexOption.IGNORE_CASE)
+    private val RANGE_JOIN = Regex("""^:?\s*(?:-|–|—|to)\s*$""", RegexOption.IGNORE_CASE)
 
     private val OFFICE_MARKERS = listOf("office", "o:ce", "o@ce", "oﬃce", "ofﬁce")
     private val LABEL_MARKERS = listOf("meet", "lecture", "sect", "class time", "recitation")
@@ -63,7 +63,10 @@ object MeetingPatternParser {
     private data class Candidate(val days: Set<DayOfWeek>, val start: LocalTime, val end: LocalTime, val labeled: Boolean)
 
     fun parse(text: String): MeetingPattern? {
-        val times = TIME_RANGE.findAll(text).mapNotNull { m -> parseTime(m)?.let { m.range to it } }.toList()
+        val times = TIME_POINT.findAll(text).toList().zipWithNext().mapNotNull { (a, b) ->
+            if (!RANGE_JOIN.matches(text.substring(a.range.last + 1, b.range.first))) return@mapNotNull null
+            parseTime(a.groupValues, b.groupValues)?.let { (a.range.first..b.range.last) to it }
+        }
         if (times.isEmpty()) return null
 
         val candidates = DAY_TOKEN.findAll(text).mapNotNull { dayMatch ->
@@ -126,9 +129,9 @@ object MeetingPatternParser {
         return days.toSet()
     }
 
-    private fun parseTime(m: MatchResult): Pair<LocalTime, LocalTime>? {
-        val g = m.groupValues
-        val (sh, sm, sMer, eh, em, eMer) = listOf(g[1], g[2], g[3], g[4], g[5], g[6])
+    private fun parseTime(startGroups: List<String>, endGroups: List<String>): Pair<LocalTime, LocalTime>? {
+        val (_, sh, sm, sMer) = startGroups
+        val (_, eh, em, eMer) = endGroups
         // Require minutes or a meridiem so page/chapter ranges ("1.1–1.3", "14–18") never match.
         if (sm.isEmpty() && em.isEmpty() && sMer.isEmpty() && eMer.isEmpty()) return null
         val endMer = eMer.lowercase().ifEmpty { null }
@@ -158,6 +161,4 @@ object MeetingPatternParser {
         }
         return LocalTime(h, minute)
     }
-
-    private operator fun <T> List<T>.component6(): T = this[5]
 }

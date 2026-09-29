@@ -22,6 +22,10 @@ actual class PdfReader {
         try {
             load().use { document ->
                 val stripper = PDFTextStripper()
+                // Position order, not content-stream order: keeps each table row on one line. In stream order a
+                // schedule table came out column by column (all dates, then all topics), so the model had to guess
+                // which date went with which topic — and guessed differently run to run (UT BIO 325L, 2026-09-29).
+                stripper.sortByPosition = true
                 for (i in 1..document.numberOfPages) {
                     stripper.startPage = i
                     stripper.endPage = i

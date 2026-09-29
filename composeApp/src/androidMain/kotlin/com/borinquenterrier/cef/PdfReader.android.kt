@@ -62,6 +62,10 @@ actual class PdfReader(private val context: Context) {
 
     private fun extract(document: PDDocument): List<SourceFragment> {
         val stripper = PDFTextStripper()
+        // Position order, not content-stream order: keeps each table row on one line. In stream order a
+        // schedule table came out column by column (all dates, then all topics), so the model had to guess
+        // which date went with which topic — and guessed differently run to run (UT BIO 325L, 2026-09-29).
+        stripper.setSortByPosition(true)
         val fragments = mutableListOf<SourceFragment>()
         document.use { doc ->
             for (i in 0 until doc.numberOfPages) {

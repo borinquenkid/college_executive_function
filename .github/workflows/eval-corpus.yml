@@ -44,7 +44,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Run AI extraction eval corpus
-        # Scoped to exactly the 3 eval-shaped classes — NOT every *IntegrationTest,
+        # Scoped to exactly the 4 eval-shaped classes — NOT every *IntegrationTest,
         # which would also pull in the live Google OAuth test.
         env:
           CEF_GEMINI_API_KEY: ${{ secrets.CEF_GEMINI_API_KEY }}
@@ -63,7 +63,8 @@ jobs:
           ./gradlew :composeApp:jvmTest -PrunAITests=true \
             --tests "com.borinquenterrier.cef.SyllabusEvaluationIntegrationTest" \
             --tests "com.borinquenterrier.cef.ContributorPdfIntegrationTest" \
-            --tests "com.borinquenterrier.cef.StlccIntegrationTest"
+            --tests "com.borinquenterrier.cef.StlccIntegrationTest" \
+            --tests "com.borinquenterrier.cef.ScheduleStabilityIntegrationTest"
 
       # ADR 0004 / ROADMAP Phase 13 EB-3. Visibility only — deliberately does NOT set
       # -PrecordEvalBaseline, so evals/baseline_*.json is never written by this workflow; that

@@ -107,6 +107,42 @@ enum class ContributionIndex(
         "UT Austin M 427L Advanced Calculus"
     ),
 
+    // ── Missouri: Missouri S&T (Rolla), Fall 2026 ─────────────────────────────
+    // Scrubbed stand-ins, NOT the real documents: original wording, names/emails/offices removed,
+    // but every meeting pattern, date, schedule shape and quirk the extractor depends on is kept.
+    // The real files live in the gitignored contributions/_local_originals/ (copyright + PII).
+    MST_CS2300_SYLLABUS(
+        "mo/missouri_university_of_science_and_technology/2026-2027/fall/COMPSCI2300_file_structures_databases.pdf",
+        "Missouri S&T COMP SCI 2300-101 File Structures & Databases (Tue/Thu, dated week-by-week schedule)"
+    ),
+    MST_MATH4209_SYLLABUS(
+        "mo/missouri_university_of_science_and_technology/2026-2027/fall/MATH4209_advanced_calculus_I.pdf",
+        "Missouri S&T MATH 4209 Advanced Calculus I (Simple Syllabus export; MWF 9:00, 3 Canvas due dates)"
+    ),
+    MST_STAT5643_SYLLABUS(
+        "mo/missouri_university_of_science_and_technology/2026-2027/fall/STAT5643_probability_statistics.pdf",
+        "Missouri S&T STAT 5643 Probability & Statistics (MWF 12:00, 3 dated exams, week-range lecture table)"
+    ),
+    MST_SPMS1185_SYLLABUS(
+        "mo/missouri_university_of_science_and_technology/2026-2027/fall/SPMS1185_principles_of_speech.pdf",
+        "Missouri S&T SPMS 1185 Principles of Speech (originally DOCX; body states no 2026, only a 2019 textbook year; Tue/Thu day-by-day schedule)"
+    ),
+    MST_STAT5353_SYLLABUS(
+        "mo/missouri_university_of_science_and_technology/2026-2027/fall/STAT5353_syllabus.pdf",
+        "Missouri S&T STAT 5353 (originally DOCX; MWF 1:00, only 4 prose-embedded dates, no schedule table)"
+    ),
+    MST_CS2300_PROJECT_DESCRIPTION(
+        "mo/missouri_university_of_science_and_technology/2026-2027/fall/COMPSCI2300_database_project_description.pdf",
+        "Missouri S&T COMP SCI 2300 semester database project assignment (not a syllabus)",
+        // Phase list with point values only — no due dates, no term. Live run 2026-09-29 returned
+        // 4 events all dated 2024-01-01 (a placeholder-ish year the text never states).
+        expectsDatedSchedule = false
+    ),
+    MST_FALL2026_CALENDAR(
+        "mo/missouri_university_of_science_and_technology/2026-2027/fall/FS2026_dates_and_deadlines_calendar.pdf",
+        "Missouri S&T Fall 2026 Dates and Deadlines (image-only PDF: needs vision OCR)"
+    ),
+
     // ── Texas: UT Austin, spring 2026 — genuine cross-term pairs with the fall entries
     //    above (same course number AND same subject; see ADR 0004 for the BIO337
     //    counter-example that was deliberately excluded as a false pair).

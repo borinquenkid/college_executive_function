@@ -37,3 +37,6 @@ composeApp/composeApp/
 
 # Play Store screenshots hold real calendar/course data — keep out of the public repo
 branding/play-store/screenshots/
+
+# Real syllabi (copyright + instructor PII) kept locally; scrubbed stand-ins are committed instead
+contributions/_local_originals/

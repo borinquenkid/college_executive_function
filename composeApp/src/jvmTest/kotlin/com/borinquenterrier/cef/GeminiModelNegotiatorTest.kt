@@ -55,7 +55,7 @@ class GeminiModelNegotiatorTest : FunSpec({
             logger = null
         )
 
-        // HEAVY prefers: gemini-3.6-flash, gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite,
+        // HEAVY prefers: gemini-3.8-flash, gemini-3.6-flash, gemini-2.5-flash, gemini-2.5-pro, gemini-2.5-flash-lite,
         // gemini-3.5-flash — none of the 3.6/3.5-lite additions are in availableModelsList, so
         // this still lands on gemini-2.5-flash (the first entry actually offered).
         val selected =

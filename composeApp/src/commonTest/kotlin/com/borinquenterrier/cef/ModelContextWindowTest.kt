@@ -11,6 +11,7 @@ class ModelContextWindowTest : FunSpec({
     test("contextWindowFor returns the configured window for known models") {
         ModelContextWindow.contextWindowFor("gemini-2.5-pro") shouldBe 1_048_576
         ModelContextWindow.contextWindowFor("gemini-2.5-flash-lite") shouldBe 1_048_576
+        ModelContextWindow.contextWindowFor("gemini-3.8-flash") shouldBe 1_048_576
         ModelContextWindow.contextWindowFor("gemini-3.6-flash") shouldBe 1_048_576
         ModelContextWindow.contextWindowFor("gemini-3.5-flash-lite") shouldBe 1_048_576
     }

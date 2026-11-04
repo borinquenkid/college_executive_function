@@ -14,6 +14,7 @@ class ModelRpmTest : FunSpec({
         ModelRpm.rpmFor("gemini-2.5-pro") shouldBe 5
         ModelRpm.rpmFor("gemini-2.5-flash") shouldBe 10
         ModelRpm.rpmFor("gemini-2.5-flash-lite") shouldBe 15
+        ModelRpm.rpmFor("gemini-3.8-flash") shouldBe 8
         ModelRpm.rpmFor("gemini-3.6-flash") shouldBe 8
         ModelRpm.rpmFor("gemini-3.5-flash-lite") shouldBe 15
     }

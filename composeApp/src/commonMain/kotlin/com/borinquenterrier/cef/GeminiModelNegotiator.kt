@@ -28,6 +28,7 @@ class GeminiModelNegotiator(
         internal fun clearBlacklistForTesting() = blacklistedModels.clear()
 
         internal val HEAVY_PREFERENCES = listOf(
+            "gemini-3.8-flash",
             "gemini-3.6-flash",
             "gemini-2.5-flash",
             "gemini-2.5-pro",

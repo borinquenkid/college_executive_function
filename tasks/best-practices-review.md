@@ -24,7 +24,7 @@ Corrections to stale facts found in the review (fix as part of T2):
   :server:assemble :androidApp:assembleDebug`); heavy, so decide report-only vs blocking first. AC: an
   agent attempt to `git push` is refused; the build rule has a named enforcement mechanism or a recorded
   decision not to automate it. — S
-- [ ] T2: Slim and date AGENTS.md (38.5 KB). Move Release, Store submission and Ops gotchas to
+- [x] T2 (DONE 2026-11-07: 38.5KB -> ~30KB, ops moved to docs/ops/release-and-store.md, stale model/corpus/repowise lines fixed, owner+review date added; not slimmed further, mandates still large): Slim and date AGENTS.md (38.5 KB). Move Release, Store submission and Ops gotchas to
   `docs/ops/` and link them; keep mandates lean; fix stale lines (AI Strategy still says Gemini 1.5 Flash
   while the nightly eval records gemini-2.5-flash and a recent commit adds gemini-3.8-flash; verify the
   `repowise` MCP note is current); add a named owner and a next-review date; update the corpus counts above

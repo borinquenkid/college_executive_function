@@ -28,8 +28,11 @@ Coverage says "fully tested"; the mutation score says nearly half of the behavio
 | `RetryAfterParser` | 4 | 4 | 100% |
 | `UrlListParser` | 4 | 4 | 100% |
 
-Reading: the date/fact grounders are well tested. The weak spots are `GroundingGuardAIService` (the
-Confabulation-Gate wrapper, 32%, the highest-value follow-up) and `GeminiResponseParser` (66%). Scores are
+Reading: the date/fact grounders are well tested. `GeminiResponseParser` (66%) is the next real candidate.
+`GroundingGuardAIService`'s 32% is **mostly not a test gap**: triaged survivors are tracing attributes
+(`setAttribute`/`addEvent`), `Logger.d` calls, `ResultKt::throwOnFailure` coroutine plumbing, and TIMED_OUT
+negated conditionals, i.e. observability side effects. Its behavior (year filter, chat/decompose grounding,
+pass-through) already has tests. T7's in-memory-exporter span tests are the right place to pin the attributes. Scores are
 per class with only its own test class run; other tests may kill more. Single run, no thresholds set.
 
 ## Survivor triage (Bm25Ranker, first run)
@@ -80,6 +83,6 @@ jars into `~/.cache/cef-pitest`, then runs the steps below). Manual steps:
 
 ## Next
 
-- Strengthen `GroundingGuardAIServiceTest` (32%) and `GeminiResponseParserTest` (66%).
+- Triage `GeminiResponseParser` (66%) survivors. `GroundingGuardAIService` is triaged: telemetry noise, see above.
 - Compare mutation score against Kover per package; only then consider thresholds.
 - Bm25Ranker gaps closed by 4 new exact-score/boundary tests in `Bm25RankerTest`.

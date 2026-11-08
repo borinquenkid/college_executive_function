@@ -50,7 +50,7 @@ Corrections to stale facts found in the review (fix as part of T2):
 - [ ] T7: Add GenAI attributes to the Gemini call span (model, input/output tokens, latency, whether the
   grounding gate fired), following the OpenTelemetry GenAI semantic conventions; Walter's Oficio project already
   does this, so reuse its approach. AC: a test with an in-memory exporter asserts the attributes. — M
-- [~] T8 (TRACE DONE 2026-11-07, ADR 0015 proposed; confirmed no confirm step, auto-push is by design; follow-ups: post-push undo summary, per-source event cap): Authorization audit of the Calendar write (Rule of Two: untrusted syllabus text + private student
+- [~] T8 (TRACE DONE 2026-11-07, ADR 0015 accepted; confirmed no confirm step, auto-push is by design; follow-ups: post-push undo summary, per-source event cap): Authorization audit of the Calendar write (Rule of Two: untrusted syllabus text + private student
   data + an external action). UNVERIFIED in the review: no human-confirm step before `pushToCalendar` was found
   in `commonMain` (confirm dialogs exist only for deletes). Trace the UI path from extracted events to the Google
   Calendar write; if nothing confirms before the write, add a confirmation or record why not (ADR). AC: written

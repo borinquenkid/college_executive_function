@@ -56,7 +56,7 @@ Corrections to stale facts found in the review (fix as part of T2):
   Calendar write; if nothing confirms before the write, add a confirmation or record why not (ADR). AC: written
   trace plus a test or ADR. — M
 
-- [ ] T9: Add the verification layers you use at work to this repo. Today it has SonarQube (static) and Kover
+- [~] T9 (MUTATION PILOT DONE 2026-11-07 on Bm25Ranker: 100% line coverage, 56% mutation score; see docs/ops/mutation-testing-pilot.md; semantic-review half not started; more packages pending): Add the verification layers you use at work to this repo. Today it has SonarQube (static) and Kover
   coverage only: no PIT mutation testing and no LLM semantic review (Walter-confirmed 2026-11-07). Coverage is not
   test quality: at Charter, mutation testing exposed unit tests that never ran and API tests that asserted no
   values. (1) Mutation testing: run Pitest through its Gradle plugin on the JVM target (start with the grounding gates, `Bm25Ranker` and the response parsers), one package first. PIT works on

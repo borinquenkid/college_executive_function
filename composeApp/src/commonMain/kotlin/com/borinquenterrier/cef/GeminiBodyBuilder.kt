@@ -18,7 +18,9 @@ object GeminiBodyBuilder {
     fun buildJsonRequestBody(
         prompt: String,
         temperature: Double = 0.0,
-        responseMimeType: String? = "application/json"
+        responseMimeType: String? = "application/json",
+        model: String? = null,
+        thinking: ThinkingEffort = ThinkingEffort.DEFAULT
     ): JsonObject = buildJsonObject {
         putJsonArray("contents") {
             addJsonObject {
@@ -32,6 +34,7 @@ object GeminiBodyBuilder {
                 put("responseMimeType", responseMimeType)
             }
             put("temperature", temperature)
+            model?.let { ThinkingMatrix.config(it, thinking) }?.let { put("thinkingConfig", it) }
         }
     }
 

@@ -1,11 +1,11 @@
 {
-    "overallRecallPercent": 85.71428571428571,
+    "overallRecallPercent": 94.64285714285714,
     "overallDateAccuracyPercent": 100.0,
     "perInstitution": {
         "missouri_st": {
             "expectedCount": 21,
-            "matchedCount": 13,
-            "dateCorrectCount": 13
+            "matchedCount": 21,
+            "dateCorrectCount": 21
         },
         "stlcc": {
             "expectedCount": 5,
@@ -14,8 +14,8 @@
         },
         "ut_austin": {
             "expectedCount": 30,
-            "matchedCount": 30,
-            "dateCorrectCount": 30
+            "matchedCount": 27,
+            "dateCorrectCount": 27
         }
     },
     "perFile": {
@@ -26,10 +26,10 @@
             "matchedCount": 7
         },
         "mst_spms1185": {
-            "recallPercent": 0.0,
+            "recallPercent": 100.0,
             "dateAccuracyPercent": 100.0,
             "expectedCount": 8,
-            "matchedCount": 0
+            "matchedCount": 8
         },
         "mst_stat5643": {
             "recallPercent": 100.0,
@@ -62,10 +62,10 @@
             "matchedCount": 7
         },
         "ut_his378w_fall": {
-            "recallPercent": 100.0,
+            "recallPercent": 66.66666666666667,
             "dateAccuracyPercent": 100.0,
             "expectedCount": 3,
-            "matchedCount": 3
+            "matchedCount": 2
         },
         "ut_his378w_spring": {
             "recallPercent": 100.0,
@@ -74,10 +74,10 @@
             "matchedCount": 1
         },
         "ut_m408n_fall": {
-            "recallPercent": 100.0,
+            "recallPercent": 33.333333333333336,
             "dateAccuracyPercent": 100.0,
             "expectedCount": 3,
-            "matchedCount": 3
+            "matchedCount": 1
         },
         "ut_m408n_spring": {
             "recallPercent": 100.0,
@@ -98,8 +98,5 @@
             "matchedCount": 3
         }
     },
-    "modelUsed": "gemini-3.6-flash",
-    "failedFiles": [
-        "mst_spms1185"
-    ]
+    "modelUsed": "gemini-3.8-flash"
 }

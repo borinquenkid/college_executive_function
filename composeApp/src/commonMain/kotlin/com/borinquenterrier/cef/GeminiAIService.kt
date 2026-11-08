@@ -143,8 +143,10 @@ class GeminiAIService private constructor(
     private fun buildGeminiBody(
         prompt: String,
         temperature: Double = 0.0,
-        responseMimeType: String? = "application/json"
-    ): JsonObject = GeminiBodyBuilder.buildJsonRequestBody(prompt, temperature, responseMimeType)
+        responseMimeType: String? = "application/json",
+        model: String? = null,
+        thinking: ThinkingEffort = ThinkingEffort.DEFAULT
+    ): JsonObject = GeminiBodyBuilder.buildJsonRequestBody(prompt, temperature, responseMimeType, model, thinking)
 
     // internal: this is executeWithRetry's internal duplication-elimination helper (see commit
     // 8252b43), not a designed public API — it bypasses every timeout/non-2xx/retry/error-
@@ -216,7 +218,15 @@ class GeminiAIService private constructor(
             maxAttempts = 5,
             tier = TaskTier.HEAVY,
             family = family,
-            body = { _ -> buildGeminiBody(prompt) },
+            // Extraction is structured and latency-bound: unbounded thinking made gemini-3.8-flash exceed the
+            // 120 s request ceiling on dense syllabi (SPMS1185: 7.9k thought tokens, 59 s even on a short prompt).
+            body = { model ->
+                buildGeminiBody(
+                    prompt,
+                    model = model,
+                    thinking = if (family == PromptFamily.EVENT_EXTRACTION) ThinkingEffort.LOW else ThinkingEffort.DEFAULT
+                )
+            },
             parseResponse = { responseText ->
                 try {
                     parseEventsJson(responseText, weekAnchors = weekAnchors)

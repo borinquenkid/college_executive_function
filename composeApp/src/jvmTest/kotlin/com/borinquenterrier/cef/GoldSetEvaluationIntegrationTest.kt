@@ -55,7 +55,11 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
             val score = GoldSetScorer.score(doc.events, extracted)
 
             println("  ${doc.id}: recall ${score.matchedCount}/${score.expectedCount}, dates ${score.dateCorrectCount}/${score.matchedCount}")
-            score.missing.forEach { println("    [MISSING] '${it.title}' on ${it.date}") }
+            score.missing.forEach { m ->
+                println("    [MISSING] '${m.title}' on ${m.date}")
+                // Diagnostic: what did the extractor produce on that date? (separates a title mismatch from a true miss)
+                extracted.filter { it.date == m.date }.forEach { println("      extracted same day: '${it.title}' (${it.category})") }
+            }
             score.dateMismatches.forEach { println("    [DATE MISMATCH] $it") }
 
             perFile[doc.id] = SyllabusFileMetric(

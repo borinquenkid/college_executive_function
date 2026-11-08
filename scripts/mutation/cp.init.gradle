@@ -1,0 +1,13 @@
+// Init script: dumps :composeApp's jvmTest runtime classpath to $PIT_OUT. Used by pit.sh only.
+allprojects { p ->
+  if (p.path == ':composeApp') {
+    p.afterEvaluate {
+      p.tasks.register('printJvmTestCp') {
+        dependsOn 'compileTestKotlinJvm'
+        def out = System.getenv('PIT_OUT')
+        def cfg = p.configurations.getByName('jvmTestRuntimeClasspath')
+        doLast { new File(out).text = cfg.files.join(':') + '\n' }
+      }
+    }
+  }
+}

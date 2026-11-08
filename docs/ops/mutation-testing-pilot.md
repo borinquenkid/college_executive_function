@@ -9,11 +9,30 @@ no change to the Gradle build or `gradle/verification-metadata.xml`.
 |---|---|
 | Line coverage (Kover/PIT, mutated classes) | 100% (57/57) |
 | Mutants generated / killed | 45 / 25 |
-| **Mutation score** | **56%** (test strength 58%) |
+| **Mutation score** | **56%** (test strength 58%); 84% after the exact-score tests added the same day |
 
 Coverage says "fully tested"; the mutation score says nearly half of the behavior changes go unnoticed.
 
-## Survivor triage
+## Wider run (same day, via `scripts/mutation/pit.sh`)
+
+| Class (JVM target) | Mutants | Killed | Score |
+|---|---|---|---|
+| `GroundingGuardAIService` | 56 | 18 | **32%** (13 mutants have no covering test) |
+| `GeminiResponseParser` | 93 | 61 | 66% |
+| `Bm25Ranker` (before / after new tests) | 45 | 25 / 38 | 56% / **84%** |
+| `SourceDateGrounder` | 17 | 14 | 82% |
+| `WeekAnchorDateResolver` | 55 | 45 | 82% |
+| `StudyPlanGrounder` | 13 | 11 | 85% |
+| `SemesterFilter` | 11 | 10 | 91% |
+| `SourceFactGrounder` | 15 | 14 | 93% |
+| `RetryAfterParser` | 4 | 4 | 100% |
+| `UrlListParser` | 4 | 4 | 100% |
+
+Reading: the date/fact grounders are well tested. The weak spots are `GroundingGuardAIService` (the
+Confabulation-Gate wrapper, 32%, the highest-value follow-up) and `GeminiResponseParser` (66%). Scores are
+per class with only its own test class run; other tests may kill more. Single run, no thresholds set.
+
+## Survivor triage (Bm25Ranker, first run)
 
 Real gaps (the test only asserts the *ranking order*, never score values or edge cases):
 - **BM25 arithmetic** (score formula, IDF smoothing; 7 mutants): flipping `*`/`/`, `+`/`-` still keeps
@@ -40,6 +59,9 @@ Kotlin generates these; the Arcmutate Kotlin plugin (commercial) would filter th
 
 ## Reproduce
 
+One command: `scripts/mutation/pit.sh '<target class>' '<test class>' [reportDir]` (downloads and sha1-verifies the
+jars into `~/.cache/cef-pitest`, then runs the steps below). Manual steps:
+
 1. Compile and dump the test runtime classpath. A throwaway Gradle init script registers a task that writes
    `configurations.jvmTestRuntimeClasspath` (it triggers `compileTestKotlinJvm`); the build's
    configuration cache complains about the task but the file is still written.
@@ -58,7 +80,6 @@ Kotlin generates these; the Arcmutate Kotlin plugin (commercial) would filter th
 
 ## Next
 
-- Decide whether to commit a `scripts/` wrapper (steps 1–3) or keep this as a documented manual procedure.
-- Repeat on the grounding gates (`GroundingGuard*`) and the response parsers, then compare per-package
-  mutation score against Kover.
-- Optionally strengthen `Bm25RankerTest` with the gaps above (separate change; not done in this pilot).
+- Strengthen `GroundingGuardAIServiceTest` (32%) and `GeminiResponseParserTest` (66%).
+- Compare mutation score against Kover per package; only then consider thresholds.
+- Bm25Ranker gaps closed by 4 new exact-score/boundary tests in `Bm25RankerTest`.

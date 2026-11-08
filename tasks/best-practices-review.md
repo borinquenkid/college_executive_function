@@ -56,6 +56,17 @@ Corrections to stale facts found in the review (fix as part of T2):
   Calendar write; if nothing confirms before the write, add a confirmation or record why not (ADR). AC: written
   trace plus a test or ADR. — M
 
+- [ ] T9: Add the verification layers you use at work to this repo. Today it has SonarQube (static) and Kover
+  coverage only: no PIT mutation testing and no LLM semantic review (Walter-confirmed 2026-11-07). Coverage is not
+  test quality: at Charter, mutation testing exposed unit tests that never ran and API tests that asserted no
+  values. (1) Mutation testing: run Pitest through its Gradle plugin on the JVM target (start with the grounding gates, `Bm25Ranker` and the response parsers), one package first. PIT works on
+  JVM bytecode; Kotlin produces extra mutants, so expect noise, filter it, and compare the survivors against
+  Kover's coverage for the same package (UNVERIFIED on this stack: pilot before adopting). (2) Semantic review: a
+  Claude review step on each diff against SPEC.md and the relevant ADR, run in CI or as a PR check, that lists
+  claims it could not verify; it supplements the deterministic layers and never replaces them. Report-only first;
+  set thresholds from observed data. AC: a per-package mutation score beside coverage, a documented survivor
+  triage, and one PR with the semantic-review output attached. — M
+
 ## Not worth doing now
 - PDF-text injection scanning in CI (ADR 0003 rejected it; revisit only if PDF-borne injection is observed).
 - Embeddings for chat retrieval (ADR 0013).

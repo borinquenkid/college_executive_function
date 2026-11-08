@@ -18,7 +18,7 @@ Coverage says "fully tested"; the mutation score says nearly half of the behavio
 | Class (JVM target) | Mutants | Killed | Score |
 |---|---|---|---|
 | `GroundingGuardAIService` | 56 | 18 | **32%** (13 mutants have no covering test) |
-| `GeminiResponseParser` | 93 | 61 | 66% |
+| `GeminiResponseParser` (before / after) | 93 | 61 / 74 | 66% / **80%** (`keepDominantYearWhenUngrounded` had no test; 4 added) |
 | `Bm25Ranker` (before / after new tests) | 45 | 25 / 38 | 56% / **84%** |
 | `SourceDateGrounder` | 17 | 14 | 82% |
 | `WeekAnchorDateResolver` | 55 | 45 | 82% |
@@ -28,7 +28,7 @@ Coverage says "fully tested"; the mutation score says nearly half of the behavio
 | `RetryAfterParser` | 4 | 4 | 100% |
 | `UrlListParser` | 4 | 4 | 100% |
 
-Reading: the date/fact grounders are well tested. `GeminiResponseParser` (66%) is the next real candidate.
+Reading: the date/fact grounders are well tested. `GeminiResponseParser` was the real gap (an untested grounding function), now closed.
 `GroundingGuardAIService`'s 32% is **mostly not a test gap**: triaged survivors are tracing attributes
 (`setAttribute`/`addEvent`), `Logger.d` calls, `ResultKt::throwOnFailure` coroutine plumbing, and TIMED_OUT
 negated conditionals, i.e. observability side effects. Its behavior (year filter, chat/decompose grounding,
@@ -83,6 +83,6 @@ jars into `~/.cache/cef-pitest`, then runs the steps below). Manual steps:
 
 ## Next
 
-- Triage `GeminiResponseParser` (66%) survivors. `GroundingGuardAIService` is triaged: telemetry noise, see above.
+- `GeminiResponseParser` remaining survivors are mostly telemetry calls and Json-builder flags; `GroundingGuardAIService` is triaged as telemetry noise.
 - Compare mutation score against Kover per package; only then consider thresholds.
 - Bm25Ranker gaps closed by 4 new exact-score/boundary tests in `Bm25RankerTest`.

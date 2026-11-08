@@ -346,4 +346,33 @@ class GeminiResponseParserTest : FunSpec({
         event.date shouldBe LocalDate(2026, 7, 1)
         event.warning shouldBe null
     }
+
+    // --- keepDominantYearWhenUngrounded (previously untested; found by the T9 mutation pilot) ---
+
+    fun dayOn(title: String, year: Int) =
+        DayEvent(title = title, source = EventSource.AI_GENERATED, date = LocalDate(year, 3, 1))
+
+    test("keepDominantYearWhenUngrounded is a no-op when the source states years (filterToSourceYears owns that case)") {
+        val events = listOf(dayOn("A", 2026), dayOn("B", 2024), dayOn("C", 2024))
+
+        GeminiResponseParser.keepDominantYearWhenUngrounded(events, setOf(2026)) shouldBe events
+    }
+
+    test("keepDominantYearWhenUngrounded keeps everything when all events share one year") {
+        val events = listOf(dayOn("A", 2026), dayOn("B", 2026))
+
+        GeminiResponseParser.keepDominantYearWhenUngrounded(events, emptySet()) shouldBe events
+    }
+
+    test("keepDominantYearWhenUngrounded drops stray-year guesses when the source states no year") {
+        // A batch missing the document header comes back with one event dated 2024; the real term is 2026.
+        val events = listOf(dayOn("Real 1", 2026), dayOn("Real 2", 2026), dayOn("Stray", 2024))
+
+        GeminiResponseParser.keepDominantYearWhenUngrounded(events, emptySet())
+            .map { it.title } shouldBe listOf("Real 1", "Real 2")
+    }
+
+    test("keepDominantYearWhenUngrounded returns an empty list unchanged") {
+        GeminiResponseParser.keepDominantYearWhenUngrounded(emptyList(), emptySet()) shouldBe emptyList()
+    }
 })

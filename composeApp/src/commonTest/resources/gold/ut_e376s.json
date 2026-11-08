@@ -35,14 +35,12 @@
       "category": "DEADLINE"
     },
     {
-      "title": "Final Project Proposal",
-      "date": "2025-11-18",
-      "category": "DEADLINE"
-    },
-    {
       "title": "Final Project due",
       "date": "2025-12-11",
       "category": "DEADLINE"
     }
+  ],
+  "excluded": [
+    "Final Project Proposal: listed under the Nov 18 workshop but no stated due date"
   ]
 }

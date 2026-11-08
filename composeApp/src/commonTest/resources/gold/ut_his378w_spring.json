@@ -5,14 +5,12 @@
   "labeledOn": "2026-11-08",
   "events": [
     {
-      "title": "Presentation and discussion of draft research papers",
-      "date": "2026-04-02",
-      "category": "DEADLINE"
-    },
-    {
       "title": "Revised papers due",
       "date": "2026-04-30",
       "category": "DEADLINE"
     }
+  ],
+  "excluded": [
+    "Apr 2 draft-paper presentations: presentations continue Apr 7-23 with no text, no single date"
   ]
 }

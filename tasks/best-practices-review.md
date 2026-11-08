@@ -62,10 +62,11 @@ Corrections to stale facts found in the review (fix as part of T2):
   values. (1) Mutation testing: run Pitest through its Gradle plugin on the JVM target (start with the grounding gates, `Bm25Ranker` and the response parsers), one package first. PIT works on
   JVM bytecode; Kotlin produces extra mutants, so expect noise, filter it, and compare the survivors against
   Kover's coverage for the same package (UNVERIFIED on this stack: pilot before adopting). (2) Semantic review: a
-  Claude review step on each diff against SPEC.md and the relevant ADR, run in CI or as a PR check, that lists
-  claims it could not verify; it supplements the deterministic layers and never replaces them. Report-only first;
+  Claude review step on each diff against SPEC.md and the relevant ADR that lists claims it could not verify.
+  DESKTOP ONLY (Walter decision 2026-11-07): run locally via a skill or slash command before Walter pushes, never
+  in CI, so no Claude secret or API spend lives in GitHub Actions; it supplements the deterministic layers and never replaces them. Report-only first;
   set thresholds from observed data. AC: a per-package mutation score beside coverage, a documented survivor
-  triage, and one PR with the semantic-review output attached. — M
+  triage, and one local semantic-review run on a real diff, output saved under `tasks/` or pasted into the PR by Walter. — M
 
 ## Not worth doing now
 - PDF-text injection scanning in CI (ADR 0003 rejected it; revisit only if PDF-borne injection is observed).

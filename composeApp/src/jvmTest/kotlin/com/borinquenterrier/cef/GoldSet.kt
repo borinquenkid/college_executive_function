@@ -35,7 +35,8 @@ data class GoldEvalMetrics(
     val overallDateAccuracyPercent: Double,
     val perInstitution: Map<String, GoldInstitutionMetric>,
     val perFile: Map<String, SyllabusFileMetric>,
-    val modelUsed: String? = null
+    val modelUsed: String? = null,
+    val failedFiles: List<String> = emptyList()
 )
 
 data class GoldScore(val expectedCount: Int, val matchedCount: Int, val dateCorrectCount: Int, val missing: List<GoldEvent>, val dateMismatches: List<String>)

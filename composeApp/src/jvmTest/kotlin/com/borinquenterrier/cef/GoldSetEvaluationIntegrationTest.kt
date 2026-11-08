@@ -15,7 +15,9 @@ import kotlin.time.Duration.Companion.milliseconds
 class GoldSetEvaluationIntegrationTest : FunSpec({
 
     test("Report extraction quality on the hand-labeled gold set").config(
-        timeout = (AI_INTEGRATION_TIMEOUT_MS * 15).milliseconds
+        timeout = (AI_INTEGRATION_TIMEOUT_MS * 20).milliseconds,
+        // Kotest caps a single test at 10 min unless invocationTimeout is raised too (see ContributorPdfIntegrationTest).
+        invocationTimeout = (AI_INTEGRATION_TIMEOUT_MS * 20).milliseconds
     ) {
         val apiKey = resolveApiKey("GOLD SET EVALUATION") ?: return@config
 
@@ -28,6 +30,7 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
 
         val perFile = mutableMapOf<String, SyllabusFileMetric>()
         val perInstitution = mutableMapOf<String, GoldInstitutionMetric>()
+        val failedFiles = mutableListOf<String>()
         var expectedTotal = 0
         var matchedTotal = 0
         var dateCorrectTotal = 0
@@ -35,8 +38,18 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
         for (doc in GoldSet.load()) {
             val text = PdfReader().readSource(GoldSet.pdfFile(doc).absolutePath).joinToString("\n\n") { it.text }
             val fragments = SourceProcessor.process(text)
-            val extracted = skipIfQuotaExhausted("generateCalendarEvents[${doc.id}]") {
-                aiService.generateCalendarEvents(fragments)
+            // One file's API failure (timeouts, 5xx) must not discard the whole report: record it as a failed
+            // file scored 0 matched, and continue. A quota abort (TestAbortedException) still skips cleanly.
+            val extracted = try {
+                skipIfQuotaExhausted("generateCalendarEvents[${doc.id}]") {
+                    aiService.generateCalendarEvents(fragments)
+                }
+            } catch (e: org.opentest4j.TestAbortedException) {
+                throw e
+            } catch (e: Exception) {
+                println("  ${doc.id}: EXTRACTION FAILED (${e::class.simpleName}: ${e.message?.take(120)})")
+                failedFiles += doc.id
+                emptyList()
             }
             val score = GoldSetScorer.score(doc.events, extracted)
 
@@ -75,7 +88,8 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
                 overallDateAccuracyPercent = if (matchedTotal == 0) 100.0 else dateCorrectTotal * 100.0 / matchedTotal,
                 perInstitution = perInstitution,
                 perFile = perFile,
-                modelUsed = modelUsed
+                modelUsed = modelUsed,
+                failedFiles = failedFiles
             )
         )
         driver.close()

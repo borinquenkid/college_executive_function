@@ -90,3 +90,25 @@ spike if any of these hold:
   synonym additions, not infrastructure.
 * The eval fixture is now load-bearing: new failure phrasings observed in the wild should be
   added as questions first (they turn anecdotes into metrics), fixes second.
+
+## Update 2026-11-08 (T6): retrieval eval on the larger corpus
+
+The eval corpus grew from 36 to 98 fragments (13 labeled Missouri S&T / UT Austin / STLCC syllabi joined the
+5 fixtures) and from 18 to 26 questions. Deterministic, no API calls; baseline re-recorded.
+
+| Metric | 18 q / 36 frag | 26 q / 98 frag |
+|---|---|---|
+| fragment recall@5 | 94.4% | 61.5% |
+| fragment recall@15 | 100% | 92.3% |
+| MRR | 0.62 | 0.38 |
+| promptContainsAnswer | 88.9% | 88.5% |
+| paraphrase\|deadline promptContainsAnswer | 75% (n=4) | 57.1% (n=7) |
+| all paraphrase promptContainsAnswer | 77.8% (n=9) | 76.9% (n=13) |
+
+Trigger check (decision stays with the owner): the aggregate paraphrase figure is above the ~70% line, the
+`paraphrase|deadline` bucket alone is below it (n=7, small). Two deadline-stake questions now miss retrieval
+at top-15 (the original psych write-up one and "first test for the differential equations class", M427J
+Midterm 1). Whether the deadline digest covers them was NOT verified here, so trigger 1 is unresolved, not
+cleared. Ranking itself degraded as the corpus grew (recall@5, MRR) while the answer still mostly reaches
+the prompt (88.5%), because compression keeps answer-bearing text from the top-15.
+

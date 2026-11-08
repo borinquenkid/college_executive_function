@@ -42,7 +42,7 @@ Corrections to stale facts found in the review (fix as part of T2):
 - [ ] T5: Measure consistency, not just correctness (pass^k idea). `ScheduleStabilityIntegrationTest` runs one
   document 3 times; extend to N documents and report, per document, whether all runs return the same event set.
   Report-only. AC: a per-document stability row in the nightly delta table. — M
-- [ ] T6: Extend the retrieval eval fixtures with 6-8 questions from the Missouri S&T and UT spring syllabi,
+- [x] T6 (DONE 2026-11-08: +8 questions from Missouri S&T and UT spring syllabi, corpus now 18 sources / 98 fragments (the 13 gold-set PDFs join the original 5 fixtures), 26 questions; baseline re-recorded. Result: recall@5 94.4->61.5%, MRR 0.62->0.38, promptContainsAnswer 88.9->88.5%, paraphrase|deadline 75->57.1% (n=7); see ADR 0013 note): Extend the retrieval eval fixtures with 6-8 questions from the Missouri S&T and UT spring syllabi,
   so ADR 0013's documented revisit triggers are checked on the larger corpus. Report-only; no embeddings work
   unless a trigger fires. AC: question count and buckets recorded in `baseline_retrieval.json`. — S
 

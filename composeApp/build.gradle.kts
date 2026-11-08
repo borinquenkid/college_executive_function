@@ -575,6 +575,11 @@ tasks.withType<Test>().configureEach {
     project.findProperty("goldFilter")?.let {
         systemProperty("goldFilter", it)
     }
+    // Pass -PstabilityRuns=<n> (default 3) to change how many times StabilityEvaluationIntegrationTest
+    // extracts each gold-set file.
+    project.findProperty("stabilityRuns")?.let {
+        systemProperty("stabilityRuns", it)
+    }
     // Pass -PrecordEvalBaseline=true (alongside -PrunAITests=true) to promote the 3 eval-shaped
     // classes' freshly-computed metrics into the checked-in evals/baseline_*.json files (ADR 0004
     // / ROADMAP Phase 13 EB-1/EB-2). Human-run-and-review only — never set by the nightly workflow.

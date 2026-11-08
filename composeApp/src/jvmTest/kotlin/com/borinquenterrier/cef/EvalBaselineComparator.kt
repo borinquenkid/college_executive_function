@@ -122,6 +122,34 @@ object EvalBaselineComparator {
         return warnings
     }
 
+    /**
+     * Stability is an absolute per-document measure (no baseline to diff against), so it is its own table.
+     * Empty string when no `current_stability.json` exists yet.
+     */
+    fun stabilitySection(dir: File = EvalBaseline.defaultEvalsDir()): String {
+        val current = EvalBaseline.readCurrent("stability", StabilityEvalMetrics.serializer(), dir) ?: return ""
+        val sb = StringBuilder()
+        sb.appendLine("### Extraction stability (${current.runsPerDocument} runs per document, report-only)")
+        sb.appendLine()
+        sb.appendLine(
+            "${current.dateStableDocuments}/${current.comparableDocuments} documents date-stable, " +
+                "${current.eventStableDocuments}/${current.comparableDocuments} event-stable " +
+                "(event-stable also requires the same titles; wording drift breaks it)."
+        )
+        sb.appendLine()
+        sb.appendLine("| Document | Events (min-max) | Dates | Events | Failed runs | Unstable dates |")
+        sb.appendLine("|---|---|---|---|---|---|")
+        current.perDocument.toSortedMap().forEach { (doc, s) ->
+            val dates = if (!s.comparable) "n/a" else if (s.dateSetStable) "stable" else "UNSTABLE"
+            val events = if (!s.comparable) "n/a" else if (s.eventSetStable) "stable" else "unstable"
+            sb.appendLine(
+                "| $doc | ${s.minEvents}-${s.maxEvents} | $dates | $events | ${s.failedRuns}/${s.runs} | " +
+                    "${s.unstableDates.joinToString(", ").ifEmpty { "-" }} |"
+            )
+        }
+        return sb.toString()
+    }
+
     fun buildReport(dir: File = EvalBaseline.defaultEvalsDir()): String {
         val allSections = listOf(
             "syllabus" to syllabusRows(dir),
@@ -151,6 +179,7 @@ object EvalBaselineComparator {
         val rows = allSections.flatMap { it.second }
         if (rows.isEmpty()) {
             sb.appendLine("No comparable metrics available yet.")
+            sb.append(stabilitySection(dir))
             return sb.toString()
         }
 
@@ -165,6 +194,7 @@ object EvalBaselineComparator {
                     " | $status |"
             )
         }
+        stabilitySection(dir).takeIf { it.isNotEmpty() }?.let { sb.appendLine(); sb.append(it) }
         return sb.toString()
     }
 

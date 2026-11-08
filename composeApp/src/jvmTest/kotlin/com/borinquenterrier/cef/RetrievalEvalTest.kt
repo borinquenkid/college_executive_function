@@ -68,7 +68,16 @@ class RetrievalEvalTest : FunSpec({
                 category = SourceCategory.SYLLABUS
             )
         }
-        return pdfSources + txtSources
+        // T6: the labeled gold-set PDFs (Missouri S&T, UT Austin, STLCC) join the corpus as distractors and
+        // answer sources, so ADR 0013's revisit triggers are checked on a realistically larger corpus.
+        val contributions = GoldSet.load().map { doc ->
+            SourceItem(
+                title = doc.id,
+                fragments = PdfReader().readSource(GoldSet.pdfFile(doc).absolutePath),
+                category = SourceCategory.SYLLABUS
+            )
+        }
+        return pdfSources + txtSources + contributions
     }
 
     test("RetrievalEvalMetrics round-trips through JSON") {
@@ -93,7 +102,7 @@ class RetrievalEvalTest : FunSpec({
         val questions = json.decodeFromString<List<RetrievalQuestion>>(
             resource("retrieval_eval_questions.json").readText()
         )
-        questions.size shouldBe 18
+        questions.size shouldBe 26
 
         val sources = loadCorpus()
         val totalFragments = sources.sumOf { it.fragments.size }

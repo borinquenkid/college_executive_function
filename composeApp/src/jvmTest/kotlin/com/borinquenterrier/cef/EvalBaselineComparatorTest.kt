@@ -141,4 +141,35 @@ class EvalBaselineComparatorTest : FunSpec({
             dir.deleteRecursively()
         }
     }
+
+    test("stability metrics render as a per-document table even with no baselines") {
+        val dir = tempEvalsDir()
+        try {
+            EvalBaseline.writeCurrent(
+                "stability", StabilityEvalMetrics.serializer(),
+                StabilityEvalMetrics(
+                    runsPerDocument = 3,
+                    perDocument = mapOf(
+                        "doc_a" to StabilityScorer.score(
+                            listOf(listOf(StabilityEvent("2026-09-01", "A")), listOf(StabilityEvent("2026-09-01", "A")))
+                        ),
+                        "doc_b" to StabilityScorer.score(
+                            listOf(
+                                listOf(StabilityEvent("2026-09-01", "A"), StabilityEvent("2026-09-02", "B")),
+                                listOf(StabilityEvent("2026-09-01", "A"))
+                            )
+                        )
+                    )
+                ),
+                dir
+            )
+            val report = EvalBaselineComparator.buildReport(dir)
+            report shouldContain "Extraction stability"
+            report shouldContain "1/2 documents date-stable"
+            report shouldContain "| doc_a | 1-1 | stable | stable | 0/2 | - |"
+            report shouldContain "| doc_b | 1-2 | UNSTABLE | unstable | 0/2 | 2026-09-02 |"
+        } finally {
+            dir.deleteRecursively()
+        }
+    }
 })

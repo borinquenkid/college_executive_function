@@ -1,29 +1,29 @@
 {
-    "questionCount": 18,
-    "fragmentRecallAt5Percent": 94.44444444444444,
-    "fragmentRecallAt15Percent": 100.0,
-    "meanReciprocalRank": 0.6243386243386243,
-    "promptContainsAnswerPercent": 88.88888888888889,
+    "questionCount": 26,
+    "fragmentRecallAt5Percent": 61.53846153846154,
+    "fragmentRecallAt15Percent": 92.3076923076923,
+    "meanReciprocalRank": 0.38424204001127077,
+    "promptContainsAnswerPercent": 88.46153846153847,
     "perBucket": {
         "verbatim|deadline": {
-            "questionCount": 5,
+            "questionCount": 8,
             "fragmentRecallAt15Percent": 100.0,
             "promptContainsAnswerPercent": 100.0
         },
         "verbatim|general": {
-            "questionCount": 4,
+            "questionCount": 5,
             "fragmentRecallAt15Percent": 100.0,
             "promptContainsAnswerPercent": 100.0
         },
         "paraphrase|deadline": {
-            "questionCount": 4,
-            "fragmentRecallAt15Percent": 100.0,
-            "promptContainsAnswerPercent": 75.0
+            "questionCount": 7,
+            "fragmentRecallAt15Percent": 71.42857142857143,
+            "promptContainsAnswerPercent": 57.142857142857146
         },
         "paraphrase|general": {
-            "questionCount": 5,
+            "questionCount": 6,
             "fragmentRecallAt15Percent": 100.0,
-            "promptContainsAnswerPercent": 80.0
+            "promptContainsAnswerPercent": 100.0
         }
     }
 }

@@ -570,6 +570,11 @@ tasks.withType<Test>().configureEach {
     project.findProperty("contributionFilter")?.let {
         systemProperty("contributionFilter", it)
     }
+    // Pass -PgoldFilter=<gold doc id> (e.g. mst_spms1185) to run one gold-set file; the run is then partial,
+    // so GoldSetEvaluationIntegrationTest does not overwrite evals/current_gold.json.
+    project.findProperty("goldFilter")?.let {
+        systemProperty("goldFilter", it)
+    }
     // Pass -PrecordEvalBaseline=true (alongside -PrunAITests=true) to promote the 3 eval-shaped
     // classes' freshly-computed metrics into the checked-in evals/baseline_*.json files (ADR 0004
     // / ROADMAP Phase 13 EB-1/EB-2). Human-run-and-review only — never set by the nightly workflow.

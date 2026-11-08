@@ -35,7 +35,8 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
         var matchedTotal = 0
         var dateCorrectTotal = 0
 
-        for (doc in GoldSet.load()) {
+        val only = System.getProperty("goldFilter")
+        for (doc in GoldSet.load().filter { only == null || it.id == only }) {
             val text = PdfReader().readSource(GoldSet.pdfFile(doc).absolutePath).joinToString("\n\n") { it.text }
             val fragments = SourceProcessor.process(text)
             // One file's API failure (timeouts, 5xx) must not discard the whole report: record it as a failed
@@ -80,7 +81,7 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
         }
 
         val modelUsed = database.appDatabaseQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
-        EvalBaseline.writeCurrent(
+        if (only == null) EvalBaseline.writeCurrent(
             "gold",
             GoldEvalMetrics.serializer(),
             GoldEvalMetrics(

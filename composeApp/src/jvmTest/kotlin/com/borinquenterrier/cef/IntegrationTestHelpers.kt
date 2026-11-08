@@ -76,6 +76,15 @@ fun isTestProfile(): Boolean {
  */
 private val tracerInitialized = java.util.concurrent.atomic.AtomicBoolean(false)
 
+/**
+ * Nightly CI (GitHub Actions sets CI=true) reports as "cef-eval-ci", which the OpenObserve alerts watch.
+ * A developer's local -PrunAITests run reports as "cef-eval-local" so experiments (timeouts, retries,
+ * deliberate probes) cannot trip the production failure alert (it fired on 2026-11-08 from local
+ * gemini-3.8-flash timeout runs).
+ */
+internal fun evalServiceName(ci: String? = System.getenv("CI")): String =
+    if (ci == "true") "cef-eval-ci" else "cef-eval-local"
+
 private fun ensureTracerInitialized() {
     // Only arm live tracing in a -PrunAITests=true run (build.gradle.kts forwards the flag as
     // this system property). Without the guard, any test outside the integration exclusion
@@ -84,7 +93,7 @@ private fun ensureTracerInitialized() {
     // exactly the fake "model cascade" alert of 2026-08-25/26 (7.7k mock spans in one run).
     if (System.getProperty("runAITests") != "true") return
     if (tracerInitialized.compareAndSet(false, true)) {
-        AppTracer.current = OtelTracer.create(AppEnv(), serviceName = "cef-eval-ci") ?: NoopTracer
+        AppTracer.current = OtelTracer.create(AppEnv(), serviceName = evalServiceName()) ?: NoopTracer
     }
 }
 

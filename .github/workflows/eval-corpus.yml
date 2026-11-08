@@ -53,7 +53,7 @@ jobs:
           GOOGLE_CLIENT_ID: ${{ secrets.GOOGLE_CLIENT_ID }}
           GOOGLE_CLIENT_SECRET: ${{ secrets.GOOGLE_CLIENT_SECRET }}
           # Lets IntegrationTestHelpers.ensureTracerInitialized() point AppTracer.current at a
-          # real OtelTracer (service name "cef-eval-ci") instead of the silent NoopTracer
+          # real OtelTracer (service name "cef-eval-ci" when CI=true; local runs use "cef-eval-local") instead of the silent NoopTracer
           # default, so a failed eval run's spans (model attempts, retries, HTTP responses) are
           # queryable in OpenObserve instead of lost.
           CEF_OTLP_ENDPOINT: ${{ secrets.CEF_OTLP_ENDPOINT }}

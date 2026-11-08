@@ -17,7 +17,7 @@ Corrections to stale facts found in the review (fix as part of T2):
   up to 2 file failures tolerated).
 
 ## Priority 1 — Make the rules enforceable (harness hygiene)
-- [ ] T1: Deterministic guards instead of prose. Add a tracked `.claude/settings.json` (today only the
+- [~] T1 (PUSH DENY DONE 2026-11-07; build-rule enforcement still undecided: report-only vs blocking): Deterministic guards instead of prose. Add a tracked `.claude/settings.json` (today only the
   local allowlist exists) with a deny rule for agent `git push` (the "Only Walter pushes" mandate; the
   documented `release.sh` exception stays because it is run by Walter). Evaluate a hook or script that
   reminds or blocks "done" without the four-target build (`:composeApp:assembleDebug :iosApp:assemble
@@ -29,7 +29,7 @@ Corrections to stale facts found in the review (fix as part of T2):
   while the nightly eval records gemini-2.5-flash and a recent commit adds gemini-3.8-flash; verify the
   `repowise` MCP note is current); add a named owner and a next-review date; update the corpus counts above
   wherever they appear. AC: AGENTS.md holds mandates only, no stale model or corpus claims, review date set. — M
-- [ ] T3: Remove or fence `.claude/worktrees/android-play-deploy` (a full duplicate of the repo; excluded
+- [x] T3 (DONE 2026-11-07, worktree removed; branch was merged and clean): Remove or fence `.claude/worktrees/android-play-deploy` (a full duplicate of the repo; excluded
   from git via `.git/info/exclude` but it doubles every agent search). Verify its branch is merged first,
   then `git worktree remove`, or add a read-deny rule for `.claude/worktrees/**`. AC: repo-wide grep returns
   one copy of each file. — XS

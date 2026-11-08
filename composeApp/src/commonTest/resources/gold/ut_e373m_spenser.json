@@ -5,14 +5,12 @@
   "labeledOn": "2026-11-08",
   "events": [
     {
-      "title": "Harry Ransom Center visit",
-      "date": "2025-11-11",
-      "category": "DEADLINE"
-    },
-    {
       "title": "Paper 2 due",
       "date": "2025-12-11",
       "category": "DEADLINE"
     }
+  ],
+  "excluded": [
+    "Harry Ransom Center visit 11/11: a field trip, not a deadline (PDF header is 'E 378E Spenser', not E373M)"
   ]
 }

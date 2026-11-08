@@ -42,12 +42,13 @@
     {
       "title": "Introductory Speech",
       "date": "2026-09-01",
-      "category": "DEADLINE"
+      "category": "REGULAR"
     }
   ],
   "excluded": [
     "Argumentative Speech 12/2 (syllabus says Tue; 2026-12-02 is a Wednesday)",
     "Online Speech due 'Friday Nov. 21' (2026-11-21 is a Saturday)",
-    "two 'TOPIC DUE' rows share one title"
+    "two 'TOPIC DUE' rows share one title",
+    "Introductory Speech kept but recategorized DEADLINE->REGULAR: a class activity (Speech 1 is given 9/1, finished 9/3), not a deadline"
   ]
 }

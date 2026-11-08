@@ -1,0 +1,43 @@
+{
+  "pdf": "mo/missouri_university_of_science_and_technology/2026-2027/fall/COMPSCI2300_file_structures_databases.pdf",
+  "institution": "missouri_st",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Proposal due",
+      "date": "2026-09-15",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Phase I due",
+      "date": "2026-10-06",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Midterm Exam",
+      "date": "2026-10-13",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Phase II due",
+      "date": "2026-11-03",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Phase III due",
+      "date": "2026-12-06",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Project Demonstrations",
+      "date": "2026-12-08",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Fall Break",
+      "date": "2026-10-08",
+      "category": "HOLIDAY"
+    }
+  ]
+}

@@ -1,0 +1,23 @@
+{
+  "pdf": "tx/ut_austin/2025-2026/spring/M408N_differential_calculus.pdf",
+  "institution": "ut_austin",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Midterm Exam 1",
+      "date": "2026-02-12",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Midterm Exam 2",
+      "date": "2026-03-12",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Midterm Exam 3",
+      "date": "2026-04-16",
+      "category": "DEADLINE"
+    }
+  ]
+}

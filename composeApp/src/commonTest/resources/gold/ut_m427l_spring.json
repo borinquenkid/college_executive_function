@@ -1,0 +1,23 @@
+{
+  "pdf": "tx/ut_austin/2025-2026/spring/M427L_advanced_calculus.pdf",
+  "institution": "ut_austin",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Exam 1",
+      "date": "2026-02-06",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Exam 2",
+      "date": "2026-03-13",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Final Exam",
+      "date": "2026-05-04",
+      "category": "FINALS"
+    }
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "pdf": "tx/ut_austin/2025-2026/fall/E373M_early_globalisms.pdf",
+  "institution": "ut_austin",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Harry Ransom Center visit",
+      "date": "2025-11-11",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Paper 2 due",
+      "date": "2025-12-11",
+      "category": "DEADLINE"
+    }
+  ]
+}

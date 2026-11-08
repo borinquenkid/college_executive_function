@@ -1,0 +1,38 @@
+{
+  "pdf": "mo/missouri_university_of_science_and_technology/2026-2027/fall/STAT5643_probability_statistics.pdf",
+  "institution": "missouri_st",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Exam 1",
+      "date": "2026-09-28",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Exam 2",
+      "date": "2026-10-30",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Final Exam",
+      "date": "2026-12-18",
+      "category": "FINALS"
+    },
+    {
+      "title": "Labor Day",
+      "date": "2026-09-07",
+      "category": "HOLIDAY"
+    },
+    {
+      "title": "Fall Break",
+      "date": "2026-10-09",
+      "category": "HOLIDAY"
+    },
+    {
+      "title": "Veterans Day",
+      "date": "2026-11-11",
+      "category": "HOLIDAY"
+    }
+  ]
+}

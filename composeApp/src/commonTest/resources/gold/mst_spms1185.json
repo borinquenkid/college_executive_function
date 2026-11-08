@@ -1,0 +1,53 @@
+{
+  "pdf": "mo/missouri_university_of_science_and_technology/2026-2027/fall/SPMS1185_principles_of_speech.pdf",
+  "institution": "missouri_st",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Prep form due",
+      "date": "2026-09-15",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Outline due",
+      "date": "2026-09-22",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Informative Speeches",
+      "date": "2026-09-29",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Fall Break",
+      "date": "2026-10-08",
+      "category": "HOLIDAY"
+    },
+    {
+      "title": "Speaking notes 1 due",
+      "date": "2026-10-13",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Group Speeches",
+      "date": "2026-10-27",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Reflection paper due",
+      "date": "2026-12-14",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Introductory Speech",
+      "date": "2026-09-01",
+      "category": "DEADLINE"
+    }
+  ],
+  "excluded": [
+    "Argumentative Speech 12/2 (syllabus says Tue; 2026-12-02 is a Wednesday)",
+    "Online Speech due 'Friday Nov. 21' (2026-11-21 is a Saturday)",
+    "two 'TOPIC DUE' rows share one title"
+  ]
+}

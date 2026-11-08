@@ -1,0 +1,23 @@
+{
+  "pdf": "tx/ut_austin/2025-2026/fall/HIS378W_capstone.pdf",
+  "institution": "ut_austin",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Mid-term exam",
+      "date": "2025-10-09",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Research paper proposal due",
+      "date": "2025-11-04",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Research paper due",
+      "date": "2025-12-04",
+      "category": "DEADLINE"
+    }
+  ]
+}

@@ -1,0 +1,48 @@
+{
+  "pdf": "tx/ut_austin/2025-2026/fall/E376S_african_american_lit.pdf",
+  "institution": "ut_austin",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Response 1",
+      "date": "2025-09-02",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Response 2",
+      "date": "2025-09-16",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Response 3",
+      "date": "2025-10-02",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Response 4",
+      "date": "2025-10-28",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Response 5",
+      "date": "2025-11-04",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Critical Essay (final)",
+      "date": "2025-10-16",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Final Project Proposal",
+      "date": "2025-11-18",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Final Project due",
+      "date": "2025-12-11",
+      "category": "DEADLINE"
+    }
+  ]
+}

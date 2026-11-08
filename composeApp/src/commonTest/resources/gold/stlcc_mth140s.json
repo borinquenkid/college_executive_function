@@ -1,0 +1,33 @@
+{
+  "pdf": "mo/st_louis_community_college/2026-2027/fall/syllabi-202630-mth-140s-605-31245.pdf",
+  "institution": "stlcc",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "First day of class",
+      "date": "2026-08-24",
+      "category": "SEMESTER_BOUND"
+    },
+    {
+      "title": "Labor Day",
+      "date": "2026-09-07",
+      "category": "HOLIDAY"
+    },
+    {
+      "title": "Last day to withdraw",
+      "date": "2026-11-13",
+      "category": "SEMESTER_BOUND"
+    },
+    {
+      "title": "Thanksgiving Break",
+      "date": "2026-11-25",
+      "category": "HOLIDAY"
+    },
+    {
+      "title": "Final Exam",
+      "date": "2026-12-16",
+      "category": "FINALS"
+    }
+  ]
+}

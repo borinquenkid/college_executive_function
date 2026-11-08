@@ -1,0 +1,18 @@
+{
+  "pdf": "tx/ut_austin/2025-2026/spring/HIS378W_capstone.pdf",
+  "institution": "ut_austin",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Presentation and discussion of draft research papers",
+      "date": "2026-04-02",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Revised papers due",
+      "date": "2026-04-30",
+      "category": "DEADLINE"
+    }
+  ]
+}

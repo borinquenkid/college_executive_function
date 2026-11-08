@@ -1,0 +1,33 @@
+{
+  "pdf": "tx/ut_austin/2025-2026/fall/BIO325_genetics.pdf",
+  "institution": "ut_austin",
+  "labeledBy": "claude (read from pdftotext of the PDF; Walter to review)",
+  "labeledOn": "2026-11-08",
+  "events": [
+    {
+      "title": "Labor Day",
+      "date": "2025-09-01",
+      "category": "HOLIDAY"
+    },
+    {
+      "title": "Exam I",
+      "date": "2025-09-17",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Exam II",
+      "date": "2025-10-08",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Exam III",
+      "date": "2025-10-29",
+      "category": "DEADLINE"
+    },
+    {
+      "title": "Exam IV",
+      "date": "2025-11-19",
+      "category": "DEADLINE"
+    }
+  ]
+}

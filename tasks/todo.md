@@ -25,3 +25,6 @@ deadline coverage is the only hard gate.
   far-future "assignment"→"Feud Project" case → residual deadline gap = 0); ADR 0013 accepted
   (embeddings deferred, revisit triggers documented); ROADMAP Phase 16 added; final baseline
   re-recorded (recall@5 94.4%, MRR 0.624, verbatim 100%)
+
+## Next: best-practices review (proposed 2026-11-07)
+See [best-practices-review.md](best-practices-review.md). Proposed only; run the Clarify Protocol with Walter before planning any task.

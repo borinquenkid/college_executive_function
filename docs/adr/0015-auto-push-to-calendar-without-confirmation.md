@@ -1,7 +1,7 @@
 # ADR 0015: Auto-Push Extracted Events to Calendar Without a Confirm Step
 
 ## Status
-Proposed (2026-11-07) — pending Walter's acceptance. Origin: T8 of `tasks/best-practices-review.md`.
+Accepted (2026-11-07). Origin: T8 of `tasks/best-practices-review.md`.
 
 ## Context
 

@@ -102,6 +102,7 @@ class GeminiRequestExecutor(
                     val body = response.bodyAsText()
                     setAttribute("http.status", response.status.value.toLong())
                     setAttribute("response.bytes", body.length.toLong())
+                    GenAiSpanAttributes.apply(this, modelName, body)
                     Pair(response, body)
                 }
 

@@ -17,7 +17,7 @@ Corrections to stale facts found in the review (fix as part of T2):
   up to 2 file failures tolerated).
 
 ## Priority 1 — Make the rules enforceable (harness hygiene)
-- [~] T1 (PUSH DENY DONE 2026-11-07; build-rule enforcement still undecided: report-only vs blocking): Deterministic guards instead of prose. Add a tracked `.claude/settings.json` (today only the
+- [x] T1 (DONE 2026-11-07: push deny in .claude/settings.json. DECISION on the four-target build rule: NOT automated as a blocking hook. The iOS leg alone exceeds 10 min and OOMs beside Android, so a blocking Stop hook would stall every turn; enforcement stays the AGENTS.md Build Verification Protocol plus release.sh's pre-tag gate, which is the check that actually simulates fresh CI. Revisit if a cheap compile-only proxy appears): Deterministic guards instead of prose. Add a tracked `.claude/settings.json` (today only the
   local allowlist exists) with a deny rule for agent `git push` (the "Only Walter pushes" mandate; the
   documented `release.sh` exception stays because it is run by Walter). Evaluate a hook or script that
   reminds or blocks "done" without the four-target build (`:composeApp:assembleDebug :iosApp:assemble
@@ -47,7 +47,7 @@ Corrections to stale facts found in the review (fix as part of T2):
   unless a trigger fires. AC: question count and buckets recorded in `baseline_retrieval.json`. — S
 
 ## Priority 3 — Observability and safety audit
-- [ ] T7: Add GenAI attributes to the Gemini call span (model, input/output tokens, latency, whether the
+- [x] T7 (DONE 2026-11-07: `GenAiSpanAttributes` sets gen_ai.operation.name / provider.name / request.model / usage.input_tokens / usage.output_tokens on the gemini.http_request span; latency is the span duration; grounding-gate firing already lives on the grounding.* spans. Tested with a recording SpanScope, not an OTLP in-memory exporter): Add GenAI attributes to the Gemini call span (model, input/output tokens, latency, whether the
   grounding gate fired), following the OpenTelemetry GenAI semantic conventions; Walter's Oficio project already
   does this, so reuse its approach. AC: a test with an in-memory exporter asserts the attributes. — M
 - [~] T8 (TRACE DONE 2026-11-07, ADR 0015 accepted; confirmed no confirm step, auto-push is by design; follow-ups: post-push undo summary, per-source event cap): Authorization audit of the Calendar write (Rule of Two: untrusted syllabus text + private student
@@ -56,7 +56,7 @@ Corrections to stale facts found in the review (fix as part of T2):
   Calendar write; if nothing confirms before the write, add a confirmation or record why not (ADR). AC: written
   trace plus a test or ADR. — M
 
-- [~] T9 (MUTATION PILOT DONE 2026-11-07 on Bm25Ranker: 100% line coverage, 56% mutation score; see docs/ops/mutation-testing-pilot.md; semantic-review half not started; more packages pending): Add the verification layers you use at work to this repo. Today it has SonarQube (static) and Kover
+- [~] T9 (MUTATION HALF DONE 2026-11-07: scripts/mutation/pit.sh, 10 classes run, 2 real test gaps fixed (Bm25Ranker 56->84%, GeminiResponseParser 66->80%); see docs/ops/mutation-testing-pilot.md; semantic-review half not started; more packages pending): Add the verification layers you use at work to this repo. Today it has SonarQube (static) and Kover
   coverage only: no PIT mutation testing and no LLM semantic review (Walter-confirmed 2026-11-07). Coverage is not
   test quality: at Charter, mutation testing exposed unit tests that never ran and API tests that asserted no
   values. (1) Mutation testing: run Pitest through its Gradle plugin on the JVM target (start with the grounding gates, `Bm25Ranker` and the response parsers), one package first. PIT works on

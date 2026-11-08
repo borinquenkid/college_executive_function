@@ -1,0 +1,105 @@
+{
+    "overallRecallPercent": 85.71428571428571,
+    "overallDateAccuracyPercent": 100.0,
+    "perInstitution": {
+        "missouri_st": {
+            "expectedCount": 21,
+            "matchedCount": 13,
+            "dateCorrectCount": 13
+        },
+        "stlcc": {
+            "expectedCount": 5,
+            "matchedCount": 5,
+            "dateCorrectCount": 5
+        },
+        "ut_austin": {
+            "expectedCount": 30,
+            "matchedCount": 30,
+            "dateCorrectCount": 30
+        }
+    },
+    "perFile": {
+        "mst_compsci2300": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 7,
+            "matchedCount": 7
+        },
+        "mst_spms1185": {
+            "recallPercent": 0.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 8,
+            "matchedCount": 0
+        },
+        "mst_stat5643": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 6,
+            "matchedCount": 6
+        },
+        "stlcc_mth140s": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 5,
+            "matchedCount": 5
+        },
+        "ut_bio325_fall": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 5,
+            "matchedCount": 5
+        },
+        "ut_e373m_spenser": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 1,
+            "matchedCount": 1
+        },
+        "ut_e376s": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 7,
+            "matchedCount": 7
+        },
+        "ut_his378w_fall": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 3,
+            "matchedCount": 3
+        },
+        "ut_his378w_spring": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 1,
+            "matchedCount": 1
+        },
+        "ut_m408n_fall": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 3,
+            "matchedCount": 3
+        },
+        "ut_m408n_spring": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 3,
+            "matchedCount": 3
+        },
+        "ut_m427j_spring": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 4,
+            "matchedCount": 4
+        },
+        "ut_m427l_spring": {
+            "recallPercent": 100.0,
+            "dateAccuracyPercent": 100.0,
+            "expectedCount": 3,
+            "matchedCount": 3
+        }
+    },
+    "modelUsed": "gemini-3.6-flash",
+    "failedFiles": [
+        "mst_spms1185"
+    ]
+}

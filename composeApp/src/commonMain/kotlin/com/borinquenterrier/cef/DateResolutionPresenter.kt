@@ -19,8 +19,8 @@ object DateResolutionPresenter {
             ?: "No matching text was found in your source — this item may have been invented. " +
             "Confirm a date only if it is real."
 
-    /** The confabulated date the picker should open on. */
-    fun initialDate(item: DateResolutionItem): LocalDate = item.event.date
+    /** The date the picker opens on: the source's own written date when known, else the event's (possibly confabulated) one. */
+    fun initialDate(item: DateResolutionItem): LocalDate = item.statedDate ?: item.event.date
 
     /** Returns [event] re-dated to [date], preserving everything else. */
     fun withDate(event: Event, date: LocalDate): Event = when (event) {

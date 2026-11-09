@@ -10,12 +10,15 @@ package com.borinquenterrier.cef
  * source's own weekday and date contradict each other ([WeekdayDateConflictDetector]); it replaces the generic
  * "may have been invented" wording. [pushOnConfirm] is true for items held out of an already-running auto-push:
  * confirming a date must then push that one event, since the original push has already happened.
+ * [statedDate] is the date exactly as the source writes it; the picker opens on it (the owner chose this over the
+ * model's guess, which can land on either reading of a contradictory date).
  */
 data class DateResolutionItem(
     val event: Event,
     val sourceSnippet: String?,
     val reason: String? = null,
     val pushOnConfirm: Boolean = false,
+    val statedDate: kotlinx.datetime.LocalDate? = null,
 )
 
 /**

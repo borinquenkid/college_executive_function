@@ -19,6 +19,13 @@ class DateResolutionPresenterTest : FunSpec({
         DateResolutionPresenter.evidenceText(item).shouldContain("witness protection")
     }
 
+    test("the picker opens on the source's stated date when known, else the event's date") {
+        val e = deadline("Online Speech due", "2026-11-20")
+        DateResolutionPresenter.initialDate(DateResolutionItem(e, null, statedDate = LocalDate.parse("2026-11-21"))) shouldBe
+            LocalDate.parse("2026-11-21")
+        DateResolutionPresenter.initialDate(DateResolutionItem(e, null)) shouldBe LocalDate.parse("2026-11-20")
+    }
+
     test("a conflict reason replaces the 'invented' wording and keeps the source line") {
         val item = DateResolutionItem(
             deadline("Online Speech due", "2026-11-20"), "Online Speech due by 5 pm on Friday, Nov. 21",

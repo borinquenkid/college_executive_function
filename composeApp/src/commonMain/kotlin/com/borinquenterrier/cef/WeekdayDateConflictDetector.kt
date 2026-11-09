@@ -128,7 +128,10 @@ object WeekdayDateConflictDetector {
         val held = mutableListOf<DateResolutionItem>()
         val clean = events.filter { event ->
             val c = conflictFor(event, found)
-            if (c != null) held += DateResolutionItem(event, c.mention.line, reason(c), pushOnConfirm = true)
+            if (c != null) held += DateResolutionItem(
+                event, c.mention.line, reason(c), pushOnConfirm = true,
+                statedDate = LocalDate(c.year, c.mention.month, c.mention.day)
+            )
             c == null
         }
         return clean to held

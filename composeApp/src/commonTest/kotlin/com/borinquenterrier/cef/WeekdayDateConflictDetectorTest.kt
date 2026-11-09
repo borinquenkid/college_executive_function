@@ -39,6 +39,8 @@ class WeekdayDateConflictDetectorTest : FunSpec({
             held.map { it.event.title } shouldContainExactly listOf("Online Speech due")
             held.single().event.date shouldBe LocalDate.parse(guess) // the model's date is not altered
             held.single().pushOnConfirm shouldBe true
+            held.single().statedDate shouldBe LocalDate.parse("2026-11-21") // the date as written, not the model's
+            DateResolutionPresenter.initialDate(held.single()) shouldBe LocalDate.parse("2026-11-21")
             held.single().reason!! shouldContain "Friday, Nov. 21"
             held.single().reason!! shouldContain "Saturday"
         }

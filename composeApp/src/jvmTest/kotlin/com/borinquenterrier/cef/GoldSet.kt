@@ -20,7 +20,12 @@ data class GoldDocument(
     val id: String,
     val pdfRelativePath: String,
     val institution: String,
-    val events: List<GoldEvent>
+    val events: List<GoldEvent>,
+    /**
+     * Titles of things the syllabus mentions that are NOT course events (optional campus tutoring sessions,
+     * etc.). An extracted event whose title matches one is a false positive; recall alone cannot see these.
+     */
+    val mustNotExtract: List<String> = emptyList()
 )
 
 @Serializable
@@ -36,7 +41,9 @@ data class GoldEvalMetrics(
     val perInstitution: Map<String, GoldInstitutionMetric>,
     val perFile: Map<String, SyllabusFileMetric>,
     val modelUsed: String? = null,
-    val failedFiles: List<String> = emptyList()
+    val failedFiles: List<String> = emptyList(),
+    /** Per file: extracted events that matched a mustNotExtract title (false positives). */
+    val forbiddenHits: Map<String, List<String>> = emptyMap()
 )
 
 data class GoldScore(val expectedCount: Int, val matchedCount: Int, val dateCorrectCount: Int, val missing: List<GoldEvent>, val dateMismatches: List<String>)
@@ -64,6 +71,10 @@ object GoldSetScorer {
         val (small, large) = if (t1.size <= t2.size) t1 to t2 else t2 to t1
         return large.containsAll(small)
     }
+
+    /** Extracted events matching any [forbidden] title: false positives that recall cannot detect. */
+    fun forbiddenHits(forbidden: List<String>, extracted: List<Event>): List<String> =
+        extracted.filter { e -> forbidden.any { titlesSimilar(e.title, it) } }.map { "'${it.title}' @ ${it.date}" }
 
     /**
      * One-to-one matching: each extracted event can satisfy at most one expected event, and among
@@ -115,7 +126,8 @@ object GoldSet {
             events = obj["events"]!!.jsonArray.map {
                 val e = it.jsonObject
                 GoldEvent(e["title"]!!.jsonPrimitive.content, LocalDate.parse(e["date"]!!.jsonPrimitive.content))
-            }
+            },
+            mustNotExtract = obj["mustNotExtract"]?.jsonArray?.map { it.jsonPrimitive.content } ?: emptyList()
         )
     }
 

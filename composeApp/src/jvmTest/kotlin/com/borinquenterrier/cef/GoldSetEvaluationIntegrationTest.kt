@@ -31,6 +31,7 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
         val perFile = mutableMapOf<String, SyllabusFileMetric>()
         val perInstitution = mutableMapOf<String, GoldInstitutionMetric>()
         val failedFiles = mutableListOf<String>()
+        val forbiddenHits = mutableMapOf<String, List<String>>()
         var expectedTotal = 0
         var matchedTotal = 0
         var dateCorrectTotal = 0
@@ -53,6 +54,9 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
                 emptyList()
             }
             val score = GoldSetScorer.score(doc.events, extracted)
+            val forbidden = GoldSetScorer.forbiddenHits(doc.mustNotExtract, extracted)
+            if (doc.mustNotExtract.isNotEmpty()) forbiddenHits[doc.id] = forbidden
+            forbidden.forEach { println("    [FALSE POSITIVE] $it") }
 
             println("  ${doc.id}: recall ${score.matchedCount}/${score.expectedCount}, dates ${score.dateCorrectCount}/${score.matchedCount}")
             score.missing.forEach { m ->
@@ -84,6 +88,9 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
             println(String.format("%-12s recall %5.1f%% (%d/%d)  date accuracy %5.1f%%", inst, m.recallPercent, m.matchedCount, m.expectedCount, m.dateAccuracyPercent))
         }
 
+        val checked = GoldSet.load().filter { only == null || it.id == only }.count { it.mustNotExtract.isNotEmpty() }
+        println("FALSE POSITIVES (mustNotExtract): ${forbiddenHits.values.sumOf { it.size }} in ${forbiddenHits.count { it.value.isNotEmpty() }}/$checked files with negative labels")
+
         val modelUsed = database.appDatabaseQueries.getSelectedModel("preferred_gemini_model").executeAsOneOrNull()
         if (only == null) EvalBaseline.writeCurrent(
             "gold",
@@ -94,7 +101,8 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
                 perInstitution = perInstitution,
                 perFile = perFile,
                 modelUsed = modelUsed,
-                failedFiles = failedFiles
+                failedFiles = failedFiles,
+                forbiddenHits = forbiddenHits
             )
         )
         driver.close()

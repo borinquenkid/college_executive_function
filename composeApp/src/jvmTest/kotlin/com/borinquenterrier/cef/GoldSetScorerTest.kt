@@ -70,4 +70,25 @@ class GoldSetScorerTest : FunSpec({
         docs.sumOf { it.events.size } shouldBeGreaterThanOrEqual 50
         docs.map { it.institution }.toSet() shouldBe setOf("missouri_st", "stlcc", "ut_austin")
     }
+
+    test("forbiddenHits flags extracted events whose title matches a mustNotExtract entry") {
+        val extracted = listOf(
+            ev("Algebra Refresher - Day 1", "2026-01-20"),
+            ev("Midterm Exam 1", "2026-02-17"),
+            ev("Algebra Refresher", "2026-01-21")
+        )
+        val hits = GoldSetScorer.forbiddenHits(listOf("Algebra Refresher", "Trigonometry Refresher"), extracted)
+        hits.size shouldBe 2
+        hits.all { it.contains("Algebra Refresher") } shouldBe true
+        GoldSetScorer.forbiddenHits(emptyList(), extracted) shouldBe emptyList()
+    }
+
+    test("a gold file's mustNotExtract list parses; absent means empty") {
+        val withNeg = GoldSet.parse(
+            "x",
+            """{"pdf":"a.pdf","institution":"i","events":[{"title":"Exam","date":"2026-01-01"}],"mustNotExtract":["Tutoring"]}"""
+        )
+        withNeg.mustNotExtract shouldBe listOf("Tutoring")
+        GoldSet.parse("y", """{"pdf":"a.pdf","institution":"i","events":[]}""").mustNotExtract shouldBe emptyList()
+    }
 })

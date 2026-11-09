@@ -35,6 +35,28 @@ negated conditionals, i.e. observability side effects. Its behavior (year filter
 pass-through) already has tests. T7's in-memory-exporter span tests are the right place to pin the attributes. Scores are
 per class with only its own test class run; other tests may kill more. Single run, no thresholds set.
 
+## Coverage beside mutation score (2026-11-08, fresh Kover run, same 10 classes)
+
+| Class | Line coverage | Mutation score | Gap |
+|---|---|---|---|
+| `GroundingGuardAIService` | 96% (48/50) | 32% (56 mutants) | +64 pts |
+| `GeminiResponseParser` | 97% (115/118) | 80% (93) | +17 pts |
+| `Bm25Ranker` | 100% (21/21) | 84% (45) | +16 pts |
+| `SourceDateGrounder` | 100% (40/40) | 82% (17) | +18 pts |
+| `WeekAnchorDateResolver` | 100% (45/45) | 82% (55) | +18 pts |
+| `StudyPlanGrounder` | 100% (15/15) | 85% (13) | +15 pts |
+| `SemesterFilter` | 100% (6/6) | 91% (11) | +9 pts |
+| `SourceFactGrounder` | 100% (18/18) | 93% (15) | +7 pts |
+| `RetryAfterParser` | 100% (6/6) | 100% (4) | 0 |
+| `UrlListParser` | 100% (2/2) | 100% (4) | 0 |
+
+Reading: line coverage is 96-100% everywhere and does not predict the mutation score. Eight of ten classes sit
+7-18 points below coverage; only the two smallest classes close the gap. `GroundingGuardAIService` is the outlier
+(+64) and is mostly telemetry noise (see above), so coverage overstates test strength mainly where the code
+carries observability side effects. Pitest was run on 10 hand-picked classes, not per package, with only each
+class's own test class; Kover is the whole suite, so the gap is an upper bound. No thresholds are set from this
+(owner rule: thresholds come from more observed data).
+
 ## Survivor triage (Bm25Ranker, first run)
 
 Real gaps (the test only asserts the *ranking order*, never score values or edge cases):

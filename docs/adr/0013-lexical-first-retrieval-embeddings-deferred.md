@@ -108,7 +108,10 @@ The eval corpus grew from 36 to 98 fragments (13 labeled Missouri S&T / UT Austi
 Trigger check (decision stays with the owner): the aggregate paraphrase figure is above the ~70% line, the
 `paraphrase|deadline` bucket alone is below it (n=7, small). Two deadline-stake questions now miss retrieval
 at top-15 (the original psych write-up one and "first test for the differential equations class", M427J
-Midterm 1). Whether the deadline digest covers them was NOT verified here, so trigger 1 is unresolved, not
-cleared. Ranking itself degraded as the corpus grew (recall@5, MRR) while the answer still mostly reaches
+Midterm 1). Follow-up, same day: `EventsDigestBuilderTest` ("digest covers 100% of deadline-stake eval questions")
+now maps all 15 deadline questions (the 6 new ones included) to their events and passes, so the digest DOES
+cover both retrieval misses. Trigger 1 ("missed by retrieval AND uncovered by the digest") is not met. The
+caveat is that the test assumes extraction stores those events; the gold set confirms extraction finds them
+for the Missouri S&T / UT files, but the fixture-syllabus ones rest on the older eval. Ranking itself degraded as the corpus grew (recall@5, MRR) while the answer still mostly reaches
 the prompt (88.5%), because compression keeps answer-bearing text from the top-15.
 

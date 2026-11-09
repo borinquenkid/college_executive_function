@@ -178,7 +178,21 @@ class EventsDigestBuilderTest : FunSpec({
             "When's the final essay for my English class due?" to
                 deadline("Final Paper: Hidden Systems in American Justice", LocalDate(2026, 7, 29)),
             "When do I need to hand in my first write-up on the psych readings?" to
-                deadline("Reading Response 1", LocalDate(2026, 9, 9))
+                deadline("Reading Response 1", LocalDate(2026, 9, 9)),
+            // T6 (2026-11-08): deadline questions drawn from the Missouri S&T / UT spring syllabi. Title and date as
+            // the syllabus states them (SPMS1185 says "Friday, Nov. 21"; Nov 21, 2026 is actually a Saturday).
+            "When is Exam 1 for STAT 5643?" to
+                deadline("Exam 1", LocalDate(2026, 9, 28)),
+            "When is the Midterm Exam for COMPSCI 2300?" to
+                deadline("Midterm Exam", LocalDate(2026, 10, 13)),
+            "When are the revised papers due in HIS 378W?" to
+                deadline("Revised papers due", LocalDate(2026, 4, 30)),
+            "When do I have to hand in my recorded talk for the public speaking class?" to
+                deadline("Online Speech due", LocalDate(2026, 11, 21)),
+            "Which Thursday in February is the first test for the differential equations class?" to
+                deadline("Midterm 1", LocalDate(2026, 2, 19)),
+            "What is the last date I can leave the differential equations class without needing permission?" to
+                deadline("Last day to drop without permission", LocalDate(2026, 1, 28))
         )
 
         val questions = Json.parseToJsonElement(questionsFile.readText()).jsonArray

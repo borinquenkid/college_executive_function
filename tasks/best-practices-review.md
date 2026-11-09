@@ -56,7 +56,7 @@ Corrections to stale facts found in the review (fix as part of T2):
   Calendar write; if nothing confirms before the write, add a confirmation or record why not (ADR). AC: written
   trace plus a test or ADR. — M
 
-- [~] T9 (MUTATION HALF DONE 2026-11-07: scripts/mutation/pit.sh, 10 classes run, 2 real test gaps fixed (Bm25Ranker 56->84%, GeminiResponseParser 66->80%); see docs/ops/mutation-testing-pilot.md; semantic-review half not started; more packages pending): Add the verification layers you use at work to this repo. Today it has SonarQube (static) and Kover
+- [x] T9 (DONE 2026-11-08: per-class mutation score beside Kover coverage in docs/ops/mutation-testing-pilot.md; semantic review run on the thinking-policy + prompt-rule commits, saved as tasks/semantic-review-2026-11-08.md. Per-PACKAGE rather than per-class comparison and any thresholds are still not done. EARLIER NOTE, MUTATION HALF 2026-11-07: scripts/mutation/pit.sh, 10 classes run, 2 real test gaps fixed (Bm25Ranker 56->84%, GeminiResponseParser 66->80%); see docs/ops/mutation-testing-pilot.md; semantic-review half not started; more packages pending): Add the verification layers you use at work to this repo. Today it has SonarQube (static) and Kover
   coverage only: no PIT mutation testing and no LLM semantic review (Walter-confirmed 2026-11-07). Coverage is not
   test quality: at Charter, mutation testing exposed unit tests that never ran and API tests that asserted no
   values. (1) Mutation testing: run Pitest through its Gradle plugin on the JVM target (start with the grounding gates, `Bm25Ranker` and the response parsers), one package first. PIT works on

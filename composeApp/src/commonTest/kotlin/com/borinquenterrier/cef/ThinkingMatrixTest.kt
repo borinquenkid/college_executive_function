@@ -35,13 +35,19 @@ class ThinkingMatrixTest : FunSpec({
         }
     }
 
-    test("model names map to the expected family") {
+    test("only probed models get a family; unprobed siblings and unknown names get none") {
         ModelFamily.of("gemini-3.8-flash") shouldBe ModelFamily.GEMINI_3
         ModelFamily.of("gemini-3.6-flash") shouldBe ModelFamily.GEMINI_3
-        ModelFamily.of("gemini-3.5-flash-lite") shouldBe ModelFamily.GEMINI_3
-        ModelFamily.of("gemini-2.5-pro") shouldBe ModelFamily.GEMINI_2_5
+        ModelFamily.of("gemini-2.5-flash") shouldBe ModelFamily.GEMINI_2_5
+        // Unprobed: a request field they reject would 400, burn 5 retries and blacklist the model.
+        ModelFamily.of("gemini-3.5-flash") shouldBe ModelFamily.OTHER
+        ModelFamily.of("gemini-3.5-flash-lite") shouldBe ModelFamily.OTHER
+        ModelFamily.of("gemini-2.5-pro") shouldBe ModelFamily.OTHER
         ModelFamily.of("gemini-2.5-flash-lite") shouldBe ModelFamily.OTHER
         ModelFamily.of("gemini-flash-latest") shouldBe ModelFamily.OTHER
+        ModelFamily.of("gemini-3.9-flash") shouldBe ModelFamily.OTHER
+        ThinkingMatrix.config("gemini-3.5-flash", ThinkingEffort.LOW) shouldBe null
+        ThinkingMatrix.config("gemini-2.5-pro", ThinkingEffort.LOW) shouldBe null
     }
 
     test("request body carries thinkingConfig only when the model and effort define a cell") {

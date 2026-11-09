@@ -22,7 +22,12 @@ Report only: nothing was edited because of this review.
   SPMS1185: the 11/19 class day titled "Optional Argumentative Speech day; rehearsal day" survives as the CLASS
   event 'Rehearsal day' (2 of 2 runs). The meeting is kept; the "Optional ..." part of the title is lost.
 
-## Contradicts (verified by reading code, after the first pass)
+## Contradicts (verified by reading code, after the first pass) — FIXED same day
+
+Fix: `ModelFamily.of` now matches only the three probed models by exact name (`gemini-3.8-flash`, `gemini-3.6-flash`,
+`gemini-2.5-flash`); every other model gets no thinking field. `ThinkingMatrixTest` pins the unprobed names
+(`gemini-3.5-flash`, `gemini-2.5-pro`, lite, a hypothetical `gemini-3.9-flash`) to no field. The text below is the
+finding as first reported.
 
 - Robustness, not a spec clause: a 400 for an unsupported thinking field is categorized as a generic `OtherError`
   (`ErrorCategorizer.kt`: no 400 case except `API_KEY_INVALID` / "response modalities"), which

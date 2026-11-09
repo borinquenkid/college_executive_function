@@ -22,5 +22,5 @@ The gold set is the quality gate.
 
 `ThinkingPolicy.kt`: `ModelFamily x ThinkingEffort -> thinkingConfig JSON`. Only probed cells are listed; an absent
 cell sends nothing. Extraction (`PromptFamily.EVENT_EXTRACTION`) asks for `LOW`; everything else keeps `DEFAULT`.
-`gemini-2.5-*-lite` and unknown models are `OTHER` (not probed). Adding a model family or effort level means a new
+Matching is by EXACT model name, and only the three probed models (`gemini-3.8-flash`, `gemini-3.6-flash`, `gemini-2.5-flash`) have a family; everything else, e.g. `gemini-3.5-flash`, `gemini-2.5-pro`, lite models and future names, is `OTHER` and gets no thinking field. Reason: a 400 for a rejected field is retried 5x on the same model, then the model is blacklisted for an hour and the extraction fails (semantic review 2026-11-08). Adding a model family or effort level means a new
 enum value, a probe, and a cell in `ThinkingMatrixTest`, which fails until the pair is decided.

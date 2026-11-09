@@ -68,6 +68,11 @@ Corrections to stale facts found in the review (fix as part of T2):
   set thresholds from observed data. AC: a per-package mutation score beside coverage, a documented survivor
   triage, and one local semantic-review run on a real diff, output saved under `tasks/` or pasted into the PR by Walter. — M
 
+## Follow-up built 2026-11-08: never guess contradictory source dates
+`WeekdayDateConflictDetector` + date dialog hold back events whose source weekday and date disagree (ADR 0015
+exception). Gold run: 3 SPMS1185 events held (Nov 21, Dec 2, Dec 4), recall unchanged. Not verified by a human:
+the dialog itself (manual walkthrough needed), and the headless server/harness paths only log, they do not ask.
+
 ## Not worth doing now
 - PDF-text injection scanning in CI (ADR 0003 rejected it; revisit only if PDF-borne injection is observed).
 - Embeddings for chat retrieval (ADR 0013).

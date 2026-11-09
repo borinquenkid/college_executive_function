@@ -101,5 +101,12 @@
     "modelUsed": "gemini-3.8-flash",
     "forbiddenHits": {
         "ut_m408n_spring": []
+    },
+    "heldBack": {
+        "mst_spms1185": [
+            "'Online Speech due' @ 2026-11-20",
+            "'Argumentative Speech 1' @ 2026-12-01",
+            "'Argumentative Speech 2' @ 2026-12-03"
+        ]
     }
 }

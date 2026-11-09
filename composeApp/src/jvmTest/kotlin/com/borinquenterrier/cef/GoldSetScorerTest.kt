@@ -81,6 +81,11 @@ class GoldSetScorerTest : FunSpec({
         hits.size shouldBe 2
         hits.all { it.contains("Algebra Refresher") } shouldBe true
         GoldSetScorer.forbiddenHits(emptyList(), extracted) shouldBe emptyList()
+        // A real "Final Exam" must NOT be flagged by the forbidden "Final Exam Review" (one-directional match).
+        GoldSetScorer.forbiddenHits(listOf("M408K/M408N Final Exam Review"), listOf(ev("Final Exam", "2026-05-04"))) shouldBe emptyList()
+        GoldSetScorer.forbiddenHits(
+            listOf("M408K/M408N Final Exam Review"), listOf(ev("M408K/M408N Final Exam Review - Session 1", "2026-04-28"))
+        ).size shouldBe 1
     }
 
     test("a gold file's mustNotExtract list parses; absent means empty") {
@@ -90,5 +95,10 @@ class GoldSetScorerTest : FunSpec({
         )
         withNeg.mustNotExtract shouldBe listOf("Tutoring")
         GoldSet.parse("y", """{"pdf":"a.pdf","institution":"i","events":[]}""").mustNotExtract shouldBe emptyList()
+    }
+
+    test("hyphenated and joined spellings of a word are the same title") {
+        GoldSetScorer.titlesSimilar("Mid-term exam", "Midterm Exam") shouldBe true
+        GoldSetScorer.titlesSimilar("Exam 1", "Exam 2") shouldBe false
     }
 })

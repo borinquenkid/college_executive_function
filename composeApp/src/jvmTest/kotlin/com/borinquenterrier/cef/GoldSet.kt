@@ -54,6 +54,8 @@ object GoldSetScorer {
 
     private fun normalize(s: String) = s.lowercase()
         .replace(Regex("['\"#’“”]"), "")
+        // "Mid-term" and "Midterm" are the same word: join hyphenated letter runs instead of splitting them.
+        .replace(Regex("(?<=[a-z])-(?=[a-z])"), "")
         .replace(Regex("[^a-z0-9\\s]"), " ")
         .replace(Regex("\\s+"), " ")
         .trim()
@@ -74,7 +76,22 @@ object GoldSetScorer {
 
     /** Extracted events matching any [forbidden] title: false positives that recall cannot detect. */
     fun forbiddenHits(forbidden: List<String>, extracted: List<Event>): List<String> =
-        extracted.filter { e -> forbidden.any { titlesSimilar(e.title, it) } }.map { "'${it.title}' @ ${it.date}" }
+        extracted.filter { e -> forbidden.any { mentions(e.title, it) } }.map { "'${it.title}' @ ${it.date}" }
+
+    /**
+     * One-directional on purpose: an extracted title is a false positive only if it CONTAINS the forbidden title.
+     * The symmetric [titlesSimilar] would flag a real "Final Exam" because the forbidden entry is
+     * "Final Exam Review".
+     */
+    internal fun mentions(extractedTitle: String, forbiddenTitle: String): Boolean {
+        val n = normalize(extractedTitle)
+        val f = normalize(forbiddenTitle)
+        if (n.isEmpty() || f.isEmpty()) return false
+        if (n.contains(f)) return true
+        fun tokens(x: String) = x.split(" ").filter { it.isNotBlank() && it !in filler }.toSet()
+        val ft = tokens(f)
+        return ft.isNotEmpty() && tokens(n).containsAll(ft)
+    }
 
     /**
      * One-to-one matching: each extracted event can satisfy at most one expected event, and among

@@ -74,6 +74,8 @@ object EventBuilder {
             - Semester boundaries: first day, last day, add/drop deadline, withdrawal deadline
             - Holidays and breaks that affect this course
 
+            Do NOT extract optional sessions, even when they carry a date: tutoring, help or office-hour sessions, study-skills or info sessions, refreshers, optional exam-review sessions, workshops, and campus-resource events (for example a "campus resources" list of tutoring-center sessions). This includes optional sessions run by the instructor. Anything the document calls optional, voluntary, or recommended-but-not-required is NOT a course event. Extract such a session only if the document makes it required (attendance is required or it is graded).
+
             Date resolution rules:
             - Use EXPLICIT dates when the document states them directly (e.g. "October 14" or "July 3, 2026").
             - Day-within-week pattern (preferred): If a weekly schedule provides per-week date ranges (e.g. "Week 4: June 29–July 5") and an event is listed under a named class day within that week (e.g. under "Wednesday"), compute the exact calendar date. Monday of the range = Day 1, Tuesday = +1, Wednesday = +2, Thursday = +3, Friday = +4. Example: "Issue Brief #1 due" under "Wednesday" in "Week 4: June 29–July 5" → July 1, 2026. Getting this right matters — a student who shows up Monday with work due Wednesday submits late.

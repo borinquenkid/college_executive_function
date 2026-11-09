@@ -1,5 +1,5 @@
 {
-    "overallRecallPercent": 94.64285714285714,
+    "overallRecallPercent": 100.0,
     "overallDateAccuracyPercent": 100.0,
     "perInstitution": {
         "missouri_st": {
@@ -14,8 +14,8 @@
         },
         "ut_austin": {
             "expectedCount": 30,
-            "matchedCount": 27,
-            "dateCorrectCount": 27
+            "matchedCount": 30,
+            "dateCorrectCount": 30
         }
     },
     "perFile": {
@@ -62,10 +62,10 @@
             "matchedCount": 7
         },
         "ut_his378w_fall": {
-            "recallPercent": 66.66666666666667,
+            "recallPercent": 100.0,
             "dateAccuracyPercent": 100.0,
             "expectedCount": 3,
-            "matchedCount": 2
+            "matchedCount": 3
         },
         "ut_his378w_spring": {
             "recallPercent": 100.0,
@@ -74,10 +74,10 @@
             "matchedCount": 1
         },
         "ut_m408n_fall": {
-            "recallPercent": 33.333333333333336,
+            "recallPercent": 100.0,
             "dateAccuracyPercent": 100.0,
             "expectedCount": 3,
-            "matchedCount": 1
+            "matchedCount": 3
         },
         "ut_m408n_spring": {
             "recallPercent": 100.0,
@@ -98,5 +98,8 @@
             "matchedCount": 3
         }
     },
-    "modelUsed": "gemini-3.8-flash"
+    "modelUsed": "gemini-3.8-flash",
+    "forbiddenHits": {
+        "ut_m408n_spring": []
+    }
 }

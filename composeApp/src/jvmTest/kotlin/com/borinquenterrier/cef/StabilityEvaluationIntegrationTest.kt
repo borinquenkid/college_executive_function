@@ -51,6 +51,12 @@ class StabilityEvaluationIntegrationTest : FunSpec({
                 }
             }
             val s = StabilityScorer.score(perRun)
+            // Diagnostic: show what each run produced on the dates that differ between runs.
+            s.unstableDates.forEach { d ->
+                perRun.forEachIndexed { i, run ->
+                    println("    $d run ${i + 1}: " + (run?.filter { it.date == d }?.joinToString(" | ") { "'${it.title}'" }.orEmpty().ifEmpty { "(none)" }))
+                }
+            }
             perDocument[doc.id] = s
             println(
                 "  ${doc.id}: events ${s.minEvents}-${s.maxEvents}, date sets ${s.distinctDateSets}, " +

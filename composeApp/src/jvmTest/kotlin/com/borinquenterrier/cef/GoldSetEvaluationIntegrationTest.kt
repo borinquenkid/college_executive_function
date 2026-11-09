@@ -32,6 +32,7 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
         val perInstitution = mutableMapOf<String, GoldInstitutionMetric>()
         val failedFiles = mutableListOf<String>()
         val forbiddenHits = mutableMapOf<String, List<String>>()
+        val heldBack = mutableMapOf<String, List<String>>()
         var expectedTotal = 0
         var matchedTotal = 0
         var dateCorrectTotal = 0
@@ -53,7 +54,11 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
                 failedFiles += doc.id
                 emptyList()
             }
-            val score = GoldSetScorer.score(doc.events, extracted)
+            // The product holds events on a weekday/date contradiction out of the push (never guessed); score only what it would push.
+            val (pushable, held) = WeekdayDateConflictDetector.partition(extracted, text)
+            if (held.isNotEmpty()) heldBack[doc.id] = held.map { "'${it.event.title}' @ ${it.event.date}" }
+            held.forEach { println("    [HELD BACK] '${it.event.title}' @ ${it.event.date}: source contradicts itself") }
+            val score = GoldSetScorer.score(doc.events, pushable)
             // Single-file runs (-PgoldFilter) are diagnostic: dump everything extracted so unlabeled behavior is visible.
             if (only != null) extracted.sortedBy { it.date }.forEach { println("    [EXTRACTED] ${it.date} ${it.category} '${it.title}'") }
             val forbidden = GoldSetScorer.forbiddenHits(doc.mustNotExtract, extracted)
@@ -104,7 +109,8 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
                 perFile = perFile,
                 modelUsed = modelUsed,
                 failedFiles = failedFiles,
-                forbiddenHits = forbiddenHits
+                forbiddenHits = forbiddenHits,
+                heldBack = heldBack
             )
         )
         driver.close()

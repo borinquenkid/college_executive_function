@@ -33,6 +33,16 @@ mitigations rather than a gate:
 - **Reversibility**: every pushed event is tagged with `sourceId`; deleting a source removes its events
   (`SourceDeleter`), and `CalendarReconciler` removes orphans.
 
+## Exception: contradictory source dates are held back (2026-11-08)
+
+Owner rule: a date the instructor got wrong is never guessed. When the source's own weekday and date disagree
+(e.g. "Friday, Nov. 21" when Nov 21 is a Saturday), `WeekdayDateConflictDetector` (deterministic, runs in
+`DeliverableExtractor`) withholds the matching events from the push and queues them in the existing date dialog
+with the reason and the source line. Confirming a date pushes that one event; discarding drops it. This is the
+only place the auto-push now waits for the student. Headless paths (server, `AgentHarness`) have no dialog, so
+held events are logged and not pushed there. The detector stays silent when it cannot pin the document's year
+(fewer than 3 agreeing weekday/date mentions or under 75% agreement).
+
 ## Consequences / Follow-ups (not yet implemented)
 
 Not found in this review (grep-level check only; verify before building):

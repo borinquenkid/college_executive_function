@@ -1,6 +1,15 @@
 package com.borinquenterrier.cef
 
-data class ExtractionResult(val events: List<Event>, val warning: String?, val statusMessage: String)
+/**
+ * [events] are safe to push. [needsResolution] are events held back because the source's own weekday and date
+ * contradict each other: the student decides, nothing is guessed.
+ */
+data class ExtractionResult(
+    val events: List<Event>,
+    val warning: String?,
+    val statusMessage: String,
+    val needsResolution: List<DateResolutionItem> = emptyList()
+)
 
 internal class DeliverableExtractor(
     private val generationService: EventGenerationService,
@@ -25,6 +34,8 @@ internal class DeliverableExtractor(
                 "will contain the due dates."
             else -> null
         }
-        return ExtractionResult(events, warning, "${events.size} deadlines and exams found from entire source.")
+        val (clean, held) = WeekdayDateConflictDetector.partition(events, input.fragments.joinToString("\n\n") { it.text })
+        val heldNote = if (held.isEmpty()) "" else " ${held.size} need your date (the source contradicts itself)."
+        return ExtractionResult(clean, warning, "${clean.size} deadlines and exams found from entire source.$heldNote", held)
     }
 }

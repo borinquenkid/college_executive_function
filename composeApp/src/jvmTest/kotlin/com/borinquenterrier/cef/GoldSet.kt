@@ -43,7 +43,9 @@ data class GoldEvalMetrics(
     val modelUsed: String? = null,
     val failedFiles: List<String> = emptyList(),
     /** Per file: extracted events that matched a mustNotExtract title (false positives). */
-    val forbiddenHits: Map<String, List<String>> = emptyMap()
+    val forbiddenHits: Map<String, List<String>> = emptyMap(),
+    /** Per file: events held out of the push because the source's weekday and date contradict (never guessed). */
+    val heldBack: Map<String, List<String>> = emptyMap()
 )
 
 data class GoldScore(val expectedCount: Int, val matchedCount: Int, val dateCorrectCount: Int, val missing: List<GoldEvent>, val dateMismatches: List<String>)

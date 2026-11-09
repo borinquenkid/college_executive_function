@@ -5,10 +5,17 @@ package com.borinquenterrier.cef
  * relevant to it. Surfaced to the UI so the user can confirm/pick a date (or discard) rather than
  * having it silently dropped. [sourceSnippet] is null when nothing in the source matches the
  * title — a hint that the item is fabricated rather than merely mis-dated.
+ *
+ * [reason] is set when the item was held back for a reason other than "not found in the source", e.g. the
+ * source's own weekday and date contradict each other ([WeekdayDateConflictDetector]); it replaces the generic
+ * "may have been invented" wording. [pushOnConfirm] is true for items held out of an already-running auto-push:
+ * confirming a date must then push that one event, since the original push has already happened.
  */
 data class DateResolutionItem(
     val event: Event,
     val sourceSnippet: String?,
+    val reason: String? = null,
+    val pushOnConfirm: Boolean = false,
 )
 
 /**

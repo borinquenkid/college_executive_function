@@ -95,6 +95,21 @@ class EventAgent(
         _lastGeneratedEvents.value = push
     }
 
+    /**
+     * [confirmPendingDate], and for items held out of an auto-push ([DateResolutionItem.pushOnConfirm]) also writes
+     * that one re-dated event to the calendar: the batch it came from was pushed before the student answered.
+     */
+    suspend fun confirmAndPushPendingDate(
+        item: DateResolutionItem,
+        date: kotlinx.datetime.LocalDate,
+        calendarId: String = "default"
+    ) {
+        confirmPendingDate(item, date)
+        if (!item.pushOnConfirm) return
+        calendarPusher.push(listOf(DateResolutionPresenter.withDate(item.event, date)), calendarId)
+        loadPersistedWarnings()
+    }
+
     /** User discarded a confabulated deliverable. */
     fun discardPendingDate(item: DateResolutionItem) {
         _pendingDateResolutions.value = DateResolutionPresenter.discard(_pendingDateResolutions.value, item)
@@ -262,6 +277,10 @@ class EventAgent(
             _extractionWarning.value = null
             val result = deliverableExtractor.run(source, "default")
             _lastGeneratedEvents.value = result.events
+            if (result.needsResolution.isNotEmpty()) {
+                logger?.d(tag, "Held back ${result.needsResolution.size} event(s) with a contradictory source date")
+                _pendingDateResolutions.value = _pendingDateResolutions.value + result.needsResolution
+            }
             _extractionWarning.value = result.warning
             _statusMessage.value = result.statusMessage
         }

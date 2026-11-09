@@ -19,6 +19,18 @@ class DateResolutionPresenterTest : FunSpec({
         DateResolutionPresenter.evidenceText(item).shouldContain("witness protection")
     }
 
+    test("a conflict reason replaces the 'invented' wording and keeps the source line") {
+        val item = DateResolutionItem(
+            deadline("Online Speech due", "2026-11-20"), "Online Speech due by 5 pm on Friday, Nov. 21",
+            reason = "The source says \"Friday, Nov. 21\", but November 21, 2026 is a Saturday.", pushOnConfirm = true
+        )
+        val text = DateResolutionPresenter.evidenceText(item)
+        text.shouldContain("is a Saturday")
+        text.shouldContain("From your source")
+        text.shouldContain("Online Speech due by 5 pm")
+        (text.contains("invented")) shouldBe false
+    }
+
     test("evidence text warns when there is no source snippet (likely fabricated)") {
         val item = DateResolutionItem(deadline("Essay", "2026-09-01"), null)
         DateResolutionPresenter.evidenceText(item).shouldContain("invented")

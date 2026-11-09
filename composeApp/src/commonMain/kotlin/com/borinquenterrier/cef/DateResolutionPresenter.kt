@@ -9,7 +9,12 @@ import kotlinx.datetime.LocalDate
 object DateResolutionPresenter {
 
     /** The evidence to show next to the picker: the source snippet, or a "likely invented" warning. */
-    fun evidenceText(item: DateResolutionItem): String =
+    fun evidenceText(item: DateResolutionItem): String {
+        val reason = item.reason ?: return noReasonEvidence(item)
+        return item.sourceSnippet?.let { "$reason\n\nFrom your source:\n\"$it\"" } ?: reason
+    }
+
+    private fun noReasonEvidence(item: DateResolutionItem): String =
         item.sourceSnippet?.let { "From your source:\n\"$it\"" }
             ?: "No matching text was found in your source — this item may have been invented. " +
             "Confirm a date only if it is real."

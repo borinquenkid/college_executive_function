@@ -41,6 +41,29 @@ class DeliverableExtractorTest : FunSpec({
         result.statusMessage shouldContain "2 deadlines"
     }
 
+    // ── Contradictory source date: held back, never guessed ───────────────────
+
+    test("an event on a weekday/date contradiction is held back, not returned for pushing") {
+        val text = listOf(
+            "Tue 8/25 - Paired introductions", "Thur 8/27 - Re-introductions", "Tue 9/1 - Speech 1",
+            "Thur 11/19 - Rehearsal day; Online Speech due by 5 pm on Friday, Nov. 21"
+        ).joinToString("\n")
+        val src = SourceItem("SPMS", listOf(SourceFragment(text)), SourceCategory.SYLLABUS)
+        val speech = DayEvent(
+            title = "Online Speech due", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, date = LocalDate(2026, 11, 20)
+        )
+        val service = mockk<EventGenerationService>(relaxed = true)
+        coEvery { service.extractDeliverables(any(), any()) } returns listOf(dayEvent("Speech 1"), speech)
+
+        val result = makeExtractor(service).run(src, calendarId)
+
+        result.events.map { it.title } shouldBe listOf("Speech 1")
+        result.needsResolution.map { it.event.title } shouldBe listOf("Online Speech due")
+        result.statusMessage shouldContain "1 need your date"
+        result.warning shouldBe null
+    }
+
     // ── Warning: empty result ─────────────────────────────────────────────────
 
     test("empty events produces warning about no events found") {

@@ -5,7 +5,7 @@ name: Eval Corpus (Real Gemini API)
 # this workflow instead of shipping unnoticed.
 #
 # Cadence: nightly, NOT on every PR. This corpus makes ~20-60 real Gemini calls
-# across 5 test classes (GoldSetEvaluationIntegrationTest adds ~13 calls, report-only; 16-file contributions/ corpus + 3 STLCC-specific docs +
+# across 6 test classes (GoldSetEvaluationIntegrationTest adds ~13 calls and StabilityEvaluationIntegrationTest ~39 calls / ~13 min, both report-only; 16-file contributions/ corpus + 3 STLCC-specific docs +
 # 2 syllabus fixtures). CEF_GEMINI_API_KEY here is the BorinquenTerrier paid
 # (Tier 1) key (see docs/ops/release-and-store.md "Ops gotchas") — the free-tier shared RPM/RPD quota
 # problem (see ROADMAP.md's "Observed failure mode (June 2026)") applies to
@@ -44,7 +44,7 @@ jobs:
       - uses: gradle/actions/setup-gradle@v5
 
       - name: Run AI extraction eval corpus
-        # Scoped to exactly the 5 eval-shaped classes — NOT every *IntegrationTest,
+        # Scoped to exactly the 6 eval-shaped classes — NOT every *IntegrationTest,
         # which would also pull in the live Google OAuth test.
         env:
           CEF_GEMINI_API_KEY: ${{ secrets.CEF_GEMINI_API_KEY }}
@@ -65,7 +65,8 @@ jobs:
             --tests "com.borinquenterrier.cef.ContributorPdfIntegrationTest" \
             --tests "com.borinquenterrier.cef.StlccIntegrationTest" \
             --tests "com.borinquenterrier.cef.ScheduleStabilityIntegrationTest" \
-            --tests "com.borinquenterrier.cef.GoldSetEvaluationIntegrationTest"
+            --tests "com.borinquenterrier.cef.GoldSetEvaluationIntegrationTest" \
+            --tests "com.borinquenterrier.cef.StabilityEvaluationIntegrationTest"
 
       # ADR 0004 / ROADMAP Phase 13 EB-3. Visibility only — deliberately does NOT set
       # -PrecordEvalBaseline, so evals/baseline_*.json is never written by this workflow; that

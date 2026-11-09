@@ -1,0 +1,146 @@
+{
+    "runsPerDocument": 3,
+    "perDocument": {
+        "mst_compsci2300": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": false,
+            "distinctDateSets": 1,
+            "minEvents": 36,
+            "maxEvents": 37
+        },
+        "mst_spms1185": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": false,
+            "eventSetStable": false,
+            "distinctDateSets": 2,
+            "minEvents": 37,
+            "maxEvents": 38,
+            "unstableDates": [
+                "2026-11-20",
+                "2026-11-21"
+            ]
+        },
+        "mst_stat5643": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": true,
+            "distinctDateSets": 1,
+            "minEvents": 13,
+            "maxEvents": 13
+        },
+        "stlcc_mth140s": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": true,
+            "distinctDateSets": 1,
+            "minEvents": 12,
+            "maxEvents": 12
+        },
+        "ut_bio325_fall": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": false,
+            "distinctDateSets": 1,
+            "minEvents": 34,
+            "maxEvents": 57
+        },
+        "ut_e373m_spenser": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": true,
+            "distinctDateSets": 1,
+            "minEvents": 31,
+            "maxEvents": 31
+        },
+        "ut_e376s": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": false,
+            "distinctDateSets": 1,
+            "minEvents": 37,
+            "maxEvents": 37
+        },
+        "ut_his378w_fall": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": false,
+            "distinctDateSets": 1,
+            "minEvents": 29,
+            "maxEvents": 30
+        },
+        "ut_his378w_spring": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": false,
+            "distinctDateSets": 1,
+            "minEvents": 29,
+            "maxEvents": 29
+        },
+        "ut_m408n_fall": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": false,
+            "distinctDateSets": 1,
+            "minEvents": 32,
+            "maxEvents": 32
+        },
+        "ut_m408n_spring": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": false,
+            "eventSetStable": false,
+            "distinctDateSets": 2,
+            "minEvents": 6,
+            "maxEvents": 16,
+            "unstableDates": [
+                "2026-01-14",
+                "2026-01-15",
+                "2026-01-20",
+                "2026-01-21",
+                "2026-01-26",
+                "2026-01-27",
+                "2026-01-28",
+                "2026-04-28",
+                "2026-04-29"
+            ]
+        },
+        "ut_m427j_spring": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": false,
+            "eventSetStable": false,
+            "distinctDateSets": 3,
+            "minEvents": 73,
+            "maxEvents": 80,
+            "unstableDates": [
+                "2026-03-17",
+                "2026-03-18",
+                "2026-03-19",
+                "2026-03-20",
+                "2026-04-28",
+                "2026-04-29"
+            ]
+        },
+        "ut_m427l_spring": {
+            "runs": 3,
+            "failedRuns": 0,
+            "dateSetStable": true,
+            "eventSetStable": false,
+            "distinctDateSets": 1,
+            "minEvents": 9,
+            "maxEvents": 9
+        }
+    },
+    "modelUsed": "gemini-3.8-flash"
+}

@@ -54,6 +54,8 @@ class GoldSetEvaluationIntegrationTest : FunSpec({
                 emptyList()
             }
             val score = GoldSetScorer.score(doc.events, extracted)
+            // Single-file runs (-PgoldFilter) are diagnostic: dump everything extracted so unlabeled behavior is visible.
+            if (only != null) extracted.sortedBy { it.date }.forEach { println("    [EXTRACTED] ${it.date} ${it.category} '${it.title}'") }
             val forbidden = GoldSetScorer.forbiddenHits(doc.mustNotExtract, extracted)
             if (doc.mustNotExtract.isNotEmpty()) forbiddenHits[doc.id] = forbidden
             forbidden.forEach { println("    [FALSE POSITIVE] $it") }

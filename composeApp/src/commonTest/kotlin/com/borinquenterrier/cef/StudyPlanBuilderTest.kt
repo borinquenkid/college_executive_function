@@ -3,7 +3,6 @@ package com.borinquenterrier.cef
 import io.kotest.core.spec.style.StringSpec
 import io.kotest.matchers.string.shouldContain
 import io.kotest.matchers.string.shouldNotBeBlank
-import kotlin.time.Clock
 import kotlinx.datetime.DateTimeUnit
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.plus
@@ -173,32 +172,32 @@ class StudyPlanBuilderTest : StringSpec({
     // ── getTaskDecompositionPrompt urgency tiers ──────────────────────────────
 
     "getTaskDecompositionPrompt uses EMERGENCY wording when due today" {
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
-        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", today.toString())
+        val today = FIXED_TEST_CLOCK.todayIn(TimeZone.currentSystemDefault())
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", today.toString(), clock = FIXED_TEST_CLOCK)
         result.shouldContain("EMERGENCY")
         result.shouldContain("2–4")
     }
 
     "getTaskDecompositionPrompt uses TIGHT wording for 1-2 day deadline" {
-        val soon = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val soon = FIXED_TEST_CLOCK.todayIn(TimeZone.currentSystemDefault())
             .plus(1, DateTimeUnit.DAY)
-        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", soon.toString())
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", soon.toString(), clock = FIXED_TEST_CLOCK)
         result.shouldContain("TIGHT")
         result.shouldContain("3–5")
     }
 
     "getTaskDecompositionPrompt uses SHORT wording for 3-7 day deadline" {
-        val medium = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val medium = FIXED_TEST_CLOCK.todayIn(TimeZone.currentSystemDefault())
             .plus(5, DateTimeUnit.DAY)
-        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", medium.toString())
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Essay", medium.toString(), clock = FIXED_TEST_CLOCK)
         result.shouldContain("SHORT")
         result.shouldContain("4–7")
     }
 
     "getTaskDecompositionPrompt uses NORMAL wording for 8+ day deadline" {
-        val distant = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val distant = FIXED_TEST_CLOCK.todayIn(TimeZone.currentSystemDefault())
             .plus(14, DateTimeUnit.DAY)
-        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Research Paper", distant.toString())
+        val result = StudyPlanBuilder.getTaskDecompositionPrompt("Research Paper", distant.toString(), clock = FIXED_TEST_CLOCK)
         result.shouldContain("NORMAL")
         result.shouldContain("5–9")
     }
@@ -206,21 +205,21 @@ class StudyPlanBuilderTest : StringSpec({
     // ── getDecompositionCritiquePrompt step cap ───────────────────────────────
 
     "getDecompositionCritiquePrompt caps at 5 steps for tight deadlines" {
-        val soon = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val soon = FIXED_TEST_CLOCK.todayIn(TimeZone.currentSystemDefault())
             .plus(2, DateTimeUnit.DAY)
-        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Essay", soon.toString(), "[]")
+        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Essay", soon.toString(), "[]", clock = FIXED_TEST_CLOCK)
         result.shouldContain("5")
     }
 
     "getDecompositionCritiquePrompt caps at 9 steps for normal timeline" {
-        val far = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val far = FIXED_TEST_CLOCK.todayIn(TimeZone.currentSystemDefault())
             .plus(30, DateTimeUnit.DAY)
-        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Research", far.toString(), "[]")
+        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Research", far.toString(), "[]", clock = FIXED_TEST_CLOCK)
         result.shouldContain("9")
     }
 
     "getDecompositionCritiquePrompt handles unparseable due date gracefully" {
-        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Task", "not-a-date", "[]")
+        val result = StudyPlanBuilder.getDecompositionCritiquePrompt("Task", "not-a-date", "[]", clock = FIXED_TEST_CLOCK)
         result.shouldContain("30") // fallback daysAvailable = 30
     }
 })

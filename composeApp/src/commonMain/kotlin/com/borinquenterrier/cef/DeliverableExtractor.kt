@@ -8,8 +8,16 @@ data class ExtractionResult(
     val events: List<Event>,
     val warning: String?,
     val statusMessage: String,
-    val needsResolution: List<DateResolutionItem> = emptyList()
+    val needsResolution: List<DateResolutionItem> = emptyList(),
+    /** Events held because the source produced more than [MAX_EVENTS_PER_SOURCE]; pushed only if the student agrees. */
+    val heldForSize: List<Event> = emptyList()
 )
+
+/**
+ * ADR 0015: a source that yields more than this many events is not auto-pushed. Real syllabi hold roughly 10-60,
+ * so normal use never reaches it; an injected or malformed document that floods the calendar does.
+ */
+const val MAX_EVENTS_PER_SOURCE = 150
 
 internal class DeliverableExtractor(
     private val generationService: EventGenerationService,
@@ -25,6 +33,13 @@ internal class DeliverableExtractor(
         val warning = listOfNotNull(base, windowNote).joinToString(" ").ifEmpty { null }
         val (clean, held) = WeekdayDateConflictDetector.partition(events, input.fragments.joinToString("\n\n") { it.text })
         val heldNote = if (held.isEmpty()) "" else " ${held.size} need your date (the source contradicts itself)."
+        if (clean.size > MAX_EVENTS_PER_SOURCE) {
+            return ExtractionResult(
+                emptyList(), warning,
+                "${clean.size} events found, which is unusually many. Waiting for your OK before adding them.$heldNote",
+                held, heldForSize = clean
+            )
+        }
         return ExtractionResult(clean, warning, "${clean.size} deadlines and exams found from entire source.$heldNote", held)
     }
 

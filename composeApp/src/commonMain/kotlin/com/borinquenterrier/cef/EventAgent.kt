@@ -83,6 +83,47 @@ class EventAgent(
     val lastGeneratedEvents: StateFlow<List<Event>> = _lastGeneratedEvents.asStateFlow()
 
     /** Deliverables whose date could not be grounded in the source — surfaced to the date-picker dialog. */
+    /** A source that produced an unusually large batch (> [MAX_EVENTS_PER_SOURCE]), waiting for the student's OK. */
+    data class PendingBulkPush(val sourceTitle: String, val events: List<Event>)
+
+    /** What the last push added, so the student can undo exactly that. */
+    data class PushSummary(val addedIds: List<String>) { val count: Int get() = addedIds.size }
+
+    private val _pendingBulkPush = MutableStateFlow<PendingBulkPush?>(null)
+    val pendingBulkPush: StateFlow<PendingBulkPush?> = _pendingBulkPush.asStateFlow()
+
+    private val _lastPushSummary = MutableStateFlow<PushSummary?>(null)
+    val lastPushSummary: StateFlow<PushSummary?> = _lastPushSummary.asStateFlow()
+
+    fun dismissPushSummary() { _lastPushSummary.value = null }
+
+    private suspend fun eventIds(calendarId: String): Set<String>? =
+        try { repository.getEvents(calendarId).mapNotNull { it.id }.toSet() } catch (e: Exception) { null }
+
+    /** Remembers what a push added so the student can undo it; nothing is recorded when nothing was added. */
+    internal fun recordPush(addedIds: List<String>) {
+        if (addedIds.isNotEmpty()) _lastPushSummary.value = PushSummary(addedIds)
+    }
+
+    /** Removes exactly the events the last push added. Events that already existed before it are untouched. */
+    suspend fun undoLastPush(calendarId: String = "default") {
+        val summary = _lastPushSummary.value ?: return
+        _lastPushSummary.value = null
+        summary.addedIds.forEach { repository.deleteEvent(it, calendarId) }
+        _statusMessage.value = "Removed ${summary.count} event${if (summary.count == 1) "" else "s"} you just added."
+    }
+
+    suspend fun confirmBulkPush(calendarId: String = "default") {
+        val pending = _pendingBulkPush.value ?: return
+        _pendingBulkPush.value = null
+        _lastGeneratedEvents.value = pending.events
+        pushToCalendar(calendarId)
+    }
+
+    fun discardBulkPush() {
+        _pendingBulkPush.value = null
+    }
+
     private val _pendingDateResolutions = MutableStateFlow<List<DateResolutionItem>>(emptyList())
     val pendingDateResolutions: StateFlow<List<DateResolutionItem>> = _pendingDateResolutions.asStateFlow()
 
@@ -281,6 +322,10 @@ class EventAgent(
                 logger?.d(tag, "Held back ${result.needsResolution.size} event(s) with a contradictory source date")
                 _pendingDateResolutions.value = _pendingDateResolutions.value + result.needsResolution
             }
+            if (result.heldForSize.isNotEmpty()) {
+                logger?.d(tag, "Held back ${result.heldForSize.size} events from ${source.title}: over the per-source cap")
+                _pendingBulkPush.value = PendingBulkPush(source.title, result.heldForSize)
+            }
             _extractionWarning.value = result.warning
             _statusMessage.value = result.statusMessage
         }
@@ -328,7 +373,10 @@ class EventAgent(
             "events.push_to_calendar",
             mapOf("calendar.id_hash" to TelemetryIdHasher.hash(calendarId), "events.count" to _lastGeneratedEvents.value.size.toString())
         ) {
+            // Undo bookkeeping is best-effort and skipped for empty pushes: it must never change what a push does.
+            val before = if (_lastGeneratedEvents.value.isEmpty()) null else eventIds(calendarId)
             val conflicts = calendarPusher.push(_lastGeneratedEvents.value, calendarId)
+            before?.let { b -> eventIds(calendarId)?.let { recordPush(it.filter { id -> id !in b }) } }
             loadPersistedWarnings()
             setAttribute("events.conflicts_count", conflicts.size.toLong())
             conflicts

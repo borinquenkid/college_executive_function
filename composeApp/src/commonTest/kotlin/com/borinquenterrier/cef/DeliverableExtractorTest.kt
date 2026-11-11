@@ -176,4 +176,29 @@ class DeliverableExtractorTest : FunSpec({
 
         progressMessages shouldBe listOf("Batch 1 of 2", "Batch 2 of 2")
     }
+
+    // ── Per-source cap (ADR 0015) ─────────────────────────────────────────────
+
+    test("exactly the cap is still pushed automatically") {
+        val service = mockk<EventGenerationService>()
+        coEvery { service.extractWithOutcome(any(), any()) } returns
+            ExtractionOutcome(List(MAX_EVENTS_PER_SOURCE) { dayEvent("Event $it") })
+
+        val result = makeExtractor(service).run(source(), calendarId)
+
+        result.events shouldHaveSize MAX_EVENTS_PER_SOURCE
+        result.heldForSize.shouldBeEmpty()
+    }
+
+    test("a source over the cap is held for the student, nothing is returned for pushing") {
+        val service = mockk<EventGenerationService>()
+        coEvery { service.extractWithOutcome(any(), any()) } returns
+            ExtractionOutcome(List(MAX_EVENTS_PER_SOURCE + 1) { dayEvent("Event $it") })
+
+        val result = makeExtractor(service).run(source(), calendarId)
+
+        result.events.shouldBeEmpty()
+        result.heldForSize shouldHaveSize MAX_EVENTS_PER_SOURCE + 1
+        result.statusMessage shouldContain "Waiting for your OK"
+    }
 })

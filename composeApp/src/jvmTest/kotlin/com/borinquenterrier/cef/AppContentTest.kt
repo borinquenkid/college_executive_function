@@ -24,7 +24,9 @@ class AppContentTest {
 
     private fun buildMockContainer(
         incompleteEvents: MutableStateFlow<List<Event>> = MutableStateFlow(emptyList()),
-        errorState: MutableStateFlow<AgentError?> = MutableStateFlow(null)
+        errorState: MutableStateFlow<AgentError?> = MutableStateFlow(null),
+        bulk: MutableStateFlow<EventAgent.PendingBulkPush?> = MutableStateFlow(null),
+        pushSummary: MutableStateFlow<EventAgent.PushSummary?> = MutableStateFlow(null)
     ): DependencyContainer {
         val mockContainer = mockk<DependencyContainer>(relaxed = true)
         val mockEventAgent = mockk<EventAgent>(relaxed = true)
@@ -45,6 +47,8 @@ class AppContentTest {
         every { mockEventAgent.errorState } returns errorState
         every { mockEventAgent.incompleteEvents } returns incompleteEvents
         every { mockEventAgent.pendingDateResolutions } returns MutableStateFlow(emptyList())
+        every { mockEventAgent.pendingBulkPush } returns bulk
+        every { mockEventAgent.lastPushSummary } returns pushSummary
 
         coEvery { mockCalendarAgent.getEvents("default") } returns emptyList()
 
@@ -90,6 +94,45 @@ class AppContentTest {
         every { mockContainer.googleAccountFlow } returns mockGoogleFlow
 
         return mockContainer
+    }
+
+    @Test
+    fun testBulkPushDialogAsksBeforeAddingAndCanConfirm() = runComposeUiTest {
+        val events = List(3) { DayEvent(id = "e$it", title = "E$it", source = EventSource.AI_GENERATED,
+            category = AcademicCategory.DEADLINE, date = kotlinx.datetime.LocalDate(2026, 6, 1)) }
+        val container = buildMockContainer(bulk = MutableStateFlow(EventAgent.PendingBulkPush("Big.pdf", events)))
+
+        setContent { AppContent(container) }
+
+        onNodeWithText("Add 3 events?").assertExists()
+        onNodeWithText("Add them").performClick()
+        waitForIdle()
+        val agent = container.eventAgent
+        io.mockk.coVerify { agent.confirmBulkPush(any()) }
+    }
+
+    @Test
+    fun testBulkPushDialogCanBeDeclined() = runComposeUiTest {
+        val container = buildMockContainer(bulk = MutableStateFlow(EventAgent.PendingBulkPush("Big.pdf", emptyList())))
+
+        setContent { AppContent(container) }
+
+        onNodeWithText("Don't add").performClick()
+        val agent = container.eventAgent
+        io.mockk.verify { agent.discardBulkPush() }
+    }
+
+    @Test
+    fun testPushSummarySnackbarOffersUndo() = runComposeUiTest {
+        val container = buildMockContainer(pushSummary = MutableStateFlow(EventAgent.PushSummary(listOf("a", "b"))))
+
+        setContent { AppContent(container) }
+
+        onNodeWithText("Added 2 events").assertExists()
+        onNodeWithText("Undo").performClick()
+        waitForIdle()
+        val agent = container.eventAgent
+        io.mockk.coVerify { agent.undoLastPush(any()) }
     }
 
     @Test

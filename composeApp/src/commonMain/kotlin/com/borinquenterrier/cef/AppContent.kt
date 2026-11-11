@@ -16,6 +16,10 @@ import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Scaffold
+import androidx.compose.material3.SnackbarDuration
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -89,6 +93,38 @@ fun AppContent(container: DependencyContainer) {
         )
     }
 
+    // ADR 0015: an unusually large batch waits for the student's OK instead of flooding the calendar.
+    val pendingBulk by container.eventAgent.pendingBulkPush.collectAsState()
+    pendingBulk?.let { bulk ->
+        AlertDialog(
+            onDismissRequest = { container.eventAgent.discardBulkPush() },
+            title = { Text("Add ${bulk.events.size} events?") },
+            text = {
+                Text(
+                    "\"${bulk.sourceTitle}\" produced ${bulk.events.size} events, far more than a typical syllabus. " +
+                        "Add them to your calendar anyway?"
+                )
+            },
+            confirmButton = {
+                TextButton(onClick = { dateScope.launch { container.eventAgent.confirmBulkPush() } }) { Text("Add them") }
+            },
+            dismissButton = {
+                TextButton(onClick = { container.eventAgent.discardBulkPush() }) { Text("Don't add") }
+            }
+        )
+    }
+
+    // ADR 0015: after anything is auto-pushed, say what was added and offer a one-tap undo.
+    val pushSummary by container.eventAgent.lastPushSummary.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    LaunchedEffect(pushSummary) {
+        val summary = pushSummary ?: return@LaunchedEffect
+        val label = "Added ${summary.count} event${if (summary.count == 1) "" else "s"}"
+        val result = snackbarHostState.showSnackbar(label, actionLabel = "Undo", duration = SnackbarDuration.Long)
+        if (result == SnackbarResult.ActionPerformed) container.eventAgent.undoLastPush()
+        else container.eventAgent.dismissPushSummary()
+    }
+
     val globalHoldState by GeminiRetryService.globalHoldState.collectAsState()
 
     globalHoldState?.let { untilEpochMs ->
@@ -137,6 +173,7 @@ fun AppContent(container: DependencyContainer) {
     }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         // Explicit rather than relying on the Material3 default — makes the app's
         // edge-to-edge inset handling verifiable by tooling that scans for WindowInsets
         // usage, not just correct at runtime.

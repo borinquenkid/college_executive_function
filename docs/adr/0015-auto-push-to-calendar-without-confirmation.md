@@ -43,14 +43,21 @@ only place the auto-push now waits for the student. Headless paths (server, `Age
 held events are logged and not pushed there. The detector stays silent when it cannot pin the document's year
 (fewer than 3 agreeing weekday/date mentions or under 75% agreement).
 
-## Consequences / Follow-ups (not yet implemented)
+## Follow-ups (implemented 2026-11-11)
 
-Not found in this review (grep-level check only; verify before building):
+Both were run through the Clarify Protocol and chosen by Walter.
 
-- A post-push summary listing what was added, with a one-tap undo.
-- A per-source cap on events pushed, so an injected or malformed document cannot flood the calendar.
+- **Post-push summary with one-tap undo.** After a push adds events, a snackbar reads "Added N events" with an
+  Undo button (`EventAgent.lastPushSummary`, `undoLastPush`). The set of added events is the difference between
+  the calendar's event ids before and after the push, so undo removes exactly those and never an event that was
+  already there. The bookkeeping is best-effort and skipped for empty pushes, so it cannot change what a push does.
+- **Per-source cap.** A source that yields more than `MAX_EVENTS_PER_SOURCE` (150) events is not auto-pushed.
+  `DeliverableExtractor` returns them as `heldForSize`, and the student is asked "Add N events?" before anything
+  is written (`EventAgent.pendingBulkPush`, `confirmBulkPush`, `discardBulkPush`). Headless paths (server,
+  `AgentHarness`) have no dialog, so an over-cap batch is logged and not pushed there, same as the date holds.
 
-If either is wanted, run the Clarify Protocol before adding to `ROADMAP.md`.
+Not covered: undo reverses the local and remote calendar writes of the last push only; it does not restore events
+that a push overwrote or merged.
 
 ## Revisit triggers
 

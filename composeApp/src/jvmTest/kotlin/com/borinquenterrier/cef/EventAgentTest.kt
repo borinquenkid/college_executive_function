@@ -837,4 +837,61 @@ class HeadlessLogicTest : FunSpec({
 
         eventAgent.statusMessage.value shouldContain "already have study plans"
     }
+
+    // ── ADR 0015 follow-ups: undo and the per-source hold ─────────────────────
+
+    fun agentWith(calendar: CalendarAgent) =
+        EventAgent(mockk<AIService>(), calendar, null, NormalizationService(), logger = Logger(MapSettings()))
+
+    fun dayEvent(id: String) = DayEvent(
+        id = id, title = id, source = EventSource.AI_GENERATED,
+        category = AcademicCategory.DEADLINE, date = LocalDate(2026, 10, 15)
+    )
+
+    test("recording a push with added events exposes exactly those for undo") {
+        val agent = agentWith(mockk(relaxed = true))
+
+        agent.recordPush(listOf("new"))
+
+        agent.lastPushSummary.value?.addedIds shouldBe listOf("new")
+    }
+
+    test("undo deletes only what the last push added, then clears the summary") {
+        val calendar = mockk<CalendarAgent>(relaxed = true)
+        val agent = agentWith(calendar)
+        agent.recordPush(listOf("new"))
+
+        agent.undoLastPush()
+
+        coVerify(exactly = 1) { calendar.deleteEvent("new", "default") }
+        coVerify(exactly = 1) { calendar.deleteEvent(any(), any()) }
+        agent.lastPushSummary.value shouldBe null
+        agent.statusMessage.value shouldContain "Removed 1 event"
+    }
+
+    test("a push that added nothing leaves no undo summary") {
+        val agent = agentWith(mockk(relaxed = true))
+
+        agent.recordPush(emptyList())
+
+        agent.lastPushSummary.value shouldBe null
+    }
+
+    test("undo with no recorded push does nothing") {
+        val calendar = mockk<CalendarAgent>(relaxed = true)
+
+        agentWith(calendar).undoLastPush()
+
+        coVerify(exactly = 0) { calendar.deleteEvent(any(), any()) }
+    }
+
+    test("discarding a held bulk push drops it without touching the calendar") {
+        val calendar = mockk<CalendarAgent>(relaxed = true)
+        val agent = agentWith(calendar)
+
+        agent.discardBulkPush()
+
+        agent.pendingBulkPush.value shouldBe null
+        coVerify(exactly = 0) { calendar.saveEvent(any(), any()) }
+    }
 })

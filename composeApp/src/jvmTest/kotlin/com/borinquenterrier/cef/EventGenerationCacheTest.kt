@@ -47,7 +47,8 @@ class EventGenerationCacheTest : FunSpec({
             normalizationService = NormalizationService(),
             syllabusAuditor = mockk(relaxed = true),
             preferencesRepository = prefs,
-            cacheRepository = FakeCache()
+            cacheRepository = FakeCache(),
+            clock = FIXED_TEST_CLOCK
         )
 
         val first = runBlocking { svc.extractDeliverables(source) }
@@ -72,7 +73,8 @@ class EventGenerationCacheTest : FunSpec({
             normalizationService = NormalizationService(),
             syllabusAuditor = mockk(relaxed = true),
             preferencesRepository = prefs,
-            cacheRepository = FakeCache()
+            cacheRepository = FakeCache(),
+            clock = FIXED_TEST_CLOCK
         )
 
         runBlocking { svc.extractDeliverables(source) }  // populates the cache (no semester set)
@@ -99,7 +101,8 @@ class EventGenerationCacheTest : FunSpec({
             syllabusAuditor = auditor,
             preferencesRepository = prefs,
             cacheRepository = FakeCache(),
-            knownEvents = { listOf(calendarHoliday) }
+            knownEvents = { listOf(calendarHoliday) },
+            clock = FIXED_TEST_CLOCK
         )
         val math = SourceItem(
             title = "MATH4209.pdf",

@@ -107,7 +107,8 @@ class SourceFlowTest : FunSpec({
         eventGenerationService = EventGenerationService(
             mockAi,
             NormalizationService(),
-            SyllabusAuditor(mockAi, logger)
+            SyllabusAuditor(mockAi, logger),
+            clock = FIXED_TEST_CLOCK
         ),
         contextAgent = mockk(relaxed = true),
         logger = logger,
@@ -318,7 +319,8 @@ class SourceFlowTest : FunSpec({
         val adder = SourceAdder(
             aiService = mockAi,
             eventGenerationService = EventGenerationService(
-                mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger)
+                mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger),
+                clock = FIXED_TEST_CLOCK
             ),
             contextAgent = mockk(relaxed = true),
             logger = logger,
@@ -394,7 +396,8 @@ class SourceFlowTest : FunSpec({
         val adder = SourceAdder(
             aiService = mockAi,
             eventGenerationService = EventGenerationService(
-                mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger)
+                mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger),
+                clock = FIXED_TEST_CLOCK
             ),
             contextAgent = mockk(relaxed = true),
             logger = logger,
@@ -430,7 +433,8 @@ class SourceFlowTest : FunSpec({
         val adder = SourceAdder(
             aiService = mockAi,
             eventGenerationService = EventGenerationService(
-                mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger)
+                mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger),
+                clock = FIXED_TEST_CLOCK
             ),
             contextAgent = mockk(relaxed = true),
             logger = logger,

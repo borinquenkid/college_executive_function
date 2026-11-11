@@ -102,7 +102,8 @@ class PipelineMatrixTest : FunSpec({
         SourceAdder(
             aiService = mockAi,
             eventGenerationService = EventGenerationService(
-                mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger)
+                mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger),
+                clock = FIXED_TEST_CLOCK
             ),
             contextAgent = mockk(relaxed = true),
             logger = logger,
@@ -668,7 +669,7 @@ class PipelineMatrixTest : FunSpec({
 
             val a = SourceAdder(
                 aiService = mockAi,
-                eventGenerationService = EventGenerationService(mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger)),
+                eventGenerationService = EventGenerationService(mockAi, NormalizationService(), SyllabusAuditor(mockAi, logger), clock = FIXED_TEST_CLOCK),
                 contextAgent = mockk(relaxed = true),
                 logger = logger,
                 scope = testScope,

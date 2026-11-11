@@ -32,7 +32,8 @@ class EventGenerationServiceSemesterTest : FunSpec({
             aiService = ai,
             normalizationService = NormalizationService(),
             syllabusAuditor = mockk(relaxed = true),
-            preferencesRepository = prefsPort
+            preferencesRepository = prefsPort,
+            clock = FIXED_TEST_CLOCK
         )
     }
 

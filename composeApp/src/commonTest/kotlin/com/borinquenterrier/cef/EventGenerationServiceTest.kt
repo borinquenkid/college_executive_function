@@ -44,7 +44,7 @@ class EventGenerationServiceTest : FunSpec({
         coEvery { aiService.generateCalendarEvents(any()) } returns listOf(
             dayEvent("HW1"), dayEvent("HW2")
         )
-        val service = EventGenerationService(aiService, normalization, auditor)
+        val service = EventGenerationService(aiService, normalization, auditor, clock = FIXED_TEST_CLOCK)
 
         val events = service.extractDeliverables(syllabusSource())
         events shouldHaveSize 2
@@ -55,7 +55,7 @@ class EventGenerationServiceTest : FunSpec({
         val auditor = mockk<SyllabusAuditor>(relaxed = true)
         coEvery { auditor.audit(any()) } returns emptyList()
         coEvery { aiService.generateCalendarEvents(any()) } returns emptyList()
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         service.extractDeliverables(syllabusSource()).shouldBeEmpty()
     }
@@ -66,7 +66,7 @@ class EventGenerationServiceTest : FunSpec({
         coEvery { auditor.audit(any()) } returns emptyList()
         val event = dayEvent("Midterm")
         coEvery { aiService.generateCalendarEvents(any()) } returns listOf(event)
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val run1 = service.extractDeliverables(syllabusSource())
         val run2 = service.extractDeliverables(syllabusSource())
@@ -80,7 +80,7 @@ class EventGenerationServiceTest : FunSpec({
         coEvery { auditor.audit(any()) } returns emptyList()
         val duplicate = dayEvent("HW1")
         coEvery { aiService.generateCalendarEvents(any()) } returns listOf(duplicate, duplicate)
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val events = service.extractDeliverables(syllabusSource())
         events shouldHaveSize 1
@@ -91,7 +91,7 @@ class EventGenerationServiceTest : FunSpec({
         val auditor = mockk<SyllabusAuditor>(relaxed = true)
         coEvery { auditor.audit(any()) } returns listOf("No office hours listed", "Grading policy unclear")
         coEvery { aiService.generateCalendarEvents(any()) } returns listOf(dayEvent("HW1"))
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val events = service.extractDeliverables(syllabusSource())
         events[0].warning shouldContain "No office hours listed"
@@ -105,7 +105,7 @@ class EventGenerationServiceTest : FunSpec({
         coEvery { aiService.generateCalendarEvents(any()) } returns listOf(
             dayEvent("HW1", warning = "Date computed from week anchor")
         )
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val events = service.extractDeliverables(syllabusSource())
         events[0].warning shouldContain "Date computed from week anchor"
@@ -116,7 +116,7 @@ class EventGenerationServiceTest : FunSpec({
         val aiService = mockk<AIService>(relaxed = true)
         val auditor = mockk<SyllabusAuditor>(relaxed = true)
         coEvery { aiService.generateCalendarEvents(any()) } returns listOf(dayEvent("Holiday"))
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val events = service.extractDeliverables(calendarSource())
         events shouldHaveSize 1
@@ -139,7 +139,7 @@ class EventGenerationServiceTest : FunSpec({
             category = AcademicCategory.STUDY_BLOCK
         )
         coEvery { aiService.generateStudyPlan(any(), any(), any()) } returns listOf(midterm, studyBlock)
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         // Source references the deliverable's date so it grounds; the block then anchors to it.
         val result = service.generateStudyPlan(syllabusSource("PSYCH 101. Midterm October 12, 2025."), emptyList())
@@ -153,7 +153,7 @@ class EventGenerationServiceTest : FunSpec({
         val scheduleSlot = io.mockk.slot<String>()
         coEvery { aiService.generateStudyPlan(any(), capture(scheduleSlot), any()) } returns emptyList()
 
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
         val existing = listOf(dayEvent("Midterm", LocalDate(2025, 10, 15)))
         service.generateStudyPlan(syllabusSource(), existing)
 
@@ -166,7 +166,7 @@ class EventGenerationServiceTest : FunSpec({
         val aiService = mockk<AIService>(relaxed = true)
         val auditor = mockk<SyllabusAuditor>(relaxed = true)
         coEvery { aiService.generateStudyPlan(any(), any(), any()) } returns emptyList()
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         service.generateStudyPlan(syllabusSource(), emptyList()).grounded.shouldBeEmpty()
     }
@@ -185,7 +185,7 @@ class EventGenerationServiceTest : FunSpec({
         val fragments = (1..4).map { i ->
             SourceFragment("page $i content. Due Oct 1", pageNumber = i, type = SourceType.TEXT)
         }
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val events = service.extractDeliverables(syllabusSource(fragments = fragments))
 
@@ -202,7 +202,7 @@ class EventGenerationServiceTest : FunSpec({
         val fragments = (1..3).map { i ->
             SourceFragment("page $i. Due Oct 1", pageNumber = i, type = SourceType.TEXT)
         }
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         service.extractDeliverables(syllabusSource(fragments = fragments))
 
@@ -218,7 +218,7 @@ class EventGenerationServiceTest : FunSpec({
         val fragments = (1..5).map { i ->
             SourceFragment("event $i", pageNumber = i, type = SourceType.CALENDAR)
         }
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         service.extractDeliverables(syllabusSource(fragments = fragments))
 
@@ -256,7 +256,7 @@ class EventGenerationServiceTest : FunSpec({
             SourceFragment("filler page 3", pageNumber = 3, type = SourceType.TEXT),
             SourceFragment("Wk 3 (Sept 8): Test 1. Wk 5 (Sept 22): Test 2.", pageNumber = 4, type = SourceType.TEXT)
         )
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val events = service.extractDeliverables(syllabusSource(fragments = fragments))
 
@@ -271,7 +271,7 @@ class EventGenerationServiceTest : FunSpec({
             dayEvent("Real Midterm", date = LocalDate(2026, 10, 14)),
             dayEvent("Confabulated Event", date = LocalDate(2099, 1, 1))
         )
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val events = service.extractDeliverables(syllabusSource(text = "Fall 2026 Syllabus. Midterm Oct 14"))
 
@@ -288,7 +288,7 @@ class EventGenerationServiceTest : FunSpec({
         val fragments = (1..4).map { i ->
             SourceFragment("page $i", pageNumber = i, type = SourceType.TEXT)
         }
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val messages = mutableListOf<String>()
         service.extractDeliverables(syllabusSource(fragments = fragments)) { messages.add(it) }
@@ -306,7 +306,7 @@ class EventGenerationServiceTest : FunSpec({
         val fragments = (1..4).map { i ->
             SourceFragment("event $i", pageNumber = i, type = SourceType.TEXT)
         }
-        val service = EventGenerationService(aiService, NormalizationService(), auditor)
+        val service = EventGenerationService(aiService, NormalizationService(), auditor, clock = FIXED_TEST_CLOCK)
 
         val messages = mutableListOf<String>()
         service.extractDeliverables(calendarSource().copy(fragments = fragments)) { messages.add(it) }

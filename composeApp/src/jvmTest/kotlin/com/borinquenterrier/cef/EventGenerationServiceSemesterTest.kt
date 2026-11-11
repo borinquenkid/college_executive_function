@@ -2,6 +2,7 @@ package com.borinquenterrier.cef
 
 import io.kotest.core.spec.style.FunSpec
 import io.kotest.matchers.collections.shouldContainExactlyInAnyOrder
+import io.kotest.matchers.shouldBe
 import io.mockk.coEvery
 import io.mockk.mockk
 import kotlinx.coroutines.runBlocking
@@ -52,5 +53,19 @@ class EventGenerationServiceSemesterTest : FunSpec({
         val result = runBlocking { svc.extractDeliverables(source) }
         result.map { it.title } shouldContainExactlyInAnyOrder
             listOf("In-term deadline", "Out-of-term deadline")
+    }
+
+    test("extractWithOutcome reports how many events the window dropped") {
+        val svc = service(StudyPreferences(semesterStart = "2026-06-01", semesterEnd = "2026-08-01"))
+        val outcome = runBlocking { svc.extractWithOutcome(source) }
+        outcome.events.map { it.title } shouldContainExactlyInAnyOrder listOf("In-term deadline")
+        outcome.outsideWindow shouldBe 1
+        outcome.window shouldBe (LocalDate(2026, 6, 1) to LocalDate(2026, 8, 1))
+    }
+
+    test("no semester configured → nothing dropped and no window reported") {
+        val outcome = runBlocking { service(StudyPreferences()).extractWithOutcome(source) }
+        outcome.outsideWindow shouldBe 0
+        outcome.window shouldBe null
     }
 })

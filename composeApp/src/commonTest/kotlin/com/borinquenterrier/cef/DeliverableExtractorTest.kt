@@ -32,7 +32,7 @@ class DeliverableExtractorTest : FunSpec({
     test("events returned by service are in result") {
         val service = mockk<EventGenerationService>(relaxed = true)
         val events = listOf(dayEvent("Essay"), dayEvent("Quiz"))
-        coEvery { service.extractDeliverables(any(), any()) } returns events
+        coEvery { service.extractWithOutcome(any(), any()) } returns ExtractionOutcome(events)
 
         val result = makeExtractor(service).run(source(), calendarId)
 
@@ -54,7 +54,7 @@ class DeliverableExtractorTest : FunSpec({
             category = AcademicCategory.DEADLINE, date = LocalDate(2026, 11, 20)
         )
         val service = mockk<EventGenerationService>(relaxed = true)
-        coEvery { service.extractDeliverables(any(), any()) } returns listOf(dayEvent("Speech 1"), speech)
+        coEvery { service.extractWithOutcome(any(), any()) } returns ExtractionOutcome(listOf(dayEvent("Speech 1"), speech))
 
         val result = makeExtractor(service).run(src, calendarId)
 
@@ -68,7 +68,7 @@ class DeliverableExtractorTest : FunSpec({
 
     test("empty events produces warning about no events found") {
         val service = mockk<EventGenerationService>(relaxed = true)
-        coEvery { service.extractDeliverables(any(), any()) } returns emptyList()
+        coEvery { service.extractWithOutcome(any(), any()) } returns ExtractionOutcome(emptyList())
 
         val result = makeExtractor(service).run(source("ComplianceSyllabus"), calendarId)
 
@@ -82,7 +82,7 @@ class DeliverableExtractorTest : FunSpec({
 
     test("fewer than 5 events with SourceCategory.OTHER produces low-count warning") {
         val service = mockk<EventGenerationService>(relaxed = true)
-        coEvery { service.extractDeliverables(any(), any()) } returns listOf(dayEvent("Essay"), dayEvent("Quiz"))
+        coEvery { service.extractWithOutcome(any(), any()) } returns ExtractionOutcome(listOf(dayEvent("Essay"), dayEvent("Quiz")))
 
         val result = makeExtractor(service).run(source(cat = SourceCategory.OTHER), calendarId)
 
@@ -92,7 +92,7 @@ class DeliverableExtractorTest : FunSpec({
 
     test("fewer than 5 events with SYLLABUS category produces no warning") {
         val service = mockk<EventGenerationService>(relaxed = true)
-        coEvery { service.extractDeliverables(any(), any()) } returns listOf(dayEvent("Essay"))
+        coEvery { service.extractWithOutcome(any(), any()) } returns ExtractionOutcome(listOf(dayEvent("Essay")))
 
         val result = makeExtractor(service).run(source(cat = SourceCategory.SYLLABUS), calendarId)
 
@@ -101,12 +101,63 @@ class DeliverableExtractorTest : FunSpec({
 
     test("5 or more events with OTHER category produces no warning") {
         val service = mockk<EventGenerationService>(relaxed = true)
-        coEvery { service.extractDeliverables(any(), any()) } returns
-            List(5) { dayEvent("Event $it") }
+        coEvery { service.extractWithOutcome(any(), any()) } returns
+            ExtractionOutcome(List(5) { dayEvent("Event $it") })
 
         val result = makeExtractor(service).run(source(cat = SourceCategory.OTHER), calendarId)
 
         result.warning shouldBe null
+    }
+
+    // ── Events dropped by the semester window are reported, not silent ────────
+
+    val window = LocalDate(2026, 6, 1) to LocalDate(2026, 8, 31)
+
+    test("events dropped by the semester window produce a warning naming the window") {
+        val service = mockk<EventGenerationService>(relaxed = true)
+        coEvery { service.extractWithOutcome(any(), any()) } returns
+            ExtractionOutcome(listOf(dayEvent("Essay")), outsideWindow = 31, window = window)
+
+        val result = makeExtractor(service).run(source(), calendarId)
+
+        result.warning!! shouldContain "31 events fall outside your semester window"
+        result.warning!! shouldContain "2026-06-01 to 2026-08-31"
+        result.events shouldHaveSize 1
+    }
+
+    test("a single dropped event uses singular wording") {
+        val service = mockk<EventGenerationService>(relaxed = true)
+        coEvery { service.extractWithOutcome(any(), any()) } returns
+            ExtractionOutcome(listOf(dayEvent("Essay")), outsideWindow = 1, window = window)
+
+        makeExtractor(service).run(source(), calendarId).warning!! shouldContain "1 event falls outside"
+    }
+
+    test("when the window removed everything the warning says so instead of 'no events found'") {
+        val service = mockk<EventGenerationService>(relaxed = true)
+        coEvery { service.extractWithOutcome(any(), any()) } returns
+            ExtractionOutcome(emptyList(), outsideWindow = 33, window = window)
+
+        val result = makeExtractor(service).run(source(), calendarId)
+
+        result.warning!! shouldContain "33 events fall outside your semester window"
+        (result.warning!!.contains("No events found")) shouldBe false
+    }
+
+    test("window note is appended to an existing low-count warning") {
+        val service = mockk<EventGenerationService>(relaxed = true)
+        coEvery { service.extractWithOutcome(any(), any()) } returns
+            ExtractionOutcome(listOf(dayEvent("Essay")), outsideWindow = 4, window = window)
+
+        val w = makeExtractor(service).run(source(cat = SourceCategory.OTHER), calendarId).warning!!
+
+        w shouldContain "Only 1 event(s)"
+        w shouldContain "4 events fall outside"
+    }
+
+    test("nothing dropped, or no window known, adds no window note") {
+        makeExtractor().outsideWindowNote(ExtractionOutcome(emptyList(), outsideWindow = 0, window = window)) shouldBe null
+        makeExtractor().outsideWindowNote(ExtractionOutcome(emptyList(), outsideWindow = 5, window = null)) shouldBe null
     }
 
     // ── Progress callback ─────────────────────────────────────────────────────
@@ -114,11 +165,11 @@ class DeliverableExtractorTest : FunSpec({
     test("onProgress callback receives messages from service") {
         val service = mockk<EventGenerationService>(relaxed = true)
         val progressMessages = mutableListOf<String>()
-        coEvery { service.extractDeliverables(any(), captureLambda()) } answers {
+        coEvery { service.extractWithOutcome(any(), captureLambda()) } answers {
             val cb = secondArg<(String) -> Unit>()
             cb("Batch 1 of 2")
             cb("Batch 2 of 2")
-            listOf(dayEvent("Essay"))
+            ExtractionOutcome(listOf(dayEvent("Essay")))
         }
 
         makeExtractor(service, onProgress = { progressMessages += it }).run(source(), calendarId)

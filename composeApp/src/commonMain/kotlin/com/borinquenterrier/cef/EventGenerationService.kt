@@ -1,11 +1,19 @@
 package com.borinquenterrier.cef
 
 import kotlin.time.Clock
+import kotlinx.datetime.LocalDate
 import kotlinx.datetime.TimeZone
 import kotlinx.datetime.todayIn
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import okio.ByteString.Companion.encodeUtf8
+
+/** Extraction result: the events to use, plus how many the semester [window] dropped as out of term. */
+data class ExtractionOutcome(
+    val events: List<Event>,
+    val outsideWindow: Int = 0,
+    val window: Pair<LocalDate, LocalDate>? = null
+)
 
 /**
  * Generates candidate calendar events from a source via AI — either deliverables
@@ -52,7 +60,17 @@ class EventGenerationService(
     suspend fun extractDeliverables(
         source: SourceItem,
         onProgress: ((message: String) -> Unit)? = null
-    ): List<Event> = AppTracer.current.span(
+    ): List<Event> = extractWithOutcome(source, onProgress).events
+
+    /**
+     * Same extraction as [extractDeliverables], plus how many events the semester window dropped, so the
+     * caller can tell the student (a fall syllabus added during a summer window otherwise loses its events
+     * with no explanation).
+     */
+    suspend fun extractWithOutcome(
+        source: SourceItem,
+        onProgress: ((message: String) -> Unit)? = null
+    ): ExtractionOutcome = AppTracer.current.span(
         "events.extract_deliverables",
         mapOf("source.title_hash" to TelemetryIdHasher.hash(source.title), "source.category" to source.category.name)
     ) {
@@ -160,7 +178,10 @@ class EventGenerationService(
         // semester filter, so a config change is reflected on the next call without a re-run.
         writeCachedEvents(cacheKey, withWarnings)
 
-        finish(withWarnings, source, prefs).also { setAttribute("events.extracted_count", it.size.toLong()) }
+        finish(withWarnings, source, prefs).also {
+            setAttribute("events.extracted_count", it.events.size.toLong())
+            setAttribute("events.dropped_outside_window", it.outsideWindow.toLong())
+        }
     }
 
     /**
@@ -168,7 +189,7 @@ class EventGenerationService(
      * without the source changing (the semester window, other loaded sources), so they must never be
      * baked into the cached result.
      */
-    private suspend fun finish(events: List<Event>, source: SourceItem, prefs: StudyPreferences): List<Event> {
+    private suspend fun finish(events: List<Event>, source: SourceItem, prefs: StudyPreferences): ExtractionOutcome {
         val window = SemesterFilter.window(prefs)
         val text = source.fragments.joinToString("\n") { it.text }
         // Other sources are read only when there is a meeting pattern to apply.
@@ -183,7 +204,12 @@ class EventGenerationService(
         // pushed to the calendar — not just hidden in the view.
         // Tag with the originating source so deleting that source removes its events and the
         // reconciler can spot orphans (events whose source no longer exists).
-        return SemesterFilter.apply(withMeetings, window).map { it.withSourceId(source.title) }
+        val inWindow = SemesterFilter.apply(withMeetings, window)
+        return ExtractionOutcome(
+            events = inWindow.map { it.withSourceId(source.title) },
+            outsideWindow = withMeetings.size - inWindow.size,
+            window = window
+        )
     }
 
     private fun generationCacheKey(fragments: List<SourceFragment>): String =

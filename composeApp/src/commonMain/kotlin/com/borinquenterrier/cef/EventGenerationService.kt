@@ -87,92 +87,13 @@ class EventGenerationService(
         setAttribute("events.cache_hit", "false")
 
         val syllabusText = source.fragments.joinToString("\n\n") { it.text }
-        val auditWarnings = if (source.category == SourceCategory.SYLLABUS) {
-            onProgress?.invoke("Auditing source for ambiguities...")
-            syllabusAuditor.audit(syllabusText)
-        } else {
-            emptyList()
-        }
-
-        val fragments = source.fragments
-        val isText = fragments.firstOrNull()?.type == SourceType.TEXT
-        val batches = if (isText && fragments.size > SourceFragmentBatcher.BATCH_SIZE) {
-            SourceFragmentBatcher.batch(fragments)
-        } else {
-            listOf(fragments)
-        }
-
+        val auditWarnings = auditFor(source, syllabusText, onProgress)
+        val batches = batchesFor(source.fragments)
         setAttribute("source.batch_count", batches.size.toLong())
-        val allEvents = mutableListOf<Event>()
-        batches.forEachIndexed { i, batch ->
-            val pageRange = batch.mapNotNull { it.pageNumber }
-            val pageLabel = if (pageRange.isNotEmpty()) {
-                "pages ${pageRange.min()}–${pageRange.max()}"
-            } else {
-                "section ${i + 1}"
-            }
-            onProgress?.invoke("Extracting events from $pageLabel (${i + 1}/${batches.size})...")
-            allEvents.addAll(aiService.generateCalendarEvents(batch))
-        }
-
-        // Year-level confabulation check, run once against the FULL document text — not per
-        // batch. A batch's own text can easily lack the document's year (e.g. a batch holding a
-        // weekly test schedule but not the syllabus header), which would false-drop real events
-        // if grounded against only that batch. See GroundingGuardAIService's kdoc.
-        val documentSourceYears = GeminiAIService.extractSourceYears(syllabusText)
-        // First recover the off-by-one year confabulation (year-less schedule dates inferred
-        // into the wrong-but-adjacent year) deterministically, then drop whatever remains
-        // ungrounded. See GeminiResponseParser.remapOffByOneYears.
-        val remapped = GeminiAIService.remapOffByOneYears(allEvents, documentSourceYears)
-        setAttribute("events.remapped_off_by_one_years",
-            remapped.zip(allEvents).count { (after, before) -> after !== before }.toLong())
-        val grounded = GeminiAIService.filterToSourceYears(remapped, documentSourceYears)
-        setAttribute("events.dropped_ungrounded_years", (remapped.size - grounded.size).toLong())
-
-        // Stray-year guesses survive the filter above when the source states no year at all.
-        val yearConsistent = GeminiResponseParser.keepDominantYearWhenUngrounded(grounded, documentSourceYears)
-        // A syllabus with nothing datable in it (e.g. a phase/points handout) cannot ground any
-        // event — whatever the model returned there is invented.
-        val evidenced = if (source.category == SourceCategory.SYLLABUS &&
-            !SourceDateEvidence.hasDatableContent(syllabusText)
-        ) emptyList() else yearConsistent
-        setAttribute("events.dropped_no_date_evidence", (yearConsistent.size - evidenced.size).toLong())
-        // The prompt carries "Today's Date"; undatable items tend to land on it.
-        val today = clock.todayIn(TimeZone.currentSystemDefault())
-        val notDefaultedToToday = SourceDateEvidence.dropUnmentionedToday(evidenced, syllabusText, today)
-        setAttribute("events.dropped_defaulted_to_today", (evidenced.size - notDefaultedToToday.size).toLong())
-
-        // Syllabi state their meeting pattern outright — fill any class dates the per-date LLM
-        // tagging missed before normalize() so synthesized events get the same dedup/ID/timestamp
-        // treatment as extracted ones.
-        val reconciled = if (source.category == SourceCategory.SYLLABUS) {
-            val inTerm = MeetingScheduleApplier.dropClassesOutsideOwnTerm(notDefaultedToToday)
-            setAttribute("events.dropped_classes_outside_term", (notDefaultedToToday.size - inTerm.size).toLong())
-            val filled = ClassMeetingReconciler.fillMissedMeetings(inTerm)
-            setAttribute("events.class_meetings_inferred", (filled.size - inTerm.size).toLong())
-            filled
-        } else {
-            notDefaultedToToday
-        }
-
-        val normalized = normalize(reconciled)
-
-        val withWarnings = if (auditWarnings.isNotEmpty()) {
-            val combinedWarning = auditWarnings.joinToString("; ")
-            normalized.map { event ->
-                val newWarning = if (event.warning != null) {
-                    "${event.warning}; $combinedWarning"
-                } else {
-                    combinedWarning
-                }
-                when (event) {
-                    is TimeEvent -> event.copy(warning = newWarning)
-                    is DayEvent -> event.copy(warning = newWarning)
-                }
-            }
-        } else {
-            normalized
-        }
+        val allEvents = generateAll(batches, onProgress)
+        val dated = groundEvents(allEvents, source, syllabusText)
+        val normalized = normalize(reconcileMeetings(dated, source))
+        val withWarnings = withAuditWarnings(normalized, auditWarnings)
 
         // Cache the content-deterministic result (post-normalize, incl. audit warnings) BEFORE the
         // semester filter, so a config change is reflected on the next call without a re-run.
@@ -181,6 +102,79 @@ class EventGenerationService(
         finish(withWarnings, source, prefs).also {
             setAttribute("events.extracted_count", it.events.size.toLong())
             setAttribute("events.dropped_outside_window", it.outsideWindow.toLong())
+        }
+    }
+
+    private suspend fun auditFor(source: SourceItem, syllabusText: String, onProgress: ((String) -> Unit)?): List<String> {
+        if (source.category != SourceCategory.SYLLABUS) return emptyList()
+        onProgress?.invoke("Auditing source for ambiguities...")
+        return syllabusAuditor.audit(syllabusText)
+    }
+
+    private fun batchesFor(fragments: List<SourceFragment>): List<List<SourceFragment>> {
+        val isText = fragments.firstOrNull()?.type == SourceType.TEXT
+        return if (isText && fragments.size > SourceFragmentBatcher.BATCH_SIZE) SourceFragmentBatcher.batch(fragments)
+        else listOf(fragments)
+    }
+
+    private suspend fun generateAll(batches: List<List<SourceFragment>>, onProgress: ((String) -> Unit)?): List<Event> =
+        batches.flatMapIndexed { i, batch ->
+            val pages = batch.mapNotNull { it.pageNumber }
+            val label = if (pages.isNotEmpty()) "pages ${pages.min()}–${pages.max()}" else "section ${i + 1}"
+            onProgress?.invoke("Extracting events from $label (${i + 1}/${batches.size})...")
+            aiService.generateCalendarEvents(batch)
+        }
+
+    /**
+     * Year-level confabulation checks, run once against the FULL document text, not per batch. A batch's own
+     * text can easily lack the document's year (e.g. a batch holding a weekly test schedule but not the
+     * syllabus header), which would false-drop real events if grounded against only that batch. See
+     * GroundingGuardAIService's kdoc. Order: recover the off-by-one year, drop what stays ungrounded, keep the
+     * dominant year when the source states none, drop everything for a source with nothing datable, then drop
+     * undatable items that landed on today's date.
+     */
+    private fun SpanScope.groundEvents(allEvents: List<Event>, source: SourceItem, syllabusText: String): List<Event> {
+        val years = GeminiAIService.extractSourceYears(syllabusText)
+        val remapped = GeminiAIService.remapOffByOneYears(allEvents, years)
+        setAttribute("events.remapped_off_by_one_years",
+            remapped.zip(allEvents).count { (after, before) -> after !== before }.toLong())
+        val grounded = GeminiAIService.filterToSourceYears(remapped, years)
+        setAttribute("events.dropped_ungrounded_years", (remapped.size - grounded.size).toLong())
+        val yearConsistent = GeminiResponseParser.keepDominantYearWhenUngrounded(grounded, years)
+        // A syllabus with nothing datable in it (e.g. a phase/points handout) cannot ground any event.
+        val evidenced = if (source.category == SourceCategory.SYLLABUS &&
+            !SourceDateEvidence.hasDatableContent(syllabusText)
+        ) emptyList() else yearConsistent
+        setAttribute("events.dropped_no_date_evidence", (yearConsistent.size - evidenced.size).toLong())
+        // The prompt carries "Today's Date"; undatable items tend to land on it.
+        val today = clock.todayIn(TimeZone.currentSystemDefault())
+        val notDefaultedToToday = SourceDateEvidence.dropUnmentionedToday(evidenced, syllabusText, today)
+        setAttribute("events.dropped_defaulted_to_today", (evidenced.size - notDefaultedToToday.size).toLong())
+        return notDefaultedToToday
+    }
+
+    /**
+     * Syllabi state their meeting pattern outright: fill any class dates the per-date LLM tagging missed before
+     * normalize(), so synthesized events get the same dedup/ID/timestamp treatment as extracted ones.
+     */
+    private fun SpanScope.reconcileMeetings(events: List<Event>, source: SourceItem): List<Event> {
+        if (source.category != SourceCategory.SYLLABUS) return events
+        val inTerm = MeetingScheduleApplier.dropClassesOutsideOwnTerm(events)
+        setAttribute("events.dropped_classes_outside_term", (events.size - inTerm.size).toLong())
+        val filled = ClassMeetingReconciler.fillMissedMeetings(inTerm)
+        setAttribute("events.class_meetings_inferred", (filled.size - inTerm.size).toLong())
+        return filled
+    }
+
+    private fun withAuditWarnings(events: List<Event>, auditWarnings: List<String>): List<Event> {
+        if (auditWarnings.isEmpty()) return events
+        val combined = auditWarnings.joinToString("; ")
+        return events.map { event ->
+            val warning = event.warning?.let { "$it; $combined" } ?: combined
+            when (event) {
+                is TimeEvent -> event.copy(warning = warning)
+                is DayEvent -> event.copy(warning = warning)
+            }
         }
     }
 

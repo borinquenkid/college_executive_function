@@ -19,7 +19,12 @@ import kotlinx.coroutines.delay
 import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlin.time.Clock
+import kotlinx.datetime.DatePeriod
 import kotlinx.datetime.LocalDate
+import kotlinx.datetime.TimeZone
+import kotlinx.datetime.plus
+import kotlinx.datetime.todayIn
 
 /**
  * Parametric matrix test for the source-to-calendar pipeline.
@@ -649,10 +654,15 @@ class PipelineMatrixTest : FunSpec({
             val agent = EventAgent(mockAi, CalendarAgent(lr, remote, logger), database, logger = logger)
 
             // Load 3 docs: each produces one event
+            // Clock-relative: a fixed near-future date goes stale (today is dropped as "defaulted to today").
+            val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+            val csDate = today.plus(DatePeriod(days = 36))
+            val mathDate = today.plus(DatePeriod(days = 7))
+            val historyDate = today.plus(DatePeriod(days = 22))
             val events = listOf(
-                day("CS Final Exam",       LocalDate(2026, 12, 15)),
-                day("Math Midterm",        LocalDate(2026, 11, 10)),
-                day("History Essay Due",   LocalDate(2026, 12, 1))
+                day("CS Final Exam",       csDate),
+                day("Math Midterm",        mathDate),
+                day("History Essay Due",   historyDate)
             )
             coEvery { mockAi.generateCalendarEvents(any()) } returnsMany events.map { listOf(it) }
 
@@ -671,9 +681,9 @@ class PipelineMatrixTest : FunSpec({
                 },
                 onError = { agent.reportError(it) }
             )
-            a.addSource(source("CS Syllabus",      "CS final 2026-12-15."))
-            a.addSource(source("Math Syllabus",    "Math midterm 2026-11-10."))
-            a.addSource(source("History Syllabus", "History essay 2026-12-01."))
+            a.addSource(source("CS Syllabus",      "CS final $csDate."))
+            a.addSource(source("Math Syllabus",    "Math midterm $mathDate."))
+            a.addSource(source("History Syllabus", "History essay $historyDate."))
 
             withTimeout(10_000) { agent.lastGeneratedEvents.first { it.size >= 3 } }
             agent.isLoading.value shouldBe false // publish button should be enabled

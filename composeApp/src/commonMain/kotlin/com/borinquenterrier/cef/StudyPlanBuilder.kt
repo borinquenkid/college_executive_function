@@ -12,8 +12,6 @@ import kotlinx.datetime.todayIn
  */
 object StudyPlanBuilder {
 
-    private val currentYear = Clock.System.todayIn(TimeZone.currentSystemDefault()).year
-
     private fun formatHour(hour: Int): String {
         val amPm = if (hour >= 12) "PM" else "AM"
         val displayHour = when {
@@ -27,8 +25,10 @@ object StudyPlanBuilder {
     fun getSyllabusStudyPlanPrompt(
         syllabusText: String,
         existingSchedule: String = "",
-        preferences: StudyPreferences = StudyPreferences()
+        preferences: StudyPreferences = StudyPreferences(),
+        clock: Clock = Clock.System
     ): String {
+        val currentYear = clock.todayIn(TimeZone.currentSystemDefault()).year
         return """
             # MEMORANDUM BRIEF: STUDY PLAN AND DELIVERABLE EXTRACTION
 
@@ -142,9 +142,10 @@ object StudyPlanBuilder {
     fun getTaskDecompositionPrompt(
         taskTitle: String,
         dueDate: String,
-        context: String = ""
+        context: String = "",
+        clock: Clock = Clock.System
     ): String {
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val today = clock.todayIn(TimeZone.currentSystemDefault())
         val due = LocalDate.parse(dueDate)
         val daysAvailable = today.daysUntil(due).coerceAtLeast(0)
 
@@ -227,9 +228,10 @@ object StudyPlanBuilder {
         taskTitle: String,
         dueDate: String,
         tasksJson: String,
-        sourceContext: String = ""
+        sourceContext: String = "",
+        clock: Clock = Clock.System
     ): String {
-        val today = Clock.System.todayIn(TimeZone.currentSystemDefault())
+        val today = clock.todayIn(TimeZone.currentSystemDefault())
         val due = runCatching { LocalDate.parse(dueDate) }.getOrNull()
         val daysAvailable = due?.let { today.daysUntil(it).coerceAtLeast(0) } ?: 30
 

@@ -203,7 +203,7 @@ class CalendarAgent(
         AppTracer.current.span("calendar.reconcile_apply") {
             val toDelete = report.duplicatesToDelete + report.outOfSemesterToDelete + report.orphansToDelete
             toDelete.forEach { event -> event.id?.let { persistence.delete(it, calendarId) } }
-            val now = Clock.System.now().toEpochMilliseconds()
+            val now = clock.now().toEpochMilliseconds()
             report.timestampsToStamp.forEach { event ->
                 persistence.update(event.withUpdatedAt(now), calendarId)
             }

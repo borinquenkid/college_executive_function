@@ -9,7 +9,8 @@ import kotlinx.serialization.json.Json
 
 class SqlDelightLocalCalendarRepository(
     private val database: AppDatabase,
-    private val settings: Settings? = null
+    private val settings: Settings? = null,
+    private val clock: Clock = Clock.System
 ) : StudentCalendarRepository {
 
     private val json = Json { ignoreUnknownKeys = true }
@@ -36,7 +37,7 @@ class SqlDelightLocalCalendarRepository(
 
         database.appDatabaseQueries.insertEvent(
             id = event.id ?: "${
-                Clock.System.now().toEpochMilliseconds()
+                clock.now().toEpochMilliseconds()
             }-${(0..999999999).random()}",
             title = event.title,
             source = event.source.name,
@@ -60,7 +61,7 @@ class SqlDelightLocalCalendarRepository(
 
     override suspend fun deleteEvent(eventId: String, calendarId: String) {
         database.appDatabaseQueries.markAsDeleted(
-            updatedAt = Clock.System.now().toEpochMilliseconds(),
+            updatedAt = clock.now().toEpochMilliseconds(),
             id = eventId
         )
     }

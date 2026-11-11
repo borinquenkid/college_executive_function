@@ -24,7 +24,8 @@ class SourceAdder(
     private val sourceRepository: SourceRepository,
     private val onEventsAdded: (List<Event>) -> Unit = {},
     private val onError: (AgentError) -> Unit = {},
-    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp
+    private val preferencesRepository: PreferencesPort = PreferencesPort.NoOp,
+    private val clock: Clock = Clock.System
 ) {
     private val processingMutex = Mutex()
 
@@ -105,14 +106,14 @@ class SourceAdder(
                     sourceHash = hash,
                     cachedEventsJson = eventsJson,
                     cachedMetadataJson = metadataJson,
-                    createdAt = Clock.System.now().toEpochMilliseconds()
+                    createdAt = clock.now().toEpochMilliseconds()
                 )
             )
         }
     }
 
     private fun isCacheStale(cached: CachedAnalysis): Boolean {
-        val ageMs = Clock.System.now().toEpochMilliseconds() - cached.createdAt
+        val ageMs = clock.now().toEpochMilliseconds() - cached.createdAt
         return ageMs > CACHE_TTL_MS
     }
 

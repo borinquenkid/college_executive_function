@@ -172,19 +172,25 @@ class StlccIntegrationTest : FunSpec({
             duplicates.isEmpty() shouldBe true
         }
 
-        // ── 2. At least 16 distinct class dates ──────────────────────────────
-        // The document has Mon + Wed sessions for all 8 weeks = 16 unique dates.
+        // ── 2. Exactly 15 distinct class dates ───────────────────────────────
+        // The document lists Mon + Wed sessions for all 8 weeks = 16 dates, but the last one
+        // (Wed Jul 29) is an "Optional Final Paper Help Session". Optional sessions are not
+        // extracted (EventBuilder prompt rule, commit 1893e00), so 15 required dates remain.
         // The AI may split compound sessions (e.g. "Assign IB#2 & watch video") into
         // two CLASS events on the same date — we count distinct dates, not raw events.
         val classEvents = events.filter { it.category == AcademicCategory.CLASS }
         val classDateCount = classEvents.map { it.date }.distinct().size
         withClue(
-            "Expected at least 16 distinct class dates (Mon+Wed × 8 weeks), got $classDateCount.\n" +
+            "Expected 15 distinct class dates (Mon+Wed × 8 weeks, minus the optional Jul 29 session), " +
+            "got $classDateCount.\n" +
             "All categories: ${events.groupBy { it.category }.mapValues { it.value.size }}\n" +
             "Class events found: ${classEvents.map { "${it.date} ${it.title}" }}"
         ) {
-            classDateCount shouldBeGreaterThan 15
-            classDateCount shouldBeLessThan 18  // no phantom extra weeks
+            classDateCount shouldBe 15
+        }
+        val optionalSessions = events.filter { it.title.contains("optional", ignoreCase = true) }
+        withClue("Optional sessions must not be extracted, found: ${optionalSessions.map { "${it.date} ${it.title}" }}") {
+            optionalSessions.isEmpty() shouldBe true
         }
 
         // ── 3. All 4 graded assignments present with correct dates ─────────────
@@ -222,7 +228,7 @@ class StlccIntegrationTest : FunSpec({
         }
 
         // ── 5. Total event count is in a sane range ───────────────────────────
-        // Minimum 36 = 16 class dates + 20 graded/activity events.
+        // Minimum 36 = 15 class dates + 21 graded/activity events.
         // AI may split compound sessions into multiple CLASS events (+3–5 typical).
         // Over 55 means structural duplicates or hallucinated weeks are slipping through.
         withClue(

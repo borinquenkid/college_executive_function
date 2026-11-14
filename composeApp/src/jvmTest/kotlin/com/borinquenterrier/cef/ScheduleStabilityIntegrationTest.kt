@@ -16,6 +16,14 @@ import kotlin.time.Duration.Companion.milliseconds
  * its own 1/13 event on one run and merged into "Lecture … / Lab 1 …" @ 1/12 on the next
  * (2026-09-29). Invariants are taken from the syllabus rows and must hold on EVERY run.
  */
+/**
+ * True when one event title carries both a lecture row and a lab row. The lecture row is recognised
+ * by its "Lecture:" label, not the bare word: the Lab 14 row's own reading is "Phylogenetics: Lecture
+ * Slides", and matching "Lecture" alone flagged that correctly dated lab event on most red nightlies.
+ */
+internal fun isMergedLectureLab(title: String): Boolean =
+    Regex("""\bLecture:""").containsMatchIn(title) && Regex("""\bLab \d+:""").containsMatchIn(title)
+
 class ScheduleStabilityIntegrationTest : FunSpec({
 
     val runs = 3
@@ -61,7 +69,7 @@ class ScheduleStabilityIntegrationTest : FunSpec({
             val events = eventAgent.lastGeneratedEvents.value
             println("run ${run + 1}: ${events.size} events")
 
-            events.filter { it.title.contains("Lecture") && Regex("""\bLab \d+:""").containsMatchIn(it.title) }
+            events.filter { isMergedLectureLab(it.title) }
                 .forEach { violations += "run ${run + 1}: merged lecture+lab '${it.title}' @ ${it.date}" }
             for ((label, allowed) in labDates) {
                 events.filter { it.title.contains(label) && it.date !in allowed }

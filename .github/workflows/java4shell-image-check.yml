@@ -1,0 +1,72 @@
+name: Java4Shell fixed-image check
+
+# TEMPORARY — delete this workflow and scripts/check-java4shell-fixed.sh once server/Dockerfile is
+# pinned to a JDK image with the CVE-2026-114938 ("Java4Shell") fix.
+#
+# server/Dockerfile runs the JVM with -XX:-UseBASE64Intrinsics as a workaround because the
+# eclipse-temurin:21-jre image was still on a vulnerable build (21.0.13+9) on 2026-11-18. Once a
+# day this pulls that image and checks the real `java -version` inside it. When every production
+# image is on a fixed build it opens ONE issue listing the follow-up; until then it stays green
+# and silent. A red run means the check itself broke.
+on:
+  schedule:
+    - cron: '30 7 * * *' # 07:30 UTC daily
+  workflow_dispatch: {}
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  check:
+    name: Check production JDK image for the Java4Shell fix
+    runs-on: ubuntu-latest
+    env:
+      ISSUE_TITLE: 'Java4Shell (CVE-2026-114938): fixed JDK image is available — pin it and remove the workaround'
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Check production images
+        id: check
+        run: |
+          set +e
+          ./scripts/check-java4shell-fixed.sh | tee check-output.txt
+          code=${PIPESTATUS[0]}
+          set -e
+          echo "code=$code" >> "$GITHUB_OUTPUT"
+          case "$code" in
+            0)  echo "All production images are fixed." ;;
+            10) echo "Still pending — the workaround flag stays in place." ;;
+            *)  echo "::error::check-java4shell-fixed.sh broke (exit $code) — see output above."
+                exit 1 ;;
+          esac
+
+      - name: Open the follow-up issue (once)
+        if: steps.check.outputs.code == '0'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          # --state all: a closed issue with this title means the follow-up was already handled
+          # (or dismissed) — never open a second one.
+          existing=$(gh issue list --repo "$GITHUB_REPOSITORY" --state all --limit 500 \
+            --json number,title --jq "[.[] | select(.title == \"$ISSUE_TITLE\")] | length")
+          if [ "$existing" -gt 0 ]; then
+            echo "Follow-up issue already exists — not opening another."
+            exit 0
+          fi
+          {
+            echo "The daily check found a fixed JDK in every production image:"
+            echo
+            echo '```'
+            cat check-output.txt
+            echo '```'
+            echo
+            echo "Follow-up:"
+            echo
+            echo "- [ ] Pin both \`FROM\` lines in \`server/Dockerfile\` to the exact fixed version tag (not a floating tag such as \`21-jre\`)."
+            echo "- [ ] Build the image and confirm \`java -version\` inside it reports the fixed version."
+            echo "- [ ] Remove \`-XX:-UseBASE64Intrinsics\` and its comment from the \`ENTRYPOINT\` in \`server/Dockerfile\`."
+            echo "- [ ] Remove the Java4Shell note from \`DEPLOYMENT.md\`."
+            echo "- [ ] Delete \`scripts/check-java4shell-fixed.sh\` and \`.github/workflows/java4shell-image-check.yml\`."
+          } > issue-body.md
+          gh issue create --repo "$GITHUB_REPOSITORY" --title "$ISSUE_TITLE" --body-file issue-body.md

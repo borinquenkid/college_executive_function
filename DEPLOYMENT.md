@@ -153,6 +153,16 @@ still works without one. The key used to sign session cookies is auto-generated 
 persisted to `.session-secret` inside the tenant volume (a restart won't log everyone out); set
 `CEF_SESSION_SECRET` yourself if you'd rather pin it explicitly.
 
+**Java4Shell (CVE-2026-114938) — rebuild to pick up the workaround.** The server image's Java
+runtime (`eclipse-temurin:21-jre`, 21.0.13+9 as of 2026-11-18) has a heap overflow in its Base64
+decoder that an unauthenticated request can reach on x86-64 hosts with AVX-512 VBMI (Intel Ice
+Lake or later, AMD Zen 4 or later; ARM hosts are not affected). No fixed `eclipse-temurin` 21 image
+is published yet, so `server/Dockerfile` starts the JVM with `-XX:-UseBASE64Intrinsics`, which
+switches the vulnerable code path off. A server built before that change is still exposed: `git
+pull` and re-run `./scripts/setup-college-server.sh` (or `docker compose up -d --build server`).
+`scripts/check-java4shell-fixed.sh` reports whether the fixed image has landed; a daily CI job
+opens an issue when it has, and this note goes away with the flag.
+
 ## Staff console
 
 Anyone who launches CEF via LTI with an Instructor or Administrator role lands directly on

@@ -228,15 +228,19 @@ class StlccIntegrationTest : FunSpec({
         }
 
         // ── 5. Total event count is in a sane range ───────────────────────────
-        // Minimum 36 = 15 class dates + 21 graded/activity events.
+        // Minimum 35 = 15 class dates + 20 dated graded/activity events (discussion posts and
+        // replies, practices, drafts, issue briefs, planning guide, reflection, final paper).
+        // The floor was 36 while the optional Jul 29 session still counted as a 16th class date.
+        // Undated prep readings ("Read X" listed under a class day) come and go between runs
+        // (0–8 observed), so they are not part of the floor.
         // AI may split compound sessions into multiple CLASS events (+3–5 typical).
         // Over 55 means structural duplicates or hallucinated weeks are slipping through.
         withClue(
-            "Event count ${events.size} is outside expected range [36, 55].\n" +
+            "Event count ${events.size} is outside expected range [35, 55].\n" +
             "Actual breakdown: ${events.groupBy { it.category }.mapValues { it.value.size }}\n" +
             "Dates with multiple events: ${events.groupBy { it.date }.filter { it.value.size > 1 }.mapValues { it.value.size }}"
         ) {
-            events.size shouldBeGreaterThan 35
+            events.size shouldBeGreaterThan 34
             events.size shouldBeLessThan 56
         }
 

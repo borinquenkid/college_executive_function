@@ -48,8 +48,8 @@ object SourceDateGrounder {
 
     private fun patternsFor(date: LocalDate): List<Regex> {
         val y = date.year
-        val m = date.monthNumber
-        val d = date.dayOfMonth
+        val m = date.month.ordinal + 1
+        val d = date.day
         val mPad = m.toString().padStart(2, '0')
         val dPad = d.toString().padStart(2, '0')
         val monthWords = buildList {

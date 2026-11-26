@@ -14,7 +14,7 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
-import androidx.compose.material3.Divider
+import androidx.compose.material3.HorizontalDivider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
@@ -68,7 +68,7 @@ fun SyncNegotiationDialog(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
 
-                Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                 LazyColumn(
                     modifier = Modifier
@@ -120,7 +120,7 @@ fun SyncNegotiationDialog(
                     }
                 }
 
-                Divider(color = MaterialTheme.colorScheme.outlineVariant)
+                HorizontalDivider(color = MaterialTheme.colorScheme.outlineVariant)
 
                 Row(
                     modifier = Modifier.fillMaxWidth(),

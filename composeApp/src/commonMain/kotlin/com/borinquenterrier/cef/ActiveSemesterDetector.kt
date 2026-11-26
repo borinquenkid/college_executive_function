@@ -2,10 +2,12 @@ package com.borinquenterrier.cef
 
 import kotlinx.datetime.LocalDate
 
+import kotlinx.datetime.Month
+
 data class SemesterRange(val start: LocalDate, val end: LocalDate) {
-    val label: String = when (start.monthNumber) {
-        1 -> "Spring ${start.year}"
-        5 -> "Summer ${start.year}"
+    val label: String = when (start.month) {
+        Month.JANUARY -> "Spring ${start.year}"
+        Month.MAY -> "Summer ${start.year}"
         else -> "Fall ${start.year}"
     }
     operator fun contains(date: LocalDate) = date in start..end

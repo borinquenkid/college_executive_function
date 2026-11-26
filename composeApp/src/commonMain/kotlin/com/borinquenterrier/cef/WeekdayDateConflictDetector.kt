@@ -93,7 +93,7 @@ object WeekdayDateConflictDetector {
         val stated = LocalDate(c.year, c.mention.month, c.mention.day)
         val actual = stated.dayOfWeek.name.lowercase().replaceFirstChar { it.uppercase() }
         return "The source says \"${c.mention.text}\", but ${stated.month.name.lowercase().replaceFirstChar { it.uppercase() }} " +
-            "${stated.dayOfMonth}, ${c.year} is a $actual. The source contradicts itself, so this date was not guessed. " +
+            "${stated.day}, ${c.year} is a $actual. The source contradicts itself, so this date was not guessed. " +
             "Pick the correct date, or discard the event."
     }
 

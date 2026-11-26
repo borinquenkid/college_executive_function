@@ -13,7 +13,7 @@ object SemesterResolver {
      */
     fun getSemesterRange(today: LocalDate): Pair<LocalDate, LocalDate> {
         val currentYear = today.year
-        return when (today.monthNumber) {
+        return when (today.month.ordinal + 1) {
             in 8..12 -> LocalDate(currentYear, 8, 1)  to LocalDate(currentYear, 12, 31) // Fall
             in 1..5  -> LocalDate(currentYear, 1, 1)  to LocalDate(currentYear, 5, 31)  // Spring
             else     -> LocalDate(currentYear, 6, 1)  to LocalDate(currentYear, 8, 31)  // Summer
